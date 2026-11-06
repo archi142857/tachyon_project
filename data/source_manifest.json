@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "basis_year": 2026,
+  "source_kind": "local",
+  "inputs": {
+    "data/buildings.csv": "236cd173a138804a71333875004e20c67b96e25224cfe366885b70c4b64326d8",
+    "data/buildings_for_magicmap.csv": "3271bbd50ae1cffd606b8cdb33d274fc52eb54c015a57b942f5f4f42a9804b7b",
+    "data/campus_buildings.csv": "3624537aad142db532c25edcf2267fa9b190caf903d8fdf95f3ccb2e04a36882",
+    "data/dorm_buildings.csv": "502b510f8d09c722f2c311cab1bc2d082a828cada7f08a00e4d87c77a5016a31",
+    "data/history/2021-1.json": "5408620987c86a497dad2cf7e1a90b9e4b1e9904d31b4780c74be383952234d5",
+    "data/history/2021-2.json": "6ebd932920cf99f2eaf65c87ec3efa434dd9ec1f4ee8e7e22a0117b616d8a1e9",
+    "data/history/2022-1.json": "35a95427ae4092370490d3a760cf11d761fee807580401edce830ceb0e75ff62",
+    "data/history/2022-2.json": "bb84bd2907ac02296fb4381e14d7f8591ca9b24d4b6987c44d942710f61be4a8",
+    "data/history/2023-1.json": "037b6f8aa1b56545110a2d54eb4fdce8ddcd06ca11fc0070408303ed3622b1aa",
+    "data/history/2023-2.json": "adbd015e659e5eb415fc99e3167420cf7e8b43efbf4c2046c78bf9602718d01c",
+    "data/history/2024-1.json": "2e3f3816dce3581381b526a38403ffb4575628eb678a78f3203792aabdcdb67d",
+    "data/history/2024-2.json": "16275469be9c12daf969a62fe5dbe31351f54d63ef43d541bbb7cf4eccc4a082",
+    "data/history/2025-1.json": "3e351e00bb1c95f22004b08dfc4c40bf03c3f5c75cde6a331befe78c3119c691",
+    "data/history/2025-2.json": "16ef517b760686bc2febad51ae41c40763ecf85c7f9ddc9cbfbfcaf710133f76",
+    "data/history/2026-1.json": "e1a5b4399321fe5c5c2620946d0093a6cfe2d648388ff0619315c429f9d81580",
+    "data/history/2026-2.json": "d3a92ead68ee9375e8158d371ee42f4a7015245cbd834be1be3e229c211087ba",
+    "data/travel_slope.csv": "8e8f93a74d4726ef80527a6a93ba88426d0607a5b49e3ff014ddf8dfd7456e2d"
+  },
+  "semesters": [
+    "2021-1",
+    "2021-2",
+    "2022-1",
+    "2022-2",
+    "2023-1",
+    "2023-2",
+    "2024-1",
+    "2024-2",
+    "2025-1",
+    "2025-2",
+    "2026-1",
+    "2026-2"
+  ],
+  "offerings": {
+    "2021-1": {
+      "courses": 2056,
+      "sections": 3570
+    },
+    "2021-2": {
+      "courses": 2052,
+      "sections": 3510
+    },
+    "2022-1": {
+      "courses": 2054,
+      "sections": 3507
+    },
+    "2022-2": {
+      "courses": 2051,
+      "sections": 3465
+    },
+    "2023-1": {
+      "courses": 2107,
+      "sections": 3612
+    },
+    "2023-2": {
+      "courses": 2090,
+      "sections": 3504
+    },
+    "2024-1": {
+      "courses": 2119,
+      "sections": 3609
+    },
+    "2024-2": {
+      "courses": 2133,
+      "sections": 3590
+    },
+    "2025-1": {
+      "courses": 2166,
+      "sections": 3713
+    },
+    "2025-2": {
+      "courses": 2179,
+      "sections": 3630
+    },
+    "2026-1": {
+      "courses": 2205,
+      "sections": 3716
+    },
+    "2026-2": {
+      "courses": 2285,
+      "sections": 3914
+    }
+  },
+  "counts": {
+    "semesters": 12,
+    "courses": 25497,
+    "sections": 43340,
+    "walk_rows": 18090,
+    "buildings": 135,
+    "likelihood_rows": 7667
+  }
+}
