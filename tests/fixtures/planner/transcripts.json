@@ -1,0 +1,36 @@
+{
+  "animal": {
+    "example": "예시: 동물생명공학전공 2학년, 실제 학생·성적표·졸업규정이 아님",
+    "entry_year": 2025,
+    "programs": [{"name": "동물생명공학전공", "kind": "주전공"}],
+    "coverage": "partial",
+    "courses": [
+      {"code": "EXAMPLE.001", "name": "예시 생물학Ⅰ", "credits": 3, "category": "전필", "term": "2026-1", "status": "취득 완료"},
+      {"name": "예시 실험 기초", "credits": 1, "category": "전선", "term": "2026-1", "status": "수강 중"},
+      {"code": "EXAMPLE.005", "name": "예시 화학 2", "credits": 3, "category": "전필", "term": "2026-1"}
+    ]
+  },
+  "biology_double": {
+    "example": "예시: 생명과학부 복수전공, 실제 학생·성적표·졸업규정이 아님",
+    "entry_year": 2025,
+    "programs": [{"name": "예시 주전공", "kind": "주전공"}, {"name": "생명과학부", "kind": "복수전공"}],
+    "coverage": "partial",
+    "courses": [
+      {"name": "예시 생물학 (I)", "credits": 3, "category": "전필", "term": "2026-1", "status": "completed"},
+      {"name": "예시 연구입문", "credits": 2, "category": "전선", "term": "2026-1", "status": "completed"},
+      {"code": "EXAMPLE.999", "name": "예시 화학 2", "credits": 3, "category": "전필", "term": "2026-1", "status": "completed"}
+    ]
+  },
+  "chemical_double": {
+    "example": "예시: 화학생물공학부 복수전공 3학년 가상 상황, 실제 학생·성적표·졸업규정이 아님",
+    "entry_year": 2025,
+    "programs": [{"name": "예시 주전공", "kind": "주전공"}, {"name": "화학생물공학부", "kind": "복수전공"}],
+    "coverage": "partial",
+    "courses": [
+      {"code": "EXAMPLE.005", "name": "예시 화학Ⅱ", "credits": 3, "category": "전필", "term": "2026-1", "status": "completed"},
+      {"code": "EXAMPLE.005", "name": "예시 화학 2", "credits": 3, "category": "전필", "term": "2026-1", "status": "in_progress"},
+      {"code": "EXAMPLE.006", "name": "예시 공학실습", "credits": 1.5, "category": "전선", "term": "2026-1", "status": "completed"},
+      {"code": "EXAMPLE.002", "name": "예시 실험(기초)", "credits": 2, "category": "전선", "term": "2026-1", "status": "completed"}
+    ]
+  }
+}

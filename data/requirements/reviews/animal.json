@@ -1,0 +1,425 @@
+{
+  "reviewed_on": "2026-11-07",
+  "sets": [
+    {
+      "set_index": 1,
+      "summary": "주전공14항목 검토. 2025 교양최소36 확인. 전공은2022·2024자료 적용여부 및2023표 코드충돌을 보류.",
+      "items": [
+        {
+          "section": "requirements",
+          "index": 0,
+          "status": "partial",
+          "reason": "수치와 기존 적용조항을 대조했다. 2025 전공내규 변경 여부가 해결되지 않아 초안 표시 유지.",
+          "evidence": [
+            {
+              "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+              "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+              "locator": "1.가",
+              "applies_to": "2022년도 게시 기준",
+              "observed": "졸업130·교양36·주전공48을 명시."
+            },
+            {
+              "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Explanation_kor_2024.pdf",
+              "title": "2024 서울대학교 교과과정 해설",
+              "locator": "인쇄9쪽 표1 및 10쪽 경과조치·표2",
+              "applies_to": "농생대 기준은 2009학년도 입학자부터; 자료 판본2024",
+              "observed": "주전공·복수전공48, 졸업130을 확인."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 1,
+          "status": "partial",
+          "reason": "2022·2024 공식 자료가 일치한다. 최신 학과 세부내규 확인 필요.",
+          "evidence": [
+            {
+              "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Explanation_kor_2024.pdf",
+              "title": "2024 서울대학교 교과과정 해설",
+              "locator": "인쇄9쪽 표1 및 10쪽 경과조치·표2",
+              "applies_to": "농생대 기준은 2009학년도 입학자부터; 자료 판본2024",
+              "observed": "주전공·복수전공48, 졸업130을 확인."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 2,
+          "status": "conflict",
+          "reason": "15과목 목록은 2022 웹표와 대체로 일치하나 2023 웹표에 코드·이름 충돌이 있다. 2024 PDF 학점46 합계 및 2025 적용은 재확인하지 못했다. 초안 값을 수정하지 않음.",
+          "evidence": [
+            {
+              "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+              "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+              "locator": "3.가 전공 이수표준형태",
+              "applies_to": "2022년도 기준",
+              "observed": "전필 표시15과목과 권장학년·학기, 통계 과목 1회 이수 표기를 확인."
+            },
+            {
+              "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_01",
+              "title": "동물생명공학전공 학사 교육과정(2023)",
+              "locator": "학사 교육과정(2023) 3학년2학기",
+              "applies_to": "2023년도 기준",
+              "observed": "5252.405를 면역학, 5252.310A를 식품학으로 표시해 2022 표와 상충."
+            },
+            {
+              "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Undergraduate_Course_List_2024.pdf",
+              "title": "2024 서울대학교 전공별 교과목(학사과정)",
+              "locator": "인쇄79–80쪽(초안 지정 위치)",
+              "applies_to": "2024년도 판본; 2025 적용 미확인",
+              "observed": "두 번의 웹 열람이 시간 초과되어 원문 미검증."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 3,
+          "status": "partial",
+          "reason": "독립 전선 최소를 48-46으로 계산하면 안 된다. 최신 인정목록 및 논문연구 포함 기준 확인 필요.",
+          "evidence": [
+            {
+              "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+              "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+              "locator": "3.가 농생대 공통교과목 전선 인정·3.나",
+              "applies_to": "2022년도 기준",
+              "observed": "공통과목18개를 제시. 별도 전선 최소학점 숫자는 확인되지 않음."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 4,
+          "status": "partial",
+          "reason": "과목 존재·전선 구분 확인. 초안의 3학점과 졸업학기 이수 원칙, 2025 의무 적용은 2024 원문 미열람으로 미확인.",
+          "evidence": [
+            {
+              "url": "https://likesnu.snu.ac.kr/usr/course/courseDetail.do?course_cd=M1702.000400",
+              "title": "LikeSNU 강의상세: 동물생명공학논문연구",
+              "locator": "교과구분 및 강의 소개",
+              "applies_to": "최근개설2026-2; 적용학번별 졸업내규 아님",
+              "observed": "전선으로 표시되고 연구결과의 졸업논문 제출을 설명."
+            },
+            {
+              "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Undergraduate_Course_List_2024.pdf",
+              "title": "2024 서울대학교 전공별 교과목(학사과정)",
+              "locator": "인쇄79–80쪽(초안 지정 위치)",
+              "applies_to": "2024년도 판본; 2025 적용 미확인",
+              "observed": "두 번의 웹 열람이 시간 초과되어 원문 미검증."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 5,
+          "status": "partial",
+          "reason": "과거 동일관계는 확인. 2025 최신 동일대체 목록 및 적용 범위를 추가 확인.",
+          "evidence": [
+            {
+              "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+              "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+              "locator": "3.가 교과목 폐지 및 변경 규정1",
+              "applies_to": "2021학년도2학기 명칭변경, 2022년도 안내",
+              "observed": "5252.312와 M1702.000800 동일과목; 중복학점 불인정."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 6,
+          "status": "confirmed",
+          "reason": "2025 입학생 대상 공식 표에서36학점 확인.",
+          "evidence": [
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+              "title": "2025 서울대 새내기 기초교양교육과정 길잡이 — 공통교육과정 안내·이수규정",
+              "locator": "PDF31번째 페이지, 인쇄135쪽 농생대 자연계(스마트시스템과학과 제외)",
+              "applies_to": "2025학년도 입학생부터",
+              "observed": "교양36 이상, 수학6·과학8, 이론과 연습·실험 동시수강."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 7,
+          "status": "partial",
+          "reason": "수학6 및 세 가지 완결 경로·동시수강 조건 확인. 초안 F코드별 학점 대조는 미완료; 문자열 조건을 단순6학점 합산으로 처리하면 안 됨.",
+          "evidence": [
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+              "title": "2025 서울대 새내기 기초교양교육과정 길잡이 — 공통교육과정 안내·이수규정",
+              "locator": "인쇄135쪽 수학·과학·컴퓨팅",
+              "applies_to": "2025학년도 입학생부터",
+              "observed": "생명과학수학1·2, 수학1·2와 연습, 고급수학1·2와 연습 중 한 경로; 수학6학점."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 8,
+          "status": "partial",
+          "reason": "과학8 및 다섯 쌍 중 두 쌍·고급화학 대체·동시수강 확인. F코드 대조와 학과 추가 지정과목은 미확인.",
+          "evidence": [
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+              "title": "2025 서울대 새내기 기초교양교육과정 길잡이 — 공통교육과정 안내·이수규정",
+              "locator": "인쇄135쪽 수학·과학·컴퓨팅",
+              "applies_to": "2025학년도 입학생부터",
+              "observed": "물리·화학(고급화학 가능)·생물·대기·지구시스템의 이론/실험 쌍 중 두 쌍, 과학8학점."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 0,
+          "status": "partial",
+          "reason": "2022 기재를 재확인. 2025 적용은 최신 내규 확인 필요. 학생 성적값은 계산 입력에 수집하지 않음.",
+          "evidence": [
+            {
+              "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+              "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+              "locator": "1.라",
+              "applies_to": "2022년도 기준",
+              "observed": "전체·전공·다전공 평점각2.0 이상."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 1,
+          "status": "partial",
+          "reason": "2022 등록횟수 조항 확인. 수업연한 단축과 최신 예외 확인 필요.",
+          "evidence": [
+            {
+              "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+              "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+              "locator": "1.다",
+              "applies_to": "2022년도 기준",
+              "observed": "등록8회, 단축자는6회 이상;16회까지."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 2,
+          "status": "partial",
+          "reason": "공개된 적용 시작연도와 조건 확인. 2025 개정 여부 미확인.",
+          "evidence": [
+            {
+              "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+              "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+              "locator": "1.마",
+              "applies_to": "2008학년도 신입생부터, 2015년2월 졸업자부터 변경 적용",
+              "observed": "전공1개 포함 외국어진행3개; 대학영어 포함."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 3,
+          "status": "partial",
+          "reason": "논문연구의 설명 확인. 초안 논문양식 URL은 이번 도구에서 접근 실패. 제출·발표·시험대체·필수현장실습의 2025 규정은 미확인.",
+          "evidence": [
+            {
+              "url": "https://likesnu.snu.ac.kr/usr/course/courseDetail.do?course_cd=M1702.000400",
+              "title": "LikeSNU 강의상세: 동물생명공학논문연구",
+              "locator": "교과구분 및 강의 소개",
+              "applies_to": "최근개설2026-2; 적용학번별 졸업내규 아님",
+              "observed": "전선으로 표시되고 연구결과의 졸업논문 제출을 설명."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 4,
+          "status": "partial",
+          "reason": "LikeSNU 표기는 권장임을 확인. 강제 선후수조건 부재를 확정할 근거는 없음.",
+          "evidence": [
+            {
+              "url": "https://likesnu.snu.ac.kr/usr/course/courseDetail.do?course_cd=M1702.000400",
+              "title": "LikeSNU 강의상세: 동물생명공학논문연구",
+              "locator": "권장 선수과목",
+              "applies_to": "최근개설2026-2; 강제 선수규정 아님",
+              "observed": "5252.301 및 5252.302를 권장 선수로 표시."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "set_index": 2,
+      "summary": "복수전공9항목 검토.48학점·자연계 교양요구의2022근거 확인;2025적용과필수과목범위는보류.",
+      "items": [
+        {
+          "section": "requirements",
+          "index": 0,
+          "status": "partial",
+          "reason": "48학점 근거 확인. 2025 복수전공 선발연도별 변경 여부 확인 필요.",
+          "evidence": [
+            {
+              "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Explanation_kor_2024.pdf",
+              "title": "2024 서울대학교 교과과정 해설",
+              "locator": "인쇄9쪽 표1 및 10쪽 경과조치·표2",
+              "applies_to": "농생대 기준은 2009학년도 입학자부터; 자료 판본2024",
+              "observed": "주전공·복수전공48, 졸업130을 확인."
+            },
+            {
+              "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+              "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+              "locator": "1.나·3.다.1",
+              "applies_to": "2022년도 기준",
+              "observed": "복수전공48학점과 농생대 자연계 학번별 교양 충족 규정."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 1,
+          "status": "conflict",
+          "reason": "주전공 전필표의 복수전공 일괄 적용 여부가 불명확하며 코드 충돌도 있다. 참고용15과목을 의무로 판정하지 않음.",
+          "evidence": [
+            {
+              "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+              "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+              "locator": "3.가 전공 이수표준형태",
+              "applies_to": "2022년도 기준",
+              "observed": "전필 표시15과목과 권장학년·학기, 통계 과목 1회 이수 표기를 확인."
+            },
+            {
+              "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_01",
+              "title": "동물생명공학전공 학사 교육과정(2023)",
+              "locator": "학사 교육과정(2023) 3학년2학기",
+              "applies_to": "2023년도 기준",
+              "observed": "5252.405를 면역학, 5252.310A를 식품학으로 표시해 2022 표와 상충."
+            },
+            {
+              "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Undergraduate_Course_List_2024.pdf",
+              "title": "2024 서울대학교 전공별 교과목(학사과정)",
+              "locator": "인쇄79–80쪽(초안 지정 위치)",
+              "applies_to": "2024년도 판본; 2025 적용 미확인",
+              "observed": "두 번의 웹 열람이 시간 초과되어 원문 미검증."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 2,
+          "status": "partial",
+          "reason": "전선 최소 별도 숫자와 복수전공 인정범위 미확인. null 유지.",
+          "evidence": [
+            {
+              "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+              "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+              "locator": "3.가 농생대 공통교과목 전선 인정·3.나",
+              "applies_to": "2022년도 기준",
+              "observed": "공통과목18개를 제시. 별도 전선 최소학점 숫자는 확인되지 않음."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 3,
+          "status": "partial",
+          "reason": "논문연구 존재 확인. 복수전공 필수 여부·학점·졸업학기 원칙은 미확인.",
+          "evidence": [
+            {
+              "url": "https://likesnu.snu.ac.kr/usr/course/courseDetail.do?course_cd=M1702.000400",
+              "title": "LikeSNU 강의상세: 동물생명공학논문연구",
+              "locator": "교과구분 및 강의 소개",
+              "applies_to": "최근개설2026-2; 적용학번별 졸업내규 아님",
+              "observed": "전선으로 표시되고 연구결과의 졸업논문 제출을 설명."
+            },
+            {
+              "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Undergraduate_Course_List_2024.pdf",
+              "title": "2024 서울대학교 전공별 교과목(학사과정)",
+              "locator": "인쇄79–80쪽(초안 지정 위치)",
+              "applies_to": "2024년도 판본; 2025 적용 미확인",
+              "observed": "두 번의 웹 열람이 시간 초과되어 원문 미검증."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 4,
+          "status": "partial",
+          "reason": "2022 복수전공 내규는 자연계 교양 모두 충족을 명시한다. 2025 개편 이후 지속 여부와 원소속 교양과의 중복 인정 미확인.",
+          "evidence": [
+            {
+              "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+              "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+              "locator": "3.다.1",
+              "applies_to": "2022년도 기준",
+              "observed": "전공48 외 농생대 자연계 학번별 교양을 모두 충족하도록 명시."
+            },
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+              "title": "2025 서울대 새내기 기초교양교육과정 길잡이 — 공통교육과정 안내·이수규정",
+              "locator": "PDF31번째 페이지, 인쇄135쪽 농생대 자연계(스마트시스템과학과 제외)",
+              "applies_to": "2025학년도 입학생부터",
+              "observed": "교양36 이상, 수학6·과학8, 이론과 연습·실험 동시수강."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 5,
+          "status": "partial",
+          "reason": "동일관계 확인. 복수전공2025 최신 적용목록 확인 필요.",
+          "evidence": [
+            {
+              "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+              "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+              "locator": "3.가 교과목 폐지 및 변경 규정1",
+              "applies_to": "2021학년도2학기 명칭변경, 2022년도 안내",
+              "observed": "5252.312와 M1702.000800 동일과목; 중복학점 불인정."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 0,
+          "status": "partial",
+          "reason": "농생대 공통 조건 확인. 타단과대 복수전공 학생에게 적용 여부를 본문이 명시하지 않음.",
+          "evidence": [
+            {
+              "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+              "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+              "locator": "1.마",
+              "applies_to": "2008학년도 신입생부터, 2015년2월 졸업자부터 변경 적용",
+              "observed": "전공1개 포함 외국어진행3개; 대학영어 포함."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 1,
+          "status": "partial",
+          "reason": "논문연구 설명만 확인. 복수전공의 논문·시험·현장실습 세부 의무 및 대체조건 미확인.",
+          "evidence": [
+            {
+              "url": "https://likesnu.snu.ac.kr/usr/course/courseDetail.do?course_cd=M1702.000400",
+              "title": "LikeSNU 강의상세: 동물생명공학논문연구",
+              "locator": "교과구분 및 강의 소개",
+              "applies_to": "최근개설2026-2; 적용학번별 졸업내규 아님",
+              "observed": "전선으로 표시되고 연구결과의 졸업논문 제출을 설명."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 2,
+          "status": "partial",
+          "reason": "권장과 강제 이수관계를 분리해야 함. 복수전공 강제 선수규정 미확인.",
+          "evidence": [
+            {
+              "url": "https://likesnu.snu.ac.kr/usr/course/courseDetail.do?course_cd=M1702.000400",
+              "title": "LikeSNU 강의상세: 동물생명공학논문연구",
+              "locator": "권장 선수과목",
+              "applies_to": "최근개설2026-2; 강제 선수규정 아님",
+              "observed": "5252.301 및 5252.302를 권장 선수로 표시."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

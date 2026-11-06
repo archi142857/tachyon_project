@@ -1,0 +1,175 @@
+{
+  "reviewed_on": "2026-11-07",
+  "sets": [
+    {
+      "set_index": 0,
+      "summary": "세 소속 공통 교양을 검토. 소속별 조건과 개인 예외를 유지한다.",
+      "items": [
+        {
+          "section": "requirements",
+          "index": 0,
+          "status": "confirmed",
+          "reason": "본부의 교양 하한 확인. 소속별 상향 기준을 동시에 적용해야 한다.",
+          "evidence": [
+            {
+              "url": "https://snu.ac.kr/academics/resources/enrollment/requirement",
+              "title": "학위취득(수료)",
+              "locator": "학사과정 졸업 > 졸업사정대상 및 기준",
+              "applies_to": "현행 공통 기준, 대학별 기준 병행",
+              "observed": "교양36·총130, 등록6회, 평점2.0, 필수·논문 및 신청 절차 확인."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 1,
+          "status": "partial",
+          "reason": "필수 및 번호 대응 확인. 자연대 권장학기 자료 간 차이는 해소하지 못함. 권장학기는 졸업 의무가 아니다.",
+          "evidence": [
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+              "title": "2025 새내기 길잡이 공통교육과정 이수규정",
+              "locator": "인쇄110–111,131,135 / PDF6–7,27,31쪽",
+              "applies_to": "2025학년도 입학생부터",
+              "observed": "세 소속의 글쓰기·외국어·교양 영역 표를 대조함. 소속에 따른 조건 분기 필요."
+            },
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2025/07/★2025학년도-2학기-기초교양-수강편람배포_20250729.pdf",
+              "title": "2025학년도 2학기 기초교양 수강편람",
+              "locator": "글쓰기 안내 및 부록: PDF244,248쪽(부록57,61쪽)",
+              "applies_to": "2025학년도 교과목 체계",
+              "observed": "글쓰기의 구·신 번호 대응과 역수강·동시수강 제한 확인."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 2,
+          "status": "partial",
+          "reason": "소속별 글쓰기2 선택 범위와 동시수강 금지 확인. 세 과목 중 아무 하나라는 공통 조건만으로 생명과학·화생을 판정하면 안 된다. 과목별 2학점 및 선수 조건의 전체 원문 대조는 남음.",
+          "evidence": [
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+              "title": "2025 새내기 길잡이 공통교육과정 이수규정",
+              "locator": "인쇄110–111,131,135 / PDF6–7,27,31쪽",
+              "applies_to": "2025학년도 입학생부터",
+              "observed": "세 소속의 글쓰기·외국어·교양 영역 표를 대조함. 소속에 따른 조건 분기 필요."
+            },
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2025/07/★2025학년도-2학기-기초교양-수강편람배포_20250729.pdf",
+              "title": "2025학년도 2학기 기초교양 수강편람",
+              "locator": "글쓰기 안내 및 부록: PDF244,248쪽(부록57,61쪽)",
+              "applies_to": "2025학년도 교과목 체계",
+              "observed": "글쓰기의 구·신 번호 대응과 역수강·동시수강 제한 확인."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 3,
+          "status": "confirmed",
+          "reason": "외국어 두 과목과 영어 필수 조건을 세 소속 표에서 확인. 개인별 면제·수준 판정은 별도.",
+          "evidence": [
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+              "title": "2025 새내기 길잡이 공통교육과정 이수규정",
+              "locator": "인쇄110–111,131,135 / PDF6–7,27,31쪽",
+              "applies_to": "2025학년도 입학생부터",
+              "observed": "세 소속의 글쓰기·외국어·교양 영역 표를 대조함. 소속에 따른 조건 분기 필요."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 4,
+          "status": "confirmed",
+          "reason": "외국어 6학점은 과목수 조건과 함께 적용.",
+          "evidence": [
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+              "title": "2025 새내기 길잡이 공통교육과정 이수규정",
+              "locator": "인쇄110–111,131,135 / PDF6–7,27,31쪽",
+              "applies_to": "2025학년도 입학생부터",
+              "observed": "세 소속의 글쓰기·외국어·교양 영역 표를 대조함. 소속에 따른 조건 분기 필요."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 5,
+          "status": "confirmed",
+          "reason": "소속별 영역 배분을 확인. 단순 총9학점만으로 판정 불가.",
+          "evidence": [
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+              "title": "2025 새내기 길잡이 공통교육과정 이수규정",
+              "locator": "인쇄110–111,131,135 / PDF6–7,27,31쪽",
+              "applies_to": "2025학년도 입학생부터",
+              "observed": "세 소속의 글쓰기·외국어·교양 영역 표를 대조함. 소속에 따른 조건 분기 필요."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 6,
+          "status": "partial",
+          "reason": "공통 베리타스3학점 확인. 생명과학부의 1과목 필수라는 세부 문구는 이 공통 표만으로 확정하지 않음.",
+          "evidence": [
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+              "title": "2025 새내기 길잡이 공통교육과정 이수규정",
+              "locator": "인쇄110–111,131,135 / PDF6–7,27,31쪽",
+              "applies_to": "2025학년도 입학생부터",
+              "observed": "세 소속의 글쓰기·외국어·교양 영역 표를 대조함. 소속에 따른 조건 분기 필요."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 0,
+          "status": "partial",
+          "reason": "2025 네 영역 체계 확인. 2024 이전 경과조치와 다른 소속 범위는 이번 공통 검토로 확정하지 않음.",
+          "evidence": [
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+              "title": "2025 새내기 길잡이 공통교육과정 이수규정",
+              "locator": "인쇄110–111,131,135 / PDF6–7,27,31쪽",
+              "applies_to": "2025학년도 입학생부터",
+              "observed": "세 소속의 글쓰기·외국어·교양 영역 표를 대조함. 소속에 따른 조건 분기 필요."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 1,
+          "status": "confirmed",
+          "reason": "본부 공통 졸업 기준 확인. 성적은 저장소 정책상 계산하지 않으며 학생이 학과에서 확인해야 함.",
+          "evidence": [
+            {
+              "url": "https://snu.ac.kr/academics/resources/enrollment/requirement",
+              "title": "학위취득(수료)",
+              "locator": "학사과정 졸업 > 졸업사정대상 및 기준",
+              "applies_to": "현행 공통 기준, 대학별 기준 병행",
+              "observed": "교양36·총130, 등록6회, 평점2.0, 필수·논문 및 신청 절차 확인."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 2,
+          "status": "partial",
+          "reason": "편람에 영어·수학 수준별 수강 안내가 존재함. 개인별 예외·시험 기준을 전수 검증하지 않았으므로 수강 가능 확정 금지.",
+          "evidence": [
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2025/07/★2025학년도-2학기-기초교양-수강편람배포_20250729.pdf",
+              "title": "2025학년도 2학기 기초교양 수강편람",
+              "locator": "목차 V 및 인쇄137–145쪽",
+              "applies_to": "2025학년도",
+              "observed": "수준별 영어·수학 수강 안내 절 존재 확인."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

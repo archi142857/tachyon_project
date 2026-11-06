@@ -1,0 +1,497 @@
+{
+  "type": "object",
+  "required": [
+    "basis",
+    "sets",
+    "schema_version",
+    "provenance"
+  ],
+  "properties": {
+    "basis": {
+      "type": "object",
+      "required": [
+        "entry_year",
+        "checked_on"
+      ],
+      "properties": {
+        "entry_year": {
+          "const": 2025
+        },
+        "checked_on": {
+          "const": "2026-11-05"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/set"
+      },
+      "minItems": 7,
+      "maxItems": 7
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "source_file",
+        "sha256",
+        "original_prompt_status"
+      ],
+      "properties": {
+        "source_file": {
+          "const": "source/snu_2025_graduation_requirements.json"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "original_prompt_status": {
+          "const": "not_available"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "2025 졸업요건 검토 자료",
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": [
+        "title",
+        "url",
+        "locator"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https://([a-zA-Z0-9-]+\\.)*snu\\.ac\\.kr/"
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "title",
+        "url",
+        "locator",
+        "applies_to",
+        "observed"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https://([a-zA-Z0-9-]+\\.)*snu\\.ac\\.kr/"
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "applies_to": {
+          "type": "string",
+          "minLength": 1
+        },
+        "observed": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "review": {
+      "type": "object",
+      "required": [
+        "status",
+        "reason",
+        "evidence",
+        "reviewed_on"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "confirmed",
+            "partial",
+            "unverified",
+            "conflict"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          },
+          "minItems": 0
+        },
+        "reviewed_on": {
+          "const": "2026-11-07"
+        }
+      },
+      "additionalProperties": false
+    },
+    "calculation": {
+      "type": "object",
+      "required": [
+        "mode",
+        "reason",
+        "selector"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "course_list",
+            "manual_review"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "codes"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "course_codes",
+                "manual"
+              ]
+            },
+            "codes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Z]?[0-9]+\\.[0-9]+[A-Z]?$"
+              },
+              "minItems": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "course": {
+      "type": "object",
+      "required": [
+        "code",
+        "name",
+        "credits",
+        "year",
+        "term"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z]?[0-9]+\\.[0-9]+[A-Z]?$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "credits": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 30
+        },
+        "year": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 6
+        },
+        "term": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 2
+        }
+      },
+      "additionalProperties": false
+    },
+    "requirement": {
+      "type": "object",
+      "required": [
+        "name",
+        "rule",
+        "min_credits",
+        "min_count",
+        "courses",
+        "course_filter",
+        "prerequisites",
+        "equivalents",
+        "sources",
+        "needs_check",
+        "note",
+        "id",
+        "original_pointer",
+        "draft_needs_check",
+        "review",
+        "calculation"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule": {
+          "enum": [
+            "all",
+            "min_credits",
+            "min_count"
+          ]
+        },
+        "min_credits": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 300
+        },
+        "min_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 200
+        },
+        "courses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/course"
+          },
+          "minItems": 0
+        },
+        "course_filter": {
+          "type": "string"
+        },
+        "prerequisites": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "course",
+              "requires"
+            ],
+            "properties": {
+              "course": {
+                "type": "string",
+                "minLength": 1
+              },
+              "requires": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "minItems": 0
+        },
+        "equivalents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "course",
+              "accepted"
+            ],
+            "properties": {
+              "course": {
+                "type": "string",
+                "minLength": 1
+              },
+              "accepted": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1
+              }
+            },
+            "additionalProperties": false
+          },
+          "minItems": 0
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/source"
+          },
+          "minItems": 0
+        },
+        "needs_check": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "original_pointer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "draft_needs_check": {
+          "type": "boolean"
+        },
+        "review": {
+          "$ref": "#/$defs/review"
+        },
+        "calculation": {
+          "$ref": "#/$defs/calculation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "condition": {
+      "type": "object",
+      "required": [
+        "name",
+        "detail",
+        "sources",
+        "needs_check",
+        "id",
+        "original_pointer",
+        "draft_needs_check",
+        "review",
+        "calculation"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/source"
+          },
+          "minItems": 0
+        },
+        "needs_check": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "original_pointer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "draft_needs_check": {
+          "type": "boolean"
+        },
+        "review": {
+          "$ref": "#/$defs/review"
+        },
+        "calculation": {
+          "$ref": "#/$defs/calculation"
+        }
+      },
+      "additionalProperties": false
+    },
+    "set": {
+      "type": "object",
+      "required": [
+        "name",
+        "kind",
+        "unit",
+        "applies_to",
+        "total_credits",
+        "requirements",
+        "other_conditions",
+        "id"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "교양",
+            "주전공",
+            "복수전공"
+          ]
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "applies_to": {
+          "type": "string",
+          "minLength": 1
+        },
+        "total_credits": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 300
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/requirement"
+          },
+          "minItems": 1
+        },
+        "other_conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          },
+          "minItems": 0
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

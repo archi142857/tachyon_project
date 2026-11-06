@@ -1,0 +1,685 @@
+{
+  "reviewed_on": "2026-11-07",
+  "sets": [
+    {
+      "set_index": 3,
+      "summary": "주전공 기본학점·필수과목·연구 참여 규정 확인. 복합조건 기계화, 권장학기 및 일부 인정 관계는 확인 필요.",
+      "items": [
+        {
+          "section": "requirements",
+          "index": 0,
+          "status": "confirmed",
+          "reason": "46학점 기준 확인.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 졸업학점 표",
+              "applies_to": "2025학번",
+              "observed": "교양46."
+            },
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+              "title": "2025학년도 단과대학별 공통교육과정 이수규정",
+              "locator": "인쇄110쪽 / PDF6쪽",
+              "applies_to": "2025학번",
+              "observed": "자연대 교양46."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 1,
+          "status": "confirmed",
+          "reason": "단일60/다전공병행39의 조건 분기를 확인. min_credits=60을 모든 주전공생에게 적용하면 안 됨.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 전공 교과목 이수",
+              "applies_to": "2025학번",
+              "observed": "단일60, 병행39."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 2,
+          "status": "partial",
+          "reason": "6개 중 4개·12학점과 동일과목 지정은 확인. 학년은 현행 교과목안내와 일치하나 2025학번 전용 권장학기는 확인하지 못함.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 주전공 필수 / 복수전공 필수",
+              "applies_to": "2025학번",
+              "observed": "6개 선택군과 12학점 일치."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate?page=2",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "2쪽 유전학·생화학·세포생물학·분자생물학 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "코드·학점·학년 대조."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "1쪽 생태학 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "3346.415, 3학점, 2학년."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/board/notice?bbsidx=24199&bm=v",
+              "title": "생명과학부 교과목명 변경 안내(학부)",
+              "locator": "2025-02-04 변경 전/후 표 및 동일 교과목 문단",
+              "applies_to": "2025학년도 1학기 이후",
+              "observed": "생화학·미생물학 신구 번호가 동일과목으로 지정됨."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 3,
+          "status": "confirmed",
+          "reason": "코드·1학점·4학년 및 선수 참여 조합, 마지막 학기 병행 예외를 확인. term=null은 미지정으로 보존.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 학위논문연구 설명 및 졸업논문 제출규정",
+              "applies_to": "2025학번",
+              "observed": "선수 참여와 병행 예외 명시."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate?page=3",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "3쪽 생명과학학위논문연구 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "3346.412A, 1학점, 4학년."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/board/notice?bbsidx=24150&bm=v&page=1",
+              "title": "생명과학연구실습 및 자연대 인턴십 관련 수강 변경 사항",
+              "locator": "2025-01-10 수강 기준 1~3",
+              "applies_to": "2025학번",
+              "observed": "실습2 또는 실습1+인턴1; 동학기 실습·인턴 중복 불가."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 4,
+          "status": "confirmed",
+          "reason": "단일47/병행26의 조건 분기를 확인.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 전공 교과목 이수",
+              "applies_to": "2025학번",
+              "observed": "전선47 또는26."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 5,
+          "status": "confirmed",
+          "reason": "필수 전선 세 과목의 코드·2+2+1학점·학년 및 특수연구 동시수강 허용을 확인.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 주전공/복수전공 전선(필수)",
+              "applies_to": "2025학번",
+              "observed": "필수 전선 세 과목 일치."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "1쪽 전공실험1·2 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "실험은 각 2학점·2학년."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate?page=2",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "2쪽 특수연구1 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "3346.328, 1학점·3학년."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/board/notice?bbsidx=24150&bm=v&page=1",
+              "title": "생명과학연구실습 및 자연대 인턴십 관련 수강 변경 사항",
+              "locator": "2025학번만 해당하는 사항",
+              "applies_to": "2025학번",
+              "observed": "특수연구1 선수 추가; 실습과 동시수강 허용."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 6,
+          "status": "partial",
+          "reason": "세 분야 배분과 전필·전선 중복 금지는 확인. 분야표의 조직세포학과 현행 조직줄기세포학 간 동일·대체 인정은 확인되지 않음. 빈 courses와 자연어 filter만으로 복합조건 판정 금지.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 표1 및 부가설명",
+              "applies_to": "2025학번",
+              "observed": "세 분야·4과목·12학점; 전필 배정 과목 제외."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate?page=2",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "2쪽 조직줄기세포학 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "M1410.005100 존재; 3346.208A와 인정 관계 미표시."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/board/notice?bbsidx=24199&bm=v",
+              "title": "생명과학부 교과목명 변경 안내(학부)",
+              "locator": "미생물학1·2 변경 전/후 표",
+              "applies_to": "2025학년도 1학기 이후",
+              "observed": "3346.207A/3346.322A의 새 번호 일치."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 7,
+          "status": "confirmed",
+          "reason": "실습 최소1회는 전체 조건의 일부. 두 참여 조합·시기·선수 조건을 함께 평가해야 함. 실습 코드와 학점은 현행 안내와 일치.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/board/notice?bbsidx=24150&bm=v&page=1",
+              "title": "생명과학연구실습 및 자연대 인턴십 관련 수강 변경 사항",
+              "locator": "변경 규정 / 수강 기준 / 2025학번 선수과목",
+              "applies_to": "2025학번",
+              "observed": "인턴만2회 불가; 실습 정규학기 개설."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 연구실습 신청·수강 설명",
+              "applies_to": "2025학번",
+              "observed": "서로 다른 교과목번호 사용."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate?page=2",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "2쪽 연구실습1·2 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "3346.324/3346.414, 각2학점·3학년."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate?page=3",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "3쪽 연구실습3·4 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "3346.325A/3346.329A, 각2학점·4학년."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 8,
+          "status": "confirmed",
+          "reason": "4과목·8학점, 이론·실험 동시수강과 단학기 대체불가 확인. 새 번호는 현행 안내와 대조.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 주전공 지정 교양",
+              "applies_to": "2025학번",
+              "observed": "생물학1·2 및 실험 필수."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "1쪽 생물학1·2 및 실험1·2 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "F35.104/105 각3, F35.104L/105L 각1."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 9,
+          "status": "partial",
+          "reason": "24학점 자체는 확인. 수학6+과학16만으로 부족한2학점을 어떤 목록에서 채우는지 추가확인 필요.",
+          "evidence": [
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+              "title": "2025학년도 단과대학별 공통교육과정 이수규정",
+              "locator": "인쇄110쪽 / PDF6쪽 수학·과학·컴퓨팅",
+              "applies_to": "2025학번",
+              "observed": "영역24학점."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 10,
+          "status": "partial",
+          "reason": "세 경로 및 생명과학 수학 대체 가능성 확인. F31 코드별 학점은 이번 검토에서 편람으로 재확인하지 못함. 학부 웹의 미적분학2 조합 학점 표기에 오기가 있어 원문 유지.",
+          "evidence": [
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+              "title": "2025학년도 단과대학별 공통교육과정 이수규정",
+              "locator": "인쇄110~111쪽 / PDF6~7쪽",
+              "applies_to": "2025학번",
+              "observed": "수학 세 경로; 생명과학을 위한 수학 허용."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 수학·과학·컴퓨팅",
+              "applies_to": "2025학번",
+              "observed": "6/8학점 설명과 개별 합계 표기 불일치."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 11,
+          "status": "confirmed",
+          "reason": "이론12·실험포함16 및 목록·동시수강·통계 중복제한 확인.",
+          "evidence": [
+            {
+              "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+              "title": "2025학년도 단과대학별 공통교육과정 이수규정",
+              "locator": "인쇄110~111쪽 / PDF6~7쪽 과학 목록과 비고",
+              "applies_to": "2025학번",
+              "observed": "과학16 안에 지정 생물학 포함."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 0,
+          "status": "confirmed",
+          "reason": "논문 종류·발표·수강·별도 신청을 확인.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 졸업논문 제출규정 및 학위논문연구 신청",
+              "applies_to": "2025학번",
+              "observed": "논문·발표 절차 명시."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 1,
+          "status": "partial",
+          "reason": "전공 2.0과 등록6회는 확인. 페이지 상단 전체평점 문구가 '0이상'으로 훼손되어 전체평점2.0은 본부 규정으로 별도 교차확인 필요.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 졸업이수학점과 전공 교과목 이수",
+              "applies_to": "2025학번",
+              "observed": "평점 문구 불일치; 본부 근거 필요."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 2,
+          "status": "partial",
+          "reason": "20학점과 대학원6학점·승인절차는 확인. 상한 포함관계 및 복수전공 적용범위는 여전히 불명확.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 자연과학대학 개설 교과목 인정 문단",
+              "applies_to": "2025학번",
+              "observed": "20/6학점과 교과구분·사전승인."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 3,
+          "status": "unverified",
+          "reason": "이번 검토에서 2025학번 전용 이수표준형태 원문을 확보하지 못함. 현행 안내 학년을 2025 권장학기로 확장하지 않음.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate?page=2",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "현행 학년별 목록",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "학년만 제공; 학기 미표시."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 4,
+          "status": "unverified",
+          "reason": "공개 페이지에 항목이 보이지 않는 사실로 의무가 없다고 판정할 수 없음. 학부 확인 필요.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 전체",
+              "applies_to": "2025학번",
+              "observed": "검토 범위에 별도 시험·현장실습 조건 미확인."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 5,
+          "status": "confirmed",
+          "reason": "주전공1 포함3개·영어과목 포함/제외 범위 확인. 실제 강좌 진행언어는 별도 자료 필요.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 영어진행강좌",
+              "applies_to": "2025학번",
+              "observed": "대학·고급영어 포함, 기초영어 제외."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "set_index": 4,
+      "summary": "복수전공39학점과 지정교양 해제 확인. 분야별 배분·참여조건은 단순 학점/개수만으로 판정 불가.",
+      "items": [
+        {
+          "section": "requirements",
+          "index": 0,
+          "status": "confirmed",
+          "reason": "입학학번 기준39학점 확인.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 복수전공 교과목 이수",
+              "applies_to": "2025학번",
+              "observed": "전필13+전선26."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 1,
+          "status": "partial",
+          "reason": "6개 중 4개·12학점과 동일과목 지정은 확인. 학년은 현행 교과목안내와 일치하나 2025학번 전용 권장학기는 확인하지 못함. 복수전공 표에는 분자생물학 번호가 00.319로 보이나 주전공 표·교과목안내의 300.319와 대조해 초안 번호를 유지.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 주전공 필수 / 복수전공 필수",
+              "applies_to": "2025학번",
+              "observed": "6개 선택군과 12학점 일치."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate?page=2",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "2쪽 유전학·생화학·세포생물학·분자생물학 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "코드·학점·학년 대조."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "1쪽 생태학 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "3346.415, 3학점, 2학년."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/board/notice?bbsidx=24199&bm=v",
+              "title": "생명과학부 교과목명 변경 안내(학부)",
+              "locator": "2025-02-04 변경 전/후 표 및 동일 교과목 문단",
+              "applies_to": "2025학년도 1학기 이후",
+              "observed": "생화학·미생물학 신구 번호가 동일과목으로 지정됨."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 2,
+          "status": "confirmed",
+          "reason": "코드·1학점·4학년 및 선수 참여 조합, 마지막 학기 병행 예외를 확인. term=null은 미지정으로 보존.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 학위논문연구 설명 및 졸업논문 제출규정",
+              "applies_to": "2025학번",
+              "observed": "선수 참여와 병행 예외 명시."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate?page=3",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "3쪽 생명과학학위논문연구 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "3346.412A, 1학점, 4학년."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/board/notice?bbsidx=24150&bm=v&page=1",
+              "title": "생명과학연구실습 및 자연대 인턴십 관련 수강 변경 사항",
+              "locator": "2025-01-10 수강 기준 1~3",
+              "applies_to": "2025학번",
+              "observed": "실습2 또는 실습1+인턴1; 동학기 실습·인턴 중복 불가."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 3,
+          "status": "confirmed",
+          "reason": "26학점 기준 확인.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 복수전공 교과목 이수",
+              "applies_to": "2025학번",
+              "observed": "전선26."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 4,
+          "status": "confirmed",
+          "reason": "필수 전선 세 과목의 코드·2+2+1학점·학년 및 특수연구 동시수강 허용을 확인.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 주전공/복수전공 전선(필수)",
+              "applies_to": "2025학번",
+              "observed": "필수 전선 세 과목 일치."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "1쪽 전공실험1·2 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "실험은 각 2학점·2학년."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate?page=2",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "2쪽 특수연구1 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "3346.328, 1학점·3학년."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/board/notice?bbsidx=24150&bm=v&page=1",
+              "title": "생명과학연구실습 및 자연대 인턴십 관련 수강 변경 사항",
+              "locator": "2025학번만 해당하는 사항",
+              "applies_to": "2025학번",
+              "observed": "특수연구1 선수 추가; 실습과 동시수강 허용."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 5,
+          "status": "partial",
+          "reason": "세 분야 배분과 전필·전선 중복 금지는 확인. 분야표의 조직세포학과 현행 조직줄기세포학 간 동일·대체 인정은 확인되지 않음. 빈 courses와 자연어 filter만으로 복합조건 판정 금지.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 표1 및 부가설명",
+              "applies_to": "2025학번",
+              "observed": "세 분야·4과목·12학점; 전필 배정 과목 제외."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate?page=2",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "2쪽 조직줄기세포학 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "M1410.005100 존재; 3346.208A와 인정 관계 미표시."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/board/notice?bbsidx=24199&bm=v",
+              "title": "생명과학부 교과목명 변경 안내(학부)",
+              "locator": "미생물학1·2 변경 전/후 표",
+              "applies_to": "2025학년도 1학기 이후",
+              "observed": "3346.207A/3346.322A의 새 번호 일치."
+            }
+          ]
+        },
+        {
+          "section": "requirements",
+          "index": 6,
+          "status": "confirmed",
+          "reason": "실습 최소1회는 전체 조건의 일부. 두 참여 조합·시기·선수 조건을 함께 평가해야 함. 실습 코드와 학점은 현행 안내와 일치.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/board/notice?bbsidx=24150&bm=v&page=1",
+              "title": "생명과학연구실습 및 자연대 인턴십 관련 수강 변경 사항",
+              "locator": "변경 규정 / 수강 기준 / 2025학번 선수과목",
+              "applies_to": "2025학번",
+              "observed": "인턴만2회 불가; 실습 정규학기 개설."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 연구실습 신청·수강 설명",
+              "applies_to": "2025학번",
+              "observed": "서로 다른 교과목번호 사용."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate?page=2",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "2쪽 연구실습1·2 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "3346.324/3346.414, 각2학점·3학년."
+            },
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate?page=3",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "3쪽 연구실습3·4 행",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "3346.325A/3346.329A, 각2학점·4학년."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 0,
+          "status": "confirmed",
+          "reason": "논문 종류·발표·수강·별도 신청을 확인.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 졸업논문 제출규정 및 학위논문연구 신청",
+              "applies_to": "2025학번",
+              "observed": "논문·발표 절차 명시."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 1,
+          "status": "confirmed",
+          "reason": "복수전공 평점2.0 확인. 전체학위요건은 소속 주전공 자료와 대조할 대상.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 복수전공 교과목 이수",
+              "applies_to": "2025학번",
+              "observed": "복수전공 평점2.0."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 2,
+          "status": "partial",
+          "reason": "20학점과 대학원6학점·승인절차는 확인. 상한 포함관계 및 복수전공 적용범위는 여전히 불명확.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 > 자연과학대학 개설 교과목 인정 문단",
+              "applies_to": "2025학번",
+              "observed": "20/6학점과 교과구분·사전승인."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 3,
+          "status": "unverified",
+          "reason": "이번 검토에서 2025학번 전용 이수표준형태 원문을 확보하지 못함. 현행 안내 학년을 2025 권장학기로 확장하지 않음.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/subject/undergraduate?page=2",
+              "title": "생명과학부 학부 교과목안내",
+              "locator": "현행 학년별 목록",
+              "applies_to": "현행 교과목안내; 적용 학번 미표시",
+              "observed": "학년만 제공; 학기 미표시."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 4,
+          "status": "unverified",
+          "reason": "공개 페이지에 항목이 보이지 않는 사실로 의무가 없다고 판정할 수 없음. 학부 확인 필요.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/academics/curriculum/undergraduate",
+              "title": "생명과학부 학부 교과과정",
+              "locator": "2025~2026학번 전체",
+              "applies_to": "2025학번",
+              "observed": "검토 범위에 별도 시험·현장실습 조건 미확인."
+            }
+          ]
+        },
+        {
+          "section": "other_conditions",
+          "index": 5,
+          "status": "confirmed",
+          "reason": "2025년8월 졸업부터 모든 복수전공생 지정교양 해제를 확인. 자유전공 주전공생은 제외.",
+          "evidence": [
+            {
+              "url": "https://biosci.snu.ac.kr/board/notice?bbsidx=24152&bm=v&page=1",
+              "title": "생물학 1·2 교양 필수 해제 공지",
+              "locator": "2025-01-13 공지 본문",
+              "applies_to": "2025-1학기 졸업부터 모든 생명과학부 복수전공생",
+              "observed": "생물학·실험 필수 해제."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
