@@ -1,6 +1,6 @@
 # Project / Backend / Planner 인수인계
 
-**최신 상태: 2026-11-07 작업 2-C 구현·검증 완료.** 아래 2-B 기록은 당시 이력이며 최신 결과·다음 담당은 문서 끝의 2-C 후속절을 따른다.
+**최신 상태: 2026-11-07 작업 3 후보·시간표·동선 구현·검증 완료.** 아래 2-B·2-C 기록은 당시 이력이며 최신 결과·다음 담당은 문서 끝의 작업 3절을 따른다. 2-B·2-C는 Concept이 `09b4ecf`로 통합한 범위이고 작업 3은 이번 미커밋 변경이다.
 
 확인일: 2026-11-07. 기준 커밋: `3cfb97d179e8eaab062bcded48501ac61f7bf957`. 이번 산출물은 미커밋 상태다. 기존 공통 문서·다른 담당 변경은 보존했다.
 
@@ -121,3 +121,65 @@ Planner는 git add/commit/push를 수행하지 않았다. Concept이 사용자 �
 **다음 담당: Project / Concept — 통합 진행 중, 완료 보고로 자동 연결.** 입력은 이 인수인계와 위 포함 파일·검증 결과다. 할 일은 담당별 결과를 통합 검토하고 승인된 커밋·푸시를 수행한 뒤 다음 배정을 확정하는 것이다. 완료 기준은 통합 전체 테스트 통과, 공개 불필요 정보 제외, 미완료를 완료로 표시하지 않는 기록, 실제 Git 결과 확인이다. 완료 보고 원문은 [08](../../prompts/Backend-Planner-08-완료보고.md)에 둔다. Planner는 보고 후 담당 파일 쓰기를 멈추고 통합 완료 통지까지 대기한다. 사용자가 같은 요청을 다시 전달할 필요는 없다.
 
 미실행 다음 기능 제안: 통합 후 Project / Backend / Planner가 작업 3의 후보 과목·시간표·동선을 담당한다. 입력은 이 판정 결과, 개설 자료·방향별 이동시간·학생 조건이며, 시간 겹침 금지·불명확한 강의실/미래 개설 표시·실제 가능한 안과 불가 이유를 독립 검증하는 것이 완료 기준이다. 이번 2-C 완료를 시간표 기능 완료로 세지 않는다.
+
+## 작업 3 후속 — 후보·시간표·동선 구현 완료
+
+확인일 2026-11-07. 시작 기준 `09b4ecfca363ff3c28e0be24cf244f246180b868`. Concept이 첫 통합을 마치고 작업 3을 실제 배정했다([09 원문](../../prompts/Backend-Planner-09-작업3-배정.md)). 사용자 직접 입력 01·02와 이후 AI 배정·보고를 구분한다. 현재까지 자료 준비·2-B 정리·2-C 제한된 목록 대조·작업 3 로컬 계산을 구현했다. 실제 GPT·학교 연결·전체 졸업 사정은 완료 범위가 아니다.
+
+### 구현과 입출력
+
+- [courses.py](../../planner/courses.py)의 `build_candidates(payload, offerings, *, target_term, preferences=None, requirements_path=...)`는 2-B·2-C를 다시 실행하고 확정 남음/참고 후보를 분리한다. 취득·수강 중·미확인·반복 과목은 명시 선택해도 재추천하지 않는다. 고정 1.0의 수동85항목은 자동 후보로 해석하지 않는다.
+- [timetable.py](../../planner/timetable.py)의 `search_timetables(candidate_result, walk_rows, *, top_k=3)`는 과목 부분집합과 과목당 분반1개를 고르고 모든 회의쌍을 검사한다. 학점·필수과목·피하는 요일/시간을 지킨다. 최대3개의 서로 다른 실제 안과 0~2개인 이유·제외 분반·탐색 한도를 반환한다.
+- [report.py](../../planner/report.py)의 `recommend_timetables(payload, offerings, walk_rows, *, target_term, preferences=None, requirements_path=...)`는 위 두 단계와 `build_report`를 연결해 `{json, markdown}`을 반환한다. 계획 링크는 `json.plans[].tt_link`. `encode_timetable_link/decode_timetable_link`는 TT j/z 형식의 과목 링크를 생성·복원한다.
+- [계약 v1](../../planner/timetable_format.md)에 조건 기본값, 후보·목표·계획·경로·오류를 명시했다. 기본15~18학점/집919A이며 과목을 임의 추가해 목표학점을 채우지 않는다. 조건 형식 오류는 [공통 오류](../../planner/planning_types.py)의 `PlanningValidationError.errors`, 이수·규정 오류는 기존 각 오류형을 유지한다. CLI는 `--transcript --offerings --walk --target-term --preferences --format`을 받고 파일/검증 오류 시 종료2와 고정 오류 JSON을 반환한다.
+- 출처는 요건 ID별 문서·URL·조항으로 보존한다. 후보의 선수 미확인·다전공 인정 보류·규정학점 충돌·개설 이력 누락 경고가 선택 분반→계획→JSON·Markdown에 남는다. 현 1.0에는 자동 검증할 선수 관계가 없으므로 모두 unknown이다. 참고 후보 포함은 요건 인정·수강 자격의 확정이 아니다.
+- 목표학기 자료가 없으면 정확히 전년도 같은 학기의 분반만 예상으로 사용한다. 2027-1의 빈도창은 2022~2026이며 권장학년 `target_year=2`와 무관하다. 자료가 없는 해를 별도로 표시하고 확률이라고 부르지 않는다. 예상 링크는 실제 source_term을 열고 제목·본문에 target_term 예상임을 표시한다.
+
+TT 원본 기준은 `693fe91649e3aa6cf0ac244a67d38e259fe62ff2`. 허용된 TT 저장소만 읽었고 이식 코드 머리에 경로·커밋·MIT를 기록했다. 교수 정보는 복사하지 않았다. 기존 LICENSE를 유지했다.
+
+### 이동 계산의 확정·보류 경계
+
+집→그날 수업들→집을 방향별 이동표로 계산한다. 비용은 주간걷기+2×연강 부족분이다. 역방향을 대체하지 않으며 비용 가지치기는 사용하지 않는다(방향표의 삼각부등식을 가정할 수 없기 때문). 건물 미정 또는 방향표 누락은 해당 구간과 전체 걷기·부족·비용을 null로 두고 알려진 인접 구간만 known_*에 더한다. 미정 수업을 건너뛰어 가상의 도착 가능을 만들지 않는다. 건물만 확인된 경우 건물간 계산과 방 미정·실내 이동 제외 경고를 함께 표시한다.
+
+시간이 맞닿으면 겹침은 아니지만 이동 부족이 생길 수 있다. 실습 한 회의만 겹쳐도 조합 전체를 제외한다. 학점 충돌 참고 과목을 배치해도 원래 all 목록의 의무를 지우거나 목표를 채웠다고 판정하지 않는다. 계획상 배치와 실제 취득을 구분한다. 탐색 한도에 도달하면 실제 찾은 안만 제시하고 전역 최적·불가능을 확정하지 않는다.
+
+### 검증과 재현
+
+최종 전체 직접 실행: **428 passed, 9 subtests passed, 16.45초**. 앞선 중간 실행은426개/22.56초였으며 마지막 경계·보고 표시 보완 뒤 다시 확인했다. 이번 Planner 테스트는 후보70·시간표48·보고46개이고, Frontend의 기존12+시간표14개를 전체에 포함했다. 마지막 공백 분반번호 중복 검사는 별도로 **2 passed, 46 deselected, 0.03초** 확인했다. 기존 연구·자료·모의 연결 검사를 Planner 자체 산출물 수로 세지 않는다.
+
+- [후보 검사](../../tests/test_courses.py): 승인/참고 분리, 상태별 제외, 사용자 선택, 학기 대체·5년 빈도, 선수 미확인, 불변성·추가 개인정보 필드 제외·계산필드 위조 무시.
+- [시간표 검사](../../tests/test_timetable.py)와 [수작업 기대값](../../tests/fixtures/planner/timetable_expected.md): 가상 H→A→B→H 걷기25·부족2·비용29, 역방향 걷기33·부족10·비용53, 시간 경계·실습 충돌·미정null·같은 건물·부분집합·필수 선택·검색 한도·중복 분반·요건 진척.
+- [보고 검사](../../tests/test_report.py): JSON·Markdown, j/z 복원·형식/크기 오류, source_term 예상 링크, 경고·출처·개설 빈도 보존, CLI 성공/오류.
+- Frontend 소유 [별도 가상 입력](../../demo/timetable_boundary.json)·[독립 기대값](../../demo/시간표_독립_기대값.md): 정방향42.94+2×4.66=52.26, 역방향42.94 등 F01~F15. 최종 독립 실행 보고는 완료보고 기록에 보존한다.
+- Frontend 최종 보고 수신: 독립26개(1.77초)와 전체428개/9 subtests(12.13초) 통과 후, 구간별 여유·회피조건·Markdown 경고의 단언을 보강해26개를 다시 통과했다(3.15초, 건너뜀 없음). 계산 코드 변경은 없다. `demo/run_timetable_local.py`와 `demo/timetable_verification.json`의 모의5상황·해시 기록은 Frontend 소유다. 이는 Frontend 직접 실행 보고이며 Planner의 위 실행 시간과 섞지 않는다.
+- 실제 저장된 `data/offerings`·`data/walk.csv`에 빈 이수내역을 가정한 생명 주전공 가상 입력(최소1/최대5학점)을 연결했다. 2026-1과2027-1 모두 실제 찾은3안·각3학점·걷기87.24분·탐색완료를 확인했다. 앞쪽은 확정 편람 참조, 뒤쪽은2026-1 예상 참조이며 모든 회의 겹침 없음과 링크 학기 복원을 별도 단언으로 확인했다. 가상의 이력이며 학생의 실제 추천 결과가 아니다.
+- `git diff --check`는 오류 없이 완료했다. 다른 담당의 줄바꿈 안내는 코드 오류로 분류하지 않았다. 공개 문서 링크도 마감 시 검사한다.
+
+일반 재현:
+
+```python
+import json
+from pathlib import Path
+from planner.report import recommend_timetables
+
+example = json.loads(Path("demo/timetable_boundary.json").read_text(encoding="utf-8"))
+result = recommend_timetables(example["payload"], example["offerings"], example["walk_rows"],
+                             target_term=example["target_term"], preferences=example["preferences"])
+print(result["markdown"])
+```
+
+검사는 `python -m pytest -q`. 이 환경에서는 2-B절의 앱 Python·임시 pytest·담당 전용 basetemp 명령에 `-q`를 붙여 실행했다. 문서만 바뀐 이후 같은 전체 검사를 반복하지 않는다.
+
+### 마감·다음 한 과제
+
+이번 포함 가능한 Planner 파일: `planner/courses.py`, `planning_types.py`, `timetable.py`, `report.py`, `timetable_format.md`, `tests/test_courses.py`, `test_timetable.py`, `test_report.py`, `tests/fixtures/planner/timetable_expected.md`, 이 인수인계, `prompts/Backend-Planner-09~14`. Frontend 소유 파일은 별도 인수인계로 통합한다. 고정 Research 자료·공통 문서·다른 담당 계산 파일은 수정하지 않았다. AI 왕복은 [10](../../prompts/Backend-Planner-10-작업3-내부협업.md), 보조 협업은 [11](../../prompts/Backend-Planner-11-시간표-보조협업.md)·[12](../../prompts/Backend-Planner-12-보고서-보조협업.md)·[13](../../prompts/Backend-Planner-13-후보검사-보조협업.md)에 보존했다. 일부 보조 대화의 압축 전 원문을 복구할 수 없는 범위를 명시했고 요약으로 원문을 만들어 채우지 않았다.
+
+미완료: `scripts/build_gpt.py`·GPT 지식 묶음, 실제 GPT 생성·업로드·대화, PDF·표 인식, 실제 학교 로그인·조회·외부 발송, 전체 졸업 사정·공식 선수/대체/중복 인정, 실제 지도 화면·시간 절감 실측. 수동85항목과 공식 확인은 남아 있다. 현 작업을 이 범위의 성공으로 확대하지 않는다.
+
+Planner는 스테이징·커밋·푸시하지 않았다. 제안 메시지: `[작업 3] 이수 기반 후보·시간표·방향별 동선과 독립 검증 구현`.
+
+**다음 담당: Project / Concept — 통합 검토와 다음 배정, 완료 보고 후 자동 연결.** 입력은 이 인수인계·계약·담당 파일·Frontend 독립 검증이다. 공개 포함 범위·미완료 표시를 확인하고 통합한 뒤 작업4 계산 묶음의 실행 배정을 확정한다. 작업4의 입력은 표준 라이브러리 계산 코드·고정1.0 및 스키마/원본 보존·검증 모듈·개설/이동 자료이고, 산출물은 `scripts/build_gpt.py`와 재현 가능한 지식 묶음이다. 완료 기준 제안은 묶음을 풀어 인터넷 없이 가상 입력→정리→요건→시간표→보고가 같은 값으로 실행되는 것이다. 아직 작업4를 착수하거나 실제 GPT에 연결하지 않았다. Document에는 이번 결과·검증·미완료와 프롬프트 목록의 공통 문서 반영을 요청한다. 실제 전달 상태는 [14 완료 보고](../../prompts/Backend-Planner-14-작업3-완료보고.md)에 확정한다.
+
+실제 전달 상태: Concept·Document에 위 완료 보고와 요청을 전송해 도구 성공을 확인했다. Concept은 완료 보고로 자동 연결된 상태이며 사용자 재전달은 필요 없다. 이후 통합 완료를 추정하지 않는다. 이 결과 기록을 마지막으로 Planner 담당 파일 쓰기를 마감한다.
+
+Concept 후속 요청을 수신했다. Concept이 독립 검토·최종 전체 검사를 진행하며, Planner는 통합 완료 통지까지 코드·검증 입력을 유지하고 작업4를 시작하지 않는다. 원문은 14 완료 보고에 보존했다. 공개 문서17개의 로컬 링크는 모두 유효했고 문서 끝 공백을 정리했다.

@@ -1,0 +1,1153 @@
+{
+  "example": true,
+  "execution": "local_python_not_gpt",
+  "catalog": "synthetic_boundary_only",
+  "note": "모의 강좌의 링크는 형식 검사 대상이며 실제 지도 페이지에서 열림을 검증하지 않았다.",
+  "files": {
+    "planner/__init__.py": "5979f9a2b47bf57bdfb8918bdb688d9d6b788436ef66506a4f238db192642d8b",
+    "planner/courses.py": "16bb4e062f796375293b318d7e6c4a7e000ef1907416cff1a061e6bd5e68951a",
+    "planner/planning_types.py": "7c9f1aa8091439ad97773a8a0b50ca844869163bb262161cffe77c944e0212fd",
+    "planner/report.py": "29d0f6e26a47ba4638ab0bfb8040a31c3822d841cee0fd6a0ea898030db4fc7a",
+    "planner/requirements.py": "258d62900ea2843cca402a3e965c8257d914f86b0d9da1e56fa6effcabf11f8e",
+    "planner/timetable.py": "e3aab16369796d19a0839cd6fd3c7a589747b572a75c9e431e80cd410cfe959e",
+    "planner/transcript.py": "d6171fc68ca8440276900366a83b4d79036315a078056f4d8c66b741adfb560f",
+    "demo/timetable_boundary.json": "83ba19d3ac1d8f452a5588e68fa6f564680eee88f9f7e551edb143f470630e1d",
+    "demo/run_timetable_local.py": "12844de0af77b9f8819149344dffa95f2a16bf52924e9ffb6bb241124e77c754",
+    "tests/test_end_to_end.py": "62bf4026c5852603b5a5783f0e962f391bdcaa9034f5b0f3d07af47663b52885",
+    "demo/시간표_독립_기대값.md": "d7df51d6b5af48601d917f63e11e8f8667d7fab73531eaaa9ca1813e355d6e0b",
+    "scripts/validate_requirements.py": "be4d91a9882962ba3768b207eb534d4829bb48be27db2c05545d06796f87cbd9",
+    "data/requirements/2025.json": "c113ac6992eb54c8aa03d090520c0db64417688c1baa9779518830e8caf57c31",
+    "data/requirements/schema.json": "027a99967953a05d71af02440a7764391eabbc1204646f10d24dd2a6e5870be6",
+    "data/requirements/source/snu_2025_graduation_requirements.json": "6d3dda941932761d5598fb1f6701a7edbbdb62e60edd5d673ff8d5647a57c9a6"
+  },
+  "cases": {
+    "forward": {
+      "json": {
+        "schema_version": 1,
+        "target_term": "2026-1",
+        "source_term": "2026-1",
+        "estimated": false,
+        "plans": [
+          {
+            "id": 1,
+            "credits": 6,
+            "walk_minutes": 42.94,
+            "shortage_minutes": 4.66,
+            "cost": 52.26,
+            "known_walk_minutes": 42.94,
+            "known_shortage_minutes": 4.66,
+            "known_cost": 52.26,
+            "travel_complete": true,
+            "selection_score": {
+              "required_courses": 0,
+              "planned_goals": 0
+            },
+            "sections": [
+              {
+                "code": "EXAMPLE.FRONTEND.A",
+                "number": "001",
+                "name": "예시 경계 과목 A",
+                "credits": 3.0,
+                "basis": "user_requested",
+                "prerequisite_status": "unknown",
+                "requirement_ids": [],
+                "requirement_sources": {},
+                "frequency": {
+                  "years_offered": 0,
+                  "window_years": [
+                    2021,
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ],
+                  "observed_years": [],
+                  "missing_years": [
+                    2021,
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ]
+                },
+                "recommended_year": null,
+                "recommended_term": null,
+                "warnings": [
+                  "history_incomplete",
+                  "prerequisites_unverified"
+                ],
+                "meetings": [
+                  {
+                    "day": 0,
+                    "start": 540,
+                    "end": 600,
+                    "building": "200",
+                    "room": "예시실"
+                  }
+                ]
+              },
+              {
+                "code": "EXAMPLE.FRONTEND.B",
+                "number": "001",
+                "name": "예시 경계 과목 B",
+                "credits": 3.0,
+                "basis": "user_requested",
+                "prerequisite_status": "unknown",
+                "requirement_ids": [],
+                "requirement_sources": {},
+                "frequency": {
+                  "years_offered": 0,
+                  "window_years": [
+                    2021,
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ],
+                  "observed_years": [],
+                  "missing_years": [
+                    2021,
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ]
+                },
+                "recommended_year": null,
+                "recommended_term": null,
+                "warnings": [
+                  "history_incomplete",
+                  "prerequisites_unverified"
+                ],
+                "meetings": [
+                  {
+                    "day": 0,
+                    "start": 620,
+                    "end": 680,
+                    "building": "302",
+                    "room": "예시실"
+                  }
+                ]
+              }
+            ],
+            "days": {
+              "0": [
+                {
+                  "day": 0,
+                  "start": 540,
+                  "end": 600,
+                  "building": "200",
+                  "room": "예시실",
+                  "code": "EXAMPLE.FRONTEND.A",
+                  "number": "001",
+                  "name": "예시 경계 과목 A"
+                },
+                {
+                  "day": 0,
+                  "start": 620,
+                  "end": 680,
+                  "building": "302",
+                  "room": "예시실",
+                  "code": "EXAMPLE.FRONTEND.B",
+                  "number": "001",
+                  "name": "예시 경계 과목 B"
+                }
+              ]
+            },
+            "legs": [
+              {
+                "day": 0,
+                "from": "200",
+                "to": "200",
+                "depart": null,
+                "arrive_by": 540,
+                "minutes": 0,
+                "slack": null,
+                "shortage": 0,
+                "status": "known"
+              },
+              {
+                "day": 0,
+                "from": "200",
+                "to": "302",
+                "depart": 600,
+                "arrive_by": 620,
+                "minutes": 24.66,
+                "slack": -4.66,
+                "shortage": 4.66,
+                "status": "known"
+              },
+              {
+                "day": 0,
+                "from": "302",
+                "to": "200",
+                "depart": 680,
+                "arrive_by": null,
+                "minutes": 18.28,
+                "slack": null,
+                "shortage": 0,
+                "status": "known"
+              }
+            ],
+            "warnings": [
+              {
+                "code": "tight_transfer",
+                "message": "알려진 경로에서 이동 여유가 부족한 구간이 있습니다."
+              },
+              {
+                "code": "prerequisites_unconfirmed",
+                "message": "선수·수강 자격 확인이 남은 과목이 있습니다."
+              },
+              {
+                "code": "indoor_travel_excluded",
+                "message": "이동시간은 건물 기준이며 실내 이동을 포함하지 않습니다. 같은 건물의 0분도 실제 이동 0분을 보장하지 않습니다."
+              },
+              {
+                "code": "history_incomplete",
+                "message": "최근 5년 같은 학기 개설 이력 중 제공되지 않은 해가 있습니다."
+              },
+              {
+                "code": "prerequisites_unverified",
+                "message": "선수·수강 자격은 별도로 확인해야 합니다."
+              }
+            ],
+            "goal_progress": [],
+            "tt_link": "https://archi142857.github.io/tt-wizard/#t=jWzEsIjIwMjYtMSIsIjIwMjYtMSDsi5zqsITtkZwgMSIsW1siRVhBTVBMRS5GUk9OVEVORC5BIiwiMDAxIixudWxsLCLsmIjsi5wg6rK96rOEIOqzvOuqqSBBIl0sWyJFWEFNUExFLkZST05URU5ELkIiLCIwMDEiLG51bGwsIuyYiOyLnCDqsr3qs4Qg6rO866qpIEIiXV1d",
+            "link_term": "2026-1"
+          }
+        ],
+        "issues": [
+          {
+            "code": "requirements_uncertain",
+            "message": "요건 적용에 확인이 남았습니다. 참고 후보는 확정 미이수가 아닙니다."
+          },
+          {
+            "code": "prerequisites_unverified",
+            "message": "현행 자료에 자동 검증 가능한 선수 관계가 없습니다. 수강 가능을 확정하지 않습니다."
+          },
+          {
+            "code": "fewer_than_requested_plans",
+            "message": "요청한 수보다 적은 유효한 계획만 찾았습니다. 실제 찾은 안만 제시합니다."
+          }
+        ],
+        "excluded_sections": [],
+        "search": {
+          "complete": true,
+          "nodes": 3,
+          "max_nodes": 100000,
+          "feasible_count": 1,
+          "pruned_conflict": 0,
+          "pruned_credit": 0,
+          "n_candidates": 2,
+          "ranking": "계획상 필수과목 수 → 채운 목표 수 → 이동정보 완전성 → TT 비용 → 후보 동점 기준 → 식별자"
+        },
+        "attribution": "TT Wizard 자료: 캠퍼스 마법 지도·© OpenStreetMap 기여자, 국토지리정보원, 서울대 수강편람"
+      },
+      "markdown": "# 2026-1 시간표 후보\n\n찾은 안: 1개. 실제 수강 신청·졸업 인정은 별도 확인이 필요합니다.\n\n## 1안 — 6학점\n\n[TT Wizard에서 열기](https://archi142857.github.io/tt-wizard/#t=jWzEsIjIwMjYtMSIsIjIwMjYtMSDsi5zqsITtkZwgMSIsW1siRVhBTVBMRS5GUk9OVEVORC5BIiwiMDAxIixudWxsLCLsmIjsi5wg6rK96rOEIOqzvOuqqSBBIl0sWyJFWEFNUExFLkZST05URU5ELkIiLCIwMDEiLG51bGwsIuyYiOyLnCDqsr3qs4Qg6rO866qpIEIiXV1d) · 링크 학기: 2026-1\n\n주간 걷기 42.94분 · 이동 부족 4.66분 · 비용 52.26\n\n| 요일 | 시간 | 과목 · 분반 | 건물 · 강의실 |\n| --- | --- | --- | --- |\n| 월 | 09:00–10:00 | 예시 경계 과목 A · 001 | 200 · 예시실 |\n| 월 | 10:20–11:20 | 예시 경계 과목 B · 001 | 302 · 예시실 |\n\n과목 선택 근거:\n\n- 예시 경계 과목 A: 사용자 선택 · 연결 요건 없음\n- 개설 이력 참고: 목표연도 직전 5년 같은 학기 중 0년 개설 · 자료 없는 해: 2021, 2022, 2023, 2024, 2025. 개설 확률은 아닙니다.\n- 예시 경계 과목 B: 사용자 선택 · 연결 요건 없음\n- 개설 이력 참고: 목표연도 직전 5년 같은 학기 중 0년 개설 · 자료 없는 해: 2021, 2022, 2023, 2024, 2025. 개설 확률은 아닙니다.\n\n| 요일 | 경로 | 이동 | 여유 | 부족 |\n| --- | --- | ---: | ---: | ---: |\n| 월 | 200 → 200 | 0 | — | 0 |\n| 월 | 200 → 302 | 24.66 | -4.66 | 4.66 · 빠듯함 |\n| 월 | 302 → 200 | 18.28 | — | 0 |\n\n- 알려진 경로에서 이동 여유가 부족한 구간이 있습니다.\n- 선수·수강 자격 확인이 남은 과목이 있습니다.\n- 이동시간은 건물 기준이며 실내 이동을 포함하지 않습니다. 같은 건물의 0분도 실제 이동 0분을 보장하지 않습니다.\n- 최근 5년 같은 학기 개설 이력 중 제공되지 않은 해가 있습니다.\n- 선수·수강 자격은 별도로 확인해야 합니다.\n\n확인 사항·안이 부족한 이유:\n\n- 요건 적용에 확인이 남았습니다. 참고 후보는 확정 미이수가 아닙니다.\n- 현행 자료에 자동 검증 가능한 선수 관계가 없습니다. 수강 가능을 확정하지 않습니다.\n- 요청한 수보다 적은 유효한 계획만 찾았습니다. 실제 찾은 안만 제시합니다.\n\nTT Wizard 자료: 캠퍼스 마법 지도·© OpenStreetMap 기여자, 국토지리정보원, 서울대 수강편람\n"
+    },
+    "reverse": {
+      "json": {
+        "schema_version": 1,
+        "target_term": "2026-1",
+        "source_term": "2026-1",
+        "estimated": false,
+        "plans": [
+          {
+            "id": 1,
+            "credits": 6,
+            "walk_minutes": 42.94,
+            "shortage_minutes": 0,
+            "cost": 42.94,
+            "known_walk_minutes": 42.94,
+            "known_shortage_minutes": 0,
+            "known_cost": 42.94,
+            "travel_complete": true,
+            "selection_score": {
+              "required_courses": 0,
+              "planned_goals": 0
+            },
+            "sections": [
+              {
+                "code": "EXAMPLE.FRONTEND.A",
+                "number": "001",
+                "name": "예시 경계 과목 A",
+                "credits": 3.0,
+                "basis": "user_requested",
+                "prerequisite_status": "unknown",
+                "requirement_ids": [],
+                "requirement_sources": {},
+                "frequency": {
+                  "years_offered": 0,
+                  "window_years": [
+                    2021,
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ],
+                  "observed_years": [],
+                  "missing_years": [
+                    2021,
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ]
+                },
+                "recommended_year": null,
+                "recommended_term": null,
+                "warnings": [
+                  "history_incomplete",
+                  "prerequisites_unverified"
+                ],
+                "meetings": [
+                  {
+                    "day": 0,
+                    "start": 540,
+                    "end": 600,
+                    "building": "302",
+                    "room": "예시실"
+                  }
+                ]
+              },
+              {
+                "code": "EXAMPLE.FRONTEND.B",
+                "number": "001",
+                "name": "예시 경계 과목 B",
+                "credits": 3.0,
+                "basis": "user_requested",
+                "prerequisite_status": "unknown",
+                "requirement_ids": [],
+                "requirement_sources": {},
+                "frequency": {
+                  "years_offered": 0,
+                  "window_years": [
+                    2021,
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ],
+                  "observed_years": [],
+                  "missing_years": [
+                    2021,
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ]
+                },
+                "recommended_year": null,
+                "recommended_term": null,
+                "warnings": [
+                  "history_incomplete",
+                  "prerequisites_unverified"
+                ],
+                "meetings": [
+                  {
+                    "day": 0,
+                    "start": 620,
+                    "end": 680,
+                    "building": "200",
+                    "room": "예시실"
+                  }
+                ]
+              }
+            ],
+            "days": {
+              "0": [
+                {
+                  "day": 0,
+                  "start": 540,
+                  "end": 600,
+                  "building": "302",
+                  "room": "예시실",
+                  "code": "EXAMPLE.FRONTEND.A",
+                  "number": "001",
+                  "name": "예시 경계 과목 A"
+                },
+                {
+                  "day": 0,
+                  "start": 620,
+                  "end": 680,
+                  "building": "200",
+                  "room": "예시실",
+                  "code": "EXAMPLE.FRONTEND.B",
+                  "number": "001",
+                  "name": "예시 경계 과목 B"
+                }
+              ]
+            },
+            "legs": [
+              {
+                "day": 0,
+                "from": "200",
+                "to": "302",
+                "depart": null,
+                "arrive_by": 540,
+                "minutes": 24.66,
+                "slack": null,
+                "shortage": 0,
+                "status": "known"
+              },
+              {
+                "day": 0,
+                "from": "302",
+                "to": "200",
+                "depart": 600,
+                "arrive_by": 620,
+                "minutes": 18.28,
+                "slack": 1.72,
+                "shortage": 0,
+                "status": "known"
+              },
+              {
+                "day": 0,
+                "from": "200",
+                "to": "200",
+                "depart": 680,
+                "arrive_by": null,
+                "minutes": 0,
+                "slack": null,
+                "shortage": 0,
+                "status": "known"
+              }
+            ],
+            "warnings": [
+              {
+                "code": "prerequisites_unconfirmed",
+                "message": "선수·수강 자격 확인이 남은 과목이 있습니다."
+              },
+              {
+                "code": "indoor_travel_excluded",
+                "message": "이동시간은 건물 기준이며 실내 이동을 포함하지 않습니다. 같은 건물의 0분도 실제 이동 0분을 보장하지 않습니다."
+              },
+              {
+                "code": "history_incomplete",
+                "message": "최근 5년 같은 학기 개설 이력 중 제공되지 않은 해가 있습니다."
+              },
+              {
+                "code": "prerequisites_unverified",
+                "message": "선수·수강 자격은 별도로 확인해야 합니다."
+              }
+            ],
+            "goal_progress": [],
+            "tt_link": "https://archi142857.github.io/tt-wizard/#t=jWzEsIjIwMjYtMSIsIjIwMjYtMSDsi5zqsITtkZwgMSIsW1siRVhBTVBMRS5GUk9OVEVORC5BIiwiMDAxIixudWxsLCLsmIjsi5wg6rK96rOEIOqzvOuqqSBBIl0sWyJFWEFNUExFLkZST05URU5ELkIiLCIwMDEiLG51bGwsIuyYiOyLnCDqsr3qs4Qg6rO866qpIEIiXV1d",
+            "link_term": "2026-1"
+          }
+        ],
+        "issues": [
+          {
+            "code": "requirements_uncertain",
+            "message": "요건 적용에 확인이 남았습니다. 참고 후보는 확정 미이수가 아닙니다."
+          },
+          {
+            "code": "prerequisites_unverified",
+            "message": "현행 자료에 자동 검증 가능한 선수 관계가 없습니다. 수강 가능을 확정하지 않습니다."
+          },
+          {
+            "code": "fewer_than_requested_plans",
+            "message": "요청한 수보다 적은 유효한 계획만 찾았습니다. 실제 찾은 안만 제시합니다."
+          }
+        ],
+        "excluded_sections": [],
+        "search": {
+          "complete": true,
+          "nodes": 3,
+          "max_nodes": 100000,
+          "feasible_count": 1,
+          "pruned_conflict": 0,
+          "pruned_credit": 0,
+          "n_candidates": 2,
+          "ranking": "계획상 필수과목 수 → 채운 목표 수 → 이동정보 완전성 → TT 비용 → 후보 동점 기준 → 식별자"
+        },
+        "attribution": "TT Wizard 자료: 캠퍼스 마법 지도·© OpenStreetMap 기여자, 국토지리정보원, 서울대 수강편람"
+      },
+      "markdown": "# 2026-1 시간표 후보\n\n찾은 안: 1개. 실제 수강 신청·졸업 인정은 별도 확인이 필요합니다.\n\n## 1안 — 6학점\n\n[TT Wizard에서 열기](https://archi142857.github.io/tt-wizard/#t=jWzEsIjIwMjYtMSIsIjIwMjYtMSDsi5zqsITtkZwgMSIsW1siRVhBTVBMRS5GUk9OVEVORC5BIiwiMDAxIixudWxsLCLsmIjsi5wg6rK96rOEIOqzvOuqqSBBIl0sWyJFWEFNUExFLkZST05URU5ELkIiLCIwMDEiLG51bGwsIuyYiOyLnCDqsr3qs4Qg6rO866qpIEIiXV1d) · 링크 학기: 2026-1\n\n주간 걷기 42.94분 · 이동 부족 0분 · 비용 42.94\n\n| 요일 | 시간 | 과목 · 분반 | 건물 · 강의실 |\n| --- | --- | --- | --- |\n| 월 | 09:00–10:00 | 예시 경계 과목 A · 001 | 302 · 예시실 |\n| 월 | 10:20–11:20 | 예시 경계 과목 B · 001 | 200 · 예시실 |\n\n과목 선택 근거:\n\n- 예시 경계 과목 A: 사용자 선택 · 연결 요건 없음\n- 개설 이력 참고: 목표연도 직전 5년 같은 학기 중 0년 개설 · 자료 없는 해: 2021, 2022, 2023, 2024, 2025. 개설 확률은 아닙니다.\n- 예시 경계 과목 B: 사용자 선택 · 연결 요건 없음\n- 개설 이력 참고: 목표연도 직전 5년 같은 학기 중 0년 개설 · 자료 없는 해: 2021, 2022, 2023, 2024, 2025. 개설 확률은 아닙니다.\n\n| 요일 | 경로 | 이동 | 여유 | 부족 |\n| --- | --- | ---: | ---: | ---: |\n| 월 | 200 → 302 | 24.66 | — | 0 |\n| 월 | 302 → 200 | 18.28 | 1.72 | 0 |\n| 월 | 200 → 200 | 0 | — | 0 |\n\n- 선수·수강 자격 확인이 남은 과목이 있습니다.\n- 이동시간은 건물 기준이며 실내 이동을 포함하지 않습니다. 같은 건물의 0분도 실제 이동 0분을 보장하지 않습니다.\n- 최근 5년 같은 학기 개설 이력 중 제공되지 않은 해가 있습니다.\n- 선수·수강 자격은 별도로 확인해야 합니다.\n\n확인 사항·안이 부족한 이유:\n\n- 요건 적용에 확인이 남았습니다. 참고 후보는 확정 미이수가 아닙니다.\n- 현행 자료에 자동 검증 가능한 선수 관계가 없습니다. 수강 가능을 확정하지 않습니다.\n- 요청한 수보다 적은 유효한 계획만 찾았습니다. 실제 찾은 안만 제시합니다.\n\nTT Wizard 자료: 캠퍼스 마법 지도·© OpenStreetMap 기여자, 국토지리정보원, 서울대 수강편람\n"
+    },
+    "touching": {
+      "json": {
+        "schema_version": 1,
+        "target_term": "2026-1",
+        "source_term": "2026-1",
+        "estimated": false,
+        "plans": [
+          {
+            "id": 1,
+            "credits": 6,
+            "walk_minutes": 42.94,
+            "shortage_minutes": 24.66,
+            "cost": 92.26,
+            "known_walk_minutes": 42.94,
+            "known_shortage_minutes": 24.66,
+            "known_cost": 92.26,
+            "travel_complete": true,
+            "selection_score": {
+              "required_courses": 0,
+              "planned_goals": 0
+            },
+            "sections": [
+              {
+                "code": "EXAMPLE.FRONTEND.A",
+                "number": "001",
+                "name": "예시 경계 과목 A",
+                "credits": 3.0,
+                "basis": "user_requested",
+                "prerequisite_status": "unknown",
+                "requirement_ids": [],
+                "requirement_sources": {},
+                "frequency": {
+                  "years_offered": 0,
+                  "window_years": [
+                    2021,
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ],
+                  "observed_years": [],
+                  "missing_years": [
+                    2021,
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ]
+                },
+                "recommended_year": null,
+                "recommended_term": null,
+                "warnings": [
+                  "history_incomplete",
+                  "prerequisites_unverified"
+                ],
+                "meetings": [
+                  {
+                    "day": 0,
+                    "start": 540,
+                    "end": 600,
+                    "building": "200",
+                    "room": "예시실"
+                  }
+                ]
+              },
+              {
+                "code": "EXAMPLE.FRONTEND.B",
+                "number": "001",
+                "name": "예시 경계 과목 B",
+                "credits": 3.0,
+                "basis": "user_requested",
+                "prerequisite_status": "unknown",
+                "requirement_ids": [],
+                "requirement_sources": {},
+                "frequency": {
+                  "years_offered": 0,
+                  "window_years": [
+                    2021,
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ],
+                  "observed_years": [],
+                  "missing_years": [
+                    2021,
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ]
+                },
+                "recommended_year": null,
+                "recommended_term": null,
+                "warnings": [
+                  "history_incomplete",
+                  "prerequisites_unverified"
+                ],
+                "meetings": [
+                  {
+                    "day": 0,
+                    "start": 600,
+                    "end": 660,
+                    "building": "302",
+                    "room": "예시실"
+                  }
+                ]
+              }
+            ],
+            "days": {
+              "0": [
+                {
+                  "day": 0,
+                  "start": 540,
+                  "end": 600,
+                  "building": "200",
+                  "room": "예시실",
+                  "code": "EXAMPLE.FRONTEND.A",
+                  "number": "001",
+                  "name": "예시 경계 과목 A"
+                },
+                {
+                  "day": 0,
+                  "start": 600,
+                  "end": 660,
+                  "building": "302",
+                  "room": "예시실",
+                  "code": "EXAMPLE.FRONTEND.B",
+                  "number": "001",
+                  "name": "예시 경계 과목 B"
+                }
+              ]
+            },
+            "legs": [
+              {
+                "day": 0,
+                "from": "200",
+                "to": "200",
+                "depart": null,
+                "arrive_by": 540,
+                "minutes": 0,
+                "slack": null,
+                "shortage": 0,
+                "status": "known"
+              },
+              {
+                "day": 0,
+                "from": "200",
+                "to": "302",
+                "depart": 600,
+                "arrive_by": 600,
+                "minutes": 24.66,
+                "slack": -24.66,
+                "shortage": 24.66,
+                "status": "known"
+              },
+              {
+                "day": 0,
+                "from": "302",
+                "to": "200",
+                "depart": 660,
+                "arrive_by": null,
+                "minutes": 18.28,
+                "slack": null,
+                "shortage": 0,
+                "status": "known"
+              }
+            ],
+            "warnings": [
+              {
+                "code": "tight_transfer",
+                "message": "알려진 경로에서 이동 여유가 부족한 구간이 있습니다."
+              },
+              {
+                "code": "prerequisites_unconfirmed",
+                "message": "선수·수강 자격 확인이 남은 과목이 있습니다."
+              },
+              {
+                "code": "indoor_travel_excluded",
+                "message": "이동시간은 건물 기준이며 실내 이동을 포함하지 않습니다. 같은 건물의 0분도 실제 이동 0분을 보장하지 않습니다."
+              },
+              {
+                "code": "history_incomplete",
+                "message": "최근 5년 같은 학기 개설 이력 중 제공되지 않은 해가 있습니다."
+              },
+              {
+                "code": "prerequisites_unverified",
+                "message": "선수·수강 자격은 별도로 확인해야 합니다."
+              }
+            ],
+            "goal_progress": [],
+            "tt_link": "https://archi142857.github.io/tt-wizard/#t=jWzEsIjIwMjYtMSIsIjIwMjYtMSDsi5zqsITtkZwgMSIsW1siRVhBTVBMRS5GUk9OVEVORC5BIiwiMDAxIixudWxsLCLsmIjsi5wg6rK96rOEIOqzvOuqqSBBIl0sWyJFWEFNUExFLkZST05URU5ELkIiLCIwMDEiLG51bGwsIuyYiOyLnCDqsr3qs4Qg6rO866qpIEIiXV1d",
+            "link_term": "2026-1"
+          }
+        ],
+        "issues": [
+          {
+            "code": "requirements_uncertain",
+            "message": "요건 적용에 확인이 남았습니다. 참고 후보는 확정 미이수가 아닙니다."
+          },
+          {
+            "code": "prerequisites_unverified",
+            "message": "현행 자료에 자동 검증 가능한 선수 관계가 없습니다. 수강 가능을 확정하지 않습니다."
+          },
+          {
+            "code": "fewer_than_requested_plans",
+            "message": "요청한 수보다 적은 유효한 계획만 찾았습니다. 실제 찾은 안만 제시합니다."
+          }
+        ],
+        "excluded_sections": [],
+        "search": {
+          "complete": true,
+          "nodes": 3,
+          "max_nodes": 100000,
+          "feasible_count": 1,
+          "pruned_conflict": 0,
+          "pruned_credit": 0,
+          "n_candidates": 2,
+          "ranking": "계획상 필수과목 수 → 채운 목표 수 → 이동정보 완전성 → TT 비용 → 후보 동점 기준 → 식별자"
+        },
+        "attribution": "TT Wizard 자료: 캠퍼스 마법 지도·© OpenStreetMap 기여자, 국토지리정보원, 서울대 수강편람"
+      },
+      "markdown": "# 2026-1 시간표 후보\n\n찾은 안: 1개. 실제 수강 신청·졸업 인정은 별도 확인이 필요합니다.\n\n## 1안 — 6학점\n\n[TT Wizard에서 열기](https://archi142857.github.io/tt-wizard/#t=jWzEsIjIwMjYtMSIsIjIwMjYtMSDsi5zqsITtkZwgMSIsW1siRVhBTVBMRS5GUk9OVEVORC5BIiwiMDAxIixudWxsLCLsmIjsi5wg6rK96rOEIOqzvOuqqSBBIl0sWyJFWEFNUExFLkZST05URU5ELkIiLCIwMDEiLG51bGwsIuyYiOyLnCDqsr3qs4Qg6rO866qpIEIiXV1d) · 링크 학기: 2026-1\n\n주간 걷기 42.94분 · 이동 부족 24.66분 · 비용 92.26\n\n| 요일 | 시간 | 과목 · 분반 | 건물 · 강의실 |\n| --- | --- | --- | --- |\n| 월 | 09:00–10:00 | 예시 경계 과목 A · 001 | 200 · 예시실 |\n| 월 | 10:00–11:00 | 예시 경계 과목 B · 001 | 302 · 예시실 |\n\n과목 선택 근거:\n\n- 예시 경계 과목 A: 사용자 선택 · 연결 요건 없음\n- 개설 이력 참고: 목표연도 직전 5년 같은 학기 중 0년 개설 · 자료 없는 해: 2021, 2022, 2023, 2024, 2025. 개설 확률은 아닙니다.\n- 예시 경계 과목 B: 사용자 선택 · 연결 요건 없음\n- 개설 이력 참고: 목표연도 직전 5년 같은 학기 중 0년 개설 · 자료 없는 해: 2021, 2022, 2023, 2024, 2025. 개설 확률은 아닙니다.\n\n| 요일 | 경로 | 이동 | 여유 | 부족 |\n| --- | --- | ---: | ---: | ---: |\n| 월 | 200 → 200 | 0 | — | 0 |\n| 월 | 200 → 302 | 24.66 | -24.66 | 24.66 · 빠듯함 |\n| 월 | 302 → 200 | 18.28 | — | 0 |\n\n- 알려진 경로에서 이동 여유가 부족한 구간이 있습니다.\n- 선수·수강 자격 확인이 남은 과목이 있습니다.\n- 이동시간은 건물 기준이며 실내 이동을 포함하지 않습니다. 같은 건물의 0분도 실제 이동 0분을 보장하지 않습니다.\n- 최근 5년 같은 학기 개설 이력 중 제공되지 않은 해가 있습니다.\n- 선수·수강 자격은 별도로 확인해야 합니다.\n\n확인 사항·안이 부족한 이유:\n\n- 요건 적용에 확인이 남았습니다. 참고 후보는 확정 미이수가 아닙니다.\n- 현행 자료에 자동 검증 가능한 선수 관계가 없습니다. 수강 가능을 확정하지 않습니다.\n- 요청한 수보다 적은 유효한 계획만 찾았습니다. 실제 찾은 안만 제시합니다.\n\nTT Wizard 자료: 캠퍼스 마법 지도·© OpenStreetMap 기여자, 국토지리정보원, 서울대 수강편람\n"
+    },
+    "unknown_building": {
+      "json": {
+        "schema_version": 1,
+        "target_term": "2026-1",
+        "source_term": "2026-1",
+        "estimated": false,
+        "plans": [
+          {
+            "id": 1,
+            "credits": 6,
+            "walk_minutes": null,
+            "shortage_minutes": null,
+            "cost": null,
+            "known_walk_minutes": 0,
+            "known_shortage_minutes": 0,
+            "known_cost": 0,
+            "travel_complete": false,
+            "selection_score": {
+              "required_courses": 0,
+              "planned_goals": 0
+            },
+            "sections": [
+              {
+                "code": "EXAMPLE.FRONTEND.A",
+                "number": "001",
+                "name": "예시 경계 과목 A",
+                "credits": 3.0,
+                "basis": "user_requested",
+                "prerequisite_status": "unknown",
+                "requirement_ids": [],
+                "requirement_sources": {},
+                "frequency": {
+                  "years_offered": 0,
+                  "window_years": [
+                    2021,
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ],
+                  "observed_years": [],
+                  "missing_years": [
+                    2021,
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ]
+                },
+                "recommended_year": null,
+                "recommended_term": null,
+                "warnings": [
+                  "history_incomplete",
+                  "prerequisites_unverified"
+                ],
+                "meetings": [
+                  {
+                    "day": 0,
+                    "start": 540,
+                    "end": 600,
+                    "building": "200",
+                    "room": "예시실"
+                  }
+                ]
+              },
+              {
+                "code": "EXAMPLE.FRONTEND.B",
+                "number": "001",
+                "name": "예시 경계 과목 B",
+                "credits": 3.0,
+                "basis": "user_requested",
+                "prerequisite_status": "unknown",
+                "requirement_ids": [],
+                "requirement_sources": {},
+                "frequency": {
+                  "years_offered": 0,
+                  "window_years": [
+                    2021,
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ],
+                  "observed_years": [],
+                  "missing_years": [
+                    2021,
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ]
+                },
+                "recommended_year": null,
+                "recommended_term": null,
+                "warnings": [
+                  "history_incomplete",
+                  "prerequisites_unverified"
+                ],
+                "meetings": [
+                  {
+                    "day": 0,
+                    "start": 620,
+                    "end": 680,
+                    "building": "",
+                    "room": ""
+                  }
+                ]
+              }
+            ],
+            "days": {
+              "0": [
+                {
+                  "day": 0,
+                  "start": 540,
+                  "end": 600,
+                  "building": "200",
+                  "room": "예시실",
+                  "code": "EXAMPLE.FRONTEND.A",
+                  "number": "001",
+                  "name": "예시 경계 과목 A"
+                },
+                {
+                  "day": 0,
+                  "start": 620,
+                  "end": 680,
+                  "building": "",
+                  "room": "",
+                  "code": "EXAMPLE.FRONTEND.B",
+                  "number": "001",
+                  "name": "예시 경계 과목 B"
+                }
+              ]
+            },
+            "legs": [
+              {
+                "day": 0,
+                "from": "200",
+                "to": "200",
+                "depart": null,
+                "arrive_by": 540,
+                "minutes": 0,
+                "slack": null,
+                "shortage": 0,
+                "status": "known"
+              },
+              {
+                "day": 0,
+                "from": "200",
+                "to": "",
+                "depart": 600,
+                "arrive_by": 620,
+                "minutes": null,
+                "slack": null,
+                "shortage": null,
+                "status": "unknown_location"
+              },
+              {
+                "day": 0,
+                "from": "",
+                "to": "200",
+                "depart": 680,
+                "arrive_by": null,
+                "minutes": null,
+                "slack": null,
+                "shortage": null,
+                "status": "unknown_location"
+              }
+            ],
+            "warnings": [
+              {
+                "code": "travel_incomplete",
+                "message": "미정 위치 또는 누락 이동시간이 있어 총 이동·부족·비용은 미확정입니다."
+              },
+              {
+                "code": "prerequisites_unconfirmed",
+                "message": "선수·수강 자격 확인이 남은 과목이 있습니다."
+              },
+              {
+                "code": "indoor_travel_excluded",
+                "message": "이동시간은 건물 기준이며 실내 이동을 포함하지 않습니다. 같은 건물의 0분도 실제 이동 0분을 보장하지 않습니다."
+              },
+              {
+                "code": "history_incomplete",
+                "message": "최근 5년 같은 학기 개설 이력 중 제공되지 않은 해가 있습니다."
+              },
+              {
+                "code": "prerequisites_unverified",
+                "message": "선수·수강 자격은 별도로 확인해야 합니다."
+              }
+            ],
+            "goal_progress": [],
+            "tt_link": "https://archi142857.github.io/tt-wizard/#t=jWzEsIjIwMjYtMSIsIjIwMjYtMSDsi5zqsITtkZwgMSIsW1siRVhBTVBMRS5GUk9OVEVORC5BIiwiMDAxIixudWxsLCLsmIjsi5wg6rK96rOEIOqzvOuqqSBBIl0sWyJFWEFNUExFLkZST05URU5ELkIiLCIwMDEiLG51bGwsIuyYiOyLnCDqsr3qs4Qg6rO866qpIEIiXV1d",
+            "link_term": "2026-1"
+          }
+        ],
+        "issues": [
+          {
+            "code": "requirements_uncertain",
+            "message": "요건 적용에 확인이 남았습니다. 참고 후보는 확정 미이수가 아닙니다."
+          },
+          {
+            "code": "prerequisites_unverified",
+            "message": "현행 자료에 자동 검증 가능한 선수 관계가 없습니다. 수강 가능을 확정하지 않습니다."
+          },
+          {
+            "code": "fewer_than_requested_plans",
+            "message": "요청한 수보다 적은 유효한 계획만 찾았습니다. 실제 찾은 안만 제시합니다."
+          }
+        ],
+        "excluded_sections": [],
+        "search": {
+          "complete": true,
+          "nodes": 3,
+          "max_nodes": 100000,
+          "feasible_count": 1,
+          "pruned_conflict": 0,
+          "pruned_credit": 0,
+          "n_candidates": 2,
+          "ranking": "계획상 필수과목 수 → 채운 목표 수 → 이동정보 완전성 → TT 비용 → 후보 동점 기준 → 식별자"
+        },
+        "attribution": "TT Wizard 자료: 캠퍼스 마법 지도·© OpenStreetMap 기여자, 국토지리정보원, 서울대 수강편람"
+      },
+      "markdown": "# 2026-1 시간표 후보\n\n찾은 안: 1개. 실제 수강 신청·졸업 인정은 별도 확인이 필요합니다.\n\n## 1안 — 6학점\n\n[TT Wizard에서 열기](https://archi142857.github.io/tt-wizard/#t=jWzEsIjIwMjYtMSIsIjIwMjYtMSDsi5zqsITtkZwgMSIsW1siRVhBTVBMRS5GUk9OVEVORC5BIiwiMDAxIixudWxsLCLsmIjsi5wg6rK96rOEIOqzvOuqqSBBIl0sWyJFWEFNUExFLkZST05URU5ELkIiLCIwMDEiLG51bGwsIuyYiOyLnCDqsr3qs4Qg6rO866qpIEIiXV1d) · 링크 학기: 2026-1\n\n이동 경로가 미확인이라 주간 걷기·부족 시간·비용 총계는 확인 필요입니다.\n알려진 구간만: 걷기 0분 · 부족 0분 · 부분 비용 0\n\n| 요일 | 시간 | 과목 · 분반 | 건물 · 강의실 |\n| --- | --- | --- | --- |\n| 월 | 09:00–10:00 | 예시 경계 과목 A · 001 | 200 · 예시실 |\n| 월 | 10:20–11:20 | 예시 경계 과목 B · 001 | 건물 미정 · 강의실 미정 |\n\n과목 선택 근거:\n\n- 예시 경계 과목 A: 사용자 선택 · 연결 요건 없음\n- 개설 이력 참고: 목표연도 직전 5년 같은 학기 중 0년 개설 · 자료 없는 해: 2021, 2022, 2023, 2024, 2025. 개설 확률은 아닙니다.\n- 예시 경계 과목 B: 사용자 선택 · 연결 요건 없음\n- 개설 이력 참고: 목표연도 직전 5년 같은 학기 중 0년 개설 · 자료 없는 해: 2021, 2022, 2023, 2024, 2025. 개설 확률은 아닙니다.\n\n| 요일 | 경로 | 이동 | 여유 | 부족 |\n| --- | --- | ---: | ---: | ---: |\n| 월 | 200 → 200 | 0 | — | 0 |\n| 월 | 200 → 미정 | 확인 필요 | 확인 필요 | 확인 필요 |\n| 월 | 미정 → 200 | 확인 필요 | 확인 필요 | 확인 필요 |\n\n- 미정 위치 또는 누락 이동시간이 있어 총 이동·부족·비용은 미확정입니다.\n- 선수·수강 자격 확인이 남은 과목이 있습니다.\n- 이동시간은 건물 기준이며 실내 이동을 포함하지 않습니다. 같은 건물의 0분도 실제 이동 0분을 보장하지 않습니다.\n- 최근 5년 같은 학기 개설 이력 중 제공되지 않은 해가 있습니다.\n- 선수·수강 자격은 별도로 확인해야 합니다.\n\n확인 사항·안이 부족한 이유:\n\n- 요건 적용에 확인이 남았습니다. 참고 후보는 확정 미이수가 아닙니다.\n- 현행 자료에 자동 검증 가능한 선수 관계가 없습니다. 수강 가능을 확정하지 않습니다.\n- 요청한 수보다 적은 유효한 계획만 찾았습니다. 실제 찾은 안만 제시합니다.\n\nTT Wizard 자료: 캠퍼스 마법 지도·© OpenStreetMap 기여자, 국토지리정보원, 서울대 수강편람\n"
+    },
+    "estimated": {
+      "json": {
+        "schema_version": 1,
+        "target_term": "2027-1",
+        "source_term": "2026-1",
+        "estimated": true,
+        "plans": [
+          {
+            "id": 1,
+            "credits": 6,
+            "walk_minutes": 42.94,
+            "shortage_minutes": 4.66,
+            "cost": 52.26,
+            "known_walk_minutes": 42.94,
+            "known_shortage_minutes": 4.66,
+            "known_cost": 52.26,
+            "travel_complete": true,
+            "selection_score": {
+              "required_courses": 0,
+              "planned_goals": 0
+            },
+            "sections": [
+              {
+                "code": "EXAMPLE.FRONTEND.A",
+                "number": "001",
+                "name": "예시 경계 과목 A",
+                "credits": 3.0,
+                "basis": "user_requested",
+                "prerequisite_status": "unknown",
+                "requirement_ids": [],
+                "requirement_sources": {},
+                "frequency": {
+                  "years_offered": 1,
+                  "window_years": [
+                    2022,
+                    2023,
+                    2024,
+                    2025,
+                    2026
+                  ],
+                  "observed_years": [
+                    2026
+                  ],
+                  "missing_years": [
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ]
+                },
+                "recommended_year": null,
+                "recommended_term": null,
+                "warnings": [
+                  "estimated_offerings",
+                  "history_incomplete",
+                  "prerequisites_unverified"
+                ],
+                "meetings": [
+                  {
+                    "day": 0,
+                    "start": 540,
+                    "end": 600,
+                    "building": "200",
+                    "room": "예시실"
+                  }
+                ]
+              },
+              {
+                "code": "EXAMPLE.FRONTEND.B",
+                "number": "001",
+                "name": "예시 경계 과목 B",
+                "credits": 3.0,
+                "basis": "user_requested",
+                "prerequisite_status": "unknown",
+                "requirement_ids": [],
+                "requirement_sources": {},
+                "frequency": {
+                  "years_offered": 1,
+                  "window_years": [
+                    2022,
+                    2023,
+                    2024,
+                    2025,
+                    2026
+                  ],
+                  "observed_years": [
+                    2026
+                  ],
+                  "missing_years": [
+                    2022,
+                    2023,
+                    2024,
+                    2025
+                  ]
+                },
+                "recommended_year": null,
+                "recommended_term": null,
+                "warnings": [
+                  "estimated_offerings",
+                  "history_incomplete",
+                  "prerequisites_unverified"
+                ],
+                "meetings": [
+                  {
+                    "day": 0,
+                    "start": 620,
+                    "end": 680,
+                    "building": "302",
+                    "room": "예시실"
+                  }
+                ]
+              }
+            ],
+            "days": {
+              "0": [
+                {
+                  "day": 0,
+                  "start": 540,
+                  "end": 600,
+                  "building": "200",
+                  "room": "예시실",
+                  "code": "EXAMPLE.FRONTEND.A",
+                  "number": "001",
+                  "name": "예시 경계 과목 A"
+                },
+                {
+                  "day": 0,
+                  "start": 620,
+                  "end": 680,
+                  "building": "302",
+                  "room": "예시실",
+                  "code": "EXAMPLE.FRONTEND.B",
+                  "number": "001",
+                  "name": "예시 경계 과목 B"
+                }
+              ]
+            },
+            "legs": [
+              {
+                "day": 0,
+                "from": "200",
+                "to": "200",
+                "depart": null,
+                "arrive_by": 540,
+                "minutes": 0,
+                "slack": null,
+                "shortage": 0,
+                "status": "known"
+              },
+              {
+                "day": 0,
+                "from": "200",
+                "to": "302",
+                "depart": 600,
+                "arrive_by": 620,
+                "minutes": 24.66,
+                "slack": -4.66,
+                "shortage": 4.66,
+                "status": "known"
+              },
+              {
+                "day": 0,
+                "from": "302",
+                "to": "200",
+                "depart": 680,
+                "arrive_by": null,
+                "minutes": 18.28,
+                "slack": null,
+                "shortage": 0,
+                "status": "known"
+              }
+            ],
+            "warnings": [
+              {
+                "code": "tight_transfer",
+                "message": "알려진 경로에서 이동 여유가 부족한 구간이 있습니다."
+              },
+              {
+                "code": "prerequisites_unconfirmed",
+                "message": "선수·수강 자격 확인이 남은 과목이 있습니다."
+              },
+              {
+                "code": "indoor_travel_excluded",
+                "message": "이동시간은 건물 기준이며 실내 이동을 포함하지 않습니다. 같은 건물의 0분도 실제 이동 0분을 보장하지 않습니다."
+              },
+              {
+                "code": "estimated_offerings",
+                "message": "전년도 같은 학기 개설 자료를 사용한 예상 과목입니다."
+              },
+              {
+                "code": "history_incomplete",
+                "message": "최근 5년 같은 학기 개설 이력 중 제공되지 않은 해가 있습니다."
+              },
+              {
+                "code": "prerequisites_unverified",
+                "message": "선수·수강 자격은 별도로 확인해야 합니다."
+              }
+            ],
+            "goal_progress": [],
+            "tt_link": "https://archi142857.github.io/tt-wizard/#t=jWzEsIjIwMjYtMSIsIjIwMjctMSDsmIjsg4Eg7Iuc6rCE7ZGcIDEiLFtbIkVYQU1QTEUuRlJPTlRFTkQuQSIsIjAwMSIsbnVsbCwi7JiI7IucIOqyveqzhCDqs7zrqqkgQSJdLFsiRVhBTVBMRS5GUk9OVEVORC5CIiwiMDAxIixudWxsLCLsmIjsi5wg6rK96rOEIOqzvOuqqSBCIl1dXQ",
+            "link_term": "2026-1"
+          }
+        ],
+        "issues": [
+          {
+            "code": "estimated_offerings",
+            "message": "전년도 같은 학기 분반을 사용한 예상안입니다."
+          },
+          {
+            "code": "requirements_uncertain",
+            "message": "요건 적용에 확인이 남았습니다. 참고 후보는 확정 미이수가 아닙니다."
+          },
+          {
+            "code": "prerequisites_unverified",
+            "message": "현행 자료에 자동 검증 가능한 선수 관계가 없습니다. 수강 가능을 확정하지 않습니다."
+          },
+          {
+            "code": "fewer_than_requested_plans",
+            "message": "요청한 수보다 적은 유효한 계획만 찾았습니다. 실제 찾은 안만 제시합니다."
+          }
+        ],
+        "excluded_sections": [],
+        "search": {
+          "complete": true,
+          "nodes": 3,
+          "max_nodes": 100000,
+          "feasible_count": 1,
+          "pruned_conflict": 0,
+          "pruned_credit": 0,
+          "n_candidates": 2,
+          "ranking": "계획상 필수과목 수 → 채운 목표 수 → 이동정보 완전성 → TT 비용 → 후보 동점 기준 → 식별자"
+        },
+        "attribution": "TT Wizard 자료: 캠퍼스 마법 지도·© OpenStreetMap 기여자, 국토지리정보원, 서울대 수강편람"
+      },
+      "markdown": "# 2027-1 시간표 후보 — 예상\n\n찾은 안: 1개. 실제 수강 신청·졸업 인정은 별도 확인이 필요합니다.\n\n2027-1의 확정 편람이 없어 2026-1 자료를 참조한 예상입니다. 링크도 참조 학기의 분반을 엽니다.\n\n## 1안 — 6학점\n\n[TT Wizard에서 열기](https://archi142857.github.io/tt-wizard/#t=jWzEsIjIwMjYtMSIsIjIwMjctMSDsmIjsg4Eg7Iuc6rCE7ZGcIDEiLFtbIkVYQU1QTEUuRlJPTlRFTkQuQSIsIjAwMSIsbnVsbCwi7JiI7IucIOqyveqzhCDqs7zrqqkgQSJdLFsiRVhBTVBMRS5GUk9OVEVORC5CIiwiMDAxIixudWxsLCLsmIjsi5wg6rK96rOEIOqzvOuqqSBCIl1dXQ) · 링크 학기: 2026-1\n\n주간 걷기 42.94분 · 이동 부족 4.66분 · 비용 52.26\n\n| 요일 | 시간 | 과목 · 분반 | 건물 · 강의실 |\n| --- | --- | --- | --- |\n| 월 | 09:00–10:00 | 예시 경계 과목 A · 001 | 200 · 예시실 |\n| 월 | 10:20–11:20 | 예시 경계 과목 B · 001 | 302 · 예시실 |\n\n과목 선택 근거:\n\n- 예시 경계 과목 A: 사용자 선택 · 연결 요건 없음\n- 개설 이력 참고: 목표연도 직전 5년 같은 학기 중 1년 개설 · 자료 없는 해: 2022, 2023, 2024, 2025. 개설 확률은 아닙니다.\n- 예시 경계 과목 B: 사용자 선택 · 연결 요건 없음\n- 개설 이력 참고: 목표연도 직전 5년 같은 학기 중 1년 개설 · 자료 없는 해: 2022, 2023, 2024, 2025. 개설 확률은 아닙니다.\n\n| 요일 | 경로 | 이동 | 여유 | 부족 |\n| --- | --- | ---: | ---: | ---: |\n| 월 | 200 → 200 | 0 | — | 0 |\n| 월 | 200 → 302 | 24.66 | -4.66 | 4.66 · 빠듯함 |\n| 월 | 302 → 200 | 18.28 | — | 0 |\n\n- 알려진 경로에서 이동 여유가 부족한 구간이 있습니다.\n- 선수·수강 자격 확인이 남은 과목이 있습니다.\n- 이동시간은 건물 기준이며 실내 이동을 포함하지 않습니다. 같은 건물의 0분도 실제 이동 0분을 보장하지 않습니다.\n- 전년도 같은 학기 개설 자료를 사용한 예상 과목입니다.\n- 최근 5년 같은 학기 개설 이력 중 제공되지 않은 해가 있습니다.\n- 선수·수강 자격은 별도로 확인해야 합니다.\n\n확인 사항·안이 부족한 이유:\n\n- 전년도 같은 학기 분반을 사용한 예상안입니다.\n- 요건 적용에 확인이 남았습니다. 참고 후보는 확정 미이수가 아닙니다.\n- 현행 자료에 자동 검증 가능한 선수 관계가 없습니다. 수강 가능을 확정하지 않습니다.\n- 요청한 수보다 적은 유효한 계획만 찾았습니다. 실제 찾은 안만 제시합니다.\n\nTT Wizard 자료: 캠퍼스 마법 지도·© OpenStreetMap 기여자, 국토지리정보원, 서울대 수강편람\n"
+    }
+  }
+}

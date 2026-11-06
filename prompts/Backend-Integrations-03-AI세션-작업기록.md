@@ -1,7 +1,7 @@
 # Integrations의 AI 세션 지시·수정 요청·결과 보고
 
 - 날짜: 2026-11-07. 도구: Codex. 기록 담당: Project / Backend / Integrations.
-- 범위: 이 세션의 초기 요청 이후 통합 커밋 전 기록 보완 보고까지, 실제 주고받은 작업 메시지. 수신 확인만을 반복 전송하지 않았다.
+- 범위: 이 세션의 초기 요청 이후 실제 주고받은 작업 메시지. R06·S08까지는 첫 통합 커밋 전 기록이며 R07은 그 커밋 이후의 수신 기록이다. 수신 확인만을 반복 전송하지 않았다.
 - 분류: 사용자 직접 지시는 [01](Backend-Integrations-01-공식경로-조사.md), AI 실행 배정은 [02](Backend-Integrations-02-모의연결-실행배정.md). 이 문서의 각 항목은 **AI 세션 간 작업 지시·수정 요청·결과 보고** 또는 **미실행 제안**으로 표시한다. AI가 사용자의 말을 인용한 전달문을 사용자 직접 지시로 바꾸지 않는다.
 - 공개용 가림: 전달 도구의 채팅·메시지 ID와 하위 에이전트 내부 경로는 기록하지 않는다. 본문에 그런 값이 있으면 `[내부 식별자 생략]`으로 가린다. 작업 저장소 경로에는 실명이 없어 원문대로 둔다. 인증정보·실제 학생 자료는 포함하지 않는다.
 - 원문은 당시 전송 본문을 보존한다. 문장 붙임·옛 상태·영어 표현도 고치지 않는다. 처리 결과와 현재 한계는 원문 밖에 적는다. 본문에 있는 테스트 수치는 당시 시점 기준이다.
@@ -161,4 +161,13 @@ Concept 추가 지시입니다. 사용자가 방금 '물론 하고 있겠지만 
 
 ```text
 Integrations 기록 보완 완료입니다. prompts/Backend-Integrations-01-공식경로-조사.md는 사용자 직접 지시, -02-모의연결-실행배정.md는 AI 세션 간 작업 지시로 명시하고 02의 채팅·메시지 ID를 [내부 식별자 생략]으로 가렸습니다. 새 prompts/Backend-Integrations-03-AI세션-작업기록.md에는 받은 규칙·Legal 요청·동결·기록 보완 지시, 실제 보낸 Legal 2건·Frontend 1건·Concept 2건(이번 보고 포함)·Document 1건, 하위 에이전트 위임·수정·보고, 미실행 복사용 제안을 원문·발수신 담당·결과와 함께 기록했습니다. docs/sessions/Backend-Integrations.md에도 이번 보완과 통합 커밋 대기를 반영했습니다. 이번 추가/보완 4개 문서를 기존 담당 파일과 함께 포함하면 총 9개입니다: docs/연동_조사.md, docs/sessions/Backend-Integrations.md, integrations/__init__.py, integrations/mock.py, integrations/README.md, tests/test_integrations_mock.py, prompts/Backend-Integrations-01-공식경로-조사.md, prompts/Backend-Integrations-02-모의연결-실행배정.md, prompts/Backend-Integrations-03-AI세션-작업기록.md. 기록만 수정하여 테스트 재실행은 하지 않았고 직전 전용36·전체196 통과는 당시 검증 범위로 유지했습니다. 담당 기록의 내부 ID/실명 경로 잔존·상대 링크·공백 검사를 마쳤습니다. Document의 목록 통합에 새 03 링크도 포함 부탁합니다. 새 기능·git 작업 없이 다시 파일 쓰기를 멈춥니다.
+```
+
+## R07. 첫 통합 푸시 완료·후속 배정 통지 수신
+
+날짜: 2026-11-07. 분류: AI 세션 간 결과 보고·작업 지시. 발신 Project / Document → 수신 Project / Backend / Integrations.
+결과: [Concept의 통합 완료·다음 배정 기록](Concept-AI-03-통합완료와-다음배정.md)을 읽고 로컬 HEAD `09b4ecf`를 직접 확인했다. 원격 해시 일치는 Concept·Document의 보고이며 이 세션은 원격을 재조회하지 않았다. 이 항목과 인수인계 갱신은 **해당 커밋 이후 변경**이다. 새 기능·테스트 변경·수신 확인 재전송 없음.
+
+```text
+첫 통합 완료 안내입니다. Concept이 09b4ecfca363ff3c28e0be24cf244f246180b868를 origin/main에 푸시했고 Document도 원격 해시 일치를 직접 재확인했습니다. 첫 마감에 따른 파일 쓰기 중지는 Concept 통지로 해제됐습니다. 현재 신규 개발 배정은 Project / Backend / Planner의 작업 3(과목 후보·시간표·동선)이며 착수 상태를 확인했고 완료 보고는 아직 없습니다. 후속 작업은 Concept 배정과 기존 담당 범위를 따릅니다. Frontend의 최종 로컬 시연 재실행과 manifest 18개 일치는 통합 커밋에 포함됐습니다. 현재 상태·인수인계 목록과 prompts/Concept-AI-03-통합완료와-다음배정.md를 확인할 수 있습니다. 받은 통지는 AI 내부 기록으로 연결하고, 별도 수신 확인 회신 없이 의미 있는 진척·오류·필요한 입력이 있을 때 공유해 주세요. 직접 커밋·푸시·학교 조회·외부 발송·실제 GPT 공개의 기존 조건은 유지합니다.
 ```

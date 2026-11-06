@@ -1,8 +1,11 @@
 """Frontend 독립 기대값: 가상 입력과 실제 로컬 편람. GPT 실행 검사는 아님."""
 
 import copy
+import base64
 import json
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
+import zlib
 
 import pytest
 
@@ -138,3 +141,199 @@ def test_two_programs_complete_still_requires_recognition(evaluate, offerings):
     assert item["calculation"]["credits"] == 5
     assert item["status"] == "needs_check"
     assert item["remaining"] is None
+
+
+@pytest.fixture
+def timetable_input():
+    return json.loads((ROOT / "demo/timetable_boundary.json").read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="module")
+def timetable_api():
+    courses = pytest.importorskip("planner.courses", reason="작업3 후보 API 준비 전: 미검증")
+    timetable = pytest.importorskip("planner.timetable", reason="작업3 시간표 API 준비 전: 미검증")
+    return courses.build_candidates, timetable.search_timetables
+
+
+def run_timetable(api, source):
+    build_candidates, search_timetables = api
+    candidates = build_candidates(source["payload"], source["offerings"],
+                                  target_term=source["target_term"], preferences=source["preferences"])
+    return candidates, search_timetables(candidates, source["walk_rows"])
+
+
+@pytest.mark.parametrize("reverse,cost,shortage", [(False, 52.26, 4.66), (True, 42.94, 0)])
+def test_timetable_hand_cost_includes_home_and_direction(timetable_api, timetable_input, reverse, cost, shortage):
+    source = timetable_input
+    if reverse:
+        source["offerings"][0]["courses"][0][5][0][2][0][3] = "302"
+        source["offerings"][0]["courses"][1][5][0][2][0][3] = "200"
+    candidates, result = run_timetable(timetable_api, source)
+    assert all(c["prerequisite_status"] == "unknown" for c in candidates["candidates"])
+    assert len(result["plans"]) == 1
+    plan = result["plans"][0]
+    assert plan["credits"] == 6
+    assert plan["travel_complete"] is True
+    assert plan["walk_minutes"] == pytest.approx(42.94, abs=0.01)
+    assert plan["shortage_minutes"] == pytest.approx(shortage, abs=0.01)
+    assert plan["cost"] == pytest.approx(cost, abs=0.01)
+    middle = [leg for leg in plan["legs"] if leg["depart"] == 600 and leg["arrive_by"] == 620]
+    assert len(middle) == 1
+    assert middle[0]["slack"] == pytest.approx(1.72 if reverse else -4.66, abs=0.01)
+
+
+def test_timetable_touching_times_have_walk_shortage(timetable_api, timetable_input):
+    meeting = timetable_input["offerings"][0]["courses"][1][5][0][2][0]
+    meeting[1:3] = [600, 660]
+    _, result = run_timetable(timetable_api, timetable_input)
+    assert len(result["plans"]) == 1
+    plan = result["plans"][0]
+    assert plan["shortage_minutes"] == pytest.approx(24.66, abs=0.01)
+    assert plan["cost"] == pytest.approx(92.26, abs=0.01)
+
+
+def test_timetable_second_meeting_conflict_is_not_missed(timetable_api, timetable_input):
+    timetable_input["offerings"][0]["courses"][0][5][0][2].append([1, 540, 600, "200", "예시실"])
+    timetable_input["offerings"][0]["courses"][1][5][0][2].append([1, 590, 660, "302", "예시실"])
+    _, result = run_timetable(timetable_api, timetable_input)
+    assert result["plans"] == []
+    assert result["issues"]
+    assert result["search"]["complete"] is True
+
+
+@pytest.mark.parametrize("missing", ["building", "direction"])
+def test_timetable_unknown_is_not_zero_or_reverse(timetable_api, timetable_input, missing):
+    if missing == "building":
+        timetable_input["offerings"][0]["courses"][1][5][0][2][0][3:] = ["", ""]
+    else:
+        timetable_input["walk_rows"] = [row for row in timetable_input["walk_rows"] if row["from"] != "200"]
+    _, result = run_timetable(timetable_api, timetable_input)
+    assert len(result["plans"]) == 1
+    plan = result["plans"][0]
+    assert plan["travel_complete"] is False
+    assert plan["walk_minutes"] is None
+    assert plan["shortage_minutes"] is None
+    assert plan["cost"] is None
+    expected_known = 0 if missing == "building" else 18.28
+    assert plan["known_walk_minutes"] == pytest.approx(expected_known, abs=0.01)
+    assert plan["known_shortage_minutes"] == 0
+    assert plan["known_cost"] == pytest.approx(expected_known, abs=0.01)
+    unknown_legs = [leg for leg in plan["legs"] if leg["minutes"] is None]
+    assert unknown_legs
+    assert all(leg["slack"] is None and leg["shortage"] is None for leg in unknown_legs)
+
+
+def test_timetable_top_three_are_distinct_real_combinations(timetable_api, timetable_input):
+    course = timetable_input["offerings"][0]["courses"][1]
+    original = copy.deepcopy(course[5][0])
+    course[5] = [[str(index).zfill(3), original[1], copy.deepcopy(original[2])] for index in range(1, 5)]
+    _, result = run_timetable(timetable_api, timetable_input)
+    assert len(result["plans"]) == 3
+    signatures = {tuple(sorted((section["code"], section["number"]) for section in plan["sections"]))
+                  for plan in result["plans"]}
+    assert len(signatures) == 3
+    assert all(plan["credits"] == 6 for plan in result["plans"])
+
+
+@pytest.mark.parametrize("preference,value", [("avoid_days", [0]), ("avoid_times", [{"day": 0, "start": 630, "end": 640}])])
+def test_timetable_avoided_period_returns_explanation(timetable_api, timetable_input, preference, value):
+    timetable_input["preferences"][preference] = value
+    _, result = run_timetable(timetable_api, timetable_input)
+    assert result["plans"] == []
+    assert result["issues"]
+    assert result["search"]["complete"] is True
+
+
+def test_timetable_expected_term_and_frequency_are_not_certainty(timetable_api, timetable_input):
+    timetable_input["target_term"] = "2027-1"
+    timetable_input["preferences"]["target_year"] = 2
+    candidates, result = run_timetable(timetable_api, timetable_input)
+    assert result["source_term"] == "2026-1"
+    assert result["target_term"] == "2027-1"
+    assert result["estimated"] is True
+    assert len(candidates["candidates"]) == 2
+    for candidate in candidates["candidates"]:
+        frequency = candidate["frequency"]
+        assert frequency["years_offered"] == 1
+        assert frequency["window_years"] == [2022, 2023, 2024, 2025, 2026]
+        assert frequency["observed_years"] == [2026]
+        assert frequency["missing_years"] == [2022, 2023, 2024, 2025]
+
+
+def test_timetable_no_older_silent_fallback(timetable_api, timetable_input):
+    timetable_input["target_term"] = "2027-1"
+    timetable_input["offerings"][0]["meta"]["semester"] = "2025-1"
+    candidates, result = run_timetable(timetable_api, timetable_input)
+    assert candidates["source_term"] is None
+    assert candidates["candidates"] == []
+    assert result["plans"] == []
+    assert result["issues"] or candidates["issues"]
+
+
+def test_timetable_search_limit_does_not_prove_impossibility(timetable_api, timetable_input):
+    timetable_input["preferences"]["max_nodes"] = 1
+    _, result = run_timetable(timetable_api, timetable_input)
+    assert result["search"]["complete"] is False
+    assert result["issues"]
+
+
+def independently_decode_timetable(url):
+    # Planner의 encode/decode를 기대값 생성에 사용하지 않는다.
+    token = parse_qs(urlsplit(url).fragment)["t"][0]
+    packed = base64.urlsafe_b64decode(token[1:] + "=" * (-len(token[1:]) % 4))
+    assert token[0] in {"j", "z"}
+    return json.loads(zlib.decompress(packed, -15) if token[0] == "z" else packed)
+
+
+def test_timetable_report_link_independently_round_trips_source_term(timetable_input):
+    report = pytest.importorskip("planner.report", reason="작업3 보고 API 준비 전: 미검증")
+    timetable_input["target_term"] = "2027-1"
+    result = report.recommend_timetables(timetable_input["payload"], timetable_input["offerings"],
+                                         timetable_input["walk_rows"], target_term="2027-1",
+                                         preferences=timetable_input["preferences"])
+    assert result["json"]["estimated"] is True
+    assert len(result["json"]["plans"]) == 1
+    for plan in result["json"]["plans"]:
+        decoded = independently_decode_timetable(plan["tt_link"])
+        assert decoded[0] == 1
+        assert decoded[1] == "2026-1"
+        assert "2027-1" in decoded[2] and "예상" in decoded[2]
+        assert sorted((row[0], row[1], row[3]) for row in decoded[3]) == sorted(
+            (s["code"], s["number"], s["name"]) for s in plan["sections"])
+        assert all(row[2] is None for row in decoded[3])
+    markdown = result["markdown"]
+    assert "2027-1" in markdown and "2026-1" in markdown and "예상" in markdown
+    assert "선수" in markdown
+    assert "prerequisites_unverified" in warning_codes(result["json"]["plans"][0]["warnings"])
+    assert "TT Wizard 자료: 캠퍼스 마법 지도·© OpenStreetMap 기여자, 국토지리정보원, 서울대 수강편람" in markdown
+
+
+def warning_codes(values):
+    return {value["code"] if isinstance(value, dict) else value for value in values}
+
+
+def test_timetable_reference_and_credit_warning_survive_report(timetable_api, timetable_input):
+    report = pytest.importorskip("planner.report", reason="작업3 보고 API 준비 전: 미검증")
+    source = timetable_input
+    source["payload"] = payload("biology_double")
+    source["payload"]["courses"] = []
+    # 공식 목록2학점과 달리 모의 편람3학점: 인정 가능하다는 뜻이 아니다.
+    course = source["offerings"][0]["courses"][0]
+    course[0:2] = ["M1410.000100", "생명과학전공실험 1"]
+    source["offerings"][0]["courses"] = [course]
+    source["preferences"].update(min_credits=3, max_credits=3, required_codes=["M1410.000100"], include_reference=True)
+    candidates, search = run_timetable(timetable_api, source)
+    assert len(search["plans"]) == 1
+    expected_warnings = {"prerequisites_unverified", "requirement_recognition_unconfirmed", "requirement_credit_conflict"}
+    plan = search["plans"][0]
+    assert expected_warnings <= warning_codes(plan["warnings"])
+    assert expected_warnings <= warning_codes(plan["sections"][0]["warnings"])
+    result = report.build_report(search)
+    assert expected_warnings <= warning_codes(result["json"]["plans"][0]["warnings"])
+    assert expected_warnings <= warning_codes(result["json"]["plans"][0]["sections"][0]["warnings"])
+    assert "선수" in result["markdown"] and "학점" in result["markdown"]
+    assert "확인" in result["markdown"]
+    assert "다전공" in result["markdown"] or "인정" in result["markdown"]
+    for warning in result["json"]["plans"][0]["warnings"]:
+        if isinstance(warning, dict) and warning.get("code") in expected_warnings:
+            assert warning["message"] in result["markdown"]

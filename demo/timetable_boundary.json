@@ -1,0 +1,27 @@
+{
+  "example": "예시: 실제 강좌가 아닌 독립 시간표 경계 입력. 두 이동값만 data/walk.csv에서 확인한 값이며 실제 추천 결과가 아니다.",
+  "payload": {
+    "entry_year": 2025,
+    "programs": [{"name": "동물생명공학전공", "kind": "주전공"}],
+    "coverage": "partial",
+    "courses": []
+  },
+  "target_term": "2026-1",
+  "preferences": {
+    "min_credits": 6,
+    "max_credits": 6,
+    "home": "200",
+    "required_codes": ["EXAMPLE.FRONTEND.A", "EXAMPLE.FRONTEND.B"]
+  },
+  "offerings": [{
+    "meta": {"semester": "2026-1", "description": "예시 모의 개설 자료"},
+    "courses": [
+      ["EXAMPLE.FRONTEND.A", "예시 경계 과목 A", "예시 학부", 3, "전선", [["001", "", [[0, 540, 600, "200", "예시실"]]]]],
+      ["EXAMPLE.FRONTEND.B", "예시 경계 과목 B", "예시 학부", 3, "전선", [["001", "", [[0, 620, 680, "302", "예시실"]]]]]
+    ]
+  }],
+  "walk_rows": [
+    {"from": "200", "to": "302", "minutes": "24.66"},
+    {"from": "302", "to": "200", "minutes": "18.28"}
+  ]
+}

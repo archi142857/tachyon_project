@@ -61,8 +61,21 @@
 | Legal-03 | 2026-11-07 | Codex | Legal-03: AI 세션 간 요청·보고 기록 | [Legal-03-세션간-전달기록.md](Legal-03-세션간-전달기록.md) | AI 세션 간 지시·보고 | Project / Legal ↔ 관련 세션(본문별 명시) |
 | Research-02 | 2026-11-07 | Codex | Research 02 — 2-C 해석과 다음 구조화 제안 | [Research-02-2C해석과-구조화제안.md](Research-02-2C해석과-구조화제안.md) | AI 세션 간 지시·보고 | Project / Research ↔ 관련 세션(본문별 명시) |
 | Research-03 | 2026-11-07 | Codex | Research 03 — AI 지시·수정 요청·실제 발송 원문 | [Research-03-AI지시와-발송원문.md](Research-03-AI지시와-발송원문.md) | AI 세션 간 지시·보고 | Project / Research ↔ 관련 세션(본문별 명시) |
-
 | Backend-Planner-08 | 2026-11-07 | Codex | 2-C 완료 보고·통합 대기 | [완료 보고](Backend-Planner-08-완료보고.md) | AI 세션 간 지시·보고 | Project / Backend / Planner → Project / Concept |
+| Concept-AI-03 | 2026-11-07 | Codex | 첫 통합 푸시·작업 3 배정·대기 해제 | [전달 원문](Concept-AI-03-통합완료와-다음배정.md) | AI 세션 간 지시·보고 | Project / Concept → Planner·Document |
+| Document-05 | 2026-11-07 | Codex | 푸시 재확인·후속 착수·통합 완료 전달 | [확인과 전달 기록](Document-05-푸시확인과-후속착수.md) | AI 세션 간 지시·보고 | Concept·Frontend → Document → 관련 세션 |
+| Frontend-06 | 2026-11-07 | Codex | 첫 통합 완료·대기 해제 수신 기록 | [수신 원문](Frontend-06-첫통합-완료통지.md) | AI 세션 간 지시·보고 | Project / Document → Project / Frontend |
+| Frontend-07 | 2026-11-07 | Codex | 시간표 계약·독립 기대값·신규14개 검사 준비 | [협업 원문](Frontend-07-시간표-독립검증.md) | AI 세션 간 지시·보고 | Planner ↔ Frontend → Document; 보조 검토 포함 |
+| Backend-Planner-09 | 2026-11-07 | Codex | 작업3 후보·시간표·동선 실행 배정 | [배정 원문](Backend-Planner-09-작업3-배정.md) | AI 세션 간 지시·보고 | Project / Concept → Project / Backend / Planner |
+| Document-06 | 2026-11-07 | Codex | 시간표 독립 검사 준비·미실행 구분 반영 | [처리 기록](Document-06-시간표-검증준비-반영.md) | AI 세션 간 지시·보고 | Project / Frontend → Project / Document |
+| Backend-Planner-10 | 2026-11-07 | Codex | 작업3 계약·독립검증 요청과 수정 왕복 | [원문·처리](Backend-Planner-10-작업3-내부협업.md) | AI 세션 간 지시·보고 | Planner ↔ Frontend·관련 세션 |
+| Backend-Planner-11 | 2026-11-07 | Codex | 시간표 보조 협업 원문·복구 한계 | [원문·처리](Backend-Planner-11-시간표-보조협업.md) | AI 세션 간 지시·보고 | Planner ↔ 시간표·보고 보조 |
+| Backend-Planner-12 | 2026-11-07 | Codex | 보고서·링크 보조 협업 원문 | [원문·처리](Backend-Planner-12-보고서-보조협업.md) | AI 세션 간 지시·보고 | Planner ↔ 보고·시간표 보조 |
+| Backend-Planner-13 | 2026-11-07 | Codex | 후보 검사 보조 협업 원문 | [원문·처리](Backend-Planner-13-후보검사-보조협업.md) | AI 세션 간 지시·보고 | Planner ↔ 후보 검사 보조 |
+| Backend-Planner-14 | 2026-11-07 | Codex | 작업3 구현·검증 마감 보고 | [원문·처리](Backend-Planner-14-작업3-완료보고.md) | AI 세션 간 지시·보고 | Frontend → Planner → Concept·Document |
+| Frontend-08 | 2026-11-07 | Codex | 시간표 독립26개 실행·전체428개·모의5상황 마감 | [원문·처리](Frontend-08-시간표-검증실행.md) | AI 세션 간 지시·보고 | Planner ↔ Frontend → Concept·Document; 보조 검토 포함 |
+| Concept-AI-04 | 2026-11-07 | Codex | 작업3 통합 검토·최종428개·문서 마감 요청 | [원문·처리](Concept-AI-04-작업3-통합검토.md) | AI 세션 간 지시·보고 | Concept ↔ 관련 세션·읽기 전용 보조 |
+| Document-07 | 2026-11-07 | Codex | 작업3 결과 대조·문서 통합·마감 보고 | [원문·처리](Document-07-작업3-검증결과-통합.md) | AI 세션 간 지시·보고 | Frontend·Planner·Concept → Document → Concept; 보조 검토 포함 |
 
 ## 미실행 제안과 미확보 원문
 
