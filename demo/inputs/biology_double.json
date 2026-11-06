@@ -1,0 +1,12 @@
+{
+  "example": "예시: 가상 동물생명공학 주전공·생명과학부 복수전공. 실제 이력이 아닌 일부 과목 상태 검증.",
+  "schema_version": 1,
+  "entry_year": 2025,
+  "programs": [{"name": "동물생명공학전공", "kind": "주전공"}, {"name": "생명과학부", "kind": "복수전공"}],
+  "coverage": "partial",
+  "courses": [
+    {"code": "M1410.000100", "name": "생명과학전공실험 1", "credits": 2, "category": "전선", "term": "2026-1", "status": "completed"},
+    {"code": "M1410.000200", "name": "생명과학전공실험 2", "credits": 2, "category": "전선", "term": "2026-2", "status": "in_progress"},
+    {"code": "3346.328", "name": "생명과학특수연구 1", "credits": 1, "category": "전선", "term": "2026-1", "status": "unknown"}
+  ]
+}

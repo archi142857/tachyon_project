@@ -1,0 +1,1468 @@
+{
+  "example": true,
+  "execution": "local_python_not_gpt",
+  "input": "demo/inputs/animal.json",
+  "normalized": {
+    "schema_version": 1,
+    "entry_year": 2025,
+    "programs": [
+      {
+        "name": "동물생명공학전공",
+        "kind": "주전공"
+      }
+    ],
+    "coverage": "partial",
+    "courses": [
+      {
+        "code": "5252.201A",
+        "name": "동물해부생리학 입문 및 실습",
+        "category": "전필",
+        "term": "2026-1",
+        "credits": 3,
+        "status": "completed",
+        "row": 0,
+        "matched_code": "5252.201A",
+        "match_method": "code",
+        "candidate_codes": [
+          "5252.201A"
+        ],
+        "issues": [],
+        "needs_check": false,
+        "countable_completed": true
+      },
+      {
+        "code": "M1702.001000",
+        "name": "동물생화학 1",
+        "category": "전필",
+        "term": "2026-1",
+        "credits": 3,
+        "status": "in_progress",
+        "row": 1,
+        "matched_code": "M1702.001000",
+        "match_method": "code",
+        "candidate_codes": [
+          "M1702.001000"
+        ],
+        "issues": [],
+        "needs_check": false,
+        "countable_completed": false
+      },
+      {
+        "code": "5252.301",
+        "name": "동물영양학 및 실험",
+        "category": "전필",
+        "term": "2026-1",
+        "credits": 3,
+        "status": "unknown",
+        "row": 2,
+        "matched_code": "5252.301",
+        "match_method": "code",
+        "candidate_codes": [
+          "5252.301"
+        ],
+        "issues": [
+          "status_unknown"
+        ],
+        "needs_check": true,
+        "countable_completed": false
+      }
+    ],
+    "summary": {
+      "course_count": 3,
+      "status_counts": {
+        "completed": 1,
+        "in_progress": 1,
+        "unknown": 1
+      },
+      "confirmed_completed_credits": 3,
+      "in_progress_credits": 3,
+      "held_completed_rows": 0
+    },
+    "issues": [
+      {
+        "code": "coverage_unconfirmed",
+        "path": "coverage",
+        "message": "전체 이수내역인지 확인이 필요합니다."
+      },
+      {
+        "code": "status_unknown",
+        "path": "courses[2].status",
+        "message": "취득 완료 또는 수강 중인지 확인이 필요합니다."
+      }
+    ],
+    "needs_check": true
+  },
+  "requirements_state": "executed",
+  "requirements": {
+    "schema_version": 1,
+    "evaluation_scope": "approved_course_lists_only",
+    "graduation_status": "not_evaluated",
+    "ruleset": {
+      "schema_version": "1.0",
+      "sha256": "53bfe2612612b45e9a6a443c4846c2238d6a7deb3e5101604b7f60e9e5aff6aa",
+      "source_sha256": "6d3dda941932761d5598fb1f6701a7edbbdb62e60edd5d673ff8d5647a57c9a6",
+      "basis": {
+        "entry_year": 2025,
+        "checked_on": "2026-11-05"
+      }
+    },
+    "entry_year": 2025,
+    "programs": [
+      {
+        "name": "동물생명공학전공",
+        "kind": "주전공"
+      }
+    ],
+    "coverage": "partial",
+    "transcript_summary": {
+      "course_count": 3,
+      "status_counts": {
+        "completed": 1,
+        "in_progress": 1,
+        "unknown": 1
+      },
+      "confirmed_completed_credits": 3,
+      "in_progress_credits": 3,
+      "held_completed_rows": 0
+    },
+    "transcript_issues": [
+      {
+        "code": "coverage_unconfirmed",
+        "path": "coverage",
+        "message": "전체 이수내역인지 확인이 필요합니다."
+      },
+      {
+        "code": "status_unknown",
+        "path": "courses[2].status",
+        "message": "취득 완료 또는 수강 중인지 확인이 필요합니다."
+      }
+    ],
+    "issues": [
+      {
+        "code": "coverage_unconfirmed",
+        "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+      }
+    ],
+    "sets": [
+      {
+        "id": "common",
+        "name": "학사과정 공통 및 조사대상 세 전공 공통 교양",
+        "kind": "교양",
+        "unit": "서울대학교",
+        "applies_to": "2025학번. 교양36은 본부 공통 하한; 글쓰기·외국어·영역 배분은 본 조사 세 전공 소속 학생 공통사항이며 다른 단과대학에 일괄 적용하지 않음.",
+        "total_credits": null,
+        "total_credits_status": "needs_check",
+        "items": [
+          {
+            "id": "common-R01",
+            "name": "교양 공통 하한",
+            "section": "requirements",
+            "rule": "min_credits",
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": 36,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "home_unit_unconfirmed",
+                "message": "주전공 이름만으로 소속·입학경로를 알 수 없습니다. 교양은 참고 묶음입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "학위취득(수료)",
+                "url": "https://snu.ac.kr/academics/resources/enrollment/requirement",
+                "locator": "학사과정 졸업 > 졸업사정대상 및 기준; 현행 공통 안내(2026-11-05 확인), 대학별 이수규정 병행"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://snu.ac.kr/academics/resources/enrollment/requirement",
+                "title": "학위취득(수료)",
+                "locator": "학사과정 졸업 > 졸업사정대상 및 기준",
+                "applies_to": "현행 공통 기준, 대학별 기준 병행",
+                "observed": "교양36·총130, 등록6회, 평점2.0, 필수·논문 및 신청 절차 확인."
+              }
+            ],
+            "original_pointer": "/sets/0/requirements/0",
+            "review_status": "confirmed",
+            "calculation_mode": "manual_review",
+            "review_reason": "본부의 교양 하한 확인. 소속별 상향 기준을 동시에 적용해야 한다.",
+            "calculation_reason": "인정 대상 과목 집합을 기계적으로 지정하지 못함; 문장형 인정 필터에 소속·선택·배분 조건이 있음",
+            "note": "생명과학부46, 화학생물공학부53 등 소속별 상향 기준을 함께 적용. 복수전공만 이수하는 학생에게 해당 단과대학 교양 전체를 자동 적용하지 않음.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "common-R02",
+            "name": "대학 글쓰기 1",
+            "section": "requirements",
+            "rule": "all",
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": 2,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "home_unit_unconfirmed",
+                "message": "주전공 이름만으로 소속·입학경로를 알 수 없습니다. 교양은 참고 묶음입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2025학년도 단과대학별 공통교육과정 이수규정(2025 새내기 길잡이 수록)",
+                "url": "https://snuc.snu.ac.kr/이수규정/",
+                "locator": "2025년도 다운로드; 인쇄 pp.110–111,131,135; 2025학년도 입학생부터"
+              },
+              {
+                "title": "2025학년도 2학기 기초교양 수강편람: 공통교육과정 안내",
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2025/07/★2025학년도-2학기-기초교양-수강편람배포_20250729.pdf",
+                "locator": "III 공통교육과정 > 글쓰기와 말하기; 부록 구·신 교과목 비교표; 2025학년도"
+              },
+              {
+                "title": "2025학년도 시행 대학별 공통교육과정 이수규정",
+                "url": "https://mse.snu.ac.kr/wp-content/uploads/2025/07/2025학년도-시행-공통교육과정-대학별-이수규정국문.pdf",
+                "locator": "p.5 자연과학대학: 대학 글쓰기1 권장1-1; 2025학년도 입학생부터"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+                "title": "2025 새내기 길잡이 공통교육과정 이수규정",
+                "locator": "인쇄110–111,131,135 / PDF6–7,27,31쪽",
+                "applies_to": "2025학년도 입학생부터",
+                "observed": "세 소속의 글쓰기·외국어·교양 영역 표를 대조함. 소속에 따른 조건 분기 필요."
+              },
+              {
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2025/07/★2025학년도-2학기-기초교양-수강편람배포_20250729.pdf",
+                "title": "2025학년도 2학기 기초교양 수강편람",
+                "locator": "글쓰기 안내 및 부록: PDF244,248쪽(부록57,61쪽)",
+                "applies_to": "2025학년도 교과목 체계",
+                "observed": "글쓰기의 구·신 번호 대응과 역수강·동시수강 제한 확인."
+              }
+            ],
+            "original_pointer": "/sets/0/requirements/1",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "필수 및 번호 대응 확인. 자연대 권장학기 자료 간 차이는 해소하지 못함. 권장학기는 졸업 의무가 아니다.",
+            "calculation_reason": "초안의 확인 필요 표시를 보존함; 공식 근거의 적용·세부사항 확인이 남음; 대체·선수 관계의 방향과 조건을 함께 확인해야 함",
+            "note": "권장: 동물생명1-2, 화학생물1-1. 생명과학부는 공식 자료 간1-1/1-2 차이가 있어 권장학기 확인 필요.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "common-R03",
+            "name": "대학 글쓰기 2",
+            "section": "requirements",
+            "rule": "min_count",
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": 2,
+            "min_count": 1,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "home_unit_unconfirmed",
+                "message": "주전공 이름만으로 소속·입학경로를 알 수 없습니다. 교양은 참고 묶음입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2025학년도 단과대학별 공통교육과정 이수규정(2025 새내기 길잡이 수록)",
+                "url": "https://snuc.snu.ac.kr/이수규정/",
+                "locator": "2025년도 다운로드; 인쇄 pp.110,131,135; 2025학년도 입학생부터"
+              },
+              {
+                "title": "2025학년도 2학기 기초교양 수강편람: 공통교육과정 안내",
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2025/07/★2025학년도-2학기-기초교양-수강편람배포_20250729.pdf",
+                "locator": "III 글쓰기와 말하기; 부록 선이수·역수강·동시수강 금지 교과목 목록; 2025학년도"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+                "title": "2025 새내기 길잡이 공통교육과정 이수규정",
+                "locator": "인쇄110–111,131,135 / PDF6–7,27,31쪽",
+                "applies_to": "2025학년도 입학생부터",
+                "observed": "세 소속의 글쓰기·외국어·교양 영역 표를 대조함. 소속에 따른 조건 분기 필요."
+              },
+              {
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2025/07/★2025학년도-2학기-기초교양-수강편람배포_20250729.pdf",
+                "title": "2025학년도 2학기 기초교양 수강편람",
+                "locator": "글쓰기 안내 및 부록: PDF244,248쪽(부록57,61쪽)",
+                "applies_to": "2025학년도 교과목 체계",
+                "observed": "글쓰기의 구·신 번호 대응과 역수강·동시수강 제한 확인."
+              }
+            ],
+            "original_pointer": "/sets/0/requirements/2",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "소속별 글쓰기2 선택 범위와 동시수강 금지 확인. 세 과목 중 아무 하나라는 공통 조건만으로 생명과학·화생을 판정하면 안 된다. 과목별 2학점 및 선수 조건의 전체 원문 대조는 남음.",
+            "calculation_reason": "공식 근거의 적용·세부사항 확인이 남음; 문장형 인정 필터에 소속·선택·배분 조건이 있음; 대체·선수 관계의 방향과 조건을 함께 확인해야 함",
+            "note": "권장: 동물생명2-1, 생명과학2-1, 화학생물1-2. 글쓰기1과 동시수강 불가.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "common-R04",
+            "name": "외국어 과목수",
+            "section": "requirements",
+            "rule": "min_count",
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": null,
+            "min_count": 2,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "home_unit_unconfirmed",
+                "message": "주전공 이름만으로 소속·입학경로를 알 수 없습니다. 교양은 참고 묶음입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2025학년도 단과대학별 공통교육과정 이수규정(2025 새내기 길잡이 수록)",
+                "url": "https://snuc.snu.ac.kr/이수규정/",
+                "locator": "2025년도 다운로드; 인쇄 pp.110,131,135; 2025학년도 입학생부터"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+                "title": "2025 새내기 길잡이 공통교육과정 이수규정",
+                "locator": "인쇄110–111,131,135 / PDF6–7,27,31쪽",
+                "applies_to": "2025학년도 입학생부터",
+                "observed": "세 소속의 글쓰기·외국어·교양 영역 표를 대조함. 소속에 따른 조건 분기 필요."
+              }
+            ],
+            "original_pointer": "/sets/0/requirements/3",
+            "review_status": "confirmed",
+            "calculation_mode": "manual_review",
+            "review_reason": "외국어 두 과목과 영어 필수 조건을 세 소속 표에서 확인. 개인별 면제·수준 판정은 별도.",
+            "calculation_reason": "인정 대상 과목 집합을 기계적으로 지정하지 못함; 문장형 인정 필터에 소속·선택·배분 조건이 있음",
+            "note": "생명과학부·화학생물공학부 권장1-1,1-2; 농생대 표에는 권장학기 미지정. TEPS는 영어필수 여부·수강수준 판단 기준이며 별도 졸업시험 점수요건으로 해석하지 않음.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "common-R05",
+            "name": "외국어 학점",
+            "section": "requirements",
+            "rule": "min_credits",
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": 6,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "home_unit_unconfirmed",
+                "message": "주전공 이름만으로 소속·입학경로를 알 수 없습니다. 교양은 참고 묶음입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2025학년도 단과대학별 공통교육과정 이수규정(2025 새내기 길잡이 수록)",
+                "url": "https://snuc.snu.ac.kr/이수규정/",
+                "locator": "2025년도 다운로드; 인쇄 pp.110,131,135; 2025학년도 입학생부터"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+                "title": "2025 새내기 길잡이 공통교육과정 이수규정",
+                "locator": "인쇄110–111,131,135 / PDF6–7,27,31쪽",
+                "applies_to": "2025학년도 입학생부터",
+                "observed": "세 소속의 글쓰기·외국어·교양 영역 표를 대조함. 소속에 따른 조건 분기 필요."
+              }
+            ],
+            "original_pointer": "/sets/0/requirements/4",
+            "review_status": "confirmed",
+            "calculation_mode": "manual_review",
+            "review_reason": "외국어 6학점은 과목수 조건과 함께 적용.",
+            "calculation_reason": "인정 대상 과목 집합을 기계적으로 지정하지 못함; 문장형 인정 필터에 소속·선택·배분 조건이 있음",
+            "note": "외국어 과목수 요건과 동시에 충족.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "common-R06",
+            "name": "지성의 열쇠",
+            "section": "requirements",
+            "rule": "min_credits",
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": 9,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "home_unit_unconfirmed",
+                "message": "주전공 이름만으로 소속·입학경로를 알 수 없습니다. 교양은 참고 묶음입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2025학년도 단과대학별 공통교육과정 이수규정(2025 새내기 길잡이 수록)",
+                "url": "https://snuc.snu.ac.kr/이수규정/",
+                "locator": "2025년도 다운로드; 인쇄 pp.110,131,135; 2025학년도 입학생부터"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+                "title": "2025 새내기 길잡이 공통교육과정 이수규정",
+                "locator": "인쇄110–111,131,135 / PDF6–7,27,31쪽",
+                "applies_to": "2025학년도 입학생부터",
+                "observed": "세 소속의 글쓰기·외국어·교양 영역 표를 대조함. 소속에 따른 조건 분기 필요."
+              }
+            ],
+            "original_pointer": "/sets/0/requirements/5",
+            "review_status": "confirmed",
+            "calculation_mode": "manual_review",
+            "review_reason": "소속별 영역 배분을 확인. 단순 총9학점만으로 판정 불가.",
+            "calculation_reason": "인정 대상 과목 집합을 기계적으로 지정하지 못함; 문장형 인정 필터에 소속·선택·배분 조건이 있음",
+            "note": "",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "common-R07",
+            "name": "베리타스",
+            "section": "requirements",
+            "rule": "min_credits",
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": 3,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "home_unit_unconfirmed",
+                "message": "주전공 이름만으로 소속·입학경로를 알 수 없습니다. 교양은 참고 묶음입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2025학년도 단과대학별 공통교육과정 이수규정(2025 새내기 길잡이 수록)",
+                "url": "https://snuc.snu.ac.kr/이수규정/",
+                "locator": "2025년도 다운로드; 인쇄 pp.110,131,135; 2025학년도 입학생부터"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+                "title": "2025 새내기 길잡이 공통교육과정 이수규정",
+                "locator": "인쇄110–111,131,135 / PDF6–7,27,31쪽",
+                "applies_to": "2025학년도 입학생부터",
+                "observed": "세 소속의 글쓰기·외국어·교양 영역 표를 대조함. 소속에 따른 조건 분기 필요."
+              }
+            ],
+            "original_pointer": "/sets/0/requirements/6",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "공통 베리타스3학점 확인. 생명과학부의 1과목 필수라는 세부 문구는 이 공통 표만으로 확정하지 않음.",
+            "calculation_reason": "공식 근거의 적용·세부사항 확인이 남음; 인정 대상 과목 집합을 기계적으로 지정하지 못함; 문장형 인정 필터에 소속·선택·배분 조건이 있음",
+            "note": "",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "common-C01",
+            "name": "2025 교양체계와 적용 학번",
+            "section": "other_conditions",
+            "rule": null,
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": null,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "home_unit_unconfirmed",
+                "message": "주전공 이름만으로 소속·입학경로를 알 수 없습니다. 교양은 참고 묶음입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2025학년도 시행 교양교과과정 개편에 따른 공통교육과정 교과목 목록 안내",
+                "url": "https://snuc.snu.ac.kr/공지사항/?mod=document&uid=58",
+                "locator": "2025-01-13 공지 > 적용대상 안내"
+              },
+              {
+                "title": "2025학년도 단과대학별 공통교육과정 이수규정(2025 새내기 길잡이 수록)",
+                "url": "https://snuc.snu.ac.kr/이수규정/",
+                "locator": "2025년도 다운로드; 인쇄 pp.110,131,135; 2025학년도 입학생부터"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+                "title": "2025 새내기 길잡이 공통교육과정 이수규정",
+                "locator": "인쇄110–111,131,135 / PDF6–7,27,31쪽",
+                "applies_to": "2025학년도 입학생부터",
+                "observed": "세 소속의 글쓰기·외국어·교양 영역 표를 대조함. 소속에 따른 조건 분기 필요."
+              }
+            ],
+            "original_pointer": "/sets/0/other_conditions/0",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "2025 네 영역 체계 확인. 2024 이전 경과조치와 다른 소속 범위는 이번 공통 검토로 확정하지 않음.",
+            "calculation_reason": "공식 근거의 적용·세부사항 확인이 남음; 비교과·행정·성적·인정 조건은 수동 확인 항목",
+            "note": "학문의 토대·지성의 열쇠·베리타스·지성의 확장. 2024학번 이전은 원래 입학년도 기준을 유지. 이 조사 세 전공의 표에는 지성의 확장 별도 최소학점이 명시되어 있지 않음.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "common-C02",
+            "name": "공통 졸업사정",
+            "section": "other_conditions",
+            "rule": null,
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": null,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "home_unit_unconfirmed",
+                "message": "주전공 이름만으로 소속·입학경로를 알 수 없습니다. 교양은 참고 묶음입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "학위취득(수료)",
+                "url": "https://snu.ac.kr/academics/resources/enrollment/requirement",
+                "locator": "학사과정 졸업 > 졸업사정대상 및 기준; 현행 공통 안내(2026-11-05 확인), 대학별 이수규정 병행"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://snu.ac.kr/academics/resources/enrollment/requirement",
+                "title": "학위취득(수료)",
+                "locator": "학사과정 졸업 > 졸업사정대상 및 기준",
+                "applies_to": "현행 공통 기준, 대학별 기준 병행",
+                "observed": "교양36·총130, 등록6회, 평점2.0, 필수·논문 및 신청 절차 확인."
+              }
+            ],
+            "original_pointer": "/sets/0/other_conditions/1",
+            "review_status": "confirmed",
+            "calculation_mode": "manual_review",
+            "review_reason": "본부 공통 졸업 기준 확인. 성적은 저장소 정책상 계산하지 않으며 학생이 학과에서 확인해야 함.",
+            "calculation_reason": "비교과·행정·성적·인정 조건은 수동 확인 항목",
+            "note": "본부 안내: 총130학점 이상 및 대학별 기준, 등록6회 이상, 전체·각 전공 평점평균 각각2.0 이상, 필수과목 이수, 졸업논문 또는 인정되는 대체 실적심사 합격. 졸업희망 학기 수업주수1/4선 이내 신청. 각 학과 추가조건을 함께 적용.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "common-C03",
+            "name": "외국어·수학 수준별 수강",
+            "section": "other_conditions",
+            "rule": null,
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": null,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "home_unit_unconfirmed",
+                "message": "주전공 이름만으로 소속·입학경로를 알 수 없습니다. 교양은 참고 묶음입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2025학년도 2학기 기초교양 수강편람: 공통교육과정 안내",
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2025/07/★2025학년도-2학기-기초교양-수강편람배포_20250729.pdf",
+                "locator": "V 공통교육과정 교과목 수강 안내 > 영어, 제2외국어, 수학; 인쇄 pp.137–145; 2025학년도"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2025/07/★2025학년도-2학기-기초교양-수강편람배포_20250729.pdf",
+                "title": "2025학년도 2학기 기초교양 수강편람",
+                "locator": "목차 V 및 인쇄137–145쪽",
+                "applies_to": "2025학년도",
+                "observed": "수준별 영어·수학 수강 안내 절 존재 확인."
+              }
+            ],
+            "original_pointer": "/sets/0/other_conditions/2",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "편람에 영어·수학 수준별 수강 안내가 존재함. 개인별 예외·시험 기준을 전수 검증하지 않았으므로 수강 가능 확정 금지.",
+            "calculation_reason": "공식 근거의 적용·세부사항 확인이 남음; 비교과·행정·성적·인정 조건은 수동 확인 항목",
+            "note": "영어는 TEPS 또는 이전단계 이수에 따른 수준별 수강, 역수강·일부 동시수강 제한 적용. 수학은 신입생 특별시험 및 수준별 수강기준 적용. 글로벌인재전형 등 개인별 예외는 편람 해당절과 성적자료로 확인.",
+            "calculation": null,
+            "remaining": null
+          }
+        ]
+      },
+      {
+        "id": "animal-main",
+        "name": "동물생명공학전공",
+        "kind": "주전공",
+        "unit": "농업생명과학대학 식품·동물생명공학부",
+        "applies_to": "조사 대상: 2025학번. 전공 세부요건은 공개된 본부 2024 교과과정 및 학과 2022 졸업요건을 확인함. 2025학번·다전공 선발연도에 적용되는 최신 전공내규 확인 필요.",
+        "total_credits": 130,
+        "total_credits_status": "needs_check",
+        "items": [
+          {
+            "id": "animal-main-R01",
+            "name": "졸업 총 이수학점",
+            "section": "requirements",
+            "rule": "min_credits",
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": 130,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2024 서울대학교 교과과정 해설",
+                "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Explanation_kor_2024.pdf",
+                "locator": "인쇄 p.9 표1 농업생명과학대학; p.10 경과조치: 농업생명과학대학 이수학점 기준은 2009학년도 입학자부터 적용"
+              },
+              {
+                "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+                "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+                "locator": "2022년도 자료; 1.가"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+                "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+                "locator": "1.가",
+                "applies_to": "2022년도 게시 기준",
+                "observed": "졸업130·교양36·주전공48을 명시."
+              },
+              {
+                "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Explanation_kor_2024.pdf",
+                "title": "2024 서울대학교 교과과정 해설",
+                "locator": "인쇄9쪽 표1 및 10쪽 경과조치·표2",
+                "applies_to": "농생대 기준은 2009학년도 입학자부터; 자료 판본2024",
+                "observed": "주전공·복수전공48, 졸업130을 확인."
+              }
+            ],
+            "original_pointer": "/sets/1/requirements/0",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "수치와 기존 적용조항을 대조했다. 2025 전공내규 변경 여부가 해결되지 않아 초안 표시 유지.",
+            "calculation_reason": "초안의 확인 필요 표시를 보존함; 공식 근거의 적용·세부사항 확인이 남음; 인정 대상 과목 집합을 기계적으로 지정하지 못함; 문장형 인정 필터에 소속·선택·배분 조건이 있음",
+            "note": "공개된 2024 본부 기준과 2022 학과 기준 모두 130학점. 2025 전공내규의 변경 여부 확인 필요.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "animal-main-R02",
+            "name": "전공 최소 이수학점",
+            "section": "requirements",
+            "rule": "min_credits",
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": 48,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2024 서울대학교 교과과정 해설",
+                "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Explanation_kor_2024.pdf",
+                "locator": "인쇄 p.9 표1 농업생명과학대학 주전공"
+              },
+              {
+                "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+                "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+                "locator": "2022년도 자료; 1.가"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Explanation_kor_2024.pdf",
+                "title": "2024 서울대학교 교과과정 해설",
+                "locator": "인쇄9쪽 표1 및 10쪽 경과조치·표2",
+                "applies_to": "농생대 기준은 2009학년도 입학자부터; 자료 판본2024",
+                "observed": "주전공·복수전공48, 졸업130을 확인."
+              }
+            ],
+            "original_pointer": "/sets/1/requirements/1",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "2022·2024 공식 자료가 일치한다. 최신 학과 세부내규 확인 필요.",
+            "calculation_reason": "초안의 확인 필요 표시를 보존함; 공식 근거의 적용·세부사항 확인이 남음; 인정 대상 과목 집합을 기계적으로 지정하지 못함; 문장형 인정 필터에 소속·선택·배분 조건이 있음",
+            "note": "단일전공 및 다른 전공 병행 이수 모두 48. 2025 적용 내규 확인 필요.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "animal-main-R03",
+            "name": "전공필수",
+            "section": "requirements",
+            "rule": "all",
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": 46,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2024 서울대학교 교과과정: 전공별 교과목(학사과정)",
+                "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Undergraduate_Course_List_2024.pdf",
+                "locator": "2024년 기준; 인쇄 pp.79–80 동물생명공학전공 및 이수표준형태; p.71 통계학개론 및 실습 학점; p.74 유기화학 학점"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+                "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+                "locator": "3.가 전공 이수표준형태",
+                "applies_to": "2022년도 기준",
+                "observed": "전필 표시15과목과 권장학년·학기, 통계 과목 1회 이수 표기를 확인."
+              },
+              {
+                "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_01",
+                "title": "동물생명공학전공 학사 교육과정(2023)",
+                "locator": "학사 교육과정(2023) 3학년2학기",
+                "applies_to": "2023년도 기준",
+                "observed": "5252.405를 면역학, 5252.310A를 식품학으로 표시해 2022 표와 상충."
+              },
+              {
+                "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Undergraduate_Course_List_2024.pdf",
+                "title": "2024 서울대학교 전공별 교과목(학사과정)",
+                "locator": "인쇄79–80쪽(초안 지정 위치)",
+                "applies_to": "2024년도 판본; 2025 적용 미확인",
+                "observed": "두 번의 웹 열람이 시간 초과되어 원문 미검증."
+              }
+            ],
+            "original_pointer": "/sets/1/requirements/2",
+            "review_status": "conflict",
+            "calculation_mode": "manual_review",
+            "review_reason": "15과목 목록은 2022 웹표와 대체로 일치하나 2023 웹표에 코드·이름 충돌이 있다. 2024 PDF 학점46 합계 및 2025 적용은 재확인하지 못했다. 초안 값을 수정하지 않음.",
+            "calculation_reason": "초안의 확인 필요 표시를 보존함; 공식 근거의 적용·세부사항 확인이 남음",
+            "note": "2024표의 *표시 전공필수 15과목을 중복 제거해 합산하면 46학점. 2025 적용 여부 확인 필요. year/term은 2024 권장 이수표 기준. 통계학개론 및 실습은 2학년 1·2학기 중 한 번만 이수하므로 term=null. 학과 2023 웹표는 동물면역학/동물성식품학의 코드를 서로 바꾸어 표기하여 본부 2024표의 코드·이름을 사용했다.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "animal-main-R04",
+            "name": "전공선택 최소 학점",
+            "section": "requirements",
+            "rule": "min_credits",
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": null,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2024 서울대학교 교과과정: 전공별 교과목(학사과정)",
+                "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Undergraduate_Course_List_2024.pdf",
+                "locator": "2024년 기준; 인쇄 pp.79–80 동물생명공학전공, 전공선택 인정과목은 전공내규에 의함"
+              },
+              {
+                "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+                "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+                "locator": "2022년도 자료; 3.가 농생대 공통교과목 전선 인정 교과목, 3.나"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+                "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+                "locator": "3.가 농생대 공통교과목 전선 인정·3.나",
+                "applies_to": "2022년도 기준",
+                "observed": "공통과목18개를 제시. 별도 전선 최소학점 숫자는 확인되지 않음."
+              }
+            ],
+            "original_pointer": "/sets/1/requirements/3",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "독립 전선 최소를 48-46으로 계산하면 안 된다. 최신 인정목록 및 논문연구 포함 기준 확인 필요.",
+            "calculation_reason": "초안의 확인 필요 표시를 보존함; 공식 근거의 적용·세부사항 확인이 남음; 인정 대상 과목 집합을 기계적으로 지정하지 못함; 문장형 인정 필터에 소속·선택·배분 조건이 있음",
+            "note": "전공 최소48에서 전필46을 뺀2를 확정 전선 최소로 쓰지 않았다. 전선인 논문연구3의 졸업학기 이수 원칙이 별도로 있기 때문이다. 2022 학과 페이지는 농생대 공통과목18개를 전선으로 인정하고 그 외 타전공 전선 인정은 해당사항 없음이라고 표시하나 최신 내규 확인 필요.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "animal-main-R05",
+            "name": "동물생명공학논문연구",
+            "section": "requirements",
+            "rule": "all",
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": 3,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2024 서울대학교 교과과정: 전공별 교과목(학사과정)",
+                "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Undergraduate_Course_List_2024.pdf",
+                "locator": "2024년 기준; 인쇄 p.79 학점3; p.80 교과목 이수규정②"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://likesnu.snu.ac.kr/usr/course/courseDetail.do?course_cd=M1702.000400",
+                "title": "LikeSNU 강의상세: 동물생명공학논문연구",
+                "locator": "교과구분 및 강의 소개",
+                "applies_to": "최근개설2026-2; 적용학번별 졸업내규 아님",
+                "observed": "전선으로 표시되고 연구결과의 졸업논문 제출을 설명."
+              },
+              {
+                "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Undergraduate_Course_List_2024.pdf",
+                "title": "2024 서울대학교 전공별 교과목(학사과정)",
+                "locator": "인쇄79–80쪽(초안 지정 위치)",
+                "applies_to": "2024년도 판본; 2025 적용 미확인",
+                "observed": "두 번의 웹 열람이 시간 초과되어 원문 미검증."
+              }
+            ],
+            "original_pointer": "/sets/1/requirements/4",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "과목 존재·전선 구분 확인. 초안의 3학점과 졸업학기 이수 원칙, 2025 의무 적용은 2024 원문 미열람으로 미확인.",
+            "calculation_reason": "초안의 확인 필요 표시를 보존함; 공식 근거의 적용·세부사항 확인이 남음",
+            "note": "2024 규정은 졸업학기에 이수하는 것을 원칙으로 명시하며 교과목 분류는 전공선택. 1·2학기 표에 모두 있어 term=null. 2025학번 및 복수전공생 의무 적용·논문 대체 인정은 확인 필요.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "animal-main-R06",
+            "name": "동일 인정 교과목",
+            "section": "requirements",
+            "rule": "all",
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": null,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+                "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+                "locator": "2022년도 자료; 3.가 교과목 폐지 및 변경에 따른 과목 이수 규정1"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+                "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+                "locator": "3.가 교과목 폐지 및 변경 규정1",
+                "applies_to": "2021학년도2학기 명칭변경, 2022년도 안내",
+                "observed": "5252.312와 M1702.000800 동일과목; 중복학점 불인정."
+              }
+            ],
+            "original_pointer": "/sets/1/requirements/5",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "과거 동일관계는 확인. 2025 최신 동일대체 목록 및 적용 범위를 추가 확인.",
+            "calculation_reason": "초안의 확인 필요 표시를 보존함; 공식 근거의 적용·세부사항 확인이 남음; 인정 대상 과목 집합을 기계적으로 지정하지 못함; 문장형 인정 필터에 소속·선택·배분 조건이 있음; 대체·선수 관계의 방향과 조건을 함께 확인해야 함",
+            "note": "2021학년도2학기 명칭변경. 2025 적용 최신 동일대체 목록 확인 필요.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "animal-main-R07",
+            "name": "교양 최소 학점",
+            "section": "requirements",
+            "rule": "min_credits",
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": 36,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2025학년도 단과대학별 공통교육과정 이수규정",
+                "url": "https://snuc.snu.ac.kr/이수규정/",
+                "locator": "2025년도 다운로드(새내기 길잡이); 인쇄 p.135; 2025학년도 입학생부터"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+                "title": "2025 서울대 새내기 기초교양교육과정 길잡이 — 공통교육과정 안내·이수규정",
+                "locator": "PDF31번째 페이지, 인쇄135쪽 농생대 자연계(스마트시스템과학과 제외)",
+                "applies_to": "2025학년도 입학생부터",
+                "observed": "교양36 이상, 수학6·과학8, 이론과 연습·실험 동시수강."
+              }
+            ],
+            "original_pointer": "/sets/1/requirements/6",
+            "review_status": "confirmed",
+            "calculation_mode": "manual_review",
+            "review_reason": "2025 입학생 대상 공식 표에서36학점 확인.",
+            "calculation_reason": "인정 대상 과목 집합을 기계적으로 지정하지 못함; 문장형 인정 필터에 소속·선택·배분 조건이 있음",
+            "note": "",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "animal-main-R08",
+            "name": "농생대 자연계 수학",
+            "section": "requirements",
+            "rule": "min_credits",
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": 6,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2025학년도 단과대학별 공통교육과정 이수규정",
+                "url": "https://snuc.snu.ac.kr/이수규정/",
+                "locator": "2025년도 다운로드(새내기 길잡이); 인쇄 p.135; 2025학년도 입학생부터"
+              },
+              {
+                "title": "2025학년도 2학기 기초교양 수강편람",
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2025/07/★2025학년도-2학기-기초교양-수강편람배포_20250729.pdf",
+                "locator": "III 수학·과학·컴퓨팅; 부록 구·신 교과목 비교표; 2025학년도"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+                "title": "2025 서울대 새내기 기초교양교육과정 길잡이 — 공통교육과정 안내·이수규정",
+                "locator": "인쇄135쪽 수학·과학·컴퓨팅",
+                "applies_to": "2025학년도 입학생부터",
+                "observed": "생명과학수학1·2, 수학1·2와 연습, 고급수학1·2와 연습 중 한 경로; 수학6학점."
+              }
+            ],
+            "original_pointer": "/sets/1/requirements/7",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "수학6 및 세 가지 완결 경로·동시수강 조건 확인. 초안 F코드별 학점 대조는 미완료; 문자열 조건을 단순6학점 합산으로 처리하면 안 됨.",
+            "calculation_reason": "공식 근거의 적용·세부사항 확인이 남음; 인정 대상 과목 집합을 기계적으로 지정하지 못함; 문장형 인정 필터에 소속·선택·배분 조건이 있음",
+            "note": "이론과 해당 연습은 같은 학기에 이수. 이 표에는 수학 권장학기 미지정.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "animal-main-R09",
+            "name": "농생대 자연계 과학",
+            "section": "requirements",
+            "rule": "min_credits",
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": 8,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2025학년도 단과대학별 공통교육과정 이수규정",
+                "url": "https://snuc.snu.ac.kr/이수규정/",
+                "locator": "2025년도 다운로드(새내기 길잡이); 인쇄 p.135; 2025학년도 입학생부터"
+              },
+              {
+                "title": "2025학년도 2학기 기초교양 수강편람",
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2025/07/★2025학년도-2학기-기초교양-수강편람배포_20250729.pdf",
+                "locator": "III 수학·과학·컴퓨팅; 2025학년도"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/02/2025-서울대-새내기-기초교양교육과정-길잡이_공통교육과정-안내-이수규정.pdf",
+                "title": "2025 서울대 새내기 기초교양교육과정 길잡이 — 공통교육과정 안내·이수규정",
+                "locator": "인쇄135쪽 수학·과학·컴퓨팅",
+                "applies_to": "2025학년도 입학생부터",
+                "observed": "물리·화학(고급화학 가능)·생물·대기·지구시스템의 이론/실험 쌍 중 두 쌍, 과학8학점."
+              }
+            ],
+            "original_pointer": "/sets/1/requirements/8",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "과학8 및 다섯 쌍 중 두 쌍·고급화학 대체·동시수강 확인. F코드 대조와 학과 추가 지정과목은 미확인.",
+            "calculation_reason": "공식 근거의 적용·세부사항 확인이 남음; 인정 대상 과목 집합을 기계적으로 지정하지 못함; 문장형 인정 필터에 소속·선택·배분 조건이 있음",
+            "note": "해당 이론·실험 동시 수강. 학과 추가 지정과목은 2025 전공내규 확인 필요.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "animal-main-C01",
+            "name": "성적",
+            "section": "other_conditions",
+            "rule": null,
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": null,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+                "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+                "locator": "2022년도 자료; 1.라"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+                "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+                "locator": "1.라",
+                "applies_to": "2022년도 기준",
+                "observed": "전체·전공·다전공 평점각2.0 이상."
+              }
+            ],
+            "original_pointer": "/sets/1/other_conditions/0",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "2022 기재를 재확인. 2025 적용은 최신 내규 확인 필요. 학생 성적값은 계산 입력에 수집하지 않음.",
+            "calculation_reason": "초안의 확인 필요 표시를 보존함; 공식 근거의 적용·세부사항 확인이 남음; 비교과·행정·성적·인정 조건은 수동 확인 항목",
+            "note": "2022 학과 졸업요건: 전교과목·전공교과목·다전공교과목 평점평균 각각 2.0 이상. 2025 적용 확인 필요.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "animal-main-C02",
+            "name": "등록 및 수업연한",
+            "section": "other_conditions",
+            "rule": null,
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": null,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+                "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+                "locator": "2022년도 자료; 1.다"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+                "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+                "locator": "1.다",
+                "applies_to": "2022년도 기준",
+                "observed": "등록8회, 단축자는6회 이상;16회까지."
+              }
+            ],
+            "original_pointer": "/sets/1/other_conditions/1",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "2022 등록횟수 조항 확인. 수업연한 단축과 최신 예외 확인 필요.",
+            "calculation_reason": "초안의 확인 필요 표시를 보존함; 공식 근거의 적용·세부사항 확인이 남음; 비교과·행정·성적·인정 조건은 수동 확인 항목",
+            "note": "2022 학과 졸업요건: 등록8회 이상(수업연한 단축자6회)~16회. 2025 적용 예외·개정은 확인 필요.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "animal-main-C03",
+            "name": "외국어진행강좌",
+            "section": "other_conditions",
+            "rule": null,
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": null,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+                "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+                "locator": "2022년도 자료; 1.마; 적용:2008학년도 신입생부터, 2015년2월 졸업자부터 변경내용 적용"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://anibiotech.snu.ac.kr/index.php?hCode=EDU_03_03_08",
+                "title": "동물생명공학전공 학부과정 졸업요건(2022년도)",
+                "locator": "1.마",
+                "applies_to": "2008학년도 신입생부터, 2015년2월 졸업자부터 변경 적용",
+                "observed": "전공1개 포함 외국어진행3개; 대학영어 포함."
+              }
+            ],
+            "original_pointer": "/sets/1/other_conditions/2",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "공개된 적용 시작연도와 조건 확인. 2025 개정 여부 미확인.",
+            "calculation_reason": "초안의 확인 필요 표시를 보존함; 공식 근거의 적용·세부사항 확인이 남음; 비교과·행정·성적·인정 조건은 수동 확인 항목",
+            "note": "2008학년도 신입생부터 전공1과목 이상을 포함한 외국어진행강좌3과목 이상(대학영어 포함). 2015년2월 졸업자부터 변경내용 적용. 2025 유지 여부 확인 필요.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "animal-main-C04",
+            "name": "졸업논문·졸업시험·현장실습",
+            "section": "other_conditions",
+            "rule": null,
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": null,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2024 서울대학교 교과과정: 전공별 교과목(학사과정)",
+                "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Undergraduate_Course_List_2024.pdf",
+                "locator": "2024년 기준; 인쇄 pp.79–80"
+              },
+              {
+                "title": "[졸업]학사 졸업논문양식",
+                "url": "https://anibiotech.snu.ac.kr/index.php?bo_idx=5&bo_rows=0&hCode=BOARD&idx=8&page=view&pg=1&sfc=&sfl=&stx=",
+                "locator": "2021-06-03 게시; 본문 및 학사학위논문 기본양식(동물생명공학전공).hwp, 적용학번 미표시"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://likesnu.snu.ac.kr/usr/course/courseDetail.do?course_cd=M1702.000400",
+                "title": "LikeSNU 강의상세: 동물생명공학논문연구",
+                "locator": "교과구분 및 강의 소개",
+                "applies_to": "최근개설2026-2; 적용학번별 졸업내규 아님",
+                "observed": "전선으로 표시되고 연구결과의 졸업논문 제출을 설명."
+              }
+            ],
+            "original_pointer": "/sets/1/other_conditions/3",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "논문연구의 설명 확인. 초안 논문양식 URL은 이번 도구에서 접근 실패. 제출·발표·시험대체·필수현장실습의 2025 규정은 미확인.",
+            "calculation_reason": "초안의 확인 필요 표시를 보존함; 공식 근거의 적용·세부사항 확인이 남음; 비교과·행정·성적·인정 조건은 수동 확인 항목",
+            "note": "공식 학사학위논문 양식과 논문연구 교과목은 확인됨. 2025학번 주·복수전공의 논문 제출·발표 절차, 시험 대체 가능 여부, 별도 외국어시험·필수 현장실습 유무는 확인 필요. 경제동물생산학 및 실습4학점은 전필 목록에 포함되어 있으나 별도의 실습 졸업요건으로 확대 해석하지 않음.",
+            "calculation": null,
+            "remaining": null
+          },
+          {
+            "id": "animal-main-C05",
+            "name": "선수과목",
+            "section": "other_conditions",
+            "rule": null,
+            "status": "needs_check",
+            "needs_check": true,
+            "min_credits": null,
+            "min_count": null,
+            "reasons": [
+              {
+                "code": "coverage_unconfirmed",
+                "message": "부분 또는 범위 미확인 이수내역입니다. 부족량은 관측값입니다."
+              },
+              {
+                "code": "rule_needs_check",
+                "message": "규정 근거 또는 계산 조건의 확인이 남아 있습니다."
+              },
+              {
+                "code": "manual_review",
+                "message": "현재 자료에서 수동 검토로 지정한 항목입니다."
+              }
+            ],
+            "sources": [
+              {
+                "title": "2024 서울대학교 교과과정: 전공별 교과목(학사과정)",
+                "url": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Undergraduate_Course_List_2024.pdf",
+                "locator": "2024년 기준; 인쇄 p.80 교과목 이수규정"
+              },
+              {
+                "title": "LikeSNU 강의상세: 동물생명공학논문연구",
+                "url": "https://likesnu.snu.ac.kr/usr/course/courseDetail.do?course_cd=M1702.000400",
+                "locator": "권장 선수과목 절: 동물영양학 및 실험(5252.301), 동물세포공학 및 실험(5252.302); 최근개설2026-2, 2025학번 강제규정 아님"
+              }
+            ],
+            "evidence": [
+              {
+                "url": "https://likesnu.snu.ac.kr/usr/course/courseDetail.do?course_cd=M1702.000400",
+                "title": "LikeSNU 강의상세: 동물생명공학논문연구",
+                "locator": "권장 선수과목",
+                "applies_to": "최근개설2026-2; 강제 선수규정 아님",
+                "observed": "5252.301 및 5252.302를 권장 선수로 표시."
+              }
+            ],
+            "original_pointer": "/sets/1/other_conditions/4",
+            "review_status": "partial",
+            "calculation_mode": "manual_review",
+            "review_reason": "LikeSNU 표기는 권장임을 확인. 강제 선후수조건 부재를 확정할 근거는 없음.",
+            "calculation_reason": "초안의 확인 필요 표시를 보존함; 공식 근거의 적용·세부사항 확인이 남음; 비교과·행정·성적·인정 조건은 수동 확인 항목",
+            "note": "2025학번에 강제되는 선수·후수과목 규정은 공개 전공교과과정표에서 확인하지 못함. LikeSNU의 권장 선수 표시는 졸업 이수요건과 구분해야 한다. 전공행정실과 해당 학기 수강편람/강의계획서에서 확인 필요.",
+            "calculation": null,
+            "remaining": null
+          }
+        ]
+      }
+    ],
+    "summary": {
+      "satisfied": 0,
+      "remaining": 0,
+      "needs_check": 24
+    },
+    "needs_check": true
+  },
+  "timetable_state": "not_executed",
+  "gpt_state": "not_executed"
+}

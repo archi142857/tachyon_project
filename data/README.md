@@ -55,7 +55,9 @@ python scripts/sync_ttwizard.py --as-of-year 2026
 
 ## 확인 필요
 
-2026-11-06에 확인한 [TT Wizard README](https://github.com/Archi142857/tt-wizard/blob/35f947f4f9471ac2cdae58c97361c40f6070a6fe/README.md#라이선스와-자료-조건)와 [캠퍼스 마법 지도 자료 설명](https://github.com/Archi142857/tt-wizard/blob/35f947f4f9471ac2cdae58c97361c40f6070a6fe/data/magicmap/README.md)은 이동시간 표에도 제공자의 재사용 허락이 필요하다고 밝힙니다. 작업 지시의 ODbL 안내와 별도로 **이 새 저장소 및 GPT 지식 파일 재배포까지 허락이 포함되는지** 확인이 필요합니다. 원본의 허락 범위를 확대해 해석하지 않습니다.
+2026-11-07에 다시 확인한 [TT Wizard README](https://github.com/Archi142857/tt-wizard/blob/693fe91649e3aa6cf0ac244a67d38e259fe62ff2/README.md#라이선스와-자료-조건)와 [캠퍼스 마법 지도 자료 설명](https://github.com/Archi142857/tt-wizard/blob/693fe91649e3aa6cf0ac244a67d38e259fe62ff2/data/magicmap/README.md)은 보행 그래프와 파생 이동시간을 다른 이용자가 사용할 때 **ODbL 조건을 적용**한다고 명시합니다. 허용된 로컬 원본의 해당 HEAD와 문서 고지를 확인했으며, 모든 재사용에 별도 허락이 필요하다는 이전 표현을 정정합니다. 출처·라이선스·변경 내역 등 해당 조건은 계속 따릅니다.
+
+학교 강좌·건물 자료의 별도 이용 조건, GPT 공유에 필요한 콘텐츠 권한과 ODbL의 관계, 지형에서 계산한 분 단위 시간의 적용 범위는 각각 확인이 남아 있습니다. 이를 모든 로컬 계산의 중단 조건으로 확대하지 않습니다. 근거·미확인 범위·확인할 곳은 [Legal 검토 L01~L06](../docs/legal/검토_현황.md)에 있습니다. 이 정정은 학교 회신·개별 허가 취득 또는 실제 GPT 공유 완료를 뜻하지 않습니다.
 
 다음 단계의 GPT 설명과 답 끝에도 위 출처 문장을 넣습니다. GPT 지식 파일에는 이 조건 안내를 포함합니다.
 

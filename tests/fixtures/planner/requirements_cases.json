@@ -1,0 +1,35 @@
+{
+  "animal": {
+    "example": "예시: 동물생명공학전공 2학년. 실제 학생 자료가 아님",
+    "entry_year": 2025,
+    "programs": [{"name": "동물생명공학전공", "kind": "주전공"}],
+    "coverage": "complete",
+    "courses": [
+      {"code": "M1410.000100", "name": "생명과학전공실험 1", "credits": 2, "category": "일선", "term": "2026-1", "status": "completed"}
+    ]
+  },
+  "biology_double": {
+    "example": "예시: 동물생명공학 주전공·생명과학부 복수전공. 실제 학생 자료가 아님",
+    "entry_year": 2025,
+    "programs": [{"name": "동물생명공학전공", "kind": "주전공"}, {"name": "생명과학부", "kind": "복수전공"}],
+    "coverage": "partial",
+    "courses": [
+      {"code": "M1410.000100", "name": "생명과학전공실험 1", "credits": 2, "category": "전선", "term": "2026-1", "status": "completed"},
+      {"code": "M1410.000200", "name": "생명과학전공실험 2", "credits": 2, "category": "전선", "term": "2026-1", "status": "in_progress"},
+      {"code": "3346.328", "name": "생명과학특수연구 1", "credits": 1, "category": "전선", "term": "2026-1", "status": "unknown"}
+    ]
+  },
+  "chemical_double": {
+    "example": "예시: 생명과학부 주전공·화학생물공학부 복수전공 3학년 가정. 실제 학생 자료가 아님",
+    "entry_year": 2025,
+    "programs": [{"name": "생명과학부", "kind": "주전공"}, {"name": "화학생물공학부", "kind": "복수전공"}],
+    "coverage": "complete",
+    "courses": [
+      {"code": "M1410.000100", "name": "생명과학전공실험 1", "credits": 2, "category": "전선", "term": "2026-1", "status": "completed"},
+      {"code": "M1410.000200", "name": "생명과학전공실험 2", "credits": 2, "category": "전선", "term": "2026-1", "status": "completed"},
+      {"code": "3346.328", "name": "생명과학특수연구 1", "credits": 1, "category": "전선", "term": "2026-1", "status": "completed"},
+      {"code": "458.309A", "name": "분석화학", "credits": 3, "category": "전필", "term": "2026-1", "status": "completed"},
+      {"code": "458.309A", "name": "분석화학", "credits": 3, "category": "전필", "term": "2026-1", "status": "in_progress"}
+    ]
+  }
+}

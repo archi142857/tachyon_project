@@ -1,0 +1,13 @@
+{
+  "example": "예시: 가상 동물생명공학 주전공·화학생물공학부 복수전공 3학년 상황. 학년은 시나리오이며 현재 실제 재학 이력이 아님. 과거 편람을 이용한 반복 입력 검증.",
+  "schema_version": 1,
+  "entry_year": 2025,
+  "programs": [{"name": "동물생명공학전공", "kind": "주전공"}, {"name": "화학생물공학부", "kind": "복수전공"}],
+  "coverage": "unknown",
+  "courses": [
+    {"code": "458.309A", "name": "분석화학", "credits": 3, "category": "전선", "term": "2025-1", "status": "completed"},
+    {"code": "458.309A", "name": "분석화학", "credits": 3, "category": "전선", "term": "2026-1", "status": "in_progress"},
+    {"code": "458.202", "name": "물리화학 2", "credits": 3, "category": "전선", "term": "2025-2", "status": "completed"},
+    {"code": "M1587.000100", "name": "응용생화학 2", "credits": 3, "category": "전선", "term": "2026-1", "status": "unknown"}
+  ]
+}

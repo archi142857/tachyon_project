@@ -1,0 +1,24 @@
+{
+  "execution": "local_python_not_gpt",
+  "example": true,
+  "files": {
+    "planner/transcript.py": "d6171fc68ca8440276900366a83b4d79036315a078056f4d8c66b741adfb560f",
+    "planner/requirements.py": "258d62900ea2843cca402a3e965c8257d914f86b0d9da1e56fa6effcabf11f8e",
+    "data/requirements/2025.json": "c113ac6992eb54c8aa03d090520c0db64417688c1baa9779518830e8caf57c31",
+    "data/offerings/2021-1.json": "22ac55e41c6ed4a6249d592ba1caaff46bff89c60f9ce9cf808ce68588b4d6d1",
+    "data/offerings/2021-2.json": "9f50c1aa658895eb6167ef1d41a92a63cf12e56a3b8d4e117aac1f1f5dd65318",
+    "data/offerings/2022-1.json": "f650ca43fda8006a6ae8e5fdfaaf7623a43247307a26c0c2ff42f021e900bda8",
+    "data/offerings/2022-2.json": "8f8adfc887af4bb2426e5dfad437a368c5d6e3e48f53943c3b1647b969d899b7",
+    "data/offerings/2023-1.json": "e8f0c9d7886772f76d1b465716df15eb5da7fe224541e6ca5eadea4b879dcf5e",
+    "data/offerings/2023-2.json": "8f7362f9768b223f243c657dd4c883b11839f88360e2dfd7786c01cc64b0f6f7",
+    "data/offerings/2024-1.json": "482a8583e70cc76016ce6ea44bb614a788e11e241fd8f929705cd087fa713373",
+    "data/offerings/2024-2.json": "60567842b1f0797cec4eb7b2dc4341d5d70f2a2a328285bb289857e77438dcdc",
+    "data/offerings/2025-1.json": "ab73aeb46929e79cbd76fab8f8e3faf4011825527c1d555639e8251f287239b9",
+    "data/offerings/2025-2.json": "b429865c3e206206de15940e09430c454a2e12065be5937538d6348b2224c703",
+    "data/offerings/2026-1.json": "b6f265b91eb90bcad55bc6c9e7e69e148489995f2bf200767dfb4a9a6306e656",
+    "data/offerings/2026-2.json": "784cb129b7d93e2b54581020cdcde882b8b08865b5ea450c1e0f1f6aa9ba095d",
+    "demo/inputs/animal.json": "92b43ae5e9eca903adeb44d8ca53746a6795b8b7384b082c44eea08f0eaaebde",
+    "demo/inputs/biology_double.json": "c9b7d1c8fd83774661113302be9a497b8d9598c7860edcaa800814687bf3fdc7",
+    "demo/inputs/chemical_double.json": "18e7a040adba1d77d6be1a8a68ad96daa0b422d41a9811e281801b88a099e8d6"
+  }
+}

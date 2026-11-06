@@ -1,5 +1,7 @@
 # Project / Backend / Planner 인수인계
 
+**최신 상태: 2026-11-07 작업 2-C 구현·검증 완료.** 아래 2-B 기록은 당시 이력이며 최신 결과·다음 담당은 문서 끝의 2-C 후속절을 따른다.
+
 확인일: 2026-11-07. 기준 커밋: `3cfb97d179e8eaab062bcded48501ac61f7bf957`. 이번 산출물은 미커밋 상태다. 기존 공통 문서·다른 담당 변경은 보존했다.
 
 요청 원문: [첫 요청](../../prompts/Backend-Planner-01-작업2B-시작.md), [구현 재개](../../prompts/Backend-Planner-02-이수내역-구현.md). 상세 지시: [Backend-Planner](../세션_프롬프트/Backend-Planner.md). 관련 목표는 G02·G15의 입력 기반, G04의 과목 식별, G22의 불확실성 표시다. 해당 목표 전체가 완료된 것은 아니다.
@@ -45,8 +47,10 @@ python -m pytest --basetemp .test-tmp/planner
 이 환경은 `python`이 PATH에 없고 `py`의 등록 경로도 실행되지 않아, Codex가 제공한 Python 3.12.14로 검증했다. 테스트 도구는 `requirements-dev.txt` 범위의 pytest 9.2.0을 별도 임시 폴더에 설치했다. 기존 `.test-tmp`의 사용자별 접근 권한이 달라 이번 실행만 담당별 외부 임시 폴더를 사용했다. 다른 담당의 임시 폴더는 정리하지 않았다. 실제 성공한 명령:
 
 ```powershell
-& 'C:\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1105-1297-0_26.1105.1297.0_x64__3k8sg7r9htsxt\dependencies\python\python.exe' -c 'import sys; sys.path.insert(0, r"C:\Users\이영표\AppData\Local\Temp\tt-wizard-planner-deps"); import pytest; raise SystemExit(pytest.main(["--basetemp", r"C:\Users\이영표\AppData\Local\Temp\tt-wizard-planner-tests", "-p", "no:cacheprovider"]))'
+& 'C:\Program Files\WindowsApps\OpenAI.CodexPrimaryRuntime.v26-1105-1297-0_26.1105.1297.0_x64__3k8sg7r9htsxt\dependencies\python\python.exe' -c 'import os, sys; from pathlib import Path; task_temp = Path(os.environ["LOCALAPPDATA"]) / "Temp"; sys.path.insert(0, str(task_temp / "tt-wizard-planner-deps")); import pytest; raise SystemExit(pytest.main(["--basetemp", str(task_temp / "tt-wizard-planner-tests"), "-p", "no:cacheprovider"]))'
 ```
+
+공개 기록에서는 위 실행 원문의 `C:\Users` 아래 개인 실명 경로만 환경 변수로 바꿨다. 검증 결과·도구·나머지 실행 조건은 동일하다.
 
 ## Research 자료 상태와 다음 한 과제
 
@@ -72,3 +76,48 @@ python -m pytest --basetemp .test-tmp/planner
 현재 누적 범위는 작업 1 자료 준비와 이번 2-B 이수내역 정리다. 다른 담당의 병행 결과는 각 최종 인수인계에서 확인해야 한다. 커밋·푸시는 하지 않았다.
 
 제안 커밋 메시지: `[작업 2-B] 이수내역 상태 구분과 과목 연결·가상 검증 구현`
+
+## 작업 2-C 후속 — 고정 1.0 요건 대조 완료
+
+확인일 2026-11-07. 시작 기준 커밋 `758192a3cb7dacc9307adf37735ce8c3ff36688f`. 관련 목표 G02·G04·G06·G15·G22의 한정된 목록 대조 범위다. 받은 실행 배정은 [내부 지시 03](../../prompts/Backend-Planner-03-작업2C-구현.md), 통합 대기는 [04](../../prompts/Backend-Planner-04-통합커밋대기.md), 기록 분류 지시는 [06](../../prompts/Backend-Planner-06-기록분류요청.md). 사용자 직접 지시는 01·02로 구분한다. 실제 발신 원문·결과는 [05](../../prompts/Backend-Planner-05-내부협업기록.md), 독립 보조 검토의 지시는 [07](../../prompts/Backend-Planner-07-독립검토기록.md)에 기록했다. 원문을 공개할 때 내부 식별자·개인 실행 경로만 가렸음을 각 기록에 명시했다.
+
+### 구현·입출력
+
+- [planner/requirements.py](../../planner/requirements.py): `evaluate_requirements(payload, offerings, *, requirements_path=...)`. 이수내역 v1 원본/정리 결과를 다시 정리하므로 외부 `countable_completed`·`matched_code`·합계 위조를 신뢰하지 않는다.
+- [판정 계약](../../planner/requirements_format.md): `sets[].items[]`에 `satisfied/remaining/needs_check`, 원문 최소조건·출처·조항·검토 근거·사유·원본 위치를 반환한다. `calculation`은 관측 대조, `remaining`은 최종 목록 판정을 분리한다. 부분조회·다전공은 관측상 부족량만 표시한다.
+- 고정 Research 1.0을 먼저 해시로 차단한 뒤 Research의 형식·의미 검사와 원본 보존 계약도 적용한다. 배포본과 스키마는 CRLF→LF만 정리해 각각 `53bfe2612612b45e9a6a443c4846c2238d6a7deb3e5101604b7f60e9e5aff6aa`, `bd06a52369d3e50af436746ed57989886d6f16d6af7936d86084278c95b3c441`을 확인한다. 원본 SHA는 `6d3dda941932761d5598fb1f6701a7edbbdb62e60edd5d673ff8d5647a57c9a6`. Research 원본·스키마·검증 코드는 수정하지 않았다.
+- 승인된 5항목만 대조한다. 실제 규칙은 all 2개·min_count 3개이며 추가 최소학점도 함께 검사한다. min_credits 공통 산술은 가상 검증만 수행했다. 85개 수동/미확인 항목은 계산값 null·확인 필요를 유지한다.
+- 입학 연도·전공명/주·복수 종류를 정확히 선택한다. 타소속 복수에 주전공 교양을 자동 부과하지 않는다. 지원 주전공의 common도 소속·자유전공 예외 때문에 참고 묶음이며 `home_unit_unconfirmed`를 붙인다.
+- 수강 중·미확인·반복·규정 학점과의 충돌을 취득 인정에 포함하지 않는다. 다전공의 과목 귀속·공통 인정·승인 정보가 없으면 목록 관측값을 남기되 최종 인정은 확인 필요다. 승인연도 하나로 해제하지 않는다. 전공 간 학점을 합산하지 않는다.
+- `graduation_status=not_evaluated`를 항상 유지한다. 선택한 요건이 없어도 졸업 충족으로 만들지 않는다. 총량·자연어 관계·점수·행정 승인·대체/선수 해석은 이번에 자동화하지 않았다.
+
+런타임은 표준 라이브러리다. 후속 GPT 묶음에는 계산 코드만 아니라 Research 검증 모듈과 스키마·원본 보존본도 포함해야 한다. 검증 생략 경로는 없다.
+
+### 검증 결과와 한계
+
+최종 전체 검증: **250 passed, 9 subtests passed, 14.38초**. 이번 `tests/test_requirements.py`는 54개이며 Frontend의 `tests/test_end_to_end.py` 12개도 전체 실행에 포함됐다. 첫 실행은 변조 규정의 거대 정수에 대한 1개 오류였고, 릴리스 해시 검사를 앞당겨 안전한 구조화 오류로 바꾼 뒤 재실행해 전부 통과했다. Research·Frontend·Integrations의 병행 테스트 수를 Planner 자체 산출물로 세지 않는다.
+
+- [가상 입력 3개](../../tests/fixtures/planner/requirements_cases.json), [가상 개설 자료](../../tests/fixtures/planner/requirements_offerings.json), [독립 수작업 기대값](../../tests/fixtures/planner/requirements_expected.md), [검증 코드](../../tests/test_requirements.py).
+- 세 사례에서 확인 필요 항목 수는 24/37/36. 생명 복수 R05는 관측 취득 1과목·2학점/부족 2과목·3학점, 생명 주전공+화생 복수 사례는 생명 R06의 관측 3과목·5학점을 채워도 최종 다전공 인정은 보류했다.
+- 승인 5개 대응·정상/부족, 수동 85개 보존, 미지원/중복/모순 전공, 전체/부분/미확인 조회, 수강 중·상태 누락·반복, 규정 학점 충돌, null 최소조건, 개인정보 필드 제외, 원본 불변, 외부 계산 필드 위조 무시, 원본/데이터 동시변조, LF/CRLF 호환, CLI를 검사했다.
+- Frontend가 실제 로컬 개설 자료+자체 가상 3사례로 독립 검사했고 불일치 없음을 보고했다. Research는 전공 대응·소속 예외·다전공·부분조회 해석을 문서로 확인했다. 기록에는 내부 보고와 직접 실행 검증을 구분했다.
+- 실제 졸업 사정, 개인 실제 자료, 학과 승인, 전체 수동 요건의 정답, 실제 GPT·학교 조회·시간표·동선은 검증하지 않았다. 실제 자료를 저장하지 않았다.
+
+일반 실행:
+
+```powershell
+python -m planner.requirements tests/fixtures/planner/requirements_cases.json --case biology_double --offerings tests/fixtures/planner/requirements_offerings.json
+python -m pytest --basetemp .test-tmp/planner -q
+```
+
+이 환경의 전체 검증은 위 2-B절에 기록한 앱 Python·별도 pytest 경로를 사용하고 인자에 `-q`를 추가했다. 테스트용 임시 경로는 Planner 전용이며 다른 담당 경로는 정리하지 않았다.
+
+### 포함 파일·미완료·다음 담당
+
+이번 통합에 포함할 Planner 파일: `planner/requirements.py`, `planner/requirements_format.md`, `tests/test_requirements.py`, `tests/fixtures/planner/requirements_cases.json`, `requirements_offerings.json`, `requirements_expected.md`, 이 인수인계, `prompts/Backend-Planner-01`·`02`의 분류 보완, 새 `Backend-Planner-03`~`08` 기록. 담당 밖 공통 문서나 Research 데이터는 수정하지 않았다. 구현 미완료 파일은 없다. 다음 기능을 시작한 파일도 없다.
+
+Planner는 git add/commit/push를 수행하지 않았다. Concept이 사용자 승인을 받아 이번 통합 커밋·푸시를 맡는다는 내부 지시를 받았다. 제안 메시지: `[작업 2-C] 고정 규정의 보수적 요건 대조와 독립 검증 구현`.
+
+**다음 담당: Project / Concept — 통합 진행 중, 완료 보고로 자동 연결.** 입력은 이 인수인계와 위 포함 파일·검증 결과다. 할 일은 담당별 결과를 통합 검토하고 승인된 커밋·푸시를 수행한 뒤 다음 배정을 확정하는 것이다. 완료 기준은 통합 전체 테스트 통과, 공개 불필요 정보 제외, 미완료를 완료로 표시하지 않는 기록, 실제 Git 결과 확인이다. 완료 보고 원문은 [08](../../prompts/Backend-Planner-08-완료보고.md)에 둔다. Planner는 보고 후 담당 파일 쓰기를 멈추고 통합 완료 통지까지 대기한다. 사용자가 같은 요청을 다시 전달할 필요는 없다.
+
+미실행 다음 기능 제안: 통합 후 Project / Backend / Planner가 작업 3의 후보 과목·시간표·동선을 담당한다. 입력은 이 판정 결과, 개설 자료·방향별 이동시간·학생 조건이며, 시간 겹침 금지·불명확한 강의실/미래 개설 표시·실제 가능한 안과 불가 이유를 독립 검증하는 것이 완료 기준이다. 이번 2-C 완료를 시간표 기능 완료로 세지 않는다.

@@ -1,0 +1,12 @@
+{
+  "example": "예시: 가상 동물생명공학전공 2학년. 실제 학생 이력이 아닌 상태 구분 검증용 부분 입력.",
+  "schema_version": 1,
+  "entry_year": 2025,
+  "programs": [{"name": "동물생명공학전공", "kind": "주전공"}],
+  "coverage": "partial",
+  "courses": [
+    {"code": "5252.201A", "name": "동물해부생리학 입문 및 실습", "credits": 3, "category": "전필", "term": "2026-1", "status": "completed"},
+    {"code": "M1702.001000", "name": "동물생화학 1", "credits": 3, "category": "전필", "term": "2026-1", "status": "in_progress"},
+    {"code": "5252.301", "name": "동물영양학 및 실험", "credits": 3, "category": "전필", "term": "2026-1"}
+  ]
+}
