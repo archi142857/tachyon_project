@@ -76,6 +76,8 @@
 | Frontend-08 | 2026-11-07 | Codex | 시간표 독립26개 실행·전체428개·모의5상황 마감 | [원문·처리](Frontend-08-시간표-검증실행.md) | AI 세션 간 지시·보고 | Planner ↔ Frontend → Concept·Document; 보조 검토 포함 |
 | Concept-AI-04 | 2026-11-07 | Codex | 작업3 통합 검토·최종428개·문서 마감 요청 | [원문·처리](Concept-AI-04-작업3-통합검토.md) | AI 세션 간 지시·보고 | Concept ↔ 관련 세션·읽기 전용 보조 |
 | Document-07 | 2026-11-07 | Codex | 작업3 결과 대조·문서 통합·마감 보고 | [원문·처리](Document-07-작업3-검증결과-통합.md) | AI 세션 간 지시·보고 | Frontend·Planner·Concept → Document → Concept; 보조 검토 포함 |
+| Concept-AI-05 | 2026-11-07 | Codex | 작업3 푸시·작업4 오프라인 묶음과 초안 실제 배정 | [원문·전송](Concept-AI-05-작업3푸시와-작업4배정.md) | AI 세션 간 지시·보고 | Concept → Planner·Frontend·Document |
+| Document-08 | 2026-11-07 | Codex | 작업3 푸시 대조·작업4 배정과 착수 반영 | [확인·처리](Document-08-작업3푸시와-작업4착수-반영.md) | AI 세션 간 지시·보고 | Concept → Document → Concept; 보조 검토 포함 |
 
 ## 미실행 제안과 미확보 원문
 
@@ -85,5 +87,5 @@
 | [Research 다음 구조화 제안](../docs/졸업요건_검토.md) | 미실행 제안 | Research → Concept·Planner | 1.1 후보 4묶음. 현행 1.0 변경·구현 아님 |
 
 - 딥 리서치 결과 JSON은 [원본](../data/requirements/source/README.md)으로 보존했습니다. 프롬프트·대화 전체는 미확보이므로 prompts/01을 만들어 재구성하지 않았습니다.
-- 실제 GPT 적용 지침은 아직 없습니다. 향후 초안이 생겨도 GPT 적용·공유 기록과 구분합니다.
+- 실제 GPT 적용 기록은 아직 없습니다. 작업4 사용 지침·설명 초안은 배정·착수 상태이며 GPT 업로드·공유와 구분합니다.
 - 이 목록은 이번 Document 마감 시 존재한 원문 파일 기준입니다. 후속 기록은 담당 파일이 등록된 뒤 추가합니다.
