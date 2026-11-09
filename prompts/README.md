@@ -45,6 +45,7 @@
 | Tachyon-05 | 2026-11-09 | Claude Code (Claude Opus 5.5) | Tachyon-05. 프로젝트 이름, AI끼리 소통판, Cloudflare 시작 | [Tachyon-05-소통판과-Cloudflare-시작.md](Tachyon-05-소통판과-Cloudflare-시작.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
 | Tachyon-06 | 2026-11-09 | Claude Code (Claude Opus 5.5) | Tachyon-06. DB 위치 질문, 웹 + 앱, 캘린더 직접 접근 | [Tachyon-06-DB-위치와-앱-캘린더-접근.md](Tachyon-06-DB-위치와-앱-캘린더-접근.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
 | Tachyon-07 | 2026-11-09 | Claude Code (Claude Opus 5.5) | Tachyon-07. Anthropic API 키, log 색인·배포, 구글 로그인(OAuth) 설정 | [Tachyon-07-API-키와-구글-로그인-설정.md](Tachyon-07-API-키와-구글-로그인-설정.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
+| Tachyon-08 | 2026-11-10 | Claude Code (Claude Opus 5.5) | Tachyon-08. 팀원 부탁 처리(테스트 사용자, API 키 약관·지출 상한, 메일 가리기) | [Tachyon-08-팀원-부탁-처리.md](Tachyon-08-팀원-부탁-처리.md) | 사용자 직접 지시 | 사용자 → Claude Code |
 | Tachyon-컨셉-01 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | Tachyon-컨셉-01. 앞 자료와 기획안 읽기 | [Tachyon-컨셉-01-자료-학습.md](Tachyon-컨셉-01-자료-학습.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
 | Tachyon-컨셉-02 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결 | Tachyon-컨셉-02. 인수인계 확인과 공유 드라이브 연결 | [Tachyon-컨셉-02-인수인계와-드라이브.md](Tachyon-컨셉-02-인수인계와-드라이브.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
 | Tachyon-컨셉-03 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | Tachyon-컨셉-03. 세션 나누기와 세션끼리 소통하는 방식 | [Tachyon-컨셉-03-세션-나누기.md](Tachyon-컨셉-03-세션-나누기.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
