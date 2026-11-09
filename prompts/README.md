@@ -36,6 +36,10 @@
 | Frontend-01 | 2026-11-07 | Codex | Frontend 첫 요청: 가상사례와 검증 준비 | [Frontend-01-가상사례-검증준비.md](Frontend-01-가상사례-검증준비.md) | 사용자 직접 지시·보고 | 사용자 → Project / Frontend |
 | Legal-01 | 2026-11-07 | Codex | Legal-01: 이용 조건 초기 검토 | [Legal-01-이용조건-초기검토.md](Legal-01-이용조건-초기검토.md) | 사용자 직접 지시·보고 | 사용자 → Project / Legal |
 | Research-01 | 2026-11-07 | Codex | Research 01 — 졸업요건 초안 검토 | [Research-01-졸업요건-초안-검토.md](Research-01-졸업요건-초안-검토.md) | 사용자 직접 지시·보고 | 사용자 → Project / Research |
+| NGS-01 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-01. 개발 프로세스와 계획 짜기 | [NGS-01-개발-프로세스와-계획.md](NGS-01-개발-프로세스와-계획.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
+| NGS-02 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-02. 역할 대신 할 일 정리 | [NGS-02-할-일-정리.md](NGS-02-할-일-정리.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
+| NGS-03 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-03. 저장소·Cloudflare 확정, 메일 기능 미룸 | [NGS-03-저장소와-스택-확정.md](NGS-03-저장소와-스택-확정.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
+| NGS-04 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-04. 기억 없는 AI용 인수인계 | [NGS-04-친구용-인수인계.md](NGS-04-친구용-인수인계.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
 
 ## AI 세션 간 작업 지시·수정 요청·결과 보고
 
