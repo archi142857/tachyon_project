@@ -1,5 +1,5 @@
 // 화면 흐름: 로그인 → (처음이면) 첫 설정 → 대시보드. 주소 끝에 ?example을 붙이면 서버 없이 예시 자료로 연다.
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as api from './api.js';
 import Dashboard from './screens/Dashboard.jsx';
 import Login from './screens/Login.jsx';
@@ -7,17 +7,21 @@ import Setup from './screens/Setup.jsx';
 
 export default function App() {
   const [screen, setScreen] = useState('loading'); // loading | login | setup | dashboard
+  const screenRef = useRef(screen);
+  screenRef.current = screen;
   const [user, setUser] = useState(null);
   const [again, setAgain] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
-  const [loginError] = useState(() => api.loginErrorText(new URLSearchParams(window.location.search).get('login_error')));
+  const [loginError, setLoginError] = useState(() => api.loginErrorText(new URLSearchParams(window.location.search).get('login_error')));
 
   async function load() {
     try {
       const me = await api.getMe();
       setUser(me);
       setScreen(me.setup_done ? 'dashboard' : 'setup');
-    } catch {
+    } catch (err) {
+      // 401 = 로그인 전. 그 밖(연결 끊김·서버 오류)은 로그인 화면에 까닭을 한 줄로
+      if (err.status !== 401) setLoginError('서버에 닿지 않아요. 인터넷을 확인하고 다시 열어 주세요');
       setScreen('login');
     }
   }
@@ -30,7 +34,16 @@ export default function App() {
       setInstallPrompt(e);
     };
     window.addEventListener('beforeinstallprompt', onPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', onPrompt);
+    const onSignedOut = () => {
+      if (screenRef.current === 'login' || screenRef.current === 'loading') return; // 로그아웃 직후 늦게 온 401은 무시
+      setLoginError('로그인이 끝났어요. 다시 로그인해 주세요');
+      setScreen('login');
+    };
+    window.addEventListener(api.SIGNED_OUT, onSignedOut);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onPrompt);
+      window.removeEventListener(api.SIGNED_OUT, onSignedOut);
+    };
   }, []);
 
   useEffect(() => {
@@ -70,6 +83,7 @@ export default function App() {
       }}
       onLogout={async () => {
         await api.logout().catch(() => {});
+        setLoginError(null);
         setScreen('login');
       }}
     />

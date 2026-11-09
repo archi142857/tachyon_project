@@ -10,6 +10,8 @@ const BASE = import.meta.env?.VITE_API_BASE || '';
 
 let ex = null;
 
+export const SIGNED_OUT = 'tachyon:signed-out';
+
 export function startExample(now = new Date()) {
   ex = makeExample(now);
 }
@@ -29,6 +31,8 @@ async function call(method, path, body) {
     const data = await res.json().catch(() => null);
     const error = new Error(data?.error || (res.status === 401 ? '로그인이 필요해요' : `서버 오류 (${res.status})`));
     error.status = res.status;
+    // 쓰는 도중 로그인이 끝나면(쿠키 30일) 화면 전체가 로그인으로 돌아간다(App.jsx가 듣는다)
+    if (res.status === 401 && path !== '/api/login/me') window.dispatchEvent(new CustomEvent(SIGNED_OUT));
     throw error;
   }
   return res.status === 204 ? null : res.json();
