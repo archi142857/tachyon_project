@@ -4,7 +4,7 @@ import Icon from './Icon.jsx';
 export default function TopBar({ example, onFeedback, onMenu }) {
   return (
     <header className="topbar">
-      <span className="wordmark">Tachyon</span>
+      <h1 className="wordmark">Tachyon</h1>
       {example && <span className="tag">예시 자료</span>}
       <span className="grow" />
       {onFeedback && (

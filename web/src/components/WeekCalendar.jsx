@@ -7,9 +7,11 @@ import Icon from './Icon.jsx';
 
 export const PAGES = 3; // 이번 주, 다음 주, 다다음 주
 
+const timeText = (ev) => `${hhmm(ev.start)}–${ev.end ? hhmm(ev.end) : '?'}`;
+
+// 마우스를 올리면 보이는 한 줄(title)
 function eventLabel(ev) {
-  const time = `${hhmm(ev.start)}–${ev.end ? hhmm(ev.end) : '?'}`;
-  return [ev.title, time, ev.place, ev.important ? '중요' : null].filter(Boolean).join(', ');
+  return [ev.title, timeText(ev), ev.place, ev.important ? '중요' : null].filter(Boolean).join(', ');
 }
 
 export default function WeekCalendar({ start, events, tasks, now, page, onPage, onEvent, onTask }) {
@@ -115,25 +117,27 @@ export default function WeekCalendar({ start, events, tasks, now, page, onPage, 
                       left: `calc(${(col / cols) * 100}% + 2px)`,
                       width: `calc(${100 / cols}% - 4px)`,
                     }}
-                    aria-label={eventLabel(ev)}
                     title={eventLabel(ev)}
                     onClick={() => onEvent(ev)}
                   >
+                    {/* 이름은 보이는 글자 그대로 + 화면 읽기용 시각·중요(보이는 글자가 이름 안에 있어야 한다) */}
+                    <span className="sr-only">{timeText(ev)}, </span>
                     {ev.title}
                     {!ev.end && <span className="end-unknown"> (끝 ?)</span>}
                     {ev.place && <span className="place">{ev.place}</span>}
+                    {ev.important ? <span className="sr-only">, 중요</span> : null}
                   </button>
                 );
               })}
               {i === todayIdx && nowTop >= 0 && nowTop <= last - first && (
-                <div className="now-line" style={{ top: `calc(var(--hour) * ${nowTop})` }} aria-label={`지금 ${hhmm(now)}`} />
+                <div className="now-line" role="img" style={{ top: `calc(var(--hour) * ${nowTop})` }} aria-label={`지금 ${hhmm(now)}`} />
               )}
             </div>
           ))}
         </div>
       </div>
 
-      <div className="cal-dots" aria-label={`${PAGES}주 가운데 ${page + 1}번째`}>
+      <div className="cal-dots" role="img" aria-label={`${PAGES}주 가운데 ${page + 1}번째`}>
         {Array.from({ length: PAGES }, (_, i) => (
           <span key={i} className={i === page ? 'on' : undefined} />
         ))}

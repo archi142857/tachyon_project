@@ -15,6 +15,7 @@ export default function Composer({ onSend, disabled }) {
   return (
     <div className="composer">
       <form
+        aria-label="메모 쓰기"
         onSubmit={(e) => {
           e.preventDefault();
           send();
