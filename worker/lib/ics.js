@@ -303,10 +303,7 @@ const pad = (n) => String(n).padStart(2, '0');
  * @returns {{calendar: string, blocks: number, kept: number}}
  */
 export function prefilter(text, fromMs, toMs) {
-  const body = String(text).replace(/^﻿/, '');
-  if (!/^\s*BEGIN:VCALENDAR/i.test(body)) {
-    throw new IcsError('ICS가 아닌 응답이에요(로그인 화면·오류 페이지일 수 있어요)');
-  }
+  const body = assertIcs(text);
   const fromKey = ymd(fromMs - 2 * DAY);
   const toKey = ymd(toMs + 2 * DAY);
 
@@ -316,6 +313,15 @@ export function prefilter(text, fromMs, toMs) {
 
   const calendar = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Tachyon//prefilter//KO', ...zones, ...kept, 'END:VCALENDAR', ''].join('\r\n');
   return { calendar, blocks: events.length, kept: kept.length };
+}
+
+/** ICS 글인지(BEGIN:VCALENDAR로 시작하는지) 본다. 아니면 IcsError. 맨 앞 BOM을 뗀 글을 돌려준다. */
+export function assertIcs(text) {
+  const body = String(text).replace(/^\uFEFF/, '');
+  if (!/^\s*BEGIN:VCALENDAR/i.test(body)) {
+    throw new IcsError('ICS가 아닌 응답이에요(로그인 화면·오류 페이지일 수 있어요)');
+  }
+  return body;
 }
 
 function cutBlocks(text, name) {

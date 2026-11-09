@@ -1,4 +1,4 @@
-# Tachyon-서버-01 · 서버 세션 시작: 주소 나누기, 구글 로그인, ICS 수집기 + 15분 Cron
+# Tachyon-서버-01 · 서버 세션 시작: 주소 나누기, 구글 로그인, ICS 수집기 + 15분 Cron, 할 일·일정 API
 
 - 날짜: 2026-11-09
 - 도구: Claude Code (Claude Opus 5.5) — archi142857 쪽 '서버' 세션. 실행 확인에 Node 내장 시험(node:test)과 wrangler·Miniflare(로컬 workerd + D1)를 씀
@@ -29,10 +29,11 @@ Continue from where you left off.
 - **[worker/1_login.js](../worker/1_login.js)**: 구글 기본 범위(이름·이메일)만, state·PKCE, `google_sub`로 users 행 만들기, 서명 쿠키 30일(표 없음), 내 정보·첫 설정(학과·학년)·로그아웃. 비밀값 `APP_SECRET`·`GOOGLE_CLIENT_ID`·`GOOGLE_CLIENT_SECRET`은 사람이 넣는다.
 - **[worker/2_collect_ics.js](../worker/2_collect_ics.js)** + [worker/lib/ics.js](../worker/lib/ics.js): 주소 세 칸(eTL·구글·애플) 저장(잠가서)·목록·지금 받기, eTL 과제 → `tasks`, 나머지 → `events`. ical.js로 반복 일정 펼치기(빠진 날·옮긴 날 반영, 오래된 매일·매주 반복은 건너뛰기), 지난 30일~앞 6개월, `+09:00` 시각·종일은 날짜만, 바뀐 줄만 쓰기, 15분 Cron(오래된 주소부터).
 - DB: schema.sql 초안(팀원)에 맞췄고, 필요한 `feeds` 표·`source` 이름·종일 일정 끝 규칙은 [소통판](../docs/tachyon/소통.md)에 답으로 요청했다.
-- 확인: `npm test` 76개 통과(서버 41 · AI 35). 배포용 빌드(`wrangler deploy --dry-run`)와, 로컬 workerd + D1에서 저장 → 다시 받기(바뀐 줄 0) → Cron까지 실제로 돌려 봤다. 큰 지어낸 구글 캘린더로 CPU를 재 보니 무료 한도(10ms)에 걸릴 수 있어 소통판에 적었다.
+- 뒤이어(같은 요청 안에서) 컨셉 쪽지로 맡은 일: **[worker/7_items.js](../worker/7_items.js)** 할 일·일정 읽기·고치기 API(할 일 3개는 AI의 `rankTasks` 순서, 주간 달력 기간 조회, 내 것만). eTL·구글·애플에서 온 항목은 제목·시각·장소 고치기와 지우기를 막고(그 캘린더가 원본) 체크·중요 표시만 된다. [캘린더 주소 찾기](../docs/tachyon/캘린더_주소_찾기.md)의 서버 규칙(칸마다 아는 모양만, 붙이자마자 받아 보기, 두 번 안 열리면 멈춤)을 수집기에 넣었다.
+- 확인: `npm test` 84개 통과(서버 49 · AI 35). 배포용 빌드(`wrangler deploy --dry-run`)와, 로컬 workerd + D1에서 저장 → 다시 받기(바뀐 줄 0) → Cron까지 실제로 돌려 봤다. 큰 지어낸 구글 캘린더로 CPU를 재 보니 무료 한도(10ms)에 걸릴 수 있어 소통판에 적었다.
 
 ## 관련 결과
 
-- [worker/index.js](../worker/index.js) · [worker/1_login.js](../worker/1_login.js) · [worker/2_collect_ics.js](../worker/2_collect_ics.js) · [worker/lib/](../worker/lib/)
-- 시험: [worker/test/](../worker/test/) (`1_login`·`2_collect_ics`·`index`·`auth`·`ics`, [helpers/server.js](../worker/test/helpers/server.js))
+- [worker/index.js](../worker/index.js) · [worker/1_login.js](../worker/1_login.js) · [worker/2_collect_ics.js](../worker/2_collect_ics.js) · [worker/7_items.js](../worker/7_items.js) · [worker/lib/](../worker/lib/)
+- 시험: [worker/test/](../worker/test/) (`1_login`·`2_collect_ics`·`7_items`·`index`·`auth`·`ics`, [helpers/server.js](../worker/test/helpers/server.js))
 - [wrangler.toml](../wrangler.toml) · [package.json](../package.json) · [server.yml](../.github/workflows/server.yml) · [소통판](../docs/tachyon/소통.md)

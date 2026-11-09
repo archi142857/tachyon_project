@@ -4,9 +4,18 @@
 //
 //   GET  /api/feeds          내 주소 세 칸(etl·google·apple)의 상태. 주소 원문은 돌려주지 않는다.
 //   PUT  /api/feeds          {"etl": "https://…", "google": "", "apple": null}
-//                            글 = 저장(바꾸기), "" 또는 null = 지우기, 칸이 없으면 그대로. 저장한 칸은 바로 한 번 받는다.
-//   POST /api/feeds/collect  내 주소를 지금 다시 받는다.
+//                            글 = 저장(바꾸기), "" 또는 null = 지우기, 칸이 없으면 그대로.
+//                            붙이자마자 한 번 받아 보고 칸마다 결과를 돌려준다: results[] = {kind, ok, saved, tasks, events, error}
+//                            모양이 틀리거나 이미 안 열리는 주소는 저장하지 않는다(saved: false).
+//   POST /api/feeds/collect  내 주소를 지금 다시 받는다(멈춘 주소도 한 번 더 시도).
 //   Cron */15 * * * *        오래 안 받은 주소부터 FEEDS_PER_RUN개를 받는다.
+//
+// 주소 규칙(docs/tachyon/캘린더_주소_찾기.md '서버 규칙')
+// - 다듬기: 앞뒤 공백, webcal:// → https://. 1단계에는 아는 모양만 받는다(서버가 아무 주소나 대신 받아 오지 않게):
+//   eTL = https://myetl.snu.ac.kr/….ics, 구글 = https://calendar.google.com/calendar/ical/…/private-…/….ics,
+//   애플 = https://p…-caldav.icloud.com/published/…
+// - 화면에는 주소 끝 4자만(urlHint). 주소가 401·403·404·410이나 ICS가 아닌 글로 두 번 이어서 답하면
+//   그 주소 수집을 멈추고 '다시 붙여 주세요'를 보인다(feeds.dead_count).
 //
 // 규칙
 // - 같은 일정은 (user_id, source, ext_id)로 하나만. source = 주소 칸 이름(etl·google·apple),
@@ -19,7 +28,7 @@
 //
 // 표: feeds(아래 FEEDS_SQL, schema.sql에 넣어 달라고 소통판에 요청함), events, tasks, log(ics_sync · ics_fail)
 
-import { prefilter, expandCalendar, fingerprint, isAssignment, IcsError } from './lib/ics.js';
+import { prefilter, expandCalendar, fingerprint, isAssignment, assertIcs, IcsError } from './lib/ics.js';
 import { seal, unseal } from './lib/secret.js';
 import { json, fail, readJson, UserError } from './lib/http.js';
 import { kstIso, kstDate, kstMidnight, DAY_MS } from './lib/time.js';
@@ -37,6 +46,7 @@ export const FEEDS_SQL = `CREATE TABLE IF NOT EXISTS feeds (
   last_ok_at  TEXT,               -- 마지막 성공
   last_error  TEXT,               -- 마지막 실패 이유(성공하면 NULL)
   item_count  INTEGER,            -- 마지막 반영 때 일정·할 일 수
+  dead_count  INTEGER NOT NULL DEFAULT 0, -- 주소가 안 열린(401·403·404·410·ICS 아님) 연속 횟수. 2번이면 Cron이 멈춤
   UNIQUE (user_id, kind)
 )`;
 
@@ -44,6 +54,7 @@ const PAST_DAYS = 30;
 const FUTURE_DAYS = 183;
 const STALE_MS = 14 * 60 * 1000; // 15분 Cron이 매번 다시 받게
 const STUCK_MS = 3 * 60 * 1000; // 시도 뒤 이만큼 지나도 결과가 없으면 '멈춤'
+const DEAD_AFTER = 2; // 주소가 안 열린 답이 이만큼 이어지면 Cron이 그 주소를 멈춘다
 const FETCH_TIMEOUT_MS = 15000;
 const MAX_CHARS = 5_000_000;
 
@@ -78,8 +89,23 @@ export function syncWindow(now = Date.now()) {
 
 // ── 주소 저장·목록 ───────────────────────────────────────────────
 
-/** 사용자가 붙인 주소를 https 주소로 고친다. webcal:// (애플)은 https://로 바꾼다. */
-export function normalizeUrl(raw) {
+const SHAPES = {
+  etl: {
+    ok: (u) => u.host === 'myetl.snu.ac.kr' && u.pathname.endsWith('.ics'),
+    help: "eTL '캘린더 피드' 주소(https://myetl.snu.ac.kr/로 시작하고 .ics로 끝남)를 넣어 주세요",
+  },
+  google: {
+    ok: (u) => u.host === 'calendar.google.com' && u.pathname.startsWith('/calendar/ical/') && u.pathname.includes('/private-') && u.pathname.endsWith('.ics'),
+    help: "구글 캘린더 설정의 'iCal 형식의 비공개 주소'를 넣어 주세요",
+  },
+  apple: {
+    ok: (u) => /^p\d+-caldav\.icloud\.com$/.test(u.host) && u.pathname.startsWith('/published/'),
+    help: "아이폰 캘린더의 '공개 캘린더' 링크(webcal://p…-caldav.icloud.com/published/…)를 넣어 주세요",
+  },
+};
+
+/** 붙인 주소를 다듬고 칸에 맞는 모양인지 본다. webcal://은 https://로. 틀리면 UserError(화면에 그대로 보임). */
+export function normalizeUrl(raw, kind) {
   let s = String(raw).trim();
   if (s.length > 2048) throw new UserError('주소가 너무 길어요');
   s = s.replace(/^webcals?:\/\//i, 'https://');
@@ -90,14 +116,19 @@ export function normalizeUrl(raw) {
     throw new UserError('주소 형식이 아니에요. 캘린더 설정에서 복사한 주소를 그대로 붙여 넣어 주세요');
   }
   if (url.protocol !== 'https:') throw new UserError('https 주소만 받아요');
+  const shape = SHAPES[kind];
+  if (shape && !shape.ok(url)) {
+    if (kind === 'google' && url.pathname.includes('/public/')) throw new UserError("공개 주소가 아니라 'iCal 형식의 비공개 주소'를 넣어 주세요");
+    throw new UserError(shape.help);
+  }
   return url.toString();
 }
 
-/** 화면에 보여 줄 주소 힌트: 'calendar.google.com/…a1b2' (주소 전체는 비밀) */
+/** 화면에 보여 줄 주소 힌트: 'myetl.snu.ac.kr/…a1b2' (주소 전체는 비밀이라 끝 4자만) */
 export function urlHint(url) {
   try {
     const u = new URL(url);
-    const tail = (u.pathname + u.search).replace(/\W/g, '').slice(-4);
+    const tail = u.pathname.replace(/\.ics$/, '').replace(/\/basic$/, '').replace(/\W/g, '').slice(-4);
     return `${u.host}/…${tail}`;
   } catch {
     return '?';
@@ -122,6 +153,7 @@ export async function listFeeds(env, userId, now = Date.now()) {
     }
     const waiting = row.last_try_at && (!row.last_ok_at || row.last_try_at > row.last_ok_at) && !row.last_error;
     const stuck = waiting && now - Date.parse(row.last_try_at) > STUCK_MS;
+    const stopped = (row.dead_count || 0) >= DEAD_AFTER;
     out.push({
       kind,
       set: true,
@@ -129,46 +161,66 @@ export async function listFeeds(env, userId, now = Date.now()) {
       count: row.item_count ?? null,
       okAt: row.last_ok_at || null,
       triedAt: row.last_try_at || null,
-      error: row.last_error || (stuck ? '받다가 멈췄어요(처리 시간 한도일 수 있어요)' : null),
+      stopped, // true면 '이 주소가 더 이상 열리지 않아요 → 다시 붙이기'
+      error: stopped
+        ? '이 캘린더 주소가 더 이상 열리지 않아요. 캘린더에서 주소를 다시 복사해 붙여 주세요'
+        : row.last_error || (stuck ? '받다가 멈췄어요(처리 시간 한도일 수 있어요)' : null),
     });
   }
   return out;
 }
 
-async function saveFeeds(request, env, userId) {
+async function saveFeeds(request, env, userId, now = Date.now()) {
   const body = await readJson(request);
   if (!body || typeof body !== 'object' || Array.isArray(body)) return fail(400, 'JSON 본문이 필요해요: {"etl": "주소"}');
+  const kinds = KINDS.filter((kind) => kind in body);
+  if (!kinds.length) return fail(400, 'etl·google·apple 가운데 한 칸 이상 보내 주세요');
 
-  const changed = [];
-  const statements = [];
-  try {
-    for (const kind of KINDS) {
-      if (!(kind in body)) continue;
-      const raw = body[kind];
-      if (raw === null || raw === '') {
-        statements.push(...removeFeedStatements(env, userId, kind));
-        continue;
-      }
-      if (typeof raw !== 'string') throw new UserError(`${kind} 칸에는 주소 글을 넣어 주세요`);
-      const sealed = await seal(env, normalizeUrl(raw));
-      statements.push(
-        env.DB.prepare(
-          `INSERT INTO feeds (user_id, kind, url) VALUES (?1, ?2, ?3)
-           ON CONFLICT (user_id, kind) DO UPDATE SET
-             url = excluded.url, last_hash = NULL, last_try_at = NULL, last_ok_at = NULL, last_error = NULL, item_count = NULL`,
-        ).bind(userId, kind, sealed),
-      );
-      changed.push(kind);
+  const results = [];
+  for (const kind of kinds) {
+    const raw = body[kind];
+    if (raw === null || raw === '') {
+      await env.DB.batch(removeFeedStatements(env, userId, kind));
+      results.push({ kind, ok: true, saved: false, removed: true });
+      continue;
     }
-  } catch (err) {
-    if (err instanceof UserError) return fail(400, err.message);
-    throw err;
+    results.push(await addFeed(env, userId, kind, raw, now));
   }
-  if (!statements.length) return fail(400, 'etl·google·apple 가운데 한 칸 이상 보내 주세요');
-  await env.DB.batch(statements);
+  return json({ ok: true, results, feeds: await listFeeds(env, userId, now) });
+}
 
-  const results = changed.length ? await collectUser(env, userId, { force: true, kinds: changed }) : [];
-  return json({ ok: true, results, feeds: await listFeeds(env, userId) });
+/** 주소 한 칸: 모양 확인 → 한 번 받아 보기 → (이미 죽은 주소가 아니면) 잠가서 저장 → 받은 글로 바로 반영 */
+async function addFeed(env, userId, kind, raw, now) {
+  let url;
+  let text = null;
+  let transient = null;
+  try {
+    if (typeof raw !== 'string') throw new UserError('주소를 글로 넣어 주세요');
+    url = normalizeUrl(raw, kind);
+    text = await fetchIcs(url);
+    assertIcs(text); // BEGIN:VCALENDAR가 없으면 IcsError
+  } catch (err) {
+    if (err instanceof UserError || (err instanceof FeedError && err.permanent) || err instanceof IcsError) {
+      return { kind, ok: false, saved: false, error: err.message };
+    }
+    if (!(err instanceof FeedError)) throw err;
+    transient = err.message; // 잠깐의 오류(시간 초과·5xx)면 저장해 두고 Cron이 다시 받는다
+  }
+
+  await env.DB.prepare(
+    `INSERT INTO feeds (user_id, kind, url) VALUES (?1, ?2, ?3)
+     ON CONFLICT (user_id, kind) DO UPDATE SET
+       url = excluded.url, last_hash = NULL, last_try_at = NULL, last_ok_at = NULL, last_error = NULL, item_count = NULL, dead_count = 0`,
+  )
+    .bind(userId, kind, await seal(env, url))
+    .run();
+  const feed = await env.DB.prepare('SELECT * FROM feeds WHERE user_id = ? AND kind = ?').bind(userId, kind).first();
+  if (transient) {
+    await env.DB.prepare('UPDATE feeds SET last_try_at = ?, last_error = ? WHERE id = ?').bind(kstIso(now), transient, feed.id).run();
+    return { kind, ok: false, saved: true, error: `${transient} — 저장해 두고 15분 뒤에 다시 받아요` };
+  }
+  await env.DB.prepare('UPDATE feeds SET last_try_at = ? WHERE id = ?').bind(kstIso(now), feed.id).run();
+  return { ...(await syncFeed(env, feed, { force: true, now, text })), saved: true };
 }
 
 function removeFeedStatements(env, userId, kind) {
@@ -201,8 +253,10 @@ export async function collectDue(env, now = Date.now()) {
   const limit = Math.max(1, Math.min(40, Number(env.FEEDS_PER_RUN) || 20));
   let results;
   try {
-    ({ results } = await env.DB.prepare('SELECT * FROM feeds WHERE last_try_at IS NULL OR last_try_at < ? ORDER BY last_try_at LIMIT ?')
-      .bind(kstIso(now - STALE_MS), limit)
+    ({ results } = await env.DB.prepare(
+      'SELECT * FROM feeds WHERE dead_count < ? AND (last_try_at IS NULL OR last_try_at < ?) ORDER BY last_try_at LIMIT ?',
+    )
+      .bind(DEAD_AFTER, kstIso(now - STALE_MS), limit)
       .all());
   } catch (err) {
     if (/no such table/i.test(String(err && err.message))) return { feeds: 0, note: 'feeds 표가 아직 없음' };
@@ -223,19 +277,25 @@ export async function collectDue(env, now = Date.now()) {
   return summary;
 }
 
-/** 주소 하나를 받아 DB에 반영한다. 오류는 feeds.last_error와 log에 남기고 결과로 돌려준다(던지지 않음). */
-export async function syncFeed(env, feed, { force = false, now = Date.now() } = {}) {
+/**
+ * 주소 하나를 받아 DB에 반영한다. 오류는 feeds.last_error와 log에 남기고 결과로 돌려준다(던지지 않음).
+ * text를 주면(방금 받아 본 글) 다시 받지 않는다.
+ */
+export async function syncFeed(env, feed, { force = false, now = Date.now(), text: given = null } = {}) {
   const { user_id: userId, kind } = feed;
   try {
-    const url = await unseal(env, feed.url).catch(() => {
-      throw new FeedError('저장된 주소를 열 수 없어요. 주소를 다시 넣어 주세요');
-    });
-    const text = await fetchIcs(url);
+    let text = given;
+    if (text == null) {
+      const url = await unseal(env, feed.url).catch(() => {
+        throw new FeedError('저장된 주소를 열 수 없어요. 주소를 다시 넣어 주세요', true);
+      });
+      text = await fetchIcs(url);
+    }
     const window = syncWindow(now);
     const pre = prefilter(text, window.from.getTime(), window.to.getTime());
     const hash = await fingerprint(`${kstDate(window.from.getTime())}\n${pre.calendar}`);
     if (!force && hash === feed.last_hash) {
-      await env.DB.prepare('UPDATE feeds SET last_ok_at = ?, last_error = NULL WHERE id = ?').bind(kstIso(now), feed.id).run();
+      await env.DB.prepare('UPDATE feeds SET last_ok_at = ?, last_error = NULL, dead_count = 0 WHERE id = ?').bind(kstIso(now), feed.id).run();
       return { kind, ok: true, same: true, count: feed.item_count ?? null };
     }
 
@@ -249,7 +309,7 @@ export async function syncFeed(env, feed, { force = false, now = Date.now() } = 
     if (kind === 'etl') statements.push(...taskStatements(env, userId, kind, tasks, range, allowDelete));
     statements.push(...eventStatements(env, userId, kind, events, range, allowDelete));
     statements.push(
-      env.DB.prepare('UPDATE feeds SET last_hash = ?, last_ok_at = ?, last_error = NULL, item_count = ? WHERE id = ?').bind(
+      env.DB.prepare('UPDATE feeds SET last_hash = ?, last_ok_at = ?, last_error = NULL, item_count = ?, dead_count = 0 WHERE id = ?').bind(
         hash,
         kstIso(now),
         items.length,
@@ -264,10 +324,11 @@ export async function syncFeed(env, feed, { force = false, now = Date.now() } = 
   } catch (err) {
     const known = err instanceof FeedError || err instanceof IcsError;
     const message = known ? err.message : '처리하다 오류가 났어요';
+    const dead = err instanceof IcsError || (err instanceof FeedError && err.permanent); // 주소가 안 열림(저절로 안 돌아옴)
     if (!known) console.error('ICS 처리 오류', kind, err && err.stack);
     try {
       await env.DB.batch([
-        env.DB.prepare('UPDATE feeds SET last_error = ? WHERE id = ?').bind(message, feed.id),
+        env.DB.prepare('UPDATE feeds SET last_error = ?, dead_count = dead_count + ? WHERE id = ?').bind(message, dead ? 1 : 0, feed.id),
         logStatement(env, userId, 'ics_fail', { kind, error: message }),
       ]);
     } catch (dbErr) {
@@ -277,7 +338,13 @@ export async function syncFeed(env, feed, { force = false, now = Date.now() } = 
   }
 }
 
-class FeedError extends Error {}
+/** 주소 받기 실패. permanent = 주소가 죽음(401·403·404·410, 저장된 주소를 못 엶) → 다시 붙여야 함 */
+class FeedError extends Error {
+  constructor(message, permanent = false) {
+    super(message);
+    this.permanent = permanent;
+  }
+}
 
 /** 주소를 받는다. 오류 문장에 주소를 넣지 않는다. */
 export async function fetchIcs(url) {
@@ -293,8 +360,9 @@ export async function fetchIcs(url) {
     throw new FeedError('주소에 연결하지 못했어요');
   }
   if (!res.ok) {
-    const hint = res.status === 401 || res.status === 403 ? ' — 주소가 바뀌었거나 권한이 없어요' : res.status === 404 ? ' — 주소를 다시 확인해 주세요' : '';
-    throw new FeedError(`주소가 오류로 답했어요(HTTP ${res.status})${hint}`);
+    const dead = [401, 403, 404, 410].includes(res.status);
+    const hint = dead ? ' — 주소가 바뀌었거나 공개를 껐어요. 캘린더에서 주소를 다시 복사해 주세요' : '';
+    throw new FeedError(`주소가 오류로 답했어요(HTTP ${res.status})${hint}`, dead);
   }
   const text = await res.text();
   if (text.length > MAX_CHARS) throw new FeedError('캘린더가 너무 커요(5MB 넘음)');

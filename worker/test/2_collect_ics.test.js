@@ -9,8 +9,9 @@ import { seal } from '../lib/secret.js';
 
 const NOW = Date.parse('2026-11-09T08:00:00Z'); // 한국 17:00
 const MIN = 60 * 1000;
-const ETL_URL = 'https://etl.example.invalid/feeds/calendars/user_EXAMPLEtokenabcd.ics';
-const GOOGLE_URL = 'https://calendar.example.invalid/ical/example/private-EXAMPLEsecret/basic.ics';
+// 모양은 진짜와 같지만 값은 지어낸 주소(가짜 인터넷만 씀)
+const ETL_URL = 'https://myetl.snu.ac.kr/feeds/calendars/user_EXAMPLEtokenabcd.ics';
+const GOOGLE_URL = 'https://calendar.google.com/calendar/ical/exampleuser/private-EXAMPLEsecret1234/basic.ics';
 
 // 가짜 인터넷: 주소 → ICS 글(또는 상태 번호). 시계도 멈춰 날짜가 지나도 같은 결과가 나오게 한다.
 const web = new Map();
@@ -73,7 +74,8 @@ test('주소 저장 → 바로 받기: eTL 과제는 tasks, 나머지는 events'
   const { res, data } = await saveBoth(env, user);
   assert.equal(res.status, 200);
   assert.equal(data.results.length, 2);
-  assert.ok(data.results.every((r) => r.ok), JSON.stringify(data.results));
+  assert.ok(data.results.every((r) => r.ok && r.saved), JSON.stringify(data.results));
+  assert.deepEqual(data.results.map((r) => [r.kind, r.tasks, r.events]), [['etl', 2, 1], ['google', 0, 7]]); // 화면: '과제 2개를 찾았어요'
 
   assert.equal(await count(env, 'tasks', "source = 'etl'"), 2);
   assert.equal(await count(env, 'events', "source = 'etl'"), 1); // 지난 시험은 기간 밖
@@ -89,7 +91,8 @@ test('주소 저장 → 바로 받기: eTL 과제는 tasks, 나머지는 events'
   // 응답과 DB 어디에도 주소 원문이 없다
   const dump = JSON.stringify(data) + JSON.stringify((await env.DB.prepare('SELECT * FROM feeds').all()).results);
   assert.ok(!dump.includes('EXAMPLEtoken') && !dump.includes('private-'), '주소가 새면 안 됨');
-  assert.match(data.feeds.find((f) => f.kind === 'etl').hint, /^etl\.example\.invalid\/…/);
+  assert.equal(data.feeds.find((f) => f.kind === 'etl').hint, 'myetl.snu.ac.kr/…abcd');
+  assert.equal(data.feeds.find((f) => f.kind === 'google').hint, 'calendar.google.com/…1234');
   assert.deepEqual(data.feeds.find((f) => f.kind === 'apple'), { kind: 'apple', set: false });
 });
 
@@ -193,20 +196,83 @@ test('주소 지우기: 그 칸의 일정·할 일도 지운다', async () => {
   assert.ok((await count(env, 'events', "source = 'google'")) > 0);
 });
 
-test('잘못된 주소는 400과 알아듣는 문장, 로그인 안 하면 401', async () => {
+test('모양이 틀린 주소는 저장하지 않고 칸마다 알아듣는 문장, 로그인 안 하면 401', async () => {
   const { env, user } = await setup();
-  for (const [body, pattern] of [
-    [{ etl: 'http://etl.example.invalid/a.ics' }, /https/],
-    [{ google: '캘린더 주소' }, /주소 형식/],
-    [{ apple: 42 }, /주소 글/],
-    [{}, /한 칸 이상/],
-  ]) {
+  const put = async (body) => {
     const res = await handle(req('/api/feeds', { method: 'PUT', body: JSON.stringify(body) }), env, makeCtx(), user);
-    assert.equal(res.status, 400);
-    assert.match((await res.json()).error, pattern);
+    return { status: res.status, data: await res.json() };
+  };
+  for (const [body, pattern] of [
+    [{ etl: 'http://myetl.snu.ac.kr/feeds/calendars/a.ics' }, /https/],
+    [{ etl: 'https://evil.example/feeds/calendars/a.ics' }, /myetl\.snu\.ac\.kr/],
+    [{ google: '캘린더 주소' }, /주소 형식/],
+    [{ google: 'https://calendar.google.com/calendar/ical/exampleuser/public/basic.ics' }, /비공개 주소/],
+    [{ google: 'https://calendar.example.invalid/x/private-a/basic.ics' }, /비공개 주소/],
+    [{ apple: 'webcal://evil.example/published/2/x' }, /공개 캘린더/],
+    [{ apple: 42 }, /글로/],
+  ]) {
+    const { status, data } = await put(body);
+    assert.equal(status, 200);
+    const [r] = data.results;
+    assert.equal(r.saved, false, JSON.stringify(body));
+    assert.match(r.error, pattern, JSON.stringify(body));
   }
+  assert.equal(await count(env, 'feeds'), 0);
+  assert.equal((await put({})).status, 400);
   assert.equal((await handle(req('/api/feeds'), env, makeCtx(), null)).status, 401);
-  assert.equal(normalizeUrl(' webcal://p01-caldav.example.invalid/published/2/abc '), 'https://p01-caldav.example.invalid/published/2/abc');
+  assert.equal(normalizeUrl(' webcal://p01-caldav.icloud.com/published/2/abc ', 'apple'), 'https://p01-caldav.icloud.com/published/2/abc');
+});
+
+test('붙이자마자 받아 보기: 이미 안 열리는 주소는 저장 안 함, 잠깐 오류면 저장하고 나중에 다시', async () => {
+  const { env, user } = await setup();
+  const put = async (body) => (await (await handle(req('/api/feeds', { method: 'PUT', body: JSON.stringify(body) }), env, makeCtx(), user)).json()).results[0];
+
+  web.set(ETL_URL, 404);
+  let r = await put({ etl: ETL_URL });
+  assert.equal(r.saved, false);
+  assert.match(r.error, /HTTP 404.*다시 복사/);
+
+  web.set(ETL_URL, '<!doctype html><title>로그인</title>');
+  r = await put({ etl: ETL_URL });
+  assert.equal(r.saved, false);
+  assert.match(r.error, /ICS가 아닌 응답/);
+  assert.equal(await count(env, 'feeds'), 0);
+
+  web.set(ETL_URL, 503);
+  r = await put({ etl: ETL_URL });
+  assert.equal(r.saved, true);
+  assert.match(r.error, /HTTP 503.*다시 받아요/);
+  assert.equal(await count(env, 'feeds'), 1);
+  web.set(ETL_URL, etlCalendar());
+  assert.equal((await collectDue(env, NOW + 20 * MIN)).changed, 1); // Cron이 다시 받아 채움
+  assert.equal(await count(env, 'tasks'), 2);
+});
+
+test('주소가 죽으면(404 두 번) Cron이 멈추고 다시 붙이기를 보인다, 지금 받기·다시 붙이기로 살아난다', async () => {
+  const { env, user } = await setup();
+  await saveBoth(env, user);
+  web.set(GOOGLE_URL, 404); // 구글에서 '재설정'을 누른 경우
+  await collectDue(env, NOW + 20 * MIN);
+  await collectDue(env, NOW + 40 * MIN);
+  const listed = async () => (await (await handle(req('/api/feeds'), env, makeCtx(), user)).json()).feeds.find((f) => f.kind === 'google');
+  clock = NOW + 41 * MIN;
+  let g = await listed();
+  assert.equal(g.stopped, true);
+  assert.match(g.error, /더 이상 열리지 않아요/);
+  assert.deepEqual(await collectDue(env, NOW + 60 * MIN), { feeds: 1, changed: 0, same: 1, failed: 0 }); // 구글은 건너뛰고 eTL만
+  assert.ok((await count(env, 'events', "source = 'google'")) > 0); // 있던 일정은 그대로
+
+  web.set(GOOGLE_URL, 503); // 잠깐의 오류는 멈춤 횟수에 안 센다
+  const [again] = await collectUser(env, user.id, { force: true, kinds: ['google'], now: NOW + 61 * MIN });
+  assert.equal(again.ok, false);
+  assert.equal((await env.DB.prepare("SELECT dead_count FROM feeds WHERE kind = 'google'").first()).dead_count, 2);
+
+  web.set(GOOGLE_URL, googleCalendar());
+  await collectUser(env, user.id, { force: true, kinds: ['google'], now: NOW + 62 * MIN }); // 화면의 '지금 받기'
+  clock = NOW + 63 * MIN;
+  g = await listed();
+  assert.equal(g.stopped, false);
+  assert.equal(g.error, null);
 });
 
 test('Cron 입구: 수집 요약을 로그로 남기고, feeds 표가 없으면 조용히 건너뛴다', async () => {
@@ -248,5 +314,6 @@ test('기간·힌트 도우미', () => {
   const w = syncWindow(NOW);
   assert.equal(w.from.toISOString(), '2026-10-09T15:00:00.000Z'); // 한국 10/10 0시
   assert.equal(w.to.toISOString(), '2027-05-10T15:00:00.000Z'); // 한국 2027-05-11 0시
-  assert.equal(urlHint('https://calendar.example.invalid/ical/x/private-abcdef/basic.ics'), 'calendar.example.invalid/…cics');
+  assert.equal(urlHint('https://calendar.google.com/calendar/ical/x/private-abcdef/basic.ics'), 'calendar.google.com/…cdef');
+  assert.equal(urlHint('https://myetl.snu.ac.kr/feeds/calendars/user_abc123.ics'), 'myetl.snu.ac.kr/…c123');
 });
