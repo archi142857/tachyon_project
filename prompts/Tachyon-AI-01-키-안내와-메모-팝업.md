@@ -45,3 +45,10 @@
 - 서버 세션: `worker/index.js`에 `/api/memo*` · `/api/briefing*` · `/api/timetable*` 길과 Cron 01:30 잇기, R2 바인딩 `PHOTOS`, package.json에 `"type": "module"`과 테스트 명령
 - 화면 세션: 팝업·브리핑 카드·시간표 확인 팝업 화면
 - AI 세션: 진짜 키로 세 프롬프트 답 확인(지연 측정과 함께), 지연 결과에 따라 `POPUP_AI_MS` 정하기
+
+## 이어서: 18:18 체크인 (AI 세션이 스스로 예약한 확인, 사람 요청 아님)
+
+- 서버 세션이 `worker/index.js`에 `/api/memo·briefing·timetable`과 Cron 01:30을 이었고, 팀원이 schema.sql을 확정하고 `ANTHROPIC_API_KEY`를 넣었다(배포 주소 `/api/health`로 확인).
+- schema 확정에 맞춰 고침(a6994bc): `log.at` 새 기본값(`+09:00`)과 UTC `datetime('now')`를 비교하던 '지금 돌리기' 10분 제한, 메모로 만든 종일 일정 end = 다음 날. 전체 `npm test` 103개 통과.
+- 저장소 밖 임시 설정으로 **진짜 `worker/index.js`(서명 쿠키 로그인)**를 거쳐 workerd에서 다시 확인: 로그인 없으면 401, 메모 팝업, 종일 저장이 서버의 `/api/events`에 보임, 브리핑, 10분 제한, 시간표, Cron 01:30.
+- 남음: 진짜 키로 AI 답 받기는 로그인(구글 비밀값)이 열린 뒤. 지연 측정은 키가 팀원 계정이라 팀원에게 선택 부탁(소통판), 안 되면 실사용 `log`로.
