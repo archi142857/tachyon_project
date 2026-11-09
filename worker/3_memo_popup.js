@@ -498,9 +498,9 @@ function popupFields(o = {}) {
 }
 const sameFields = (a, b) => ["title", "date", "time", "end_time", "place"].every((key) => a[key] === b[key]);
 
-/** 팝업 칸 → events.start/end. 시각이 없으면 종일 일정(날짜만) */
+/** 팝업 칸 → events.start/end. 시각이 없으면 종일 일정: schema.sql대로 start = 그날, end = 다음 날(ICS 방식) */
 function toStartEnd(f) {
-  if (!f.time) return { start: f.date, end: null };
+  if (!f.time) return { start: f.date, end: addDays(f.date, 1) };
   const start = `${f.date}T${f.time}:00+09:00`;
   const end = f.end_time && f.end_time > f.time ? `${f.date}T${f.end_time}:00+09:00` : null;
   return { start, end };

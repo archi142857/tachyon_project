@@ -65,10 +65,10 @@ async function getRank(env, user) {
 }
 
 async function runNow(env, user) {
-  const recent = await env.DB.prepare(
-    "SELECT count(*) AS n FROM log WHERE user_id = ? AND action = 'night_run' AND at > datetime('now', '-10 minutes')",
-  )
-    .bind(user.id)
+  // log.at은 schema.sql 기본값대로 '2026-11-09T18:20:00+09:00' 모양이라 같은 모양으로 비교한다
+  const since = isoKst(new Date(Date.now() - 10 * 60 * 1000));
+  const recent = await env.DB.prepare("SELECT count(*) AS n FROM log WHERE user_id = ? AND action = 'night_run' AND at > ?")
+    .bind(user.id, since)
     .first();
   if (recent.n >= 3) return json({ error: "10분에 3번까지만 돌릴 수 있다" }, 429);
   return json({ briefing: await runNight(env, user.id, new Date()) });

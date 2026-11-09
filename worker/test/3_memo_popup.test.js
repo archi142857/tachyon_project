@@ -229,7 +229,7 @@ test("시각 없이 저장하면 종일 일정(날짜만), 취소는 log만 남�
   assert.equal(body.popup, null); // 키 없음 + 시각 없음 → 팝업 없음 (AI가 있으면 시각 '?' 팝업)
 
   const saved = await call(env, user, "POST", `/api/memo/${body.memo.id}/save`, { title: "기말 발표", date: "2026-12-03", time: "?", end_time: "?", place: "?" });
-  assert.deepEqual([saved.body.event.start, saved.body.event.end, saved.body.event.place], ["2026-12-03", null, null]);
+  assert.deepEqual([saved.body.event.start, saved.body.event.end, saved.body.event.place], ["2026-12-03", "2026-12-04", null]); // 종일 일정 end = 다음 날(schema.sql)
 
   const other = await call(env, user, "POST", "/api/memo", { text: "내일 3시 스터디" });
   const cancel = await call(env, user, "POST", `/api/memo/${other.body.memo.id}/cancel`);

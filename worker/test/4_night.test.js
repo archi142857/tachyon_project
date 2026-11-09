@@ -172,6 +172,11 @@ test("주소: 브리핑 열기(밤 정리 전이면 바로 만듦) · 순서 · 
 
   for (let i = 0; i < 3; i++) assert.equal((await call(env, user, "POST", "/api/briefing/run")).status, 200);
   assert.equal((await call(env, user, "POST", "/api/briefing/run")).status, 429);
+  // 10분이 지나면 다시 된다 (log.at은 schema 기본값 '+09:00' 모양)
+  assert.match(DB.sqlite.prepare("SELECT at FROM log WHERE action = 'night_run'").get().at, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\+09:00$/);
+  const eleven = new Date(Date.now() + 9 * 3600e3 - 11 * 60e3).toISOString().slice(0, 19) + "+09:00";
+  DB.sqlite.prepare("UPDATE log SET at = ? WHERE action = 'night_run'").run(eleven);
+  assert.equal((await call(env, user, "POST", "/api/briefing/run")).status, 200);
 
   const stored = await call(env, user, "GET", "/api/briefing");
   assert.equal(stored.body.briefing.by, "night");
