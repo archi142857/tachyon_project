@@ -8,6 +8,10 @@
 // 키는 실행할 때 가려진 입력으로 묻는다(환경 변수 ANTHROPIC_API_KEY가 있으면 그걸 쓴다). 어디에도 저장하지 않는다.
 // 비용: 빠른 모델 호출 11번(몸풀기 1 + 10). 몇 원 수준.
 // 나오는 글에는 키·개인정보가 없다. 맨 아래 '요약' 줄을 소통판·쪽지에 붙이면 된다.
+//
+// 실사용이 시작되면 Worker가 부른 실제 지연도 log 표에 쌓인다(ms만, 메모 글은 없음). 다시 볼 때:
+//   npx wrangler d1 execute tachyon --remote --command "SELECT json_extract(detail, '$.ms') AS ms FROM log
+//     WHERE action = 'llm' AND json_extract(detail, '$.use') = 'memo_popup' ORDER BY ms"
 
 import { createInterface } from "node:readline";
 import { askPopupAi, findWhen, mergePopup } from "../3_memo_popup.js";
