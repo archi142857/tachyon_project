@@ -49,7 +49,8 @@
 | Tachyon-컨셉-03 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | Tachyon-컨셉-03. 세션 나누기와 세션끼리 소통하는 방식 | [Tachyon-컨셉-03-세션-나누기.md](Tachyon-컨셉-03-세션-나누기.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
 | Tachyon-컨셉-04 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결 | Tachyon-컨셉-04. 작업 시작과 공유 드라이브 쪽지함 | [Tachyon-컨셉-04-작업-시작과-쪽지함.md](Tachyon-컨셉-04-작업-시작과-쪽지함.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
 | Tachyon-컨셉-05 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결 | Tachyon-컨셉-05. 앱 이름을 모든 곳에서 Tachyon으로 | [Tachyon-컨셉-05-앱-이름-Tachyon으로.md](Tachyon-컨셉-05-앱-이름-Tachyon으로.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
-| Tachyon-AI-01 | 2026-11-09 | Claude Code (Claude Opus 5.5) | Tachyon-AI-01. AI 세션 시작: Claude API 키 안내, Haiku 지연 확인 준비, llm.js와 메모 즉시 팝업 | [Tachyon-AI-01-키-안내와-메모-팝업.md](Tachyon-AI-01-키-안내와-메모-팝업.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / AI |
+| Tachyon-컨셉-06 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결 | Tachyon-컨셉-06. 사용자에게 필요한 것을 컨셉이 모아 알리기 | [Tachyon-컨셉-06-사용자-확인-모으기.md](Tachyon-컨셉-06-사용자-확인-모으기.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
+| Tachyon-AI-01 | 2026-11-09 | Claude Code (Claude Opus 5.5) | Tachyon-AI-01. AI 세션 시작: Claude API 키 안내, Haiku 지연 확인 준비, llm.js · 메모 팝업 · 밤 정리 · 시간표 사진 | [Tachyon-AI-01-키-안내와-메모-팝업.md](Tachyon-AI-01-키-안내와-메모-팝업.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / AI |
 
 ## AI 세션 간 작업 지시·수정 요청·결과 보고
 
