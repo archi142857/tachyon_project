@@ -42,7 +42,7 @@ export default {
       if (url.pathname === "/api/health") {
         const row = await env.DB.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type = 'table'").first();
         // 아직 안 넣은 비밀값 이름(값은 안 보임). 설정이 끝나면 빈 배열.
-        const missing = ["APP_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "ANTHROPIC_API_KEY"].filter((k) => !env[k]);
+        const missing = ["APP_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "ANTHROPIC_API_KEY", "GITHUB_TOKEN"].filter((k) => !env[k]);
         return Response.json({ ok: true, tables: row.n, missing });
       }
 

@@ -29,7 +29,12 @@ crons = ["*/15 * * * *", "30 16 * * *"]
 FEEDS_PER_RUN = "20"   # Cron 한 번에 받는 캘린더 주소 수 (무료 요금제: 한 번에 외부 요청 50개·DB 질의 50개까지)
 POPUP_AI_MS = "2500"   # 즉시 팝업이 AI를 기다리는 시간(ms) — AI 세션 요청
 DAILY_TASK_MIN = "180" # 하루에 할 일에 쓰는 시간(분), 밀도 계산 — AI 세션 요청
-# 시간표 사진 저장(R2 PHOTOS)은 Cloudflare 계정에서 R2를 켠 뒤에 넣는다. 없으면 사진은 저장 없이 읽기만 한다.
+GITHUB_REPO = "archi142857/tachyon_project" # 의견·오류 이슈가 쌓이는 저장소 (토큰은 비밀값 GITHUB_TOKEN)
+
+# 시간표 사진 저장 (5_timetable_photo.js). 버킷은 dhsrua555가 만듦(11-09).
+[[r2_buckets]]
+binding = "PHOTOS"
+bucket_name = "tachyon-photos"
 
 # 대시보드 → tachyon → Logs에서 요청마다 로그·CPU 시간을 본다
 [observability]

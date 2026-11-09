@@ -1,7 +1,7 @@
-# Tachyon-서버-01 · 서버 세션 시작: 주소 나누기, 구글 로그인, ICS 수집기 + 15분 Cron, 할 일·일정 API, 캘린더 내보내기
+# Tachyon-서버-01 · 서버 세션 시작: 주소 나누기, 구글 로그인, ICS 수집기 + 15분 Cron, 할 일·일정 API, 캘린더 내보내기, 의견·오류 보고
 
 - 날짜: 2026-11-09
-- 도구: Claude Code (Claude Opus 5.5) — archi142857 쪽 '서버' 세션. 실행 확인에 Node 내장 시험(node:test)과 wrangler·Miniflare(로컬 workerd + D1)를 씀
+- 도구: Claude Code (Claude Opus 5.5) — archi142857 쪽 '서버' 세션. 실행 확인에 Node 내장 시험(node:test)과 wrangler·Miniflare(로컬 workerd + D1)를 씀. 세션 쪽지는 Google Drive 커넥터로 주고받음
 - 기록 유형: 사용자 직접 지시
 - 목적: 서버 세션이 맡은 일(Cloudflare 연결, eTL ICS 위험 확인, 구글 로그인, ICS 수집기·Cron)을 시작한다.
 
@@ -31,10 +31,11 @@ Continue from where you left off.
 - DB: schema.sql 초안(팀원)에 맞췄고, 필요한 `feeds` 표·`source` 이름·종일 일정 끝 규칙은 [소통판](../docs/tachyon/소통.md)에 답으로 요청했다.
 - 뒤이어(같은 요청 안에서) 컨셉 쪽지로 맡은 일: **[worker/7_items.js](../worker/7_items.js)** 할 일·일정 읽기·고치기 API(할 일 3개는 AI의 `rankTasks` 순서, 주간 달력 기간 조회, 내 것만). eTL·구글·애플에서 온 항목은 제목·시각·장소 고치기와 지우기를 막고(그 캘린더가 원본) 체크·중요 표시만 된다. [캘린더 주소 찾기](../docs/tachyon/캘린더_주소_찾기.md)의 서버 규칙(칸마다 아는 모양만, 붙이자마자 받아 보기, 두 번 안 열리면 멈춤)을 수집기에 넣었다.
 - 이어서 계획 2단계 'Tachyon ICS 내보내기'를 맡았다: **[worker/8_calendar_feed.js](../worker/8_calendar_feed.js)** 사람마다 서명한 비밀 주소로 메모·시간표·eTL 일정과 안 끝낸 마감을 폰 달력에 구독하게 한다(구글·애플에서 온 것은 뺌). `/api/health`에 아직 안 넣은 비밀값 이름을 더했다. 팀원이 schema.sql을 확정해서(feeds 포함) 서버 쪽 중복 정의를 지웠다.
-- 확인: `npm test` 89개 통과(서버 54 · AI 35). 배포용 빌드(`wrangler deploy --dry-run`)와, 로컬 workerd + D1에서 저장 → 다시 받기(바뀐 줄 0) → Cron까지 실제로 돌려 봤다. 큰 지어낸 구글 캘린더로 CPU를 재 보니 무료 한도(10ms)에 걸릴 수 있어 소통판에 적었다.
+- 이어서 계획 1단계 '피드백'의 두 줄을 맡았다(Codex에 안 맡기기로 해서): **[worker/6_feedback.js](../worker/6_feedback.js)** 의견(버그·불편·추가 + 한 줄)과 화면·서버 오류를 GitHub 이슈로 보낸다. 공개 저장소라 이메일·전화번호·학번·주소(URL)·토큰 모양 글자는 지우고, 보낸 사람은 '사용자 #번호'로만 적는다. 같은 오류는 이슈 하나, 의견은 한 사람 하루 20개·새 오류 이슈는 하루 30개까지. 토큰(`GITHUB_TOKEN`)이 없어도 의견은 `log`에 남는다. 팀원이 R2 버킷을 만들어 `PHOTOS` 바인딩을 넣었다.
+- 확인: `npm test` 102개 통과(서버 67 · AI 35). 배포용 빌드(`wrangler deploy --dry-run`)와, 로컬 workerd + D1에서 저장 → 다시 받기(바뀐 줄 0) → Cron, 의견·오류 → 이슈(가짜 GitHub)까지 실제로 돌려 봤다. 큰 지어낸 구글 캘린더로 CPU를 재 보니 무료 한도(10ms)에 걸릴 수 있어 소통판에 적었다.
 
 ## 관련 결과
 
-- [worker/index.js](../worker/index.js) · [worker/1_login.js](../worker/1_login.js) · [worker/2_collect_ics.js](../worker/2_collect_ics.js) · [worker/7_items.js](../worker/7_items.js) · [worker/8_calendar_feed.js](../worker/8_calendar_feed.js) · [worker/lib/](../worker/lib/)
-- 시험: [worker/test/](../worker/test/) (`1_login`·`2_collect_ics`·`7_items`·`8_calendar_feed`·`index`·`auth`·`ics`, [helpers/server.js](../worker/test/helpers/server.js))
+- [worker/index.js](../worker/index.js) · [worker/1_login.js](../worker/1_login.js) · [worker/2_collect_ics.js](../worker/2_collect_ics.js) · [worker/6_feedback.js](../worker/6_feedback.js) · [worker/7_items.js](../worker/7_items.js) · [worker/8_calendar_feed.js](../worker/8_calendar_feed.js) · [worker/lib/](../worker/lib/)
+- 시험: [worker/test/](../worker/test/) (`1_login`·`2_collect_ics`·`6_feedback`·`7_items`·`8_calendar_feed`·`index`·`auth`·`ics`, [helpers/server.js](../worker/test/helpers/server.js))
 - [wrangler.toml](../wrangler.toml) · [package.json](../package.json) · [server.yml](../.github/workflows/server.yml) · [소통판](../docs/tachyon/소통.md)

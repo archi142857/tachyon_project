@@ -10,9 +10,18 @@ export function logStatement(env, userId, action, detail = null) {
   return env.DB.prepare('INSERT INTO log (user_id, action, detail, at) VALUES (?, ?, ?, ?)').bind(
     userId ?? null,
     action,
-    detail == null ? null : JSON.stringify(detail).slice(0, 1000),
+    detail == null ? null : packDetail(detail),
     kstIso(),
   );
+}
+
+/** detail을 1000자 안의 올바른 JSON으로(길면 글 칸을 줄인다 — 중간에 잘린 JSON을 남기지 않게) */
+export function packDetail(detail) {
+  let text = JSON.stringify(detail);
+  if (text.length <= 1000) return text;
+  const short = Object.fromEntries(Object.entries(detail).map(([k, v]) => [k, typeof v === 'string' ? v.slice(0, 200) : v]));
+  text = JSON.stringify(short);
+  return text.length <= 1000 ? text : JSON.stringify({ cut: true, keys: Object.keys(detail).slice(0, 20) });
 }
 
 export async function logAction(env, userId, action, detail = null) {

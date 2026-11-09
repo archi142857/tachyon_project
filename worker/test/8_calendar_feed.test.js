@@ -101,6 +101,6 @@ test('글 이스케이프와 75바이트 접기(한글을 자르지 않음)', ()
 test('/api/health는 아직 안 넣은 비밀값 이름만 알려 준다(값은 안 보임)', async () => {
   const env = makeEnv({ GOOGLE_CLIENT_ID: 'example-id' });
   const data = await (await get(env, '/api/health')).json();
-  assert.deepEqual(data.missing, ['GOOGLE_CLIENT_SECRET', 'ANTHROPIC_API_KEY']);
+  assert.deepEqual(data.missing, ['GOOGLE_CLIENT_SECRET', 'ANTHROPIC_API_KEY', 'GITHUB_TOKEN']);
   assert.ok(!JSON.stringify(data).includes('example-id'));
 });
