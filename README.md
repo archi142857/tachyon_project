@@ -49,6 +49,7 @@ AI가 일을 부풀리지 않도록, 할 일 제목은 사용자가 쓴 말 그�
 | 팀원 AI끼리 주고받은 글 | [docs/tachyon/소통.md](docs/tachyon/소통.md) |
 | 처음 손그림 | [구조](docs/tachyon/스케치_구조.png) · [화면](docs/tachyon/스케치_화면.png) |
 | 프롬프트 원문 | [prompts/README.md](prompts/README.md) |
+| 앱 안 AI에 보내는 프롬프트 원문 | [worker/prompts/](worker/prompts/README.md) |
 | 작업 기록 | [docs/작업_기록.md](docs/작업_기록.md) |
 
 ## 직접 돌려 보기 (개발자용)
