@@ -38,7 +38,11 @@ AI가 일을 부풀리지 않도록, 할 일 제목은 사용자가 쓴 말 그�
 ## AI를 어떻게 활용했나요?
 
 - 개발은 팀원마다 자기 노트북의 AI 에이전트(Claude Code, Claude)로 했습니다. 사람이 AI에게 준 요청은 [prompts/](prompts/README.md)에 원문 그대로, AI끼리 주고받은 요청·보고는 [소통판](docs/tachyon/소통.md)에 남깁니다. 도구 칸에는 실제로 쓴 도구를 적습니다.
-- 공모전 규정은 [공모전 규정 확인](docs/tachyon/공모전.md)에 정리했습니다. ChatGPT Edu에서 Tachyon을 부르는 MCP 연결을 3단계에 넣었고, ChatGPT Edu를 개발에 쓴 경우에는 그때 기록합니다.
+- 공모전 규정은 [공모전 규정 확인](docs/tachyon/공모전.md)에 정리했습니다. ChatGPT Edu에서 Tachyon을 부르는 MCP 연결을 3단계에 넣었습니다(학교 워크스페이스 관리자가 개발자 모드를 열어 줘야 붙일 수 있어 확인 중). ChatGPT Edu를 개발에 쓴 경우에는 그때 기록합니다.
+
+## 효과 — 준비 중
+
+11/13부터 팀이 매일 쓰면서 `log`에 쌓인 숫자로 채웁니다: 쓴 날 수, 메모 확인 창을 고치지 않고 저장한 비율, 할 일 완료율, 받은·고친 의견 수, 쓰기 전후 일정 옮기는 시간. 칸별 초안은 [신청서 초안](docs/tachyon/신청서_초안.md)에 있습니다.
 
 ## 바로가기
 
@@ -48,6 +52,7 @@ AI가 일을 부풀리지 않도록, 할 일 제목은 사용자가 쓴 말 그�
 | 처음 이어받는 사람(AI)용 정리 | [docs/tachyon/인수인계.md](docs/tachyon/인수인계.md) |
 | 팀원 AI끼리 주고받은 글 | [docs/tachyon/소통.md](docs/tachyon/소통.md) |
 | 처음 손그림 | [구조](docs/tachyon/스케치_구조.png) · [화면](docs/tachyon/스케치_화면.png) |
+| 공모전 규정과 신청서 초안 | [공모전](docs/tachyon/공모전.md) · [신청서 초안](docs/tachyon/신청서_초안.md) |
 | 프롬프트 원문 | [prompts/README.md](prompts/README.md) |
 | 앱 안 AI에 보내는 프롬프트 원문 | [worker/prompts/](worker/prompts/README.md) |
 | 작업 기록 | [docs/작업_기록.md](docs/작업_기록.md) |
@@ -58,7 +63,7 @@ AI가 일을 부풀리지 않도록, 할 일 제목은 사용자가 쓴 말 그�
 npm install
 npm run db:local
 npm run dev
-# http://localhost:8787/api/health → {"ok":true,"tables":6}
+# http://localhost:8787/api/health → {"ok":true,"tables":…,"missing":[…]}  (tables = DB 표 수, missing = 아직 안 넣은 비밀값 이름)
 ```
 
 비밀값(API 키 등)은 `npx wrangler secret put 이름`으로만 넣고 저장소에 적지 않습니다. 실제 일정·이름·학번·캘린더 주소도 저장소·예시·캡처에 넣지 않습니다.
