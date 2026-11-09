@@ -7,7 +7,7 @@
 //
 // 주소 (worker/index.js가 /api/memo* 를 여기로 보낸다. 응답은 모두 JSON)
 //   POST   /api/memo              { text }                    → { memo, popup }   popup은 일정이 아니면 null
-//   GET    /api/memo?before=&limit=                           → { memos }         오래된 것부터, event_id = 저장된 일정
+//   GET    /api/memo?before=&limit=                           → { memos }         오래된 것부터, event_id·task_id = 이 메모로 만든 일정·할 일
 //   POST   /api/memo/:id/save     { title, date, time, end_time, place, suggested } → { event }
 //                                 suggested = 받았던 popup 그대로(고쳤는지 재려고). 모르는 칸은 '?'
 //   POST   /api/memo/:id/cancel                               → { ok }            메모는 남아서 밤 정리가 읽는다
@@ -57,9 +57,10 @@ async function listMemos(url, env, user) {
   const limit = Math.min(Math.max(Number(url.searchParams.get("limit")) || 50, 1), 200);
   const before = Number(url.searchParams.get("before")) || null;
   const { results } = await env.DB.prepare(
-    `SELECT m.id, m.text, m.created_at, m.handled, e.id AS event_id
+    `SELECT m.id, m.text, m.created_at, m.handled, e.id AS event_id, t.id AS task_id
        FROM memos m
        LEFT JOIN events e ON e.user_id = m.user_id AND e.source = 'memo' AND e.ext_id = 'memo:' || m.id
+       LEFT JOIN tasks t ON t.user_id = m.user_id AND t.source = 'memo' AND t.ext_id = 'memo:' || m.id
       WHERE m.user_id = ? AND (? IS NULL OR m.id < ?)
       ORDER BY m.id DESC LIMIT ?`,
   )

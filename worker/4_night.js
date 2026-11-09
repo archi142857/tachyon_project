@@ -108,7 +108,8 @@ export async function runNight(env, userId, now = new Date(), { fetch } = {}) {
         fetch,
       });
       await writeLog(env, userId, "llm", usageDetail("night", r));
-      newTasks = await applyNight(env, userId, memos, blank, r.data);
+      const memoText = new Map(memos.map((m) => [`memo:${m.id}`, m.text]));
+      newTasks = (await applyNight(env, userId, memos, blank, r.data)).map((t) => ({ ...t, memo: memoText.get(t.ext_id) }));
     } catch (e) {
       await writeLog(env, userId, "llm_fail", JSON.stringify({ use: "night", error: String(e?.message ?? e).slice(0, 160) }));
     }
@@ -139,7 +140,7 @@ async function applyNight(env, userId, memos, blank, data) {
       env.DB.prepare(
         `INSERT INTO tasks (user_id, title, due, minutes, ready, source, ext_id) VALUES (?, ?, ?, ?, ?, 'memo', ?)
          ON CONFLICT (user_id, source, ext_id) DO NOTHING
-         RETURNING id, title, due, minutes, ready`,
+         RETURNING id, title, due, minutes, ready, ext_id`,
       ).bind(userId, clean(a.title) ?? memo.text, dueOf(memo, a.due), minutesOf(a.minutes), a.ready === "after" ? 0 : 1, `memo:${memo.id}`),
     );
   }
@@ -202,11 +203,12 @@ async function buildBriefing(env, userId, now, { by, newTasks = [] }) {
     top3: ranked.slice(0, 3).map(short),
     postpone: rest.length ? short(rest[rest.length - 1]) : null, // 여유가 가장 많은 것(또는 마감 없는 것)
     warning: crowdedWarning(ranked, now, dailyMin(env)),
-    new_tasks: newTasks.map((t) => ({ id: t.id, title: t.title })),
+    new_tasks: newTasks.map((t) => ({ id: t.id, title: t.title, memo: t.memo ?? null })), // memo = 근거로 보여 줄 원문 메모
   };
 }
 
-const short = (t) => ({ id: t.id, title: t.title, due: t.due, minutes: t.minutes, ready: t.ready, slack_days: t.slack_days });
+// source = 어디서 왔나(etl · ics · memo …). 화면에서 근거로 보여 준다.
+const short = (t) => ({ id: t.id, title: t.title, due: t.due, minutes: t.minutes, ready: t.ready, source: t.source, slack_days: t.slack_days });
 
 /** 저장된 카드 글 → 객체. 다른 모양(손으로 넣은 글 등)이면 null → 지금 다시 만든다 */
 function parseCard(text) {

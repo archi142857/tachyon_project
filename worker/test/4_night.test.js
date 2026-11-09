@@ -118,7 +118,8 @@ test("밤 정리: 메모 → 할 일(쓴 말 그대로, 마감은 쓴 시각 기
   assert.deepEqual(card.events.map((e) => e.title), ["종일 행사", "스터디"]);
   assert.deepEqual(card.top3.map((t) => t.title), ["[예시] 출석 확인", "[예시] 3주차 퀴즈", "유기화학 과제"]);
   assert.equal(card.postpone, null);
-  assert.deepEqual(card.new_tasks, [{ id: tasks[2].id, title: "유기화학 과제" }]);
+  assert.deepEqual(card.new_tasks, [{ id: tasks[2].id, title: "유기화학 과제", memo: "유기화학 과제 다음주 월요일까지" }]); // 근거 = 원문 메모
+  assert.deepEqual(card.top3.map((t) => t.source), ["etl", "etl", "memo"]);
   const stored = JSON.parse(DB.sqlite.prepare("SELECT text FROM briefings WHERE user_id = ? AND date = ?").get(user.id, "2026-11-10").text);
   assert.deepEqual(stored, card);
   assert.deepEqual(DB.sqlite.prepare("SELECT action FROM log ORDER BY id").all().map((r) => r.action), ["night_run", "llm"]);

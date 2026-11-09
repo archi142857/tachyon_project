@@ -190,7 +190,7 @@ test("메모 쓰기 → 목록 → 팝업 저장 → 일정 생김 → 고쳐 �
 
   await call(env, user, "POST", "/api/memo", { text: "장보기 목록 정리" });
   const list = await call(env, user, "GET", "/api/memo");
-  assert.deepEqual(list.body.memos.map((m) => [m.text, m.event_id]), [["2026-11-20 14:00 301동 발표 연습", null], ["장보기 목록 정리", null]]);
+  assert.deepEqual(list.body.memos.map((m) => [m.text, m.event_id, m.task_id]), [["2026-11-20 14:00 301동 발표 연습", null, null], ["장보기 목록 정리", null, null]]);
 
   // 그대로 저장 → popup_save
   const saved = await call(env, user, "POST", `/api/memo/${memo.id}/save`, { ...popup, suggested: popup });
@@ -208,8 +208,12 @@ test("메모 쓰기 → 목록 → 팝업 저장 → 일정 생김 → 고쳐 �
   assert.equal(DB.sqlite.prepare("SELECT count(*) AS n FROM events").get().n, 1);
   assert.deepEqual(DB.sqlite.prepare("SELECT action FROM log ORDER BY id").all().map((r) => r.action), ["popup_save", "popup_edit"]);
 
+  // 밤 정리가 이 메모로 할 일을 만들었다면 task_id가 붙는다
+  const shopping = list.body.memos[1];
+  DB.sqlite.prepare("INSERT INTO tasks (user_id, title, source, ext_id) VALUES (?, '장보기 목록 정리', 'memo', ?)").run(user.id, `memo:${shopping.id}`);
   const list2 = await call(env, user, "GET", "/api/memo?limit=1");
   assert.deepEqual(list2.body.memos.map((m) => m.text), ["장보기 목록 정리"]); // 가장 최근 1개
+  assert.ok(list2.body.memos[0].task_id);
   const older = await call(env, user, "GET", `/api/memo?before=${list2.body.memos[0].id}`);
   assert.equal(older.body.memos[0].event_id, saved.body.event.id);
 
