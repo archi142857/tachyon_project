@@ -160,3 +160,20 @@ test('돌아갈 곳은 이 사이트 안의 경로만', () => {
     assert.equal(safeNext(bad), '/', String(bad));
   }
 });
+
+test('이미 로그인돼 있으면 콜백이 실패해도(같은 콜백이 두 번 오는 아이폰 홈 화면 앱) 오류 없이 돌아간다', async () => {
+  const e = env();
+  const { back } = await login(e, { next: '/week' });
+  const session = cookiesOf(back).find((c) => c.startsWith('tachyon_session='));
+  // 두 번째 콜백: 흐름 쿠키는 이미 지워졌고, 구글은 쓴 code에 invalid_grant
+  googleSays(goodClaims(), 400);
+  const again = await call(e, '/api/login/callback?code=example-code&state=old', { headers: { cookie: session } });
+  assert.equal(again.status, 302);
+  const target = new URL(again.headers.get('location'));
+  assert.equal(target.pathname, '/');
+  assert.equal(target.searchParams.get('login_error'), null);
+  assert.ok(!cookiesOf(again).some((c) => c.startsWith('tachyon_session=')), '로그인 쿠키는 그대로 둔다');
+  // 로그인 안 된 사람에게는 그대로 오류를 알린다
+  const stranger = await call(e, '/api/login/callback?code=example-code&state=old');
+  assert.equal(new URL(stranger.headers.get('location')).searchParams.get('login_error'), 'state');
+});

@@ -30,7 +30,7 @@ export async function handle(request, env, ctx, user) {
   const method = request.method;
 
   if (pathname === '/api/login' && method === 'GET') return startLogin(url, env);
-  if (pathname === '/api/login/callback' && method === 'GET') return finishLogin(request, url, env);
+  if (pathname === '/api/login/callback' && method === 'GET') return finishLogin(request, url, env, user);
   if (pathname === '/api/login/logout' && method === 'POST') {
     return json({ ok: true }, 200, { 'set-cookie': clearSessionCookie() });
   }
@@ -77,24 +77,27 @@ async function startLogin(url, env) {
 
 // ── 구글이 돌려보냄: 사용자 확인 → users 행 → 로그인 쿠키 ───────────
 
-async function finishLogin(request, url, env) {
+async function finishLogin(request, url, env, user) {
   const flow = await readFlow(env, getCookie(request, FLOW_COOKIE));
   const next = flow ? flow.next : '/';
   const clearFlow = cookie(FLOW_COOKIE, '', 0, { path: '/api/login' });
+  // 이미 로그인돼 있으면 실패를 보이지 않고 그냥 돌아간다: 아이폰 홈 화면 앱은 같은 콜백이 두 번 와서
+  // (작은 브라우저와 앱) 두 번째가 state·google 실패가 될 수 있다(화면 세션 11-09 18:30 쪽지).
+  const back = (reason) => backToApp(url, next, user ? null : reason, clearFlow);
 
-  if (url.searchParams.get('error')) return backToApp(url, next, 'denied', clearFlow); // 사용자가 취소
-  if (!flow || flow.state !== url.searchParams.get('state')) return backToApp(url, next, 'state', clearFlow);
+  if (url.searchParams.get('error')) return back('denied'); // 사용자가 취소
+  if (!flow || flow.state !== url.searchParams.get('state')) return back('state');
   const code = url.searchParams.get('code');
-  if (!code) return backToApp(url, next, 'state', clearFlow);
+  if (!code) return back('state');
 
   let claims;
   try {
     claims = await exchangeCode(env, code, flow.verifier, redirectUri(url));
   } catch (err) {
     console.error('구글 토큰 교환 실패', err && err.message);
-    return backToApp(url, next, 'google', clearFlow);
+    return back('google');
   }
-  if (!claims.sub || !claims.email || claims.email_verified !== true) return backToApp(url, next, 'email', clearFlow);
+  if (!claims.sub || !claims.email || claims.email_verified !== true) return back('email');
 
   // 구글 계정 고유 번호(sub)로 찾는다(이메일은 바뀔 수 있음). 있으면 이메일·이름만 새로.
   const row = await env.DB.prepare(
@@ -164,7 +167,7 @@ export function safeNext(next) {
 
 function backToApp(url, next, reason, setCookie) {
   const target = new URL(safeNext(next), url.origin);
-  target.searchParams.set('login_error', reason);
+  if (reason) target.searchParams.set('login_error', reason);
   const headers = { location: target.toString() };
   if (setCookie) headers['set-cookie'] = setCookie;
   return new Response(null, { status: 302, headers });

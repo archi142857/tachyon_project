@@ -1,6 +1,6 @@
 # 서버(Cloudflare Workers) 시험 (담당: 서버 세션)
 #
-# 서버·화면 파일이 바뀌면 worker/test 시험을 돌리고, 배포 때와 같은 빌드가 되는지 묶어 본다.
+# 서버·화면 파일이 바뀌면 worker/test 시험과 web 시험(vitest)을 돌리고, 배포 때와 같은 빌드(web 빌드 포함)가 되는지 묶어 본다.
 # 배포는 여기서 하지 않는다 — Cloudflare Workers Builds가 main을 받아 배포한다(dhsrua555 연결).
 
 name: 서버 시험
@@ -38,8 +38,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
       - run: npm ci
       - name: 시험 (worker/test)
         run: npm test
+      - name: 화면 시험 (web, vitest)
+        run: npm --prefix web ci --no-audit --no-fund && npm --prefix web test
       - name: 묶어 보기 (배포 때와 같은 빌드, 올리지는 않음)
         run: npx wrangler deploy --dry-run --outdir dist
