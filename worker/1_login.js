@@ -7,6 +7,7 @@
 //   GET  /api/login/me              내 정보 {id, email, name, dept, year} + needsSetup(학과·학년이 비었으면 true)
 //   PUT  /api/login/me              첫 설정: {"dept": "동물생명공학전공", "year": 2}
 //   POST /api/login/logout          로그아웃(쿠키 지움)
+//   DELETE /api/login/me            계정 지우기 {"confirm": true}: 내 주소·일정·할 일·메모·브리핑·기록·시간표 사진을 모두 지우고 로그아웃
 //
 // 로그인 실패는 화면으로 돌려보내며 ?login_error=<이유>를 붙인다: denied · state · google · email · config
 //
@@ -16,7 +17,7 @@
 import { makeSessionCookie, clearSessionCookie, getCookie, cookie } from './lib/auth.js';
 import { deriveKey, b64url, fromB64url, utf8 } from './lib/secret.js';
 import { json, fail, readJson } from './lib/http.js';
-import { logAction } from './lib/log.js';
+import { logAction, logStatement } from './lib/log.js';
 import { kstIso } from './lib/time.js';
 
 const GOOGLE_AUTH = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -38,6 +39,7 @@ export async function handle(request, env, ctx, user) {
     if (!user) return fail(401, '로그인이 필요해요');
     if (method === 'GET') return json({ ok: true, user: publicUser(user), needsSetup: needsSetup(user) });
     if (method === 'PUT') return saveProfile(request, env, user);
+    if (method === 'DELETE') return deleteAccount(request, env, user);
   }
   return fail(404, '없는 주소예요');
 }
@@ -163,6 +165,36 @@ function redirectUri(url) {
 export function safeNext(next) {
   if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\') || next.startsWith('/api/')) return '/';
   return next.slice(0, 200);
+}
+
+// ── 계정 지우기 ──────────────────────────────────────────────────
+
+// 이 사람의 줄은 표마다 다 지운다(schema의 ON DELETE CASCADE에 기대지 않고 직접, 한 batch = 한 번에).
+// log도 지운다(남는 것은 이름 없는 'account_delete' 한 줄). GitHub 이슈에는 '사용자 #번호'만 있어 그대로 둔다.
+const USER_TABLES = ['feeds', 'events', 'tasks', 'memos', 'briefings', 'log'];
+
+async function deleteAccount(request, env, user) {
+  const body = await readJson(request);
+  if (!body || body.confirm !== true) return fail(400, '정말 지우려면 confirm: true를 보내 주세요');
+  if (env.PHOTOS) {
+    // 시간표 사진(5_timetable_photo.js가 timetable/<사용자 번호>/… 에 둠)
+    try {
+      let cursor;
+      do {
+        const listed = await env.PHOTOS.list({ prefix: `timetable/${user.id}/`, cursor });
+        if (listed.objects.length) await env.PHOTOS.delete(listed.objects.map((o) => o.key));
+        cursor = listed.truncated ? listed.cursor : undefined;
+      } while (cursor);
+    } catch (err) {
+      console.error('시간표 사진 지우기 실패', err && err.message);
+    }
+  }
+  await env.DB.batch([
+    ...USER_TABLES.map((table) => env.DB.prepare(`DELETE FROM ${table} WHERE user_id = ?`).bind(user.id)),
+    env.DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id),
+    logStatement(env, null, 'account_delete', null),
+  ]);
+  return json({ ok: true }, 200, { 'set-cookie': clearSessionCookie() });
 }
 
 function backToApp(url, next, reason, setCookie) {

@@ -177,3 +177,39 @@ test('이미 로그인돼 있으면 콜백이 실패해도(같은 콜백이 두 
   const stranger = await call(e, '/api/login/callback?code=example-code&state=old');
   assert.equal(new URL(stranger.headers.get('location')).searchParams.get('login_error'), 'state');
 });
+
+test('계정 지우기: confirm이 있어야 하고, 내 줄·시간표 사진만 모두 지우고 로그아웃', async () => {
+  const photos = new Map([['timetable/1/a.jpg', 1], ['timetable/1/b.jpg', 1], ['timetable/2/c.jpg', 1], ['timetable/10/d.jpg', 1]]);
+  const PHOTOS = {
+    list: async ({ prefix }) => ({ objects: [...photos.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key })), truncated: false }),
+    delete: async (keys) => [].concat(keys).forEach((k) => photos.delete(k)),
+  };
+  const e = makeEnv({ GOOGLE_CLIENT_ID: CLIENT_ID, GOOGLE_CLIENT_SECRET: 'example-secret', PHOTOS });
+  const { back } = await login(e); // 사용자 1
+  const session = cookiesOf(back).find((c) => c.startsWith('tachyon_session='));
+  const other = await e.DB.prepare("INSERT INTO users (google_sub, email) VALUES ('sub-other', 'other@example.invalid') RETURNING id").first();
+  assert.equal(other.id, 2);
+  for (const id of [1, 2]) {
+    const run = (sql) => e.DB.sqlite.prepare(sql).run(id);
+    run("INSERT INTO feeds (user_id, kind, url) VALUES (?, 'etl', 'v1.example.sealed')");
+    run("INSERT INTO events (user_id, title, start, source, ext_id) VALUES (?, '예시 일정', '2026-11-10T10:00:00+09:00', 'memo', 'memo:1')");
+    run("INSERT INTO tasks (user_id, title, source, ext_id) VALUES (?, '예시 할 일', 'memo', 'memo:2')");
+    run("INSERT INTO memos (user_id, text) VALUES (?, '예시 메모')");
+    run("INSERT INTO briefings (user_id, date, text) VALUES (?, '2026-11-10', '{}')");
+    run("INSERT INTO log (user_id, action) VALUES (?, 'popup_save')");
+  }
+  const del = (body) => call(e, '/api/login/me', { method: 'DELETE', headers: { origin: ORIGIN, cookie: session }, body: body && JSON.stringify(body) });
+  assert.equal((await del()).status, 400);
+  assert.equal((await del({ confirm: 'yes' })).status, 400);
+  const res = await del({ confirm: true });
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('set-cookie'), /^tachyon_session=; .*Max-Age=0/);
+
+  const left = (table) => e.DB.sqlite.prepare(`SELECT user_id, count(*) n FROM ${table} GROUP BY user_id ORDER BY user_id`).all().map((r) => [r.user_id, r.n]);
+  for (const table of ['feeds', 'events', 'tasks', 'memos', 'briefings']) assert.deepEqual(left(table), [[2, 1]], table);
+  assert.deepEqual(e.DB.sqlite.prepare('SELECT id FROM users').all().map((r) => r.id), [2]);
+  assert.deepEqual(e.DB.sqlite.prepare('SELECT user_id, action FROM log ORDER BY id').all().map((r) => [r.user_id, r.action]), [[2, 'popup_save'], [null, 'account_delete']]);
+  assert.deepEqual([...photos.keys()], ['timetable/2/c.jpg', 'timetable/10/d.jpg']);
+  // 지운 뒤 같은 쿠키는 로그인 안 된 것
+  assert.equal((await call(e, '/api/login/me', { headers: { cookie: session } })).status, 401);
+});
