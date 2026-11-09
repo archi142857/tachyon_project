@@ -5,7 +5,7 @@ import Sheet from './Sheet.jsx';
 
 const KINDS = [
   { key: 'bug', label: '버그' },
-  { key: 'inconvenience', label: '불편' },
+  { key: 'pain', label: '불편' },
   { key: 'idea', label: '추가' },
 ];
 
@@ -24,8 +24,9 @@ export default function FeedbackSheet({ screen, onClose, onSent }) {
       const res = await sendFeedback({ kind, text: text.trim(), screen });
       onSent(res?.example ? '예시 모드라 보내지 않았어요' : '보냈어요. 고마워요');
       onClose();
-    } catch {
-      setError('보내지 못했어요. 잠시 뒤에 다시 해 주세요');
+    } catch (err) {
+      // 4xx(하루 한도 등)는 서버 문장 그대로, 서버 오류·연결 끊김은 한 줄 안내
+      setError(err.status && err.status < 500 && err.message ? err.message : '보내지 못했어요. 잠시 뒤에 다시 해 주세요');
     } finally {
       setBusy(false);
     }
@@ -45,7 +46,7 @@ export default function FeedbackSheet({ screen, onClose, onSent }) {
           <span>한 줄로</span>
           <input className="input" value={text} maxLength={200} onChange={(e) => setText(e.target.value)} autoFocus />
         </label>
-        <p className="hint">올린 글은 팀 GitHub 이슈로 남아요. 이름·학번 같은 개인정보는 적지 마세요.</p>
+        <p className="hint">보낸 글은 GitHub 이슈로 남고, 저장소를 공개하면 누구나 봐요. 이름·학번·이메일 같은 개인 정보는 쓰지 마세요.</p>
         {error && <p className="error">{error}</p>}
         <button type="submit" className="btn" disabled={busy || !text.trim()}>
           보내기

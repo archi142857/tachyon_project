@@ -90,14 +90,17 @@
 - 고쳤는지는 서버가 `suggested`와 견줘 `log`에 남긴다(팝업 정확도). 응답이 2.5초까지 걸릴 수 있어 화면은 메모를 먼저 붙이고 '살펴보는 중…'을 보인다.
 - 아직 화면에 없는 것: `DELETE /api/memo/:id`, 더 오래된 메모 불러오기(`before`).
 
-## 6_feedback (서버 세션) — 서버가 만드는 중(11-09). 지금은 501이라 화면은 '보내지 못했어요'
+## 6_feedback (서버 세션) — 있음 (`worker/6_feedback.js`)
 
 | 요청 | 보냄 | 받음 |
 | --- | --- | --- |
-| `POST /api/feedback` | `{ kind, text, screen, device, at }` · kind = `'bug'`(버그) / `'inconvenience'`(불편) / `'idea'`(추가) | `{ ok }` → GitHub 이슈(라벨 + 화면 이름·시각·기기) |
-| `POST /api/feedback/error` | `{ message, stack, screen, device, at }` | 204. 화면은 같은 오류를 한 번만 보낸다. 서버도 같은 오류는 이슈 하나로 |
+| `POST /api/feedback` | `{ kind, text, screen }` · kind = `'bug'`(버그) / `'pain'`(불편) / `'idea'`(추가) | `{ ok, issue, url }` → GitHub 이슈(종류·화면·시각·기기·'사용자 #번호'). 한 사람 하루 20개 |
+| `POST /api/feedback/error` | `{ message, stack, screen }` (로그인 없어도 됨) | `{ ok, issue, duplicate }` 같은 오류는 이슈 하나 |
 
-`device` 예: `Android · 홈 화면 앱 · 412×915` (이름·이메일 없음). `at`은 `+09:00`.
+- 시각·기기(User-Agent)는 서버가 붙인다. 화면은 `screen` 뒤에 `· Android · 홈 화면 앱 · 412×915`처럼 앱 모양·화면 크기를 붙인다(이름·이메일 없음).
+- 서버가 이메일·전화번호·긴 숫자·주소(URL)를 지우고 올린다. 화면에도 '개인 정보는 쓰지 마세요'를 붙였다(저장소를 공개하면 누구나 본다).
+- 4xx(하루 한도 등)는 서버 문장을 창 안에 그대로, 5xx·연결 끊김은 '보내지 못했어요. 잠시 뒤에 다시 해 주세요'. `GITHUB_TOKEN`이 없으면 서버는 이슈 없이 `log`에만 남긴다.
+- 화면 오류는 `main.jsx`가 `error`·`unhandledrejection`을 받아 같은 오류(메시지 + 첫 줄)를 한 번만 보낸다.
 
 ## 아직 화면이 없는 것 (2단계)
 

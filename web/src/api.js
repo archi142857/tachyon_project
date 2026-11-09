@@ -278,13 +278,15 @@ export function deviceLabel() {
   return `${os} · ${app} · ${window.innerWidth}×${window.innerHeight}`;
 }
 
-// kind: 'bug'(버그) | 'inconvenience'(불편) | 'idea'(추가)
+// 서버(6_feedback.js)가 시각·기기(User-Agent)를 붙인다. 화면은 홈 화면 앱인지·화면 크기를 화면 이름 뒤에 붙인다.
+// kind: 'bug'(버그) · 'pain'(불편) · 'idea'(추가) → { ok, issue, url }
 export function sendFeedback({ kind, text, screen }) {
   if (ex) return reply({ ok: true, example: true }, 300);
-  return call('POST', '/api/feedback', { kind, text, screen, device: deviceLabel(), at: toKstIso(new Date()) });
+  return call('POST', '/api/feedback', { kind, text, screen: `${screen} · ${deviceLabel()}` });
 }
 
+// 화면 오류 자동 보고 → { ok, issue, duplicate }. 같은 오류는 서버도 이슈 하나로 묶는다.
 export function reportError({ message, stack, screen }) {
   if (ex) return Promise.resolve(null);
-  return call('POST', '/api/feedback/error', { message, stack, screen, device: deviceLabel(), at: toKstIso(new Date()) });
+  return call('POST', '/api/feedback/error', { message, stack, screen: `${screen} · ${deviceLabel()}` });
 }
