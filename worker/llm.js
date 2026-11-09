@@ -2,6 +2,8 @@
 //
 // - 쓰는 곳: 3_memo_popup.js(즉시 팝업, 빠른 모델) · 4_night.js(밤 정리, 똑똑한 모델) · 5_timetable_photo.js(시간표 사진, 똑똑한 모델)
 // - 비밀값: ANTHROPIC_API_KEY. Cloudflare 비밀값에만 둔다(`npx wrangler secret put ANTHROPIC_API_KEY`). 코드·저장소·로그에 적지 않는다.
+//   선택: ANTHROPIC_API_KEY_2(다른 팀원의 구독 월 API 크레딧 조직 키). 있으면 두 키를 번갈아 쓰고, 한 키가 크레딧 부족·키 오류면 다른 키로 한 번 더 부른다(소통판 11-10 01:30).
+// - temperature는 보내지 않는다: 5.5 모델은 `temperature` is deprecated(400)로 거절한다(11-10 배포본에서 팝업 AI가 모두 실패했던 원인).
 // - 모델: 기본은 아래 MODELS. 바꾸려면 wrangler.toml [vars]에 MODEL_FAST / MODEL_SMART를 둔다.
 // - 답 모양: 'answer' 도구 하나를 꼭 쓰게 해서(tool_choice) 정해진 JSON으로만 받는다.
 // - 프롬프트 원문은 worker/prompts/에 있다. 이 파일은 보내고 받는 일만 한다.
@@ -39,15 +41,16 @@ export class LlmError extends Error {
  * @returns {Promise<{data: object, model: string, ms: number, usage: {input: number, output: number}}>}
  */
 export async function askJson(env, req) {
-  const key = env.ANTHROPIC_API_KEY;
-  if (!key) throw new LlmError("ANTHROPIC_API_KEY 비밀값이 없다");
+  const keys = [env.ANTHROPIC_API_KEY, env.ANTHROPIC_API_KEY_2].filter(Boolean);
+  if (!keys.length) throw new LlmError("ANTHROPIC_API_KEY 비밀값이 없다");
+  let k = Math.floor(Math.random() * keys.length); // 키가 둘이면 번갈아(각자 개인 용도로 쓸 크레딧이 반씩 남게)
+  let switched = false;
 
   const model = req.model === "smart" ? env.MODEL_SMART || MODELS.smart : env.MODEL_FAST || MODELS.fast;
   const timeoutMs = req.timeoutMs ?? 20000;
   const body = JSON.stringify({
     model,
     max_tokens: req.maxTokens ?? 512,
-    temperature: 0,
     system: req.system,
     messages: [{ role: "user", content: req.content }],
     tools: [{ name: "answer", description: "답을 이 모양으로 낸다.", input_schema: req.schema }],
@@ -60,7 +63,7 @@ export async function askJson(env, req) {
     try {
       const res = await doFetch(API_URL, {
         method: "POST",
-        headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": API_VERSION },
+        headers: { "content-type": "application/json", "x-api-key": keys[k], "anthropic-version": API_VERSION },
         body,
         signal: AbortSignal.timeout(timeoutMs),
       });
@@ -82,10 +85,21 @@ export async function askJson(env, req) {
       };
     } catch (err) {
       const e = asLlmError(err, timeoutMs);
+      if (keys.length > 1 && !switched && keyProblem(e)) {
+        k = 1 - k; // 다른 키로 바로 한 번 더 (다시 시도 횟수에는 세지 않는다)
+        switched = true;
+        attempt--;
+        continue;
+      }
       if (attempt >= (req.retries ?? 0) || !e.retryable) throw e;
       await new Promise((r) => setTimeout(r, (req.retryDelayMs ?? 1000) * 2 ** attempt)); // 1초, 2초, 4초 …
     }
   }
+}
+
+/** 이 키로는 안 되는 실패: 키 오류(401·403) 또는 크레딧 부족(400 'credit balance is too low') */
+function keyProblem(e) {
+  return e.status === 401 || e.status === 403 || (e.status === 400 && /credit balance/i.test(e.message));
 }
 
 function asLlmError(err, timeoutMs) {

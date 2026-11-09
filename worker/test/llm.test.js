@@ -111,3 +111,57 @@ test("usageDetail에는 사용량만 들어간다", () => {
   const d = JSON.parse(usageDetail("memo_popup", { model: "m", ms: 812, usage: { input: 300, output: 40 }, data: { title: "비밀" } }));
   assert.deepEqual(d, { use: "memo_popup", model: "m", ms: 812, in: 300, out: 40 });
 });
+
+test("temperature는 보내지 않는다(5.5 모델이 400으로 거절)", async () => {
+  let body;
+  const fetch = async (_u, init) => {
+    body = JSON.parse(init.body);
+    return reply({ ok: true });
+  };
+  await askJson(env, { model: "fast", system: "", content: "x", schema, fetch });
+  assert.equal("temperature" in body, false);
+});
+
+// 크레딧 부족 답 (Anthropic이 실제로 주는 모양)
+function lowCredit() {
+  const error = { type: "invalid_request_error", message: "Your credit balance is too low to access the Anthropic API." };
+  return new Response(JSON.stringify({ type: "error", error }), { status: 400 });
+}
+
+test("키 둘: 한 키가 크레딧 부족이면 다른 키로 한 번 더 부른다", async () => {
+  const two = { ANTHROPIC_API_KEY: "key-a", ANTHROPIC_API_KEY_2: "key-b" };
+  // 시작 키는 무작위라 여러 번 돌려 본다
+  for (let i = 0; i < 8; i++) {
+    const used = [];
+    const fetch = async (_u, init) => {
+      const key = init.headers["x-api-key"];
+      used.push(key);
+      return key === "key-a" ? lowCredit() : reply({ ok: true });
+    };
+    const r = await askJson(two, { model: "fast", system: "", content: "x", schema, fetch });
+    assert.deepEqual(r.data, { ok: true });
+    assert.equal(used.at(-1), "key-b");
+    assert.ok(used.length <= 2);
+  }
+});
+
+test("키 둘이 다 크레딧 부족이면 두 번만 부르고 멈춘다", async () => {
+  const two = { ANTHROPIC_API_KEY: "key-a", ANTHROPIC_API_KEY_2: "key-b" };
+  let calls = 0;
+  const fetch = async () => {
+    calls++;
+    return lowCredit();
+  };
+  await assert.rejects(askJson(two, { model: "fast", system: "", content: "x", schema, fetch }), /credit balance/);
+  assert.equal(calls, 2);
+});
+
+test("키가 하나면 크레딧 부족에서 바로 멈춘다(다른 400처럼)", async () => {
+  let calls = 0;
+  const fetch = async () => {
+    calls++;
+    return lowCredit();
+  };
+  await assert.rejects(askJson(env, { model: "fast", system: "", content: "x", schema, fetch, retries: 2 }), /credit balance/);
+  assert.equal(calls, 1);
+});
