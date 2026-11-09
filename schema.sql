@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS events (
   start     TEXT NOT NULL,
   end       TEXT,
   place     TEXT,
-  source    TEXT NOT NULL,                -- etl · ics · memo · timetable · kakao
+  source    TEXT NOT NULL,                -- etl · ics · device(앱이 읽은 폰 캘린더) · memo · timetable · kakao
   ext_id    TEXT,                         -- ICS의 UID 등. 같은 걸 다시 받아도 한 줄로 남게
   important INTEGER NOT NULL DEFAULT 0,
   UNIQUE (user_id, source, ext_id)

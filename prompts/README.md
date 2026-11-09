@@ -41,6 +41,7 @@
 | NGS-03 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-03. 저장소·Cloudflare 확정, 메일 기능 미룸 | [NGS-03-저장소와-스택-확정.md](NGS-03-저장소와-스택-확정.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
 | NGS-04 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-04. 기억 없는 AI용 인수인계 | [NGS-04-친구용-인수인계.md](NGS-04-친구용-인수인계.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
 | NGS-05 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-05. 프로젝트 이름, AI끼리 소통판, Cloudflare 시작 | [NGS-05-소통판과-Cloudflare-시작.md](NGS-05-소통판과-Cloudflare-시작.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
+| NGS-06 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-06. DB 위치 질문, 웹 + 앱, 캘린더 직접 접근 | [NGS-06-DB-위치와-앱-캘린더-접근.md](NGS-06-DB-위치와-앱-캘린더-접근.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
 
 ## AI 세션 간 작업 지시·수정 요청·결과 보고
 
