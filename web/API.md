@@ -25,20 +25,30 @@
 
 | 요청 | 보냄 | 받음 |
 | --- | --- | --- |
-| `GET /api/feeds` | — | `{ ok, feeds: [{ kind, set: false } 또는 { kind, set: true, hint, count, okAt, triedAt, error }] }` |
+| `GET /api/feeds` | — | `{ ok, feeds: [{ kind, set: false } 또는 { kind, set: true, hint, count, okAt, triedAt, error, stopped }] }` |
 | `PUT /api/feeds` | `{ etl?, google?, apple? }` 글 = 저장, `""`·`null` = 지우기, 칸이 없으면 그대로 | `{ ok, results, feeds }` 저장한 칸은 바로 한 번 받아 본다 |
+| `POST /api/feeds/collect` | — | `{ ok, results, feeds }` 저장된 주소를 지금 다시 받는다(멈춘 주소도 한 번 더). 메뉴에서 다시 연 설정의 '지금 다시 받기' |
+
+```js
+// results[] 한 칸 (PUT·collect)
+{ kind, ok, saved /* false = 저장 안 됨 */, tasks, events, count, same /* 지난번과 같음 */, error, removed }
+```
 
 - 주소 원문은 돌려주지 않는다(`hint` = 끝 4자). 칸마다 아는 모양만 받는다([캘린더 주소 찾기](../docs/tachyon/캘린더_주소_찾기.md)). 화면도 같은 규칙으로 먼저 거르고, 서버가 거절한 까닭(`error`)은 칸 아래에 그대로 보인다.
-- 결과 줄: eTL은 '과제 N개를 찾았어요', 나머지는 '일정 N개를 찾았어요', 실패는 '이 주소로 읽지 못했어요 (까닭)', 아직이면 '받는 중이에요'.
+- 저장 바로 뒤 칸 아래 한 줄(`results`): eTL은 '과제 N개를 찾았어요'(일정도 있으면 ', 일정 N개'), 구글·애플은 '일정 N개를 찾았어요'. `ok: false`면 서버 문장 그대로(잠깐의 오류면 '…저장해 두고 15분 뒤에 다시 받아요').
+- `saved: false`(모양이 틀리거나 이미 안 열리는 주소)는 저장이 안 된 것이라 그 칸의 오류로 보이고, 붙인 주소를 지우지 않고 남겨 고치게 한다. 첫 설정은 그 자리에서 머물고 [그대로 두고 넘어가기]를 준다.
+- 메뉴에서 다시 열면 `feeds`의 지금 상태 한 줄: 'eTL 항목 N개를 받았어요'·'일정 N개를 받았어요'·'받는 중이에요', `error`는 그대로(`stopped`면 '…다시 복사해 붙여 주세요' 문장이 들어 있다).
 
 ## 7_items (서버 세션) — 있음 (`worker/7_items.js`)
 
 | 요청 | 보냄 | 받음 |
 | --- | --- | --- |
-| `GET /api/tasks` | — | `{ tasks: [{ id, title, due, minutes, ready, done, source, slack_days? }], warning }` 안 끝낸 할 일을 여유 적은 순(AI 세션 `4_night.js` 순서)으로, `warning` = 몰린 주 경고 한 줄 또는 null |
-| `PATCH /api/tasks/:id` | `{ done, minutes, ready, title, due }` 가운데 바꿀 것 | `{ task }` |
+| `GET /api/tasks` | `?limit=3`(없으면 200개까지) | `{ tasks: [{ id, title, due, minutes, ready, done, source, days_left, slack_days }], warning }` 안 끝낸 할 일을 여유 적은 순(AI 세션 `4_night.js` 순서)으로, `warning` = 몰린 주 경고 한 줄 또는 null |
+| `PATCH /api/tasks/:id` | `{ done, minutes, ready, title, due }` 가운데 바꿀 것 (`done`·`ready`는 true·false 또는 1·0, `minutes`는 1~1440 정수) | `{ task }` |
+| `DELETE /api/tasks/:id` | — | `{ ok }` 메모·시간표에서 온 것만(캘린더에서 온 것은 409) |
 | `GET /api/events?from=2026-11-09&to=2026-11-16` | 한국 날짜, `to`는 빼고 센다(최대 62일) | `{ events }` 그 기간과 겹치는 일정 |
 | `PATCH /api/events/:id` | `{ important, title, start, end, place }` 가운데 바꿀 것 (시각을 모르면 `start`는 날짜만, `end`는 null) | `{ event }` |
+| `DELETE /api/events/:id` | — | `{ ok }` 메모·시간표에서 온 것만(캘린더에서 온 것은 409) |
 
 ```js
 // event (schema.sql events 그대로)
@@ -47,9 +57,20 @@
 ```
 
 - 대시보드 '할 일 3개' = `tasks` 앞 3개, `warning`은 할 일 카드 머리에 그대로. 메뉴의 '할 일 전체', 달력 맨 위 마감 줄도 같은 목록. 체크하거나 고친 뒤에는 다시 불러 순서를 새로 받는다.
-- 화면 표시: `minutes` null이면 '시간 ?', `ready` 0이면 '수업·자료 뒤'(1은 `minutes`가 있을 때만 '지금 가능'), `slack_days`가 오면 '여유 N일'·음수면 '시간 모자람'.
+- 화면 표시: `minutes` null이면 '시간 ?', `ready` 0이면 '수업·자료 뒤'(1은 `minutes`가 있을 때만 '지금 가능'), `slack_days`(소수)는 내림해서 '여유 N일', 1 미만은 '빠듯', 음수는 '시간 모자람'. 폰의 할 일 카드는 좁아서 마감·지금 가능만, '할 일 전체' 창과 PC는 걸리는 시간·여유까지.
 - eTL·구글·애플에서 온 것은 그 캘린더가 원본이라 이름·시간·장소·마감 고치기를 서버가 막는다(409). 화면도 그런 항목은 고치기 칸을 잠그고, 일정은 '중요' 표시만, 할 일은 걸리는 시간만 고치게 한다.
 - 종일 일정은 달력 맨 위 줄에 그린다.
+- 지우기: 고치는 창의 [지우기] → [한 번 더 누르면 지워요]. 캘린더에서 온 것은 버튼이 없다. 고치기·지우기가 실패하면(400·409) 서버 문장을 창 안에 보인다.
+
+## 8_calendar_feed (서버 세션) — 있음 (`worker/8_calendar_feed.js`)
+
+| 요청 | 보냄 | 받음 |
+| --- | --- | --- |
+| `GET /api/calendar` | — | `{ ok, url, webcal }` 내 구독 주소(사람마다 다른 비밀 주소) |
+
+- 메뉴 '폰 달력에서 보기' 창: 주소 칸(읽기만) + [주소 복사] + [폰 달력에 추가](`webcal://`, 아이폰은 구독 창이 뜬다). 안드로이드는 구글 캘린더 웹의 'URL로 추가'를 안내한다.
+- 들어가는 것: 메모·시간표·eTL 일정 + 안 끝낸 할 일 마감. 구글·애플·기기 일정은 이미 폰에 있어서 뺀다(서버 규칙).
+- 주소는 화면에만 보이고 로그·오류 보고·스크린샷 어디에도 남기지 않는다.
 
 ## 4_night (AI 세션) — 있음, 화면은 아직 안 씀
 
@@ -59,7 +80,7 @@
 
 | 요청 | 보냄 | 받음 |
 | --- | --- | --- |
-| `GET /api/memo?limit=50` | — | `{ memos: [{ id, text, created_at, handled, event_id, … }] }` 오래된 것부터. `event_id`가 있으면 '달력에 넣었어요' |
+| `GET /api/memo?limit=50` | — | `{ memos: [{ id, text, created_at, handled, event_id, task_id }] }` 오래된 것부터. `event_id`가 있으면 '달력에 넣었어요', `task_id`(밤 정리)면 '할 일에 넣었어요' |
 | `POST /api/memo` | `{ text }` | `{ memo, popup }` · `popup` = `null`(일정 아님) 또는 `{ title, date, time, end_time, place, by }` |
 | `POST /api/memo/:id/save` | `{ title, date, time, end_time, place, suggested }` · `suggested` = 받았던 popup 그대로 | `{ event }` |
 | `POST /api/memo/:id/cancel` | — | `{ ok }` · 메모는 남고 밤 정리가 읽는다 |
@@ -69,7 +90,7 @@
 - 고쳤는지는 서버가 `suggested`와 견줘 `log`에 남긴다(팝업 정확도). 응답이 2.5초까지 걸릴 수 있어 화면은 메모를 먼저 붙이고 '살펴보는 중…'을 보인다.
 - 아직 화면에 없는 것: `DELETE /api/memo/:id`, 더 오래된 메모 불러오기(`before`).
 
-## 6_feedback (서버 세션) — 바람
+## 6_feedback (서버 세션) — 서버가 만드는 중(11-09). 지금은 501이라 화면은 '보내지 못했어요'
 
 | 요청 | 보냄 | 받음 |
 | --- | --- | --- |

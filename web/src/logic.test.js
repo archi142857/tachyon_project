@@ -3,7 +3,7 @@ import { normalizeEvent, popupToEvent } from './api.js';
 import { eventToForm, formToEvent, formToPopup, popupToForm } from './components/EventForm.jsx';
 import { examplePopup, makeExample } from './example.js';
 import { endOf, hourRange, isAllDay, layoutDay } from './layout.js';
-import { FEEDS, feedResult, normalizeIcs } from './setup.js';
+import { FEEDS, feedResult, normalizeIcs, resultLine, unsavedErrors } from './setup.js';
 import { CROWDED, dueThisWeek, minutesLabel, readyLabel, slackLabel, topThree } from './tasks.js';
 import { fromKst, weekStart } from './time.js';
 
@@ -36,6 +36,9 @@ describe('할 일 3개', () => {
     expect(minutesLabel(100)).toBe('약 1.5시간');
     expect(minutesLabel(null)).toBe('시간 ?');
     expect(slackLabel(2)).toBe('여유 2일');
+    expect(slackLabel(2.3)).toBe('여유 2일'); // 서버는 소수로 준다
+    expect(slackLabel(0.4)).toBe('빠듯');
+    expect(slackLabel(-0.2)).toBe('시간 모자람');
     expect(slackLabel(-1)).toBe('시간 모자람');
     expect(slackLabel(null)).toBeNull();
   });
@@ -58,12 +61,37 @@ describe('캘린더 주소', () => {
     expect(FEEDS.map((f) => f.key)).toEqual(['etl', 'google', 'apple']);
   });
 
-  it('저장 결과 한 줄(서버 상태 모양)', () => {
-    expect(feedResult({ kind: 'etl', set: true, count: 3, error: null })).toEqual({ ok: true, text: '과제 3개를 찾았어요' });
-    expect(feedResult({ kind: 'google', set: true, count: 12, error: null }).text).toBe('일정 12개를 찾았어요');
-    expect(feedResult({ kind: 'apple', set: true, count: null, error: '404' })).toEqual({ ok: false, text: '이 주소로 읽지 못했어요 (404)' });
+  it('저장된 주소의 지금 상태 한 줄(GET /api/feeds 모양)', () => {
+    expect(feedResult({ kind: 'etl', set: true, count: 3, error: null })).toEqual({ ok: true, text: '항목 3개를 받았어요' });
+    expect(feedResult({ kind: 'google', set: true, count: 12, error: null }).text).toBe('일정 12개를 받았어요');
     expect(feedResult({ kind: 'apple', set: true, count: null, error: null }).text).toBe('받는 중이에요');
     expect(feedResult({ kind: 'etl', set: false })).toBeNull();
+    // 서버 문장은 그대로(멈춘 주소의 '다시 붙여 주세요'도 error에 들어 있다)
+    const dead = '이 캘린더 주소가 더 이상 열리지 않아요. 캘린더에서 주소를 다시 복사해 붙여 주세요';
+    expect(feedResult({ kind: 'apple', set: true, count: 5, error: dead, stopped: true })).toEqual({ ok: false, text: dead });
+  });
+
+  it('저장·다시 받기 바로 뒤 한 줄(PUT /api/feeds results 모양)', () => {
+    expect(resultLine({ kind: 'etl', ok: true, saved: true, same: false, tasks: 2, events: 0, count: 2 })).toEqual({ ok: true, text: '과제 2개를 찾았어요' });
+    expect(resultLine({ kind: 'etl', ok: true, saved: true, tasks: 2, events: 3 }).text).toBe('과제 2개, 일정 3개를 찾았어요');
+    expect(resultLine({ kind: 'google', ok: true, saved: true, tasks: 0, events: 12 }).text).toBe('일정 12개를 찾았어요');
+    expect(resultLine({ kind: 'apple', ok: true, same: true, count: 7 }).text).toBe('일정 7개, 바뀐 것 없어요');
+    // 잠깐의 오류: 저장은 됐고 서버 문장 그대로
+    const later = '응답이 늦어요 — 저장해 두고 15분 뒤에 다시 받아요';
+    expect(resultLine({ kind: 'google', ok: false, saved: true, error: later })).toEqual({ ok: false, text: later });
+    // 저장 안 됨·지움은 한 줄 없음(저장 안 된 칸은 오류로 따로)
+    expect(resultLine({ kind: 'apple', ok: false, saved: false, error: '주소가 열리지 않아요(404)' })).toBeNull();
+    expect(resultLine({ kind: 'etl', ok: true, saved: false, removed: true })).toBeNull();
+  });
+
+  it('저장 못 한 칸 → 칸 오류(주소는 남긴다)', () => {
+    const results = [
+      { kind: 'etl', ok: true, saved: true, tasks: 1, events: 0 },
+      { kind: 'apple', ok: false, saved: false, error: '주소가 열리지 않아요(404)' },
+      { kind: 'google', ok: true, saved: false, removed: true },
+    ];
+    expect(unsavedErrors(results)).toEqual({ apple: '주소가 열리지 않아요(404)' });
+    expect(unsavedErrors([{ kind: 'etl', ok: true, saved: true, example: true }])).toEqual({});
   });
 });
 

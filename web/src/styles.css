@@ -60,6 +60,9 @@ h1, h2, h3, p { margin: 0; }
 .btn:disabled { background: var(--fill); color: var(--text3); cursor: default; }
 .btn-text { height: 48px; padding: 0 12px; border: 0; border-radius: var(--r-btn); background: transparent; color: var(--accent-text); font-size: 16px; font-weight: 500; }
 .btn-text.quiet { color: var(--text2); }
+.btn-text.danger { color: var(--danger); }
+.sheet-actions { display: flex; gap: 8px; align-items: center; }
+.sheet-actions .btn { flex: 1; }
 .btn-text:hover, .icon-btn:hover { background: var(--grid); }
 .icon-btn { width: 48px; height: 48px; flex: none; border: 0; border-radius: var(--r-btn); background: transparent; color: var(--text2); display: inline-flex; align-items: center; justify-content: center; }
 .icon-btn:disabled { color: var(--dot-off); cursor: default; background: transparent; }
@@ -101,6 +104,9 @@ h1, h2, h3, p { margin: 0; }
 .task .min { display: none; }
 .task .short { color: var(--warn); }
 .task .tag { display: none; }
+/* '할 일 전체' 창은 폭이 넉넉해서 폰에서도 걸리는 시간·여유를 보인다 */
+.sheet .task .min { display: inline; }
+.sheet .task .meta { white-space: normal; }
 .tasks .empty { padding: 12px 2px; font-size: 14px; color: var(--text3); border-top: 1px solid var(--line); }
 @media (min-width: 1024px) {
   .tasks { padding: 16px 16px 4px; }
@@ -222,6 +228,8 @@ dialog.sheet::backdrop { background: var(--scrim); }
 /* 알림 막대(되돌리기 등) */
 .snackbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(88px + env(safe-area-inset-bottom)); z-index: 9; width: max-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 16px; border-radius: var(--r-btn); background: var(--heading); color: var(--bg); font-size: 14px; line-height: 20px; }
 .snackbar button { height: 36px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: #b4c8e1; font-weight: 700; }
+/* 아래 창이 열려 있으면 창 안(맨 위 층)에 그리고, 창 내용을 가리지 않게 화면 위쪽에 둔다 */
+dialog .snackbar { top: calc(12px + env(safe-area-inset-top)); bottom: auto; }
 
 /* 로그인·첫 설정 */
 .center-page { min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }

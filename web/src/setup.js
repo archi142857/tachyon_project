@@ -80,11 +80,36 @@ function checkFeed(key, u) {
   return null;
 }
 
-// 저장 뒤 칸 아래 한 줄: '과제 3개를 찾았어요' / '이 주소로 읽지 못했어요 (까닭)' / '받는 중이에요'
-// feed = 서버 상태 { kind, set, hint, count, error }
+// 저장된 주소의 지금 상태 한 줄(메뉴에서 다시 열었을 때). feed = GET /api/feeds의 한 칸
+// 서버 문장(error)은 사람에게 보일 말이라 그대로 보인다. 멈춘 주소(stopped)도 error에 '다시 붙여 주세요'가 들어 있다.
 export function feedResult(feed) {
   if (!feed || !feed.set) return null;
-  if (feed.error) return { ok: false, text: `이 주소로 읽지 못했어요 (${feed.error})` };
+  if (feed.error) return { ok: false, text: feed.error };
   if (feed.count == null) return { ok: true, text: '받는 중이에요' };
-  return { ok: true, text: `${feed.kind === 'etl' ? '과제' : '일정'} ${feed.count}개를 찾았어요` };
+  return { ok: true, text: `${feed.kind === 'etl' ? '항목' : '일정'} ${feed.count}개를 받았어요` };
+}
+
+// 저장·다시 받기 바로 뒤 칸 아래 한 줄. r = PUT /api/feeds·POST /api/feeds/collect의 results 한 칸
+//   { kind, ok, saved, tasks, events, count, same, error, removed }
+// saved: false(저장 안 됨)는 칸의 오류로 따로 보이니 여기서는 null.
+export function resultLine(r) {
+  if (!r || r.removed || r.saved === false) return null;
+  if (r.example) return { ok: true, text: '예시라 주소를 저장하거나 받아 보지 않았어요' };
+  if (!r.ok) return { ok: false, text: r.error || '이 주소로 읽지 못했어요' };
+  if (r.tasks == null && r.events == null) {
+    // 지난번과 같은 내용(same)이면 개수만 온다
+    return { ok: true, text: r.count == null ? '바뀐 것 없어요' : `${r.kind === 'etl' ? '항목' : '일정'} ${r.count}개, 바뀐 것 없어요` };
+  }
+  if (r.kind === 'etl') {
+    const extra = r.events ? `, 일정 ${r.events}개` : '';
+    return { ok: true, text: `과제 ${r.tasks || 0}개${extra}를 찾았어요` };
+  }
+  return { ok: true, text: `일정 ${r.events || 0}개를 찾았어요` };
+}
+
+// saved: false인 칸 → { kind: 서버 문장 } (그 칸의 주소는 지우지 않고 남겨서 고치게 한다)
+export function unsavedErrors(results) {
+  const out = {};
+  for (const r of results || []) if (r.saved === false && !r.removed && !r.example) out[r.kind] = r.error || '이 주소는 저장하지 못했어요';
+  return out;
 }

@@ -2,6 +2,7 @@
 // 일정처럼 보이는 메모를 보내면 메모 옆에 '이대로 저장할까요?' 팝업이 뜬다. 나머지 기능은 햄버거 메뉴.
 import { useCallback, useEffect, useState } from 'react';
 import * as api from '../api.js';
+import CalendarSheet from '../components/CalendarSheet.jsx';
 import Composer from '../components/Composer.jsx';
 import { EventEditSheet, TaskEditSheet } from '../components/EditSheets.jsx';
 import FeedbackSheet from '../components/FeedbackSheet.jsx';
@@ -24,6 +25,9 @@ function useNow() {
   return now;
 }
 
+// 열린 창을 가리키는 짧은 이름(알림 막대가 그 창 안으로 옮겨 갈 때 쓴다)
+const sheetKey = (sheet) => (!sheet ? '' : typeof sheet === 'string' ? sheet : sheet.event ? `event-${sheet.event.id}` : `task-${sheet.task.id}`);
+
 // 이미 홈 화면 앱이거나 Capacitor 앱이면 '홈 화면에 추가'를 숨긴다
 const standalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true || !!window.Capacitor?.isNativePlatform?.();
 
@@ -39,7 +43,7 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
   const [popup, setPopup] = useState(null); // { memoId, popup }
   const [waiting, setWaiting] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [sheet, setSheet] = useState(null); // 'menu' | 'tasks' | 'feedback' | 'install' | { event } | { task }
+  const [sheet, setSheet] = useState(null); // 'menu' | 'tasks' | 'feedback' | 'install' | 'calendar' | { event } | { task }
   const [snack, setSnack] = useState(null);
 
   const loadWeek = useCallback(
@@ -97,10 +101,13 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
       const { event } = await api.savePopup(popup.memoId, fields, popup.popup);
       setMemos((m) => m.map((x) => (x.id === popup.memoId ? { ...x, handled: 1, event_id: event.id } : x)));
       setPopup(null);
-      const start = api.normalizeEvent(event).start;
-      const weeksAhead = Math.floor((Date.parse(start) - Date.parse(thisWeek)) / (7 * 24 * 3600 * 1000));
+      const shown = api.normalizeEvent(event);
+      const weeksAhead = Math.floor((Date.parse(shown.start) - Date.parse(thisWeek)) / (7 * 24 * 3600 * 1000));
       if (weeksAhead >= 0 && weeksAhead < PAGES && weeksAhead !== page) setPage(weeksAhead);
-      else loadWeek();
+      else {
+        if (weeksAhead === page) setEvents((list) => [...list.filter((e) => e.id !== shown.id), shown]); // 바로 보이고, 서버 목록으로 다시 맞춘다
+        loadWeek();
+      }
     } catch {
       setSnack({ text: '저장하지 못했어요. 다시 해 주세요' });
     } finally {
@@ -137,24 +144,36 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
     }
   }
 
+  // 고치기·지우기: 실패하면 오류를 던져서 고치는 창 안에 보이게 한다(창이 맨 위라 스낵바는 가려진다)
   async function saveEvent(id, fields) {
-    try {
-      await api.updateEvent(id, fields);
-      setSheet(null);
-      loadWeek();
-    } catch (err) {
-      setSnack({ text: err.message || '고치지 못했어요. 다시 해 주세요' });
-    }
+    await api.updateEvent(id, fields);
+    setSheet(null);
+    loadWeek();
   }
 
   async function saveTask(id, fields) {
-    try {
-      await api.updateTask(id, fields);
-      setSheet(null);
-      loadRank();
-    } catch (err) {
-      setSnack({ text: err.message || '고치지 못했어요. 다시 해 주세요' });
-    }
+    await api.updateTask(id, fields);
+    setSheet(null);
+    loadRank();
+  }
+
+  /* 지우기(메모·시간표에서 온 것만) */
+  async function deleteEvent(event) {
+    await api.deleteEvent(event.id);
+    setSheet(null);
+    setEvents((list) => list.filter((e) => e.id !== event.id));
+    setMemos((m) => m.map((x) => (x.event_id === event.id ? { ...x, event_id: null } : x)));
+    loadWeek();
+    setSnack({ text: `‘${event.title}’ 지웠어요` });
+  }
+
+  async function deleteTask(task) {
+    await api.deleteTask(task.id);
+    setSheet(null);
+    setRank((r) => ({ ...r, tasks: r.tasks.filter((t) => t.id !== task.id) }));
+    setMemos((m) => m.map((x) => (x.task_id === task.id ? { ...x, task_id: null } : x)));
+    loadRank();
+    setSnack({ text: `‘${task.title}’ 지웠어요` });
   }
 
   const openTasks = rank.tasks.filter((t) => !t.done);
@@ -191,6 +210,9 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
             <button type="button" onClick={onOpenSetup}>
               캘린더 주소·학과
             </button>
+            <button type="button" onClick={() => setSheet('calendar')}>
+              폰 달력에서 보기
+            </button>
             {!standalone() && (
               <button type="button" onClick={() => setSheet('install')}>
                 홈 화면에 추가
@@ -217,9 +239,12 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
       )}
       {sheet === 'feedback' && <FeedbackSheet screen="대시보드" onClose={() => setSheet(null)} onSent={(text) => setSnack({ text })} />}
       {sheet === 'install' && <InstallSheet prompt={installPrompt} onClose={() => setSheet(null)} />}
-      {sheet?.event && <EventEditSheet event={sheet.event} onClose={() => setSheet(null)} onSave={(fields) => saveEvent(sheet.event.id, fields)} />}
-      {sheet?.task && <TaskEditSheet task={sheet.task} onClose={() => setSheet(null)} onSave={(fields) => saveTask(sheet.task.id, fields)} />}
-      {snack && <Snackbar {...snack} onDone={closeSnack} />}
+      {sheet === 'calendar' && <CalendarSheet onClose={() => setSheet(null)} />}
+      {sheet?.event && (
+        <EventEditSheet event={sheet.event} onClose={() => setSheet(null)} onSave={(fields) => saveEvent(sheet.event.id, fields)} onDelete={() => deleteEvent(sheet.event)} />
+      )}
+      {sheet?.task && <TaskEditSheet task={sheet.task} onClose={() => setSheet(null)} onSave={(fields) => saveTask(sheet.task.id, fields)} onDelete={() => deleteTask(sheet.task)} />}
+      {snack && <Snackbar {...snack} layer={sheetKey(sheet)} onDone={closeSnack} />}
     </>
   );
 }

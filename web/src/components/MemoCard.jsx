@@ -1,4 +1,4 @@
-// 메모(왼쪽 아래, 나와의 채팅처럼 쌓인다). 팝업으로 일정에 넣은 메모(event_id) 아래에는 한 줄을 붙인다.
+// 메모(왼쪽 아래, 나와의 채팅처럼 쌓인다). 팝업으로 일정에 넣은 메모(event_id)·밤 정리로 할 일이 된 메모(task_id) 아래에는 한 줄을 붙인다.
 import { useEffect, useRef } from 'react';
 import { dayLabel, hhmm } from '../time.js';
 
@@ -30,6 +30,7 @@ export default function MemoCard({ memos, now, activeId, waiting }) {
                 <span className={memo.id === activeId ? 'bubble on' : 'bubble'}>{memo.text}</span>
               </div>
               {memo.event_id && <p className="memo-saved">달력에 넣었어요</p>}
+              {!memo.event_id && memo.task_id && <p className="memo-saved">할 일에 넣었어요</p>}
             </div>
           );
         })}

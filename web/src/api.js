@@ -116,22 +116,33 @@ export async function saveProfile({ dept, year }) {
 
 /* ── 2_collect_ics (서버 세션, worker/2_collect_ics.js): 캘린더 주소 ── */
 
-// → [{ kind, set: false } | { kind, set: true, hint: 'myetl.snu.ac.kr/…a1b2', count, okAt, triedAt, error }]
-// 주소 원문은 돌려받지 않는다.
+// → [{ kind, set: false } | { kind, set: true, hint: 'myetl.snu.ac.kr/…a1b2', count, okAt, triedAt, error, stopped }]
+// 주소 원문은 돌려받지 않는다. stopped면 주소가 죽어서 수집을 멈춘 것(error에 '다시 붙여 주세요' 문장).
 export async function getFeeds() {
   if (ex) return reply(ex.feeds);
   return (await call('GET', '/api/feeds')).feeds;
 }
 
 // urls: { etl, google, apple } 가운데 바꿀 것만. 값이 null이면 그 주소를 지운다.
-// 저장한 칸은 서버가 바로 한 번 받아 보고, 새 상태 목록을 돌려준다.
+// 서버가 붙이자마자 한 번 받아 보고 칸마다 결과를 돌려준다 → { results, feeds }
+//   results[] = { kind, ok, saved, tasks, events, count, error, removed }
+//   saved: false면 저장 안 됨(모양이 틀리거나 이미 안 열리는 주소) → error를 칸 아래에 그대로 보인다.
 export async function saveFeeds(urls) {
   if (ex) {
     // 예시 모드는 주소를 어디에도 보내거나 남기지 않는다
-    ex.feeds = ex.feeds.map((f) => (f.kind in urls ? (urls[f.kind] ? { kind: f.kind, set: true, hint: '예시라 저장 안 함', count: 0, error: null } : { kind: f.kind, set: false }) : f));
-    return reply(ex.feeds, 400);
+    ex.feeds = ex.feeds.map((f) => (f.kind in urls ? (urls[f.kind] ? { kind: f.kind, set: true, hint: '예시라 저장 안 함', count: null, error: null } : { kind: f.kind, set: false }) : f));
+    const results = Object.keys(urls).map((kind) => (urls[kind] ? { kind, ok: true, saved: true, example: true } : { kind, ok: true, saved: false, removed: true }));
+    return reply({ results, feeds: ex.feeds }, 400);
   }
-  return (await call('PUT', '/api/feeds', urls)).feeds;
+  const { results, feeds } = await call('PUT', '/api/feeds', urls);
+  return { results, feeds };
+}
+
+// 저장된 주소를 지금 다시 받는다(멈춘 주소도 한 번 더). → { results, feeds }
+export async function collectFeeds() {
+  if (ex) return reply({ results: ex.feeds.filter((f) => f.set).map((f) => ({ kind: f.kind, ok: true, example: true })), feeds: ex.feeds }, 400);
+  const { results, feeds } = await call('POST', '/api/feeds/collect');
+  return { results, feeds };
 }
 
 /* ── 7_items (서버 세션, worker/7_items.js): 할 일·일정 읽기·고치기 ── */
@@ -180,6 +191,32 @@ export function updateEvent(id, fields) {
     return reply(event);
   }
   return call('PATCH', `/api/events/${encodeURIComponent(id)}`, fields);
+}
+
+// 지우기: 메모·시간표에서 온 것만 된다(캘린더에서 온 것은 서버가 409)
+export function deleteTask(id) {
+  if (ex) {
+    ex.tasks = ex.tasks.filter((t) => t.id !== id);
+    return reply({ ok: true });
+  }
+  return call('DELETE', `/api/tasks/${encodeURIComponent(id)}`);
+}
+
+export function deleteEvent(id) {
+  if (ex) {
+    ex.events = ex.events.filter((e) => e.id !== id);
+    ex.memos = ex.memos.map((m) => (m.event_id === id ? { ...m, event_id: null } : m));
+    return reply({ ok: true });
+  }
+  return call('DELETE', `/api/events/${encodeURIComponent(id)}`);
+}
+
+/* ── 8_calendar_feed (서버 세션, worker/8_calendar_feed.js): 폰 달력에서 구독하는 Tachyon 주소 ── */
+
+// → { url: 'https://…/api/calendar/<id>.<서명>.ics', webcal: 'webcal://…' }. 사람마다 다른 비밀 주소라 어디에도 남기지 않는다.
+export function getCalendarFeed() {
+  if (ex) return reply({ url: 'https://example.com/api/calendar/0.example.ics', webcal: 'webcal://example.com/api/calendar/0.example.ics', example: true });
+  return call('GET', '/api/calendar');
 }
 
 // 끝나지 않은 할 일 전체를 여유 적은 순(AI 세션 4_night.js의 순서)으로 + 몰린 주 경고 한 줄 → { tasks, warning }

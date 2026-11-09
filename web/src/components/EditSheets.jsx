@@ -1,6 +1,7 @@
-// 눌러서 고치기: 일정(이름·시간·장소·중요)과 할 일(이름·마감·걸리는 시간).
-// eTL·구글·애플에서 온 것은 그 캘린더가 원본이라 이름·시간·장소·마감은 그쪽에서 고친다(서버도 막는다).
+// 눌러서 고치기: 일정(이름·시간·장소·중요)과 할 일(이름·마감·걸리는 시간), 그리고 지우기.
+// eTL·구글·애플에서 온 것은 그 캘린더가 원본이라 이름·시간·장소·마감은 그쪽에서 고치고 지운다(서버도 막는다).
 // 그래도 여기서 바꿀 수 있는 것: 일정의 '중요', 할 일의 걸리는 시간.
+// 지우기는 메모·시간표에서 온 것만, 한 번 더 눌러야 지운다.
 import { useState } from 'react';
 import { fromFeed } from '../api.js';
 import { dateInput, isoFromInputs, timeInput } from '../time.js';
@@ -18,17 +19,34 @@ function ImportantToggle({ value, onChange }) {
   );
 }
 
-export function EventEditSheet({ event, onSave, onClose }) {
+// 처음 누르면 '한 번 더 누르면 지워요'로 바뀌고, 두 번째에 지운다
+function DeleteButton({ busy, onDelete }) {
+  const [sure, setSure] = useState(false);
+  return (
+    <button type="button" className="btn-text danger" disabled={busy} onClick={() => (sure ? onDelete() : setSure(true))}>
+      {sure ? '한 번 더 누르면 지워요' : '지우기'}
+    </button>
+  );
+}
+
+export function EventEditSheet({ event, onSave, onDelete, onClose }) {
   const locked = fromFeed(event);
   const [form, setForm] = useState(() => eventToForm(event));
   const [important, setImportant] = useState(event.important ? 1 : 0);
   const [busy, setBusy] = useState(false);
   const ready = locked || (form.title.trim() && form.date);
 
-  async function save() {
+  const [error, setError] = useState(null);
+  async function run(job) {
     setBusy(true);
-    await onSave(locked ? { important } : { ...formToEvent(form), important });
-    setBusy(false);
+    setError(null);
+    try {
+      await job();
+    } catch (err) {
+      setError(err.message || '하지 못했어요. 다시 해 주세요');
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -39,20 +57,28 @@ export function EventEditSheet({ event, onSave, onClose }) {
             {event.title}
             {event.place ? ` · ${event.place}` : ''}
           </p>
-          <p className="hint">{FEED_NAME[event.source]}에서 온 일정이라 이름·시간·장소는 그 캘린더에서 고쳐 주세요.</p>
+          <p className="hint">{FEED_NAME[event.source]}에서 온 일정이라 이름·시간·장소는 그 캘린더에서 고치거나 지워 주세요.</p>
         </div>
       ) : (
         <EventForm form={form} onChange={setForm} idPrefix="edit-event" />
       )}
       <ImportantToggle value={important} onChange={setImportant} />
-      <button type="button" className="btn" disabled={busy || !ready} onClick={save}>
-        저장
-      </button>
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
+      <div className="sheet-actions">
+        {!locked && onDelete && <DeleteButton busy={busy} onDelete={() => run(onDelete)} />}
+        <button type="button" className="btn" disabled={busy || !ready} onClick={() => run(() => onSave(locked ? { important } : { ...formToEvent(form), important }))}>
+          저장
+        </button>
+      </div>
     </Sheet>
   );
 }
 
-export function TaskEditSheet({ task, onSave, onClose }) {
+export function TaskEditSheet({ task, onSave, onDelete, onClose }) {
   const locked = fromFeed(task);
   const [title, setTitle] = useState(task.title);
   const [date, setDate] = useState(task.due ? dateInput(task.due) : '');
@@ -60,12 +86,23 @@ export function TaskEditSheet({ task, onSave, onClose }) {
   const [minutes, setMinutes] = useState(task.minutes ?? '');
   const [busy, setBusy] = useState(false);
 
-  async function save() {
+  const [error, setError] = useState(null);
+  async function run(job) {
     setBusy(true);
-    const fields = { minutes: minutes === '' ? null : Number(minutes) };
-    if (!locked) Object.assign(fields, { title: title.trim(), due: isoFromInputs(date, time) });
-    await onSave(fields);
-    setBusy(false);
+    setError(null);
+    try {
+      await job();
+    } catch (err) {
+      setError(err.message || '하지 못했어요. 다시 해 주세요');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function fields() {
+    const out = { minutes: minutes === '' ? null : Number(minutes) };
+    if (!locked) Object.assign(out, { title: title.trim(), due: isoFromInputs(date, time) });
+    return out;
   }
 
   return (
@@ -85,15 +122,23 @@ export function TaskEditSheet({ task, onSave, onClose }) {
             <input type="time" className="input" value={time} disabled={locked} onChange={(e) => setTime(e.target.value)} />
           </label>
         </div>
-        {locked && <p className="hint">{FEED_NAME[task.source]}에서 온 할 일이라 이름·마감은 그쪽에서 고쳐 주세요.</p>}
+        {locked && <p className="hint">{FEED_NAME[task.source]}에서 온 할 일이라 이름·마감은 그쪽에서 고쳐 주세요. 끝냈으면 체크해 주세요.</p>}
         <label className="field">
           <span>걸리는 시간(분)</span>
           <input type="number" inputMode="numeric" min="5" max="1440" step="5" className="input" value={minutes} placeholder="?" onChange={(e) => setMinutes(e.target.value)} />
         </label>
       </div>
-      <button type="button" className="btn" disabled={busy || (!locked && !title.trim())} onClick={save}>
-        저장
-      </button>
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
+      <div className="sheet-actions">
+        {!locked && onDelete && <DeleteButton busy={busy} onDelete={() => run(onDelete)} />}
+        <button type="button" className="btn" disabled={busy || (!locked && !title.trim())} onClick={() => run(() => onSave(fields()))}>
+          저장
+        </button>
+      </div>
     </Sheet>
   );
 }

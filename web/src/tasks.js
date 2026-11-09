@@ -35,9 +35,11 @@ export function minutesLabel(minutes) {
   return `약 ${h}시간`;
 }
 
-// 여유: slack_days = 마감까지 남는 날(음수면 모자람, null이면 마감 없음)
+// 여유: slack_days = 마감까지 남는 날(소수, 4_night.js). 0이면 빠듯, 음수면 모자람, null이면 마감 없음.
+// 화면에는 내림한 날 수만 보인다(2.3 → '여유 2일').
 export function slackLabel(slackDays) {
   if (slackDays == null) return null;
   if (slackDays < 0) return '시간 모자람';
-  return `여유 ${slackDays}일`;
+  if (slackDays < 1) return '빠듯';
+  return `여유 ${Math.floor(slackDays)}일`;
 }
