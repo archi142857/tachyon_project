@@ -82,5 +82,7 @@ CREATE TABLE IF NOT EXISTS log (
   detail  TEXT,
   at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S+09:00', 'now', '+9 hours'))
 );
+-- 의견 한도·같은 오류 찾기(6_feedback)와 수치 뽑기가 action으로 찾는다. 없으면 부를 때마다 log 전체를 읽는다.
+CREATE INDEX IF NOT EXISTS log_action_at ON log (action, at);
 
 -- 3단계: friends, groups, group_members
