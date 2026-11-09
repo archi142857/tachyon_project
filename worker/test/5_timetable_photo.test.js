@@ -108,6 +108,14 @@ test("사진 읽기를 막는 경우: 사진 아님 415, 5MB 넘음 413, 키 없
   );
   assert.equal(failed.status, 502);
   assert.ok(failed.body.photo, "다시 시도하거나 취소할 수 있게 사진 열쇠를 돌려준다");
+
+  // R2가 잠깐 안 돼도 사진 읽기는 계속한다(photo = null)
+  const brokenR2 = { put: async () => Promise.reject(new Error("R2 down")), delete: async () => {} };
+  const ok = await withFetch(
+    async () => aiReply({ classes: CLASSES, note: "" }),
+    () => post({ ...env, PHOTOS: brokenR2 }, user, "/api/timetable", { body: new Uint8Array([1]), type: "image/jpeg" }),
+  );
+  assert.deepEqual([ok.status, ok.body.photo, ok.body.classes.length], [200, null, 2]);
 });
 
 test("저장: 학기 끝까지 펼쳐 넣고 사진을 지운다. 다시 저장하면 그날부터의 시간표를 바꾼다", async () => {

@@ -46,8 +46,9 @@ async function readPhoto(request, env, ctx, user) {
 
   let photo = null;
   if (env.PHOTOS) {
-    photo = `timetable/${user.id}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${TYPES[type]}`;
-    await env.PHOTOS.put(photo, bytes, { httpMetadata: { contentType: type } });
+    const key = `timetable/${user.id}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${TYPES[type]}`;
+    // R2가 잠깐 안 돼도 사진 읽기는 계속한다(사진 보관은 다시 읽기용일 뿐)
+    photo = await env.PHOTOS.put(key, bytes, { httpMetadata: { contentType: type } }).then(() => key, () => null);
   }
 
   let r;

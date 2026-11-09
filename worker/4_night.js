@@ -53,7 +53,7 @@ async function getBriefing(env, ctx, user) {
   const now = new Date();
   const date = kstDate(now);
   const row = await env.DB.prepare("SELECT text FROM briefings WHERE user_id = ? AND date = ?").bind(user.id, date).first();
-  const briefing = row ? JSON.parse(row.text) : await buildBriefing(env, user.id, now, { by: "now" });
+  const briefing = parseCard(row?.text) ?? (await buildBriefing(env, user.id, now, { by: "now" }));
   background(ctx, writeLog(env, user.id, "briefing_open", JSON.stringify({ date })));
   return json({ briefing });
 }
@@ -207,6 +207,16 @@ async function buildBriefing(env, userId, now, { by, newTasks = [] }) {
 }
 
 const short = (t) => ({ id: t.id, title: t.title, due: t.due, minutes: t.minutes, ready: t.ready, slack_days: t.slack_days });
+
+/** 저장된 카드 글 → 객체. 다른 모양(손으로 넣은 글 등)이면 null → 지금 다시 만든다 */
+function parseCard(text) {
+  try {
+    const card = JSON.parse(text);
+    return card && typeof card === "object" && Array.isArray(card.top3) ? card : null;
+  } catch {
+    return null;
+  }
+}
 
 function openTasks(env, userId) {
   return env.DB.prepare("SELECT id, title, due, minutes, ready, source FROM tasks WHERE user_id = ? AND done = 0")

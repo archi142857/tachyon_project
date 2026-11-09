@@ -174,4 +174,10 @@ test("주소: 브리핑 열기(밤 정리 전이면 바로 만듦) · 순서 · 
 
   const stored = await call(env, user, "GET", "/api/briefing");
   assert.equal(stored.body.briefing.by, "night");
+
+  // 저장된 글이 카드 모양이 아니면(손으로 넣은 글 등) 지금 다시 만든다
+  DB.sqlite.prepare("UPDATE briefings SET text = '시험용 글' WHERE user_id = ?").run(user.id);
+  const rebuilt = await call(env, user, "GET", "/api/briefing");
+  assert.equal(rebuilt.status, 200);
+  assert.equal(rebuilt.body.briefing.by, "now");
 });
