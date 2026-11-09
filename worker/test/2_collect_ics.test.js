@@ -317,3 +317,30 @@ test('기간·힌트 도우미', () => {
   assert.equal(urlHint('https://calendar.google.com/calendar/ical/x/private-abcdef/basic.ics'), 'calendar.google.com/…cdef');
   assert.equal(urlHint('https://myetl.snu.ac.kr/feeds/calendars/user_abc123.ics'), 'myetl.snu.ac.kr/…c123');
 });
+
+test("'지금 받기'를 거듭 눌러도 같은 주소는 1분에 한 번만 받는다, 없는 방법은 405", async () => {
+  const { env, user } = await setup();
+  await saveBoth(env, user); // NOW에 두 칸 모두 받음
+  const inner = globalThis.fetch;
+  let fetched = 0;
+  globalThis.fetch = (input, init) => {
+    fetched++;
+    return inner(input, init);
+  };
+  const collect = async () => (await handle(req('/api/feeds/collect', { method: 'POST' }), env, makeCtx(), user)).json();
+  try {
+    clock = NOW + 30 * 1000;
+    const soon = await collect();
+    assert.deepEqual(soon.results.map((r) => [r.kind, r.ok, r.recent]).sort(), [['etl', true, true], ['google', true, true]]);
+    assert.equal(fetched, 0);
+    clock = NOW + 2 * MIN;
+    const later = await collect();
+    assert.ok(later.results.every((r) => r.ok && !r.recent));
+    assert.equal(fetched, 2);
+  } finally {
+    globalThis.fetch = inner;
+  }
+  assert.equal((await handle(req('/api/feeds/collect'), env, makeCtx(), user)).status, 405);
+  assert.equal((await handle(req('/api/feeds', { method: 'DELETE' }), env, makeCtx(), user)).status, 405);
+  assert.equal((await handle(req('/api/feeds/nothing'), env, makeCtx(), user)).status, 404);
+});

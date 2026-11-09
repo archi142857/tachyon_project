@@ -7,7 +7,7 @@
 //                            글 = 저장(바꾸기), "" 또는 null = 지우기, 칸이 없으면 그대로.
 //                            붙이자마자 한 번 받아 보고 칸마다 결과를 돌려준다: results[] = {kind, ok, saved, tasks, events, error}
 //                            모양이 틀리거나 이미 안 열리는 주소는 저장하지 않는다(saved: false).
-//   POST /api/feeds/collect  내 주소를 지금 다시 받는다(멈춘 주소도 한 번 더 시도).
+//   POST /api/feeds/collect  내 주소를 지금 다시 받는다(멈춘 주소도 한 번 더 시도). 1분 안에 받은 주소는 건너뜀(recent: true).
 //   Cron */15 * * * *        오래 안 받은 주소부터 FEEDS_PER_RUN개를 받는다.
 //
 // 주소 규칙(docs/tachyon/캘린더_주소_찾기.md '서버 규칙')
@@ -44,6 +44,7 @@ const STUCK_MS = 3 * 60 * 1000; // 시도 뒤 이만큼 지나도 결과가 없�
 const DEAD_AFTER = 2; // 주소가 안 열린 답이 이만큼 이어지면 Cron이 그 주소를 멈춘다
 const FETCH_TIMEOUT_MS = 15000;
 const MAX_CHARS = 5_000_000;
+const MANUAL_GAP_MS = 60 * 1000; // '지금 받기'를 거듭 눌러도 같은 주소는 1분에 한 번만(eTL·구글에 요청이 몰리지 않게)
 
 // ── 길 나누기 ────────────────────────────────────────────────────
 
@@ -55,9 +56,10 @@ export async function handle(request, env, ctx, user) {
   if (pathname === '/api/feeds' && method === 'GET') return json({ ok: true, feeds: await listFeeds(env, user.id) });
   if (pathname === '/api/feeds' && method === 'PUT') return saveFeeds(request, env, user.id);
   if (pathname === '/api/feeds/collect' && method === 'POST') {
-    const results = await collectUser(env, user.id, { force: true });
+    const results = await collectUser(env, user.id, { force: true, minGapMs: MANUAL_GAP_MS });
     return json({ ok: true, results, feeds: await listFeeds(env, user.id) });
   }
+  if (pathname === '/api/feeds' || pathname === '/api/feeds/collect') return fail(405, '그 방법으로는 안 받아요');
   return fail(404, '없는 주소예요');
 }
 
@@ -221,11 +223,15 @@ function removeFeedStatements(env, userId, kind) {
 
 // ── 받기 ─────────────────────────────────────────────────────────
 
-/** 한 사용자의 주소를 받는다(지금 받기·저장 직후). */
-export async function collectUser(env, userId, { force = false, kinds = KINDS, now = Date.now() } = {}) {
+/** 한 사용자의 주소를 받는다(지금 받기). minGapMs 안에 이미 시도한 주소는 건너뛴다. */
+export async function collectUser(env, userId, { force = false, kinds = KINDS, now = Date.now(), minGapMs = 0 } = {}) {
   const { results } = await env.DB.prepare('SELECT * FROM feeds WHERE user_id = ?').bind(userId).all();
   const out = [];
   for (const feed of results.filter((row) => kinds.includes(row.kind))) {
+    if (minGapMs > 0 && feed.last_try_at && feed.last_try_at > kstIso(now - minGapMs)) {
+      out.push({ kind: feed.kind, ok: true, same: true, recent: true });
+      continue;
+    }
     await env.DB.prepare('UPDATE feeds SET last_try_at = ? WHERE id = ?').bind(kstIso(now), feed.id).run();
     out.push(await syncFeed(env, feed, { force, now }));
   }

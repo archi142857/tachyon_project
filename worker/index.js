@@ -60,7 +60,9 @@ export default {
       } catch (err) {
         console.error("로그인 확인 실패", err && err.message);
       }
-      return await mod.handle(request, env, ctx, user);
+      const res = await mod.handle(request, env, ctx, user);
+      // 번호 파일이 맞는 길을 못 찾고 아무것도 안 돌려주면(빠뜨린 return) 런타임 오류 대신 404
+      return res instanceof Response ? res : Response.json({ error: "없는 주소" }, { status: 404 });
     } catch (err) {
       console.error("서버 오류", request.method, url.pathname, err && err.stack);
       reportError(env, ctx, err, { request });
