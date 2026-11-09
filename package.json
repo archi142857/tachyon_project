@@ -1,11 +1,16 @@
 {
   "name": "tachyon",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "test": "node --test --no-warnings=ExperimentalWarning \"worker/test/*.test.js\"",
     "db:local": "wrangler d1 execute tachyon --local --file=schema.sql",
     "db:remote": "wrangler d1 execute tachyon --remote --file=schema.sql"
+  },
+  "dependencies": {
+    "ical.js": "2.2.1"
   },
   "devDependencies": {
     "wrangler": "4.158.0"

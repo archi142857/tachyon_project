@@ -1,0 +1,45 @@
+# 서버(Cloudflare Workers) 시험 (담당: 서버 세션)
+#
+# 서버·화면 파일이 바뀌면 worker/test 시험을 돌리고, 배포 때와 같은 빌드가 되는지 묶어 본다.
+# 배포는 여기서 하지 않는다 — Cloudflare Workers Builds가 main을 받아 배포한다(dhsrua555 연결).
+
+name: 서버 시험
+
+on:
+  push:
+    paths:
+      - 'worker/**'
+      - 'web/**'
+      - 'wrangler.toml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'schema.sql'
+      - '.github/workflows/server.yml'
+  pull_request:
+    paths:
+      - 'worker/**'
+      - 'web/**'
+      - 'wrangler.toml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'schema.sql'
+      - '.github/workflows/server.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: 시험 (worker/test)
+        run: npm test
+      - name: 묶어 보기 (배포 때와 같은 빌드, 올리지는 않음)
+        run: npx wrangler deploy --dry-run --outdir dist
