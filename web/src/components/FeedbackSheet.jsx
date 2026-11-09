@@ -25,8 +25,8 @@ export default function FeedbackSheet({ screen, onClose, onSent }) {
       onSent(res?.example ? '예시 모드라 보내지 않았어요' : '보냈어요. 고마워요');
       onClose();
     } catch (err) {
-      // 4xx(하루 한도 등)는 서버 문장 그대로, 서버 오류·연결 끊김은 한 줄 안내
-      setError(err.status && err.status < 500 && err.message ? err.message : '보내지 못했어요. 잠시 뒤에 다시 해 주세요');
+      // 4xx(하루 한도 등)는 서버 문장, 5xx는 '잠깐 문제가 생겼어요'(api.js), 연결 끊김은 한 줄 안내
+      setError(err.status && err.message ? err.message : '보내지 못했어요. 잠시 뒤에 다시 해 주세요');
     } finally {
       setBusy(false);
     }

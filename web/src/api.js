@@ -29,7 +29,9 @@ async function call(method, path, body) {
   });
   if (!res.ok) {
     const data = await res.json().catch(() => null);
-    const error = new Error(data?.error || (res.status === 401 ? '로그인이 필요해요' : `서버 오류 (${res.status})`));
+    // 5xx는 서버가 스스로 오류를 보고한다. 화면은 한 줄 안내만(서버 문장은 4xx일 때만 그대로)
+    const text = res.status >= 500 ? '잠깐 문제가 생겼어요. 잠시 뒤에 다시 해 주세요' : data?.error || (res.status === 401 ? '로그인이 필요해요' : `요청을 처리하지 못했어요 (${res.status})`);
+    const error = new Error(text);
     error.status = res.status;
     // 쓰는 도중 로그인이 끝나면(쿠키 30일) 화면 전체가 로그인으로 돌아간다(App.jsx가 듣는다)
     if (res.status === 401 && path !== '/api/login/me') window.dispatchEvent(new CustomEvent(SIGNED_OUT));

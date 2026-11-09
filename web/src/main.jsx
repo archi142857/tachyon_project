@@ -4,11 +4,13 @@ import App from './App.jsx';
 import { reportError } from './api.js';
 import './styles.css';
 
-// 화면 오류 자동 보고(서버 6_feedback → GitHub 이슈). 같은 오류는 한 번만 보낸다.
+// 화면 오류 자동 보고(서버 6_feedback → GitHub 이슈). 한 번 열었을 때 같은 메시지는 한 번만, 다 합쳐 5개까지.
+// 보내다 실패하면 다시 보내지 않는다(렌더마다 나는 오류가 요청을 쏟지 않게).
 const sent = new Set();
+const MAX_REPORTS = 5;
 function report(message, stack) {
-  const key = `${message}|${String(stack || '').split('\n')[1] || ''}`;
-  if (sent.has(key)) return;
+  const key = String(message);
+  if (sent.has(key) || sent.size >= MAX_REPORTS) return;
   sent.add(key);
   reportError({
     message: String(message).slice(0, 300),
