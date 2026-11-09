@@ -1,6 +1,6 @@
 // 눌러서 고치기: 일정(이름·시간·장소·중요)과 할 일(이름·마감·걸리는 시간), 그리고 지우기.
 // eTL·구글·애플에서 온 것은 그 캘린더가 원본이라 이름·시간·장소·마감은 그쪽에서 고치고 지운다(서버도 막는다).
-// 그래도 여기서 바꿀 수 있는 것: 일정의 '중요', 할 일의 걸리는 시간.
+// 그래도 여기서 바꿀 수 있는 것: 일정의 '중요', 할 일의 걸리는 시간·'수업·자료 뒤'.
 // 지우기는 메모·시간표에서 온 것만, 한 번 더 눌러야 지운다.
 import { useState } from 'react';
 import { fromFeed } from '../api.js';
@@ -84,6 +84,7 @@ export function TaskEditSheet({ task, onSave, onDelete, onClose }) {
   const [date, setDate] = useState(task.due ? dateInput(task.due) : '');
   const [time, setTime] = useState(task.due ? timeInput(task.due) : '23:59');
   const [minutes, setMinutes] = useState(task.minutes ?? '');
+  const [ready, setReady] = useState(task.ready === 0 ? 0 : 1); // 0 = 수업·자료 뒤에 할 수 있음
   const [busy, setBusy] = useState(false);
 
   const [error, setError] = useState(null);
@@ -100,7 +101,7 @@ export function TaskEditSheet({ task, onSave, onDelete, onClose }) {
   }
 
   function fields() {
-    const out = { minutes: minutes === '' ? null : Number(minutes) };
+    const out = { minutes: minutes === '' ? null : Number(minutes), ready };
     if (!locked) Object.assign(out, { title: title.trim(), due: isoFromInputs(date, time) });
     return out;
   }
@@ -126,6 +127,10 @@ export function TaskEditSheet({ task, onSave, onDelete, onClose }) {
         <label className="field">
           <span>걸리는 시간(분)</span>
           <input type="number" inputMode="numeric" min="5" max="1440" step="5" className="input" value={minutes} placeholder="?" onChange={(e) => setMinutes(e.target.value)} />
+        </label>
+        <label className="field" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <input type="checkbox" checked={ready === 0} onChange={(e) => setReady(e.target.checked ? 0 : 1)} style={{ width: 20, height: 20, accentColor: 'var(--accent)' }} />
+          <span>수업·자료가 있어야 시작할 수 있어요</span>
         </label>
       </div>
       {error && (

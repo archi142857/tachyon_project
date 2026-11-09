@@ -173,7 +173,7 @@ export function setTaskDone(id, done) {
   return call('PATCH', `/api/tasks/${encodeURIComponent(id)}`, { done: done ? 1 : 0 });
 }
 
-// 눌러서 고치기: fields = { title, due, minutes } 가운데 바꾼 것
+// 눌러서 고치기: fields = { title, due, minutes, ready } 가운데 바꾼 것 (캘린더에서 온 할 일은 minutes·ready만)
 export function updateTask(id, fields) {
   if (ex) {
     const task = ex.tasks.find((t) => t.id === id);
