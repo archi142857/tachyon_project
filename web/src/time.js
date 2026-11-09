@@ -1,0 +1,118 @@
+// 시각 도우미. 서버는 '2026-11-13T15:00:00+09:00'(종일은 날짜만)을 주고, 화면은 한국 시간(UTC+9, 서머타임 없음)으로 보인다.
+const KST = 9 * 60 * 60 * 1000;
+const DAY = 24 * 60 * 60 * 1000;
+export const WEEKDAYS = ['월', '화', '수', '목', '금', '토', '일'];
+
+// 한국 시간으로 본 연·월·일·요일(0=월 … 6=일)·시·분
+export function kst(dateOrIso) {
+  const d = new Date(new Date(dateOrIso).getTime() + KST);
+  return {
+    y: d.getUTCFullYear(),
+    m: d.getUTCMonth() + 1,
+    d: d.getUTCDate(),
+    wd: (d.getUTCDay() + 6) % 7,
+    h: d.getUTCHours(),
+    min: d.getUTCMinutes(),
+  };
+}
+
+// 한국 시간 '연-월-일 시:분' → 그 순간(Date)
+export function fromKst(y, m, d, h = 0, min = 0) {
+  return new Date(Date.UTC(y, m - 1, d, h, min) - KST);
+}
+
+// 그 주 월요일 0시(한국 시간)
+export function weekStart(dateOrIso) {
+  const p = kst(dateOrIso);
+  return fromKst(p.y, p.m, p.d - p.wd);
+}
+
+export function addDays(date, n) {
+  return new Date(new Date(date).getTime() + n * DAY);
+}
+
+// 주의 시작(weekStart)부터 며칠째인지. 그 주 밖이면 -1
+export function dayIndex(start, dateOrIso) {
+  const i = Math.floor((new Date(dateOrIso) - new Date(start)) / DAY);
+  return i >= 0 && i < 7 ? i : -1;
+}
+
+// 9:30, 15:00
+export function hhmm(dateOrIso) {
+  const p = kst(dateOrIso);
+  return `${p.h}:${String(p.min).padStart(2, '0')}`;
+}
+
+// 하루 안에서 몇 분째인지(한국 시간)
+export function minuteOfDay(dateOrIso) {
+  const p = kst(dateOrIso);
+  return p.h * 60 + p.min;
+}
+
+// 주 제목: '11월 9일 – 15일', 달이 바뀌면 '11월 30일 – 12월 6일'
+export function weekTitle(start) {
+  const a = kst(start);
+  const b = kst(addDays(start, 6));
+  return a.m === b.m ? `${a.m}월 ${a.d}일 – ${b.d}일` : `${a.m}월 ${a.d}일 – ${b.m}월 ${b.d}일`;
+}
+
+// 마감 글: 일주일 안이면 '수 23:59', 지났으면 '마감 지남', 더 멀면 '11월 20일', 모르면 '마감 ?'
+export function dueLabel(dueIso, now = new Date()) {
+  if (!dueIso) return '마감 ?';
+  const due = new Date(dueIso);
+  if (due < new Date(now)) return '마감 지남';
+  const p = kst(due);
+  if (due - new Date(now) < 7 * DAY) return `${WEEKDAYS[p.wd]} ${hhmm(due)}`;
+  return `${p.m}월 ${p.d}일`;
+}
+
+// 팝업의 시간 칸: '11월 10일 (화) 15:00 ~ ?' (모르는 칸은 '?')
+export function popupTime(startIso, endIso) {
+  if (!startIso) return '?';
+  const p = kst(startIso);
+  return `${p.m}월 ${p.d}일 (${WEEKDAYS[p.wd]}) ${hhmm(startIso)} ~ ${endIso ? hhmm(endIso) : '?'}`;
+}
+
+// 서버에 보내는 시각 글자: schema.sql 머리말대로 '2026-11-13T15:00:00+09:00'
+export function toKstIso(dateOrIso) {
+  const p = kst(dateOrIso);
+  const two = (n) => String(n).padStart(2, '0');
+  return `${p.y}-${two(p.m)}-${two(p.d)}T${two(p.h)}:${two(p.min)}:00+09:00`;
+}
+
+// 종일 일정은 서버가 날짜만('2026-11-13') 준다 → 그날 0시(한국 시간)로 읽는다
+export function isDateOnly(value) {
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+export function dayStartKst(ymd) {
+  const [y, m, d] = ymd.split('-').map(Number);
+  return fromKst(y, m, d);
+}
+
+// <input type="date">·<input type="time"> 값과 ISO 사이 바꾸기(한국 시간 기준)
+export function dateInput(dateOrIso) {
+  const p = kst(dateOrIso);
+  return `${p.y}-${String(p.m).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`;
+}
+
+export function timeInput(dateOrIso) {
+  const p = kst(dateOrIso);
+  return `${String(p.h).padStart(2, '0')}:${String(p.min).padStart(2, '0')}`;
+}
+
+// ('2026-11-10', '15:00') → '2026-11-10T15:00:00+09:00'. 날짜나 시각이 비면 null
+export function isoFromInputs(date, time) {
+  if (!date || !time) return null;
+  return `${date}T${time}:00+09:00`;
+}
+
+// 채팅의 날짜 줄: '오늘', '어제', '11월 7일 (토)'
+export function dayLabel(dateOrIso, now = new Date()) {
+  const a = kst(dateOrIso);
+  const t = kst(now);
+  const y = kst(addDays(now, -1));
+  if (a.y === t.y && a.m === t.m && a.d === t.d) return '오늘';
+  if (a.y === y.y && a.m === y.m && a.d === y.d) return '어제';
+  return `${a.m}월 ${a.d}일 (${WEEKDAYS[a.wd]})`;
+}

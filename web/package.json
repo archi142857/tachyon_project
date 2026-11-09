@@ -1,0 +1,22 @@
+{
+  "name": "ngs-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Tachyon 화면(PWA). 빌드 결과는 web/dist, Cloudflare Workers가 그대로 내준다.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.3.0",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  }
+}

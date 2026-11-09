@@ -3,9 +3,16 @@ name = "tachyon"
 main = "worker/index.js"
 compatibility_date = "2026-10-01"
 
-# 화면 파일(web/)은 바로 나가고, 그 밖의 주소(/api/...)만 worker/index.js로 온다.
+# 화면(web/, Vite + React)은 빌드한 web/dist가 나가고, /api/... 는 늘 worker/index.js로 온다.
+# dev·deploy 때마다 [build]가 web/을 먼저 빌드한다. 화면 주소에 없는 길은 index.html(한 페이지 앱).
+[build]
+command = "npm --prefix web ci --no-audit --no-fund && npm --prefix web run build"
+watch_dir = "web/src"
+
 [assets]
-directory = "web"
+directory = "web/dist"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
 
 [[d1_databases]]
 binding = "DB"
