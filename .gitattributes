@@ -5,3 +5,4 @@
 *.json text eol=lf
 *.csv text eol=lf
 
+docs/ngs/소통.md merge=union

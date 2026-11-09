@@ -1,0 +1,13 @@
+# Tachyon Project 설정은 이 파일 하나. 비밀값(API 키 등)은 여기 말고 `npx wrangler secret put 이름`.
+name = "tachyon"
+main = "worker/index.js"
+compatibility_date = "2026-10-01"
+
+# 화면 파일(web/)은 바로 나가고, 그 밖의 주소(/api/...)만 worker/index.js로 온다.
+[assets]
+directory = "web"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tachyon"
+database_id = "2c6de759-4b5c-44e2-9d07-b81a1236a0d5"
