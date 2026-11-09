@@ -44,6 +44,12 @@ test("여러 모양의 날짜·시각 (지금 = 11/9 월 17:00)", () => {
     ["1/5 신년회", "2027-01-05", null, null], // 한 달 넘게 지난 날은 내년
     ["이번주 일요일 3시 교회", "2026-11-15", "15:00", null],
     ["다다음주 월요일 10시 면접", "2026-11-23", "10:00", null],
+    ["토 2시 영화", "2026-11-14", "14:00", null], // '요일' 없이 요일 한 글자 + 시각
+    ["수 18:30 배드민턴", "2026-11-11", "18:30", null],
+    ["담주 화 3시 팀플", "2026-11-17", "15:00", null],
+    ["다음주 금 오전 10시 면접", "2026-11-20", "10:00", null],
+    ["내일모레 4시 회의", "2026-11-11", "16:00", null],
+    ["15일 7시 동기 모임", "2026-11-15", "19:00", null],
   ];
   for (const [text, date, time, end] of cases) {
     const w = findWhen(text, NOW);
@@ -53,7 +59,7 @@ test("여러 모양의 날짜·시각 (지금 = 11/9 월 17:00)", () => {
 });
 
 test("날짜·시각이 아닌 말은 읽지 않는다", () => {
-  for (const text of ["3시간 공부", "3.5시간 걸림", "한시적으로 운영", "한 시점에서 보면", "메일 보낼 것", "저녁에 장보기", "과제 아이디어 정리"]) {
+  for (const text of ["3시간 공부", "3.5시간 걸림", "한시적으로 운영", "한 시점에서 보면", "메일 보낼 것", "저녁에 장보기", "과제 아이디어 정리", "다음 주 수업 자료 읽기", "토익 2시간 공부"]) {
     assert.equal(findWhen(text, NOW), null, text);
   }
 });
@@ -77,6 +83,8 @@ test("AI 없이(규칙만): 이름·장소를 쓴 말 그대로 뽑고, 시각 �
     assert.deepEqual([p.title, p.place, p.date, p.time, p.end_time], [c.want.title, c.want.place, c.want.date, c.want.time, "?"], c.text);
   }
   assert.equal(mergePopup("오늘 4시", findWhen("오늘 4시", NOW), null).title, "?"); // 이름이 없으면 '?'
+  const station = mergePopup("금 7시 회식 강남역", findWhen("금 7시 회식 강남역", NOW), null);
+  assert.deepEqual([station.title, station.place], ["회식", "강남역"]);
 });
 
 test("AI 답과 합치기: 일정 아님 → null, 오전·오후 짐작은 AI, 쓴 날짜는 정규식", () => {
