@@ -204,7 +204,7 @@ const DATE_RULES = [
   { kind: "wd", re: /(?<![가-힣\d])()([월화수목금토일])(?=\s*(?:\d{1,2}\s*시|\d{1,2}:\d{2}|오전|오후|아침|점심|저녁|밤|새벽))/g }, // 금 7시, 수 18:30
   { kind: "day", re: /(?<!\d)(\d{1,2})\s*일(?!\s*(?:간|동안|째|차|정도|마다|뒤|후|전|에\s*한))/g }, // 13일 (3일간 아님)
 ];
-const AFTER_DATE_WEEKDAY = /^\s*\(?\s*[월화수목금토일](?:요일|욜)?\s*\)?/; // 11/13(금) 의 (금)
+const AFTER_DATE_WEEKDAY = /^\s*\(?\s*[월화수목금토일](?:요일|욜)?(?![가-힣])\s*\)?/; // 11/13(금) 의 (금). '11/13 수업'의 수는 아님
 
 const HOUR_RANGE = new RegExp(PERIOD + "(?<!\\d)(\\d{1,2})\\s*[~\\-–]\\s*(\\d{1,2})\\s*시(?![간작험])", "g"); // 3~5시
 const TIME_RULES = [
@@ -239,7 +239,7 @@ export function findWhen(text, now = new Date()) {
   let guessed = false;
   if (t) {
     const isToday = date === today;
-    let s = to24(t.start, isToday ? nowMin : null);
+    const s = to24(t.start, isToday ? nowMin : null);
     if (!date) {
       // 날짜 없이 시각만: 아직 안 지났으면 오늘, 지났으면 내일
       date = s.min + s.addDays * 1440 > nowMin ? today : addDays(today, 1);

@@ -85,6 +85,10 @@ test("AI 없이(규칙만): 이름·장소를 쓴 말 그대로 뽑고, 시각 �
   assert.equal(mergePopup("오늘 4시", findWhen("오늘 4시", NOW), null).title, "?"); // 이름이 없으면 '?'
   const station = mergePopup("금 7시 회식 강남역", findWhen("금 7시 회식 강남역", NOW), null);
   assert.deepEqual([station.title, station.place], ["회식", "강남역"]);
+  // 날짜 뒤 요일 꾸밈 "(금)"은 빼지만, '수업'·'토론'의 첫 글자는 요일로 먹지 않는다
+  for (const [text, title] of [["11/13 수업 발표 3시", "수업 발표"], ["13일 토론 2시", "토론"], ["11/13(금) 7시 동아리", "동아리"], ["11월 20일 금요일 2시 세미나", "세미나"]]) {
+    assert.equal(mergePopup(text, findWhen(text, NOW), null).title, title, text);
+  }
 });
 
 test("AI 답과 합치기: 일정 아님 → null, 오전·오후 짐작은 AI, 쓴 날짜는 정규식", () => {
