@@ -16,6 +16,12 @@
 // 번호 파일이 아직 없으면 그 주소는 501로 답하고, 파일을 올리면 여기를 고치지 않아도 바로 연결된다.
 
 import { getUser } from "./lib/auth.js";
+import { warmUp } from "./lib/ics.js";
+
+// 캘린더(ICS) 해석 코드는 Worker가 시작할 때(전역 실행 = 요청 CPU 한도 밖, 시작 한도 1초 안) 한 번 돌려 둔다.
+// 번호 파일은 처음 부를 때 초기화되므로, 그대로 두면 처음 받는 캘린더가 무료 요금제 한도(CPU 10ms)를 넘는다
+// (11-09 workerd 측정, 지어낸 72KB 구글 캘린더: 처음 해석 10~16ms → 데워 두면 4~6ms).
+warmUp();
 
 export const ROUTES = [
   ["/api/login", "1_login"],

@@ -260,6 +260,9 @@ export async function collectDue(env, now = Date.now()) {
     .bind(kstIso(now), JSON.stringify(results.map((f) => f.id)))
     .run();
 
+  // 작은 캘린더부터(지난번 개수 순, 모르면 맨 뒤). 무료 요금제(CPU 10ms)에서 큰 캘린더가 한도에 걸려
+  // 이번 차례가 끊겨도 그 앞의 작은 캘린더는 받히고, 끊긴 큰 캘린더 때문에 다른 주소가 계속 밀리지 않는다.
+  results.sort((a, b) => (a.item_count ?? Infinity) - (b.item_count ?? Infinity) || a.id - b.id);
   const summary = { feeds: results.length, changed: 0, same: 0, failed: 0 };
   for (const feed of results) {
     const r = await syncFeed(env, feed, { now });

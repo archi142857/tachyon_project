@@ -344,3 +344,21 @@ test("'지금 받기'를 거듭 눌러도 같은 주소는 1분에 한 번만 �
   assert.equal((await handle(req('/api/feeds', { method: 'DELETE' }), env, makeCtx(), user)).status, 405);
   assert.equal((await handle(req('/api/feeds/nothing'), env, makeCtx(), user)).status, 404);
 });
+
+test('Cron은 작은 캘린더부터 받는다(큰 캘린더가 처리 시간 한도에 걸려도 앞의 것은 받히게)', async () => {
+  const { env, user } = await setup();
+  await saveBoth(env, user);
+  await env.DB.prepare("UPDATE feeds SET item_count = CASE kind WHEN 'etl' THEN 500 ELSE 3 END").run();
+  const inner = globalThis.fetch;
+  const order = [];
+  globalThis.fetch = (input, init) => {
+    order.push(new URL(typeof input === 'string' ? input : input.url).host);
+    return inner(input, init);
+  };
+  try {
+    await collectDue(env, NOW + 20 * MIN);
+  } finally {
+    globalThis.fetch = inner;
+  }
+  assert.deepEqual(order, ['calendar.google.com', 'myetl.snu.ac.kr']);
+});

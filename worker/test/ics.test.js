@@ -2,7 +2,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseIcs, prefilter, fingerprint, countIcs, IcsError, wallClockToMs } from '../lib/ics.js';
+import { parseIcs, prefilter, fingerprint, countIcs, IcsError, wallClockToMs, expandStats, warmUp } from '../lib/ics.js';
 import { calendar, vevent } from './ics_fixtures.js';
 
 const range = { from: new Date('2026-10-26T00:00:00Z'), to: new Date('2027-03-09T00:00:00Z') };
@@ -170,4 +170,123 @@ test('지문: DTSTAMP만 바뀌면 같고, 제목이 바뀌면 다르다', async
   const fp = async (t) => fingerprint(prefilter(t, range.from.getTime(), range.to.getTime()).calendar);
   assert.equal(await fp(a), await fp(b));
   assert.notEqual(await fp(a), await fp(c));
+});
+
+// ── 날짜 셈 길(simpleOccurrences) = ical.js 반복기 길: 무작위 규칙으로 비교 ─────────────
+
+const NEW_YORK_TZ = [
+  'BEGIN:VTIMEZONE', 'TZID:America/New_York',
+  'BEGIN:DAYLIGHT', 'TZOFFSETFROM:-0500', 'TZOFFSETTO:-0400', 'TZNAME:EDT', 'DTSTART:19700308T020000', 'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU', 'END:DAYLIGHT',
+  'BEGIN:STANDARD', 'TZOFFSETFROM:-0400', 'TZOFFSETTO:-0500', 'TZNAME:EST', 'DTSTART:19701101T020000', 'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU', 'END:STANDARD',
+  'END:VTIMEZONE',
+];
+const DAYS = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+const p2 = (n) => String(n).padStart(2, '0');
+const stamp = (ms, withTime) => {
+  const d = new Date(ms);
+  const date = `${d.getUTCFullYear()}${p2(d.getUTCMonth() + 1)}${p2(d.getUTCDate())}`;
+  return withTime ? `${date}T${p2(d.getUTCHours())}${p2(d.getUTCMinutes())}00` : date;
+};
+
+/** 지어낸 반복 일정 하나(시드로 늘 같음) */
+function randomSeries(i, rnd) {
+  const pick = (list) => list[Math.floor(rnd() * list.length)];
+  const kind = pick(['seoul', 'seoul', 'utc', 'ny', 'floating', 'date']);
+  const allDay = kind === 'date';
+  // 벽시계 시작(밀리초를 날짜·시각 글자로만 씀): 2024-01 ~ 2027-03
+  const startWall = Date.UTC(2024, 0, 1) + Math.floor(rnd() * 1150) * 86400000 + (allDay ? 0 : (Math.floor(rnd() * 24) * 60 + pick([0, 15, 30, 45])) * 60000);
+  const fmt = (ms, prop) => {
+    if (allDay) return `${prop};VALUE=DATE:${stamp(ms, false)}`;
+    if (kind === 'utc') return `${prop}:${stamp(ms, true)}Z`;
+    if (kind === 'floating') return `${prop}:${stamp(ms, true)}`;
+    return `${prop};TZID=${kind === 'ny' ? 'America/New_York' : 'Asia/Seoul'}:${stamp(ms, true)}`;
+  };
+  const freq = pick(['WEEKLY', 'WEEKLY', 'WEEKLY', 'WEEKLY', 'DAILY', 'DAILY', 'MONTHLY', 'YEARLY']);
+  const interval = pick([1, 1, 1, 2, 3]);
+  const dow0 = new Date(startWall).getUTCDay();
+  const rule = [`FREQ=${freq}`];
+  if (interval > 1) rule.push(`INTERVAL=${interval}`);
+  const date0 = new Date(startWall);
+  if (freq === 'MONTHLY' && rnd() < 0.3) rule.push(`BYMONTHDAY=${date0.getUTCDate()}`);
+  if (freq === 'YEARLY' && rnd() < 0.3) rule.push(`BYMONTH=${date0.getUTCMonth() + 1};BYMONTHDAY=${date0.getUTCDate()}`);
+  if (freq === 'MONTHLY' && rule.length === (interval > 1 ? 2 : 1) && rnd() < 0.2) rule.push(`BYDAY=${pick(['1MO', '2TU', '-1FR'])}`); // n번째 요일 → ical.js 길
+  if ((freq === 'WEEKLY' || freq === 'DAILY') && rnd() < (freq === 'WEEKLY' ? 0.7 : 0.4)) {
+    const days = new Set([dow0]);
+    const extra = Math.floor(rnd() * 4);
+    for (let k = 0; k < extra; k++) days.add(Math.floor(rnd() * 7));
+    rule.push(`BYDAY=${[...days].map((d) => DAYS[d]).join(',')}`);
+  }
+  if (rnd() < 0.3) rule.push(`WKST=${pick(['SU', 'MO', 'WE'])}`);
+  const end = rnd();
+  if (end < 0.35) rule.push(`COUNT=${1 + Math.floor(rnd() * 60)}`);
+  else if (end < 0.7) {
+    const until = startWall + Math.floor(rnd() * 400) * 86400000 + Math.floor(rnd() * 86400) * 1000;
+    rule.push(`UNTIL=${allDay ? stamp(until, false) : `${stamp(until, true)}Z`}`);
+  }
+  const lengthMs = allDay ? (1 + Math.floor(rnd() * 3)) * 86400000 : (30 + Math.floor(rnd() * 150)) * 60000;
+  const uid = `rand-${i}@example`;
+  const props = [`UID:${uid}`, `SUMMARY:예시 반복 ${i}`, fmt(startWall, 'DTSTART'), fmt(startWall + lengthMs, 'DTEND'), `RRULE:${rule.join(';')}`];
+  // 빠진 날: 시작에서 주(또는 날) 단위로 떨어진 자리 몇 개(규칙에 맞지 않는 자리도 섞임)
+  const step = { WEEKLY: 7 * interval, DAILY: interval, MONTHLY: 30 * interval, YEARLY: 365 * interval }[freq]; // 매달·매년은 일부러 안 맞는 날도 섞임
+  for (let k = Math.floor(rnd() * 4); k > 0; k--) props.push(fmt(startWall + Math.floor(rnd() * 120) * step * 86400000, 'EXDATE'));
+  const events = [vevent(props)];
+  if (rnd() < 0.25) {
+    const original = startWall + Math.floor(rnd() * 60) * step * 86400000;
+    events.push(vevent([`UID:${uid}`, fmt(original, 'RECURRENCE-ID'), `SUMMARY:예시 옮긴 날 ${i}`, fmt(original + 2 * 3600000, 'DTSTART'), fmt(original + 2 * 3600000 + lengthMs, 'DTEND')]));
+  }
+  return events;
+}
+
+test('간단한 반복(매주·매일·매달·매년)은 날짜 셈으로 펼쳐도 ical.js 반복기와 결과가 같다(무작위 400개)', () => {
+  let seed = 20261109;
+  const rnd = () => (seed = (seed * 48271) % 2147483647) / 2147483647;
+  const window = { from: new Date('2026-10-10T00:00:00Z'), to: new Date('2027-04-11T00:00:00Z') };
+  const sorted = (items) => items.slice().sort((a, b) => (a.extId < b.extId ? -1 : 1));
+  const before = { ...expandStats };
+  let compared = 0;
+  for (let i = 0; i < 400; i++) {
+    const text = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//예시//EN', ...calendar().split('\r\n').slice(3, -2), ...NEW_YORK_TZ, ...randomSeries(i, rnd).flat(), 'END:VCALENDAR', ''].join('\r\n');
+    const fast = parseIcs(text, window).items;
+    const slow = parseIcs(text, { ...window, simpleRules: false, fastForward: false, maxSteps: 100000 }).items;
+    assert.deepEqual(sorted(fast), sorted(slow), `무작위 일정 ${i}:\n${text}`);
+    compared += fast.length;
+  }
+  const used = expandStats.simple - before.simple;
+  assert.ok(used > 250, `날짜 셈 길을 쓴 반복 일정 ${used}개`); // 시간대 없는 시각의 UNTIL 등은 ical.js 길
+  assert.ok(compared > 2000, `비교한 일정 ${compared}개`);
+});
+
+test('EXDATE: 일정과 안 맞는 EXDATE 바로 뒤의 EXDATE도 뺀다(ical.js 반복기만 쓰면 놓침)', () => {
+  const text = calendar(
+    vevent([
+      'UID:monthly@example',
+      'SUMMARY:예시 월례 모임',
+      'DTSTART;TZID=Asia/Seoul:20261109T190000',
+      'DTEND;TZID=Asia/Seoul:20261109T200000',
+      'RRULE:FREQ=MONTHLY;BYDAY=2MO;COUNT=6', // 둘째 월요일: 11/9 12/14 1/11 2/8 3/8 4/12 → 날짜 셈 길이 아닌 ical.js 길
+      'EXDATE;TZID=Asia/Seoul:20261210T190000', // 일정과 안 맞는 날(목요일)
+      'EXDATE;TZID=Asia/Seoul:20261214T190000',
+    ]),
+  );
+  const before = expandStats.iterator;
+  const starts = parseIcs(text, range).items.map((it) => it.start).sort();
+  assert.equal(expandStats.iterator, before + 1);
+  assert.deepEqual(starts, ['2026-11-09T19:00:00+09:00', '2027-01-11T19:00:00+09:00', '2027-02-08T19:00:00+09:00', '2027-03-08T19:00:00+09:00']);
+});
+
+test('ical.js가 못 푸는 반복 규칙 하나 때문에 캘린더 전체를 버리지 않는다', () => {
+  const text = calendar(
+    vevent(['UID:odd@example', 'SUMMARY:예시 이상한 규칙', 'DTSTART;TZID=Asia/Seoul:20261102T100000', 'DTEND;TZID=Asia/Seoul:20261102T110000', 'RRULE:FREQ=MONTHLY;BYMONTHDAY=15;BYDAY=1MO']), // ical.js가 던지는 조합
+    vevent(['UID:ok@example', 'SUMMARY:예시 보통 일정', 'DTSTART;TZID=Asia/Seoul:20261110T100000', 'DTEND;TZID=Asia/Seoul:20261110T110000']),
+  );
+  const got = byId(parseIcs(text, range).items);
+  assert.equal(got['ok@example'].start, '2026-11-10T10:00:00+09:00');
+  assert.equal(got['odd@example'].start, '2026-11-02T10:00:00+09:00'); // 첫 번째 한 번만
+  assert.equal(Object.keys(got).length, 2);
+});
+
+test('시작할 때 데우기(warmUp)는 예시 캘린더를 날짜 셈 길로 돌리고, 실패해도 던지지 않는다', () => {
+  const before = expandStats.simple;
+  assert.equal(warmUp(1), true);
+  assert.equal(expandStats.simple, before + 2); // 매주 수업 + 매년 생일
 });
