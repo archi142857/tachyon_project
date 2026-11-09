@@ -1,4 +1,4 @@
-# NGS · 역할 대신 할 일 정리
+# Tachyon · 역할 대신 할 일 정리
 
 - 날짜: 2026-11-09
 - 도구: Claude Code (Claude Opus 5.5)
@@ -17,4 +17,4 @@
 
 ## 관련 결과
 
-- [계획 · 할 일 목록](../docs/ngs/계획.md)
+- [계획 · 할 일 목록](../docs/tachyon/계획.md)

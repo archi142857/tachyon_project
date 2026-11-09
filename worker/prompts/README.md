@@ -1,6 +1,6 @@
 # 앱 안의 AI 프롬프트 원문
 
-Tachyon(NGS) 앱이 Claude API에 보내는 프롬프트를 고치지 않은 그대로 둔다. 부르는 곳은 [`worker/llm.js`](../llm.js) 한 곳이고, 답은 `answer` 도구 하나를 꼭 쓰게 해서(tool_choice) 정해진 JSON 모양으로만 받는다.
+Tachyon 앱이 Claude API에 보내는 프롬프트를 고치지 않은 그대로 둔다. 부르는 곳은 [`worker/llm.js`](../llm.js) 한 곳이고, 답은 `answer` 도구 하나를 꼭 쓰게 해서(tool_choice) 정해진 JSON 모양으로만 받는다.
 
 | 파일 | 쓰는 곳 | 모델 | 하는 일 |
 |---|---|---|---|

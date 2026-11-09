@@ -6,6 +6,8 @@
 
 ## 사용자 직접 지시·보고
 
+`Tachyon-…` 기록은 Tachyon Project(서울대생 세컨브레인 앱 Tachyon) 것이다. 11-09 저녁까지는 `NGS-…`였고(처음 임시 앱 이름), 원문에 남은 'NGS'는 그때 말 그대로다.
+
 | 번호 | 날짜 | 도구 | 목적·기록 내용 | 원문·결과 | 발신 유형 | 송신 → 수신 |
 | --- | --- | --- | --- | --- | --- | --- |
 | 00 | 2026-11-06 | Codex | 00. 공모전 출품작 저장소 시작 | [00-시작.md](00-시작.md) | 사용자 직접 지시·보고 | 사용자 → Project / Concept |
@@ -36,16 +38,18 @@
 | Frontend-01 | 2026-11-07 | Codex | Frontend 첫 요청: 가상사례와 검증 준비 | [Frontend-01-가상사례-검증준비.md](Frontend-01-가상사례-검증준비.md) | 사용자 직접 지시·보고 | 사용자 → Project / Frontend |
 | Legal-01 | 2026-11-07 | Codex | Legal-01: 이용 조건 초기 검토 | [Legal-01-이용조건-초기검토.md](Legal-01-이용조건-초기검토.md) | 사용자 직접 지시·보고 | 사용자 → Project / Legal |
 | Research-01 | 2026-11-07 | Codex | Research 01 — 졸업요건 초안 검토 | [Research-01-졸업요건-초안-검토.md](Research-01-졸업요건-초안-검토.md) | 사용자 직접 지시·보고 | 사용자 → Project / Research |
-| NGS-01 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-01. 개발 프로세스와 계획 짜기 | [NGS-01-개발-프로세스와-계획.md](NGS-01-개발-프로세스와-계획.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
-| NGS-02 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-02. 역할 대신 할 일 정리 | [NGS-02-할-일-정리.md](NGS-02-할-일-정리.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
-| NGS-03 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-03. 저장소·Cloudflare 확정, 메일 기능 미룸 | [NGS-03-저장소와-스택-확정.md](NGS-03-저장소와-스택-확정.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
-| NGS-04 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-04. 기억 없는 AI용 인수인계 | [NGS-04-친구용-인수인계.md](NGS-04-친구용-인수인계.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
-| NGS-05 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-05. 프로젝트 이름, AI끼리 소통판, Cloudflare 시작 | [NGS-05-소통판과-Cloudflare-시작.md](NGS-05-소통판과-Cloudflare-시작.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
-| NGS-06 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-06. DB 위치 질문, 웹 + 앱, 캘린더 직접 접근 | [NGS-06-DB-위치와-앱-캘린더-접근.md](NGS-06-DB-위치와-앱-캘린더-접근.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
-| NGS-컨셉-01 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | NGS-컨셉-01. 앞 자료와 기획안 읽기 | [NGS-컨셉-01-자료-학습.md](NGS-컨셉-01-자료-학습.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
-| NGS-컨셉-02 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결 | NGS-컨셉-02. 인수인계 확인과 공유 드라이브 연결 | [NGS-컨셉-02-인수인계와-드라이브.md](NGS-컨셉-02-인수인계와-드라이브.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
-| NGS-컨셉-03 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | NGS-컨셉-03. 세션 나누기와 세션끼리 소통하는 방식 | [NGS-컨셉-03-세션-나누기.md](NGS-컨셉-03-세션-나누기.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
-| NGS-컨셉-04 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결 | NGS-컨셉-04. 작업 시작과 공유 드라이브 쪽지함 | [NGS-컨셉-04-작업-시작과-쪽지함.md](NGS-컨셉-04-작업-시작과-쪽지함.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
+| Tachyon-01 | 2026-11-09 | Claude Code (Claude Opus 5.5) | Tachyon-01. 개발 프로세스와 계획 짜기 | [Tachyon-01-개발-프로세스와-계획.md](Tachyon-01-개발-프로세스와-계획.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
+| Tachyon-02 | 2026-11-09 | Claude Code (Claude Opus 5.5) | Tachyon-02. 역할 대신 할 일 정리 | [Tachyon-02-할-일-정리.md](Tachyon-02-할-일-정리.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
+| Tachyon-03 | 2026-11-09 | Claude Code (Claude Opus 5.5) | Tachyon-03. 저장소·Cloudflare 확정, 메일 기능 미룸 | [Tachyon-03-저장소와-스택-확정.md](Tachyon-03-저장소와-스택-확정.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
+| Tachyon-04 | 2026-11-09 | Claude Code (Claude Opus 5.5) | Tachyon-04. 기억 없는 AI용 인수인계 | [Tachyon-04-친구용-인수인계.md](Tachyon-04-친구용-인수인계.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
+| Tachyon-05 | 2026-11-09 | Claude Code (Claude Opus 5.5) | Tachyon-05. 프로젝트 이름, AI끼리 소통판, Cloudflare 시작 | [Tachyon-05-소통판과-Cloudflare-시작.md](Tachyon-05-소통판과-Cloudflare-시작.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
+| Tachyon-06 | 2026-11-09 | Claude Code (Claude Opus 5.5) | Tachyon-06. DB 위치 질문, 웹 + 앱, 캘린더 직접 접근 | [Tachyon-06-DB-위치와-앱-캘린더-접근.md](Tachyon-06-DB-위치와-앱-캘린더-접근.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
+| Tachyon-컨셉-01 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | Tachyon-컨셉-01. 앞 자료와 기획안 읽기 | [Tachyon-컨셉-01-자료-학습.md](Tachyon-컨셉-01-자료-학습.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
+| Tachyon-컨셉-02 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결 | Tachyon-컨셉-02. 인수인계 확인과 공유 드라이브 연결 | [Tachyon-컨셉-02-인수인계와-드라이브.md](Tachyon-컨셉-02-인수인계와-드라이브.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
+| Tachyon-컨셉-03 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | Tachyon-컨셉-03. 세션 나누기와 세션끼리 소통하는 방식 | [Tachyon-컨셉-03-세션-나누기.md](Tachyon-컨셉-03-세션-나누기.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
+| Tachyon-컨셉-04 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결 | Tachyon-컨셉-04. 작업 시작과 공유 드라이브 쪽지함 | [Tachyon-컨셉-04-작업-시작과-쪽지함.md](Tachyon-컨셉-04-작업-시작과-쪽지함.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
+| Tachyon-컨셉-05 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결 | Tachyon-컨셉-05. 앱 이름을 모든 곳에서 Tachyon으로 | [Tachyon-컨셉-05-앱-이름-Tachyon으로.md](Tachyon-컨셉-05-앱-이름-Tachyon으로.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
+| Tachyon-AI-01 | 2026-11-09 | Claude Code (Claude Opus 5.5) | Tachyon-AI-01. AI 세션 시작: Claude API 키 안내, Haiku 지연 확인 준비, llm.js와 메모 즉시 팝업 | [Tachyon-AI-01-키-안내와-메모-팝업.md](Tachyon-AI-01-키-안내와-메모-팝업.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / AI |
 
 ## AI 세션 간 작업 지시·수정 요청·결과 보고
 

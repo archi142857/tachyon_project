@@ -1,5 +1,5 @@
 -- Tachyon Project DB 표 (초안 2026-11-09, 팀 합의 전)
--- 이 파일이 일을 나누는 경계다. 칸을 바꾸면 docs/ngs/소통.md에 '알림'으로 남긴다.
+-- 이 파일이 일을 나누는 경계다. 칸을 바꾸면 docs/tachyon/소통.md에 '알림'으로 남긴다.
 -- 시각은 ISO 8601 글자(예: 2026-11-13T15:00:00+09:00), 종일 일정은 날짜만(2026-11-13).
 -- 로컬: npm run db:local · Cloudflare: npm run db:remote
 

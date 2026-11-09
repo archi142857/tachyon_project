@@ -1,4 +1,4 @@
-# NGS-AI-01 · AI 세션 시작: Claude API 키 안내, Haiku 지연 확인 준비, llm.js와 메모 즉시 팝업
+# Tachyon-AI-01 · AI 세션 시작: Claude API 키 안내, Haiku 지연 확인 준비, llm.js와 메모 즉시 팝업
 
 - 날짜: 2026-11-09
 - 도구: Claude Code (Claude Opus 5.5) — archi142857 쪽 'AI' 세션. 앱 안의 AI는 Claude API(Haiku 5.5 · Sonnet 5.5)
@@ -31,7 +31,7 @@
 ## 바뀐 파일
 
 - 새로: `worker/llm.js`, `worker/3_memo_popup.js`, `worker/prompts/memo_popup.js`, `worker/prompts/README.md`, `worker/check/haiku_latency.js`, `worker/test/llm.test.js`, `worker/test/3_memo_popup.test.js`, `worker/test/fixtures/memo_cases.js`, `worker/test/helpers/d1.js`
-- 고침: `docs/ngs/계획.md`('작업 중' 표시), `docs/ngs/소통.md`(알림·schema.sql 답)
+- 고침: `docs/tachyon/계획.md`('작업 중' 표시), `docs/tachyon/소통.md`(알림·schema.sql 답)
 
 ## 남은 일
 

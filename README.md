@@ -1,8 +1,8 @@
-# Tachyon Project — 서울대생 세컨브레인 (앱 임시 이름 NGS)
+# Tachyon — 서울대생 세컨브레인
 
 **eTL 과제·캘린더·시간표·메모를 한곳에 모아, 할 일 3개·주간 달력·메모 화면과 아침 브리핑으로 정리해 주는 서울대생용 웹앱·앱입니다.** 메모에 일정처럼 보이는 글을 쓰면 바로 '이대로 저장할까?'를 묻고, 밤에는 그날 메모를 정리해 아침에 먼저 할 것과 미룰 것을 알려 줍니다.
 
-**지금 상태 (2026-11-09): 개발 0단계.** 서버 뼈대만 배포돼 있고 아직 쓸 수 있는 기능은 없습니다. 11/13 팀 실사용 → 11/25 기능 동결 → 11/29 제출 예정입니다. 날마다 바뀌는 진행은 [계획](docs/ngs/계획.md)의 체크박스와 [소통판](docs/ngs/소통.md)에서 볼 수 있습니다.
+**지금 상태 (2026-11-09): 개발 0단계.** 서버 뼈대만 배포돼 있고 아직 쓸 수 있는 기능은 없습니다. 11/13 팀 실사용 → 11/25 기능 동결 → 11/29 제출 예정입니다. 날마다 바뀌는 진행은 [계획](docs/tachyon/계획.md)의 체크박스와 [소통판](docs/tachyon/소통.md)에서 볼 수 있습니다.
 
 ## 무엇을 해결하나요?
 
@@ -37,17 +37,17 @@ AI가 일을 부풀리지 않도록, 할 일 제목은 사용자가 쓴 말 그�
 
 ## AI를 어떻게 활용했나요?
 
-- 개발은 팀원마다 자기 노트북의 AI 에이전트(Claude Code, Claude)로 했습니다. 사람이 AI에게 준 요청은 [prompts/](prompts/README.md)에 원문 그대로, AI끼리 주고받은 요청·보고는 [소통판](docs/ngs/소통.md)에 남깁니다. 도구 칸에는 실제로 쓴 도구를 적습니다.
-- 공모전 규정은 [공모전 규정 확인](docs/ngs/공모전.md)에 정리했습니다. ChatGPT Edu를 쓰는 방식(개발·검토 일부를 ChatGPT Edu 계정의 Codex로, 되면 ChatGPT Edu에서 Tachyon을 부르는 MCP 연결)은 팀이 정하는 중입니다.
+- 개발은 팀원마다 자기 노트북의 AI 에이전트(Claude Code, Claude)로 했습니다. 사람이 AI에게 준 요청은 [prompts/](prompts/README.md)에 원문 그대로, AI끼리 주고받은 요청·보고는 [소통판](docs/tachyon/소통.md)에 남깁니다. 도구 칸에는 실제로 쓴 도구를 적습니다.
+- 공모전 규정은 [공모전 규정 확인](docs/tachyon/공모전.md)에 정리했습니다. ChatGPT Edu를 쓰는 방식(개발·검토 일부를 ChatGPT Edu 계정의 Codex로, 되면 ChatGPT Edu에서 Tachyon을 부르는 MCP 연결)은 팀이 정하는 중입니다.
 
 ## 바로가기
 
 | 보고 싶은 것 | 링크 |
 |---|---|
-| 개발 계획과 할 일 | [docs/ngs/계획.md](docs/ngs/계획.md) |
-| 처음 이어받는 사람(AI)용 정리 | [docs/ngs/인수인계.md](docs/ngs/인수인계.md) |
-| 팀원 AI끼리 주고받은 글 | [docs/ngs/소통.md](docs/ngs/소통.md) |
-| 처음 손그림 | [구조](docs/ngs/스케치_구조.png) · [화면](docs/ngs/스케치_화면.png) |
+| 개발 계획과 할 일 | [docs/tachyon/계획.md](docs/tachyon/계획.md) |
+| 처음 이어받는 사람(AI)용 정리 | [docs/tachyon/인수인계.md](docs/tachyon/인수인계.md) |
+| 팀원 AI끼리 주고받은 글 | [docs/tachyon/소통.md](docs/tachyon/소통.md) |
+| 처음 손그림 | [구조](docs/tachyon/스케치_구조.png) · [화면](docs/tachyon/스케치_화면.png) |
 | 프롬프트 원문 | [prompts/README.md](prompts/README.md) |
 | 작업 기록 | [docs/작업_기록.md](docs/작업_기록.md) |
 

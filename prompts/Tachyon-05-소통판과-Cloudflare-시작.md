@@ -1,4 +1,4 @@
-# NGS-05 · 프로젝트 이름, AI끼리 소통판, Cloudflare 시작
+# Tachyon-05 · 프로젝트 이름, AI끼리 소통판, Cloudflare 시작
 
 - 날짜: 2026-11-09
 - 도구: Claude Code (Claude Opus 5.5)
@@ -17,12 +17,12 @@ NGS 이어서
 
 ## 결과 요약
 
-- 프로젝트 이름 Tachyon Project를 계획·인수인계·AGENTS.md·CLAUDE.md에 반영했다. 폴더·번호 이름(`docs/ngs/`, `NGS-NN`)은 그대로 둔다.
-- AI끼리 주고받는 [소통판](../docs/ngs/소통.md)을 만들었다: 저장소 안 파일 하나에 덧붙이기만 하고, `.gitattributes`의 `merge=union`으로 동시에 써도 충돌이 나지 않는다. 일을 맡을 때는 계획의 그 줄에 `작업 중: 아이디` 표시. 비밀값·실명은 저장소 대신 팀 구글 드라이브 폴더로.
+- 프로젝트 이름 Tachyon Project를 계획·인수인계·AGENTS.md·CLAUDE.md에 반영했다. 폴더·번호 이름(`docs/ngs/`, `NGS-NN`)은 그대로 둔다. (11-09 저녁 archi142857 요청으로 앱 이름과 함께 `docs/tachyon/`, `Tachyon-NN`으로 바뀜)
+- AI끼리 주고받는 [소통판](../docs/tachyon/소통.md)을 만들었다: 저장소 안 파일 하나에 덧붙이기만 하고, `.gitattributes`의 `merge=union`으로 동시에 써도 충돌이 나지 않는다. 일을 맡을 때는 계획의 그 줄에 `작업 중: 아이디` 표시. 비밀값·실명은 저장소 대신 팀 구글 드라이브 폴더로.
 - AGENTS.md 맨 위에 Tachyon Project 칸을 더해, 팀원마다 각자 커밋·푸시하고(앞 출품작의 'Concept만 커밋' 대신) 소통판을 쓰게 했다.
 - Cloudflare 뼈대: `package.json`(wrangler), `wrangler.toml`, `worker/index.js`(`/api/health`), `web/index.html`(빈 화면), `schema.sql`(초안, 합의 전). 로컬에서 표 6개가 만들어지고 `/api/health`가 응답하는 것을 확인했다.
 
 ## 관련 결과
 
-- [소통판](../docs/ngs/소통.md) · [계획](../docs/ngs/계획.md) · [AGENTS.md](../AGENTS.md) · [CLAUDE.md](../CLAUDE.md)
+- [소통판](../docs/tachyon/소통.md) · [계획](../docs/tachyon/계획.md) · [AGENTS.md](../AGENTS.md) · [CLAUDE.md](../CLAUDE.md)
 - [wrangler.toml](../wrangler.toml) · [worker/index.js](../worker/index.js) · [web/index.html](../web/index.html) · [schema.sql](../schema.sql)

@@ -1,4 +1,4 @@
-# NGS-06 · DB 위치 질문, 웹 + 앱, 캘린더 직접 접근
+# Tachyon-06 · DB 위치 질문, 웹 + 앱, 캘린더 직접 접근
 
 - 날짜: 2026-11-09
 - 도구: Claude Code (Claude Opus 5.5) — 웹 조사는 Claude Code 하위 에이전트(웹 검색)
@@ -27,4 +27,4 @@
 
 ## 관련 결과
 
-- [계획 '캘린더 직접 읽기' 표와 2단계 앱 할 일](../docs/ngs/계획.md) · [인수인계 '형태'](../docs/ngs/인수인계.md) · [schema.sql](../schema.sql)(source에 device 추가)
+- [계획 '캘린더 직접 읽기' 표와 2단계 앱 할 일](../docs/tachyon/계획.md) · [인수인계 '형태'](../docs/tachyon/인수인계.md) · [schema.sql](../schema.sql)(source에 device 추가)

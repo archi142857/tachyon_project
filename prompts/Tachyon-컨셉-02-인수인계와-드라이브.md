@@ -1,4 +1,4 @@
-# NGS · 컨셉 02 · 인수인계 확인과 공유 드라이브 연결
+# Tachyon · 컨셉 02 · 인수인계 확인과 공유 드라이브 연결
 
 - 날짜: 2026-11-09
 - 도구: Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결
@@ -23,7 +23,7 @@ Use Google Drive for this
 
 ## 결과 요약
 
-저장소 이름이 `tachyon_project`로 바뀐 것을 확인하고, 최신 커밋 `3575991`의 [인수인계](../docs/ngs/인수인계.md)·[계획](../docs/ngs/계획.md)·손그림을 읽었다. 공유 드라이브 'Tachyon Project'는 Google Drive 연결로 읽고 쓸 수 있다(팀원 소유, 사용자 편집자, 당시 비어 있음).
+저장소 이름이 `tachyon_project`로 바뀐 것을 확인하고, 최신 커밋 `3575991`의 [인수인계](../docs/tachyon/인수인계.md)·[계획](../docs/tachyon/계획.md)·손그림을 읽었다. 공유 드라이브 'Tachyon Project'는 Google Drive 연결로 읽고 쓸 수 있다(팀원 소유, 사용자 편집자, 당시 비어 있음).
 
 ## 바뀐 파일
 
