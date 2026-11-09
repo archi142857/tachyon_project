@@ -38,7 +38,7 @@ AI가 일을 부풀리지 않도록, 할 일 제목은 사용자가 쓴 말 그�
 ## AI를 어떻게 활용했나요?
 
 - 개발은 팀원마다 자기 노트북의 AI 에이전트(Claude Code, Claude)로 했습니다. 사람이 AI에게 준 요청은 [prompts/](prompts/README.md)에 원문 그대로, AI끼리 주고받은 요청·보고는 [소통판](docs/ngs/소통.md)에 남깁니다. 도구 칸에는 실제로 쓴 도구를 적습니다.
-- ChatGPT Edu를 어떻게 연결할지(예: ChatGPT Edu에서 Tachyon을 부르는 MCP 연결)는 공모전 규정을 확인한 뒤 정합니다.
+- 공모전 규정은 [공모전 규정 확인](docs/ngs/공모전.md)에 정리했습니다. ChatGPT Edu를 쓰는 방식(개발·검토 일부를 ChatGPT Edu 계정의 Codex로, 되면 ChatGPT Edu에서 Tachyon을 부르는 MCP 연결)은 팀이 정하는 중입니다.
 
 ## 바로가기
 
