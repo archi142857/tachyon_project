@@ -43,3 +43,11 @@ Claude Code가 "두 계정을 테스트 사용자로 넣을까?"라고 묻자 �
 ## 관련 결과
 
 - [소통판 11-10 01:21 글](../docs/tachyon/소통.md)
+
+## 이어진 질문
+
+````text
+근데 api는 매달 나오는거 아니야?
+````
+
+맞았다. 그 $200은 구독에 딸린 월 API 크레딧이다. 결제 주기마다 새로 들어오고 이월은 없다([Anthropic 문서](https://platform.claude.com/docs/en/about-claude/api-credits-for-subscribers)). 11/24는 주기가 끝나는 날일 뿐이라 소통판 11-10 01:27 글로 정정했다.
