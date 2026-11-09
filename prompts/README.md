@@ -42,6 +42,10 @@
 | NGS-04 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-04. 기억 없는 AI용 인수인계 | [NGS-04-친구용-인수인계.md](NGS-04-친구용-인수인계.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
 | NGS-05 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-05. 프로젝트 이름, AI끼리 소통판, Cloudflare 시작 | [NGS-05-소통판과-Cloudflare-시작.md](NGS-05-소통판과-Cloudflare-시작.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
 | NGS-06 | 2026-11-09 | Claude Code (Claude Opus 5.5) | NGS-06. DB 위치 질문, 웹 + 앱, 캘린더 직접 접근 | [NGS-06-DB-위치와-앱-캘린더-접근.md](NGS-06-DB-위치와-앱-캘린더-접근.md) | 사용자 직접 지시·보고 | 사용자 → Claude Code |
+| NGS-컨셉-01 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | NGS-컨셉-01. 앞 자료와 기획안 읽기 | [NGS-컨셉-01-자료-학습.md](NGS-컨셉-01-자료-학습.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
+| NGS-컨셉-02 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결 | NGS-컨셉-02. 인수인계 확인과 공유 드라이브 연결 | [NGS-컨셉-02-인수인계와-드라이브.md](NGS-컨셉-02-인수인계와-드라이브.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
+| NGS-컨셉-03 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | NGS-컨셉-03. 세션 나누기와 세션끼리 소통하는 방식 | [NGS-컨셉-03-세션-나누기.md](NGS-컨셉-03-세션-나누기.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
+| NGS-컨셉-04 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결 | NGS-컨셉-04. 작업 시작과 공유 드라이브 쪽지함 | [NGS-컨셉-04-작업-시작과-쪽지함.md](NGS-컨셉-04-작업-시작과-쪽지함.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
 
 ## AI 세션 간 작업 지시·수정 요청·결과 보고
 
