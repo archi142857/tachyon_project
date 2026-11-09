@@ -26,7 +26,7 @@
 // - 할 일의 done·minutes·ready, 일정의 important는 사용자·AI 값이라 덮어쓰지 않는다.
 // - 주소는 APP_SECRET으로 잠가 feeds.url에만 둔다. 응답·로그·오류 문장에 주소를 넣지 않는다.
 //
-// 표: feeds(아래 FEEDS_SQL, schema.sql에 넣어 달라고 소통판에 요청함), events, tasks, log(ics_sync · ics_fail)
+// 표(schema.sql): feeds(주소 한 칸 = 한 줄, url은 잠근 주소), events, tasks, log(ics_sync · ics_fail)
 
 import { prefilter, expandCalendar, fingerprint, isAssignment, assertIcs, IcsError } from './lib/ics.js';
 import { seal, unseal } from './lib/secret.js';
@@ -36,19 +36,6 @@ import { logStatement } from './lib/log.js';
 
 export const KINDS = ['etl', 'google', 'apple'];
 
-export const FEEDS_SQL = `CREATE TABLE IF NOT EXISTS feeds (
-  id          INTEGER PRIMARY KEY,
-  user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  kind        TEXT NOT NULL,      -- etl · google · apple (= events/tasks의 source)
-  url         TEXT NOT NULL,      -- 잠근 주소(APP_SECRET). 원문은 어디에도 안 둔다
-  last_hash   TEXT,               -- 마지막으로 반영한 내용의 지문
-  last_try_at TEXT,               -- 마지막 시도
-  last_ok_at  TEXT,               -- 마지막 성공
-  last_error  TEXT,               -- 마지막 실패 이유(성공하면 NULL)
-  item_count  INTEGER,            -- 마지막 반영 때 일정·할 일 수
-  dead_count  INTEGER NOT NULL DEFAULT 0, -- 주소가 안 열린(401·403·404·410·ICS 아님) 연속 횟수. 2번이면 Cron이 멈춤
-  UNIQUE (user_id, kind)
-)`;
 
 const PAST_DAYS = 30;
 const FUTURE_DAYS = 183;

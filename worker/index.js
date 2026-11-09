@@ -1,7 +1,7 @@
 // Tachyon Project 서버 입구. web/에 없는 주소만 여기로 온다.
 // 기능은 번호 붙은 파일(1_login.js, 2_collect_ics.js …)에 두고 여기서는 주소만 나눈다.
 //
-//   /api/health      → 여기서 바로 (DB 표 수)
+//   /api/health      → 여기서 바로 (DB 표 수, 아직 안 넣은 비밀값 이름)
 //   /api/login*      → 1_login.js            구글 로그인·내 정보·로그아웃
 //   /api/feeds*      → 2_collect_ics.js      캘린더(ICS) 주소·수집
 //   /api/memo*       → 3_memo_popup.js       메모 → 즉시 팝업
@@ -9,6 +9,7 @@
 //   /api/timetable*  → 5_timetable_photo.js  시간표 사진
 //   /api/feedback*   → 6_feedback.js         의견·오류 → GitHub 이슈
 //   /api/tasks*, /api/events* → 7_items.js   할 일·일정 읽기·고치기
+//   /api/calendar*   → 8_calendar_feed.js    폰 달력에서 구독하는 Tachyon ICS
 //
 // 번호 파일 약속: `export async function handle(request, env, ctx, user)`
 //   user = 로그인한 사람의 users 행(로그인 안 했으면 null). Cron이 필요하면 `export async function scheduled(event, env, ctx)`.
@@ -25,6 +26,7 @@ export const ROUTES = [
   ["/api/feedback", "6_feedback"],
   ["/api/tasks", "7_items"],
   ["/api/events", "7_items"],
+  ["/api/calendar", "8_calendar_feed"],
 ];
 
 // wrangler.toml의 crons와 같아야 한다 (UTC)
@@ -39,7 +41,9 @@ export default {
     try {
       if (url.pathname === "/api/health") {
         const row = await env.DB.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type = 'table'").first();
-        return Response.json({ ok: true, tables: row.n });
+        // 아직 안 넣은 비밀값 이름(값은 안 보임). 설정이 끝나면 빈 배열.
+        const missing = ["APP_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "ANTHROPIC_API_KEY"].filter((k) => !env[k]);
+        return Response.json({ ok: true, tables: row.n, missing });
       }
 
       const name = routeFor(url.pathname);
@@ -98,6 +102,7 @@ const IMPORTERS = {
   5: (rest) => import(`./5_${rest}.js`),
   6: (rest) => import(`./6_${rest}.js`),
   7: (rest) => import(`./7_${rest}.js`),
+  8: (rest) => import(`./8_${rest}.js`),
 };
 
 /** 번호 파일(예: "3_memo_popup")을 불러온다. 아직 없으면 null. */

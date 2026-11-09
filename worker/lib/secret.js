@@ -1,13 +1,15 @@
 // 비밀값 다루기 (담당: 서버 세션)
 //
 // Cloudflare 비밀값 APP_SECRET 하나에서 용도별 키를 만든다(HKDF-SHA256).
-//   'session' → 로그인 쿠키 서명(HMAC)
-//   'seal'    → DB에 넣는 ICS 주소·(3단계) eTL 토큰 잠금(AES-GCM)
+//   'session'  → 로그인 쿠키 서명(HMAC)
+//   'calendar' → 캘린더 구독 주소 서명(HMAC, 8_calendar_feed.js)
+//   'seal'     → DB에 넣는 ICS 주소·(3단계) eTL 토큰 잠금(AES-GCM)
 // APP_SECRET을 바꾸면 모두 로그아웃되고, 잠근 주소는 다시 넣어야 한다.
 
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 const cache = new Map();
+const HMAC_PURPOSES = new Set(['session', 'calendar']);
 
 export async function deriveKey(env, purpose) {
   const secret = env.APP_SECRET;
@@ -19,7 +21,7 @@ export async function deriveKey(env, purpose) {
   const base = await crypto.subtle.importKey('raw', enc.encode(secret), 'HKDF', false, ['deriveKey']);
   const params = { name: 'HKDF', hash: 'SHA-256', salt: enc.encode('tachyon'), info: enc.encode(purpose) };
   const key =
-    purpose === 'session'
+    HMAC_PURPOSES.has(purpose)
       ? await crypto.subtle.deriveKey(params, base, { name: 'HMAC', hash: 'SHA-256', length: 256 }, false, ['sign', 'verify'])
       : await crypto.subtle.deriveKey(params, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
   cache.set(cacheKey, key);

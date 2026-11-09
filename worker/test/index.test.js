@@ -18,6 +18,7 @@ test('주소 → 번호 파일', () => {
   assert.equal(routeFor('/api/feedback'), '6_feedback');
   assert.equal(routeFor('/api/tasks/12'), '7_items');
   assert.equal(routeFor('/api/events'), '7_items');
+  assert.equal(routeFor('/api/calendar/1.abc.ics'), '8_calendar_feed');
   assert.equal(routeFor('/api/loginx'), null);
   assert.equal(routeFor('/'), null);
 });
