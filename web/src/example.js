@@ -80,8 +80,9 @@ export function makeExample(now = new Date()) {
   };
 }
 
-// 예시 모드에서만 쓰는 '일정처럼 보이나' 흉내. 진짜 판단은 서버(worker/3_memo_popup.js, 정규식 + Claude)가 한다.
-// 서버와 같은 모양: { title, date, time, end_time, place, by }, 모르는 칸은 '?'. 일정처럼 보이지 않으면 null.
+// 예시 모드에서만 쓰는 '일정·할 일처럼 보이나' 흉내. 진짜 판단은 서버(worker/3_memo_popup.js, 정규식 + Claude)가 한다.
+// 서버와 같은 모양: 일정 { title, date, time, end_time, place, by }, 할 일 { kind: 'task', title, date, time, by }(마감 모르면 '?').
+// 둘 다 아니면 null. 할 일 끝말은 서버 TODO_END와 같다(11-10 사람 "할 일만 딱 적으면 메모가 안 생김").
 const WD = '월화수목금토일';
 export function examplePopup(text, now = new Date()) {
   let rest = ` ${text} `;
@@ -111,7 +112,9 @@ export function examplePopup(text, now = new Date()) {
     time = `${two(Number(m[1]))}:${m[2]}`;
     rest = rest.replace(m[0], ' ');
   }
-  if (offset === null && time === '?') return null;
+  if (offset === null && time === '?') return looksLikeTodo(text) ? { kind: 'task', title: tidyTask(text), date: '?', time: '?', by: 'rule' } : null;
+  const due = ymd(kst(fromKst(today.y, today.m, today.d + (offset ?? 0))));
+  if (/까지|마감|제출/.test(rest)) return { kind: 'task', title: tidyTask(rest) || '?', date: due, time, by: 'rule' };
 
   let place = '?';
   if ((m = rest.match(/\d{1,3}(-\d)?동(\s?\d{2,4}호)?/))) {
@@ -120,10 +123,16 @@ export function examplePopup(text, now = new Date()) {
   }
   return {
     title: rest.replace(/\s+/g, ' ').trim() || '?',
-    date: ymd(kst(fromKst(today.y, today.m, today.d + (offset ?? 0)))),
+    date: due,
     time,
     end_time: '?',
     place,
     by: 'rule',
   };
 }
+
+const PAST = /(었|았|였|했)(다|음|어)/;
+const TODO_END = /(?:기|할\s*것|할것|해야\s*(?:함|됨|돼|해|지|할\s*듯)?|하자|제출|신청|예약|연락|전화|구매|결제|준비|정리|확인|복습|예습|공부|등록|납부|반납|수정|출력|인쇄)$/;
+const looksLikeTodo = (text) => !PAST.test(text) && TODO_END.test(text.trim().replace(/[\s.!~,;:]+$/, ''));
+// 할 일 이름: 앞뒤 빈칸과 맨 앞 '까지'만 뗀다(쓴 말 그대로)
+const tidyTask = (text) => text.replace(/\s+/g, ' ').trim().replace(/^까지\s*/, '');

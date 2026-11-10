@@ -3,7 +3,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { handle, findWhen, mergePopup, suggestEvent, isoKst, nowLabel } from "../3_memo_popup.js";
+import { handle, findWhen, mergePopup, suggestEvent, isoKst, nowLabel, looksLikeTodo } from "../3_memo_popup.js";
 import { CASES, NOW } from "./fixtures/memo_cases.js";
 import { fakeD1, addUser, fakeCtx } from "./helpers/d1.js";
 
@@ -72,9 +72,13 @@ test("'어제'보다 앞으로 올 날을 먼저 고르고, 지난 날만 있으
 
 // ── 팝업 후보 합치기 ──
 
-test("AI 없이(규칙만): 이름·장소를 쓴 말 그대로 뽑고, 시각 없는 메모·마감·지난 일은 팝업 없음", () => {
+test("AI 없이(규칙만): 이름·장소를 쓴 말 그대로 뽑고, 시각 없는 일정 메모·지난 일은 팝업 없음, 마감은 할 일 팝업", () => {
   for (const c of CASES) {
     const p = mergePopup(c.text, findWhen(c.text, NOW), null);
+    if (c.want.kind === "task") {
+      assert.deepEqual(p, { kind: "task", title: c.want.title, date: c.want.date, time: c.want.time, by: "rule" }, c.text);
+      continue;
+    }
     if (!c.want.is_schedule || c.want.time === "?") {
       assert.equal(p, null, c.text);
       continue;
@@ -128,11 +132,51 @@ function aiReply(input) {
   );
 }
 
-test("날짜·시각 말이 없으면 AI를 부르지 않는다", async () => {
+test("날짜·시각 말이 없는 지난 일·짧은 메모는 AI를 부르지 않는다", async () => {
   let calls = 0;
-  const p = await suggestEvent({ ANTHROPIC_API_KEY: "k" }, "과제 아이디어 정리", NOW, { fetch: async () => (calls++, aiReply({})) });
-  assert.equal(p, null);
+  const fetch = async () => (calls++, aiReply({}));
+  assert.equal(await suggestEvent({ ANTHROPIC_API_KEY: "k" }, "점심 맛있었다", NOW, { fetch }), null);
+  assert.equal(await suggestEvent({ ANTHROPIC_API_KEY: "k" }, "ㅋ", NOW, { fetch }), null);
   assert.equal(calls, 0);
+});
+
+test("할 일 메모(11-10 사람 요청): 날짜가 없어도 AI가 할 일이라 하면 '할 일로 넣을까요?', 그냥 메모면 팝업 없음", async () => {
+  const ask = (input) => async () => aiReply(input);
+  const todo = await suggestEvent({ ANTHROPIC_API_KEY: "k" }, "과제 아이디어 정리", NOW, {
+    fetch: ask({ kind: "task", title: "과제 아이디어 정리", time: "?", place: "?" }),
+  });
+  assert.deepEqual(todo, { kind: "task", title: "과제 아이디어 정리", date: "?", time: "?", by: "ai" });
+  // 마감 날짜는 정규식(AI에게 묻지 않는다), 이름은 AI
+  const due = await suggestEvent({ ANTHROPIC_API_KEY: "k" }, "금요일까지 실험 보고서 내기", NOW, {
+    fetch: ask({ kind: "task", title: "실험 보고서 내기", time: "?", place: "?" }),
+  });
+  assert.deepEqual(due, { kind: "task", title: "실험 보고서 내기", date: "2026-11-13", time: "?", by: "ai" });
+  const note = await suggestEvent({ ANTHROPIC_API_KEY: "k" }, "앱 아이디어 - 위젯", NOW, {
+    fetch: ask({ kind: "note", title: "앱 아이디어 - 위젯", time: "?", place: "?" }),
+  });
+  assert.equal(note, null);
+  // 마감 시각의 오전·오후도 일정처럼 AI를 따른다(쓴 날짜가 없으면 그 시각이 다음에 오는 날)
+  const night = await suggestEvent({ ANTHROPIC_API_KEY: "k" }, "9시까지 퀴즈 풀기", NOW, {
+    fetch: ask({ kind: "task", title: "퀴즈 풀기", time: "21:00", place: "?" }),
+  });
+  assert.deepEqual([night.kind, night.date, night.time], ["task", "2026-11-09", "21:00"]);
+  // 예전 답 모양(kind 없이 is_schedule만)도 받는다
+  const old = await suggestEvent({ ANTHROPIC_API_KEY: "k" }, "내일 3시 스터디", NOW, {
+    fetch: ask({ is_schedule: true, title: "스터디", time: "15:00", place: "?" }),
+  });
+  assert.equal(old.title, "스터디");
+});
+
+test("AI 없이 할 일 가리기: '-기'·'할 것'·'해야 함'·끝내는 일 낱말·마감 말", async () => {
+  for (const text of ["동아리 회비 걷기 물어보기", "과제 3장까지 풀기", "엄마한테 전화", "토익 신청", "보고서 수정해야 함", "책 반납할 것", "중간고사 복습!"]) {
+    assert.equal(looksLikeTodo(text, findWhen(text, NOW)), true, text);
+  }
+  for (const text of ["앱 아이디어 메모", "오늘 점심 맛있었다", "교수님 연구실 302호", "어제 보고서 제출했음"]) {
+    assert.equal(looksLikeTodo(text, findWhen(text, NOW)), false, text);
+  }
+  // 키가 없으면 규칙으로 할 일 팝업(이름은 쓴 말 그대로)
+  assert.deepEqual(await suggestEvent({}, "동아리 회비 걷기 물어보기", NOW), { kind: "task", title: "동아리 회비 걷기 물어보기", date: "?", time: "?", by: "rule" });
+  assert.equal(await suggestEvent({}, "앱 아이디어 메모", NOW), null);
 });
 
 test("AI에게 지금 시각과 메모를 보내고, 답으로 팝업을 만들고, 사용량을 log에 남긴다", async () => {
@@ -242,6 +286,41 @@ test("시각 없이 저장하면 종일 일정(날짜만), 취소는 log만 남�
   assert.equal(cancel.status, 200);
   assert.equal(DB.sqlite.prepare("SELECT handled FROM memos WHERE id = ?").get(other.body.memo.id).handled, 0);
   assert.equal(DB.sqlite.prepare("SELECT action FROM log WHERE action = 'popup_cancel'").all().length, 1);
+});
+
+test("할 일 팝업 저장 → 할 일 생김(밤 정리와 같은 줄), 다시 저장은 같은 줄, 할 일 팝업 취소는 메모로만", async () => {
+  const DB = fakeD1();
+  const env = { DB };
+  const user = addUser(DB);
+  const added = await call(env, user, "POST", "/api/memo", { text: "다음주 월요일까지 유기화학 과제 제출" });
+  const { memo, popup } = added.body;
+  assert.equal(popup.kind, "task");
+
+  const saved = await call(env, user, "POST", `/api/memo/${memo.id}/save`, { ...popup, suggested: popup });
+  await saved.ctx.settle();
+  assert.equal(saved.status, 200);
+  assert.deepEqual(saved.body.task, { id: saved.body.task.id, title: "유기화학 과제 제출", due: "2026-11-16T23:59:00+09:00", minutes: null, ready: 1, done: 0, source: "memo" });
+  assert.equal(DB.sqlite.prepare("SELECT ext_id FROM tasks").get().ext_id, `memo:${memo.id}`);
+  assert.equal(DB.sqlite.prepare("SELECT handled FROM memos WHERE id = ?").get(memo.id).handled, 1);
+
+  const again = await call(env, user, "POST", `/api/memo/${memo.id}/save`, { kind: "task", title: "유기화학 과제", date: "2026-11-16", time: "18:00", suggested: popup });
+  await again.ctx.settle();
+  assert.equal(again.body.task.id, saved.body.task.id);
+  assert.equal(again.body.task.due, "2026-11-16T18:00:00+09:00");
+  assert.equal(DB.sqlite.prepare("SELECT count(*) AS n FROM tasks").get().n, 1);
+  assert.deepEqual(DB.sqlite.prepare("SELECT action FROM log ORDER BY id").all().map((r) => r.action), ["popup_save", "popup_edit"]);
+  assert.ok((await call(env, user, "GET", "/api/memo")).body.memos[0].task_id);
+
+  // 마감 없이도 저장된다, 이름은 있어야 한다
+  const plain = await call(env, user, "POST", "/api/memo", { text: "토익 신청" });
+  const noDue = await call(env, user, "POST", `/api/memo/${plain.body.memo.id}/save`, { kind: "task", title: "토익 신청", date: "?", time: "?" });
+  assert.equal(noDue.body.task.due, null);
+  assert.equal((await call(env, user, "POST", `/api/memo/${plain.body.memo.id}/save`, { kind: "task", title: "?" })).status, 400);
+
+  const skip = await call(env, user, "POST", "/api/memo", { text: "엄마한테 전화" });
+  const cancel = await call(env, user, "POST", `/api/memo/${skip.body.memo.id}/cancel`, { kind: "task" });
+  await cancel.ctx.settle();
+  assert.equal(DB.sqlite.prepare("SELECT handled FROM memos WHERE id = ?").get(skip.body.memo.id).handled, 1, "밤 정리가 할 일로 다시 만들지 않게");
 });
 
 test("잘못된 요청과 남의 메모", async () => {

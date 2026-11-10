@@ -111,6 +111,15 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
   async function savePopup(fields, changeId) {
     setBusy(true);
     try {
+      if (fields.kind === 'task') {
+        // 할 일 팝업 → 할 일 목록에 바로(걸리는 시간은 밤 정리가 채운다)
+        const { task } = await api.savePopup(popup.memoId, fields, popup.popup);
+        setMemos((m) => m.map((x) => (x.id === popup.memoId ? { ...x, handled: 1, task_id: task.id } : x)));
+        setPopup(null);
+        loadRank();
+        setSnack({ text: `‘${task.title}’ 할 일에 넣었어요` });
+        return;
+      }
       const { event } = await api.savePopup(popup.memoId, fields, popup.popup, changeId);
       setMemos((m) => m.map((x) => (x.id === popup.memoId ? { ...x, handled: 1, event_id: event.id } : x)));
       setPopup(null);
@@ -130,7 +139,8 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
   }
 
   function cancelPopup() {
-    api.cancelPopup(popup.memoId).catch(() => {});
+    api.cancelPopup(popup.memoId, popup.popup.kind).catch(() => {});
+    if (popup.popup.kind === 'task') setMemos((m) => m.map((x) => (x.id === popup.memoId ? { ...x, handled: 1 } : x)));
     setPopup(null);
   }
 

@@ -3,22 +3,26 @@
 // 흐름: 메모를 저장한다 → 날짜·시각 말이 있으면(정규식) 빠른 모델에게 '일정인지·이름·장소'를 묻는다
 //       → 팝업 후보(이름·날짜·시각·장소, 모르면 '?')를 돌려준다 → 사용자가 저장/고치기/취소 → events.
 // 날짜·시각은 코드가 먼저 계산한다(위험 확인 '팝업 1초'의 대처). AI 답이 늦거나 실패하면 규칙만으로 팝업을 만든다.
-// 일정이 아닌 메모(할 일·생각)는 팝업 없이 메모로 남고, 밤 정리(4_night.js)가 읽는다.
+// 할 일 메모(11-10 사람 "할 일만 딱 적으면 메모가 안 생김")는 '할 일로 넣을까요?' 팝업(popup.kind = 'task', 마감 = 날짜·시각 말).
+//   날짜·시각 말이 없는 메모도 AI가 일정·할 일·그냥 메모를 가린다(지난 일은 AI를 부르지 않음). AI가 없거나 실패하면 규칙(looksLikeTodo).
+// 그냥 메모(생각·지난 일)와 팝업을 '취소'한 일정 메모는 메모로 남고, 밤 정리(4_night.js)가 읽는다. 할 일 팝업을 취소하면 밤 정리도 할 일로 만들지 않는다.
 // 아는 일정으로 채우기(lib/known.js, AI 없이): '공수2 휴강 16일' → 내 '공학수학 2' 수업 시각·장소(popup.from),
 //       '… 16일로 변경' → 옮길 일정(popup.change). 저장 때 change_id를 주면 새 일정을 넣고 옛 일정은 가린다(events.moved_to).
 //
 // 주소 (worker/index.js가 /api/memo* 를 여기로 보낸다. 응답은 모두 JSON)
-//   POST   /api/memo              { text }                    → { memo, popup }   popup은 일정이 아니면 null
+//   POST   /api/memo              { text }                    → { memo, popup }   popup은 일정·할 일이 아니면 null
 //   GET    /api/memo?before=&limit=                           → { memos }         오래된 것부터, event_id·task_id = 이 메모로 만든 일정·할 일
 //   POST   /api/memo/:id/save     { title, date, time, end_time, place, suggested, change_id } → { event }
 //                                 suggested = 받았던 popup 그대로(고쳤는지 재려고). 모르는 칸은 '?'
 //                                 change_id = 옮길 일정(popup.change.id). 주면 그 일정은 달력에서 가려진다
-//   POST   /api/memo/:id/cancel                               → { ok }            메모는 남아서 밤 정리가 읽는다
+//                                 할 일: { kind: 'task', title, date, time, suggested } → { task }  (마감 날짜만 있으면 그날 23:59, 없으면 마감 없음)
+//   POST   /api/memo/:id/cancel   { kind? }                   → { ok }            일정 팝업 취소: 메모는 남아서 밤 정리가 읽는다. 할 일 팝업 취소: 메모로만(handled = 1)
 //   DELETE /api/memo/:id                                      → { ok }
 //
-// popup 모양: { title, date: "2026-11-10", time: "15:00", end_time: "?", place: "301동", by: "ai" | "rule",
+// 할 일 popup 모양: { kind: "task", title, date: 마감 날짜 또는 "?", time: 마감 시각 또는 "?", by }
+// 일정 popup 모양: { title, date: "2026-11-10", time: "15:00", end_time: "?", place: "301동", by: "ai" | "rule",
 //               from: "공학수학 2"(시각·장소를 가져온 내 일정, 없으면 없음), change: { id, title, start }(옮길 일정, 없으면 없음) }
-// 표: memos(쓰기·읽기), events(source='memo', ext_id='memo:<메모 id>'), log(popup_save·popup_edit·popup_cancel·llm·llm_fail)
+// 표: memos(쓰기·읽기), events·tasks(source='memo', ext_id='memo:<메모 id>' — 밤 정리와 같은 이름), log(popup_save·popup_edit·popup_cancel·llm·llm_fail)
 
 import { askJson, usageDetail } from "./llm.js";
 import { SYSTEM, SCHEMA, userMessage } from "./prompts/memo_popup.js";
@@ -34,7 +38,7 @@ export async function handle(request, env, ctx, user) {
   if (!id && request.method === "POST") return addMemo(request, env, ctx, user);
   if (!id && request.method === "GET") return listMemos(url, env, user);
   if (id && action === "save" && request.method === "POST") return savePopup(request, env, ctx, user, id);
-  if (id && action === "cancel" && request.method === "POST") return cancelPopup(env, ctx, user, id);
+  if (id && action === "cancel" && request.method === "POST") return cancelPopup(request, env, ctx, user, id);
   if (id && !action && request.method === "DELETE") return deleteMemo(env, user, id);
   return json({ error: "없는 주소" }, 404);
 }
@@ -76,6 +80,7 @@ async function listMemos(url, env, user) {
 
 async function savePopup(request, env, ctx, user, memoId) {
   const body = await request.json().catch(() => ({}));
+  if (body.kind === "task") return saveTask(body, env, ctx, user, memoId);
   const f = popupFields(body);
   if (!f.title || !f.date) return json({ error: "이름과 날짜는 있어야 한다" }, 400);
 
@@ -110,10 +115,34 @@ async function savePopup(request, env, ctx, user, memoId) {
   return json({ event: saved.results[0] });
 }
 
-async function cancelPopup(env, ctx, user, memoId) {
+/** 할 일 팝업 저장 → tasks(source 'memo', ext_id 'memo:<id>' — 밤 정리가 만드는 것과 같은 줄이라 두 번 생기지 않는다). 걸리는 시간은 밤 정리가 채운다 */
+async function saveTask(body, env, ctx, user, memoId) {
+  const f = taskFields(body);
+  if (!f.title) return json({ error: "이름은 있어야 한다" }, 400);
   const memo = await env.DB.prepare("SELECT id FROM memos WHERE id = ? AND user_id = ?").bind(memoId, user.id).first();
   if (!memo) return json({ error: "없는 메모" }, 404);
-  background(ctx, writeLog(env, user.id, "popup_cancel", JSON.stringify({ memo_id: memoId })));
+  const due = f.date ? `${f.date}T${f.time ?? "23:59"}:00+09:00` : null;
+  const [saved] = await env.DB.batch([
+    env.DB.prepare(
+      `INSERT INTO tasks (user_id, title, due, source, ext_id) VALUES (?, ?, ?, 'memo', ?)
+       ON CONFLICT (user_id, source, ext_id) DO UPDATE SET title = excluded.title, due = excluded.due
+       RETURNING id, title, due, minutes, ready, done, source`,
+    ).bind(user.id, f.title, due, `memo:${memoId}`),
+    env.DB.prepare("UPDATE memos SET handled = 1 WHERE id = ? AND user_id = ?").bind(memoId, user.id),
+  ]);
+  const edited = body.suggested ? !sameTask(f, taskFields(body.suggested)) : Boolean(body.edited);
+  const detail = JSON.stringify({ memo_id: memoId, kind: "task", by: body.suggested?.by ?? null });
+  background(ctx, writeLog(env, user.id, edited ? "popup_edit" : "popup_save", detail));
+  return json({ task: saved.results[0] });
+}
+
+async function cancelPopup(request, env, ctx, user, memoId) {
+  const body = await request.json().catch(() => ({}));
+  const memo = await env.DB.prepare("SELECT id FROM memos WHERE id = ? AND user_id = ?").bind(memoId, user.id).first();
+  if (!memo) return json({ error: "없는 메모" }, 404);
+  // 할 일로 넣지 않겠다고 했으니 밤 정리도 할 일로 만들지 않는다(메모로만 남음)
+  if (body.kind === "task") await env.DB.prepare("UPDATE memos SET handled = 1 WHERE id = ? AND user_id = ?").bind(memoId, user.id).run();
+  background(ctx, writeLog(env, user.id, "popup_cancel", JSON.stringify({ memo_id: memoId, kind: body.kind === "task" ? "task" : "event" })));
   return json({ ok: true });
 }
 
@@ -125,12 +154,12 @@ async function deleteMemo(env, user, memoId) {
 // ── 팝업 후보 만들기 ─────────────────────────────────────────
 
 /**
- * 메모 한 줄 → 팝업 후보 또는 null(일정이 아님).
- * 날짜·시각 말이 없으면 AI를 부르지 않는다(비용·지연 0).
+ * 메모 한 줄 → 팝업 후보(일정 또는 할 일) 또는 null(그냥 메모).
+ * 날짜·시각 말이 없어도 할 일일 수 있어 AI에게 묻는다. 다만 지난 일(~했다)·너무 짧은 메모는 묻지 않는다(비용 0).
  */
 export async function suggestEvent(env, text, now = new Date(), { ctx, userId, fetch } = {}) {
   const when = findWhen(text, now);
-  if (!when) return null;
+  if (!when && !worthAsking(text)) return null;
 
   const askAi = async () => {
     if (!env.ANTHROPIC_API_KEY) return null;
@@ -144,9 +173,16 @@ export async function suggestEvent(env, text, now = new Date(), { ctx, userId, f
     }
   };
   // AI에게 묻는 동안 내 일정을 읽는다(기다리는 시간이 안 늘고, AI에게는 일정을 안 보낸다 = 토큰 그대로)
-  const [ai, known] = await Promise.all([askAi(), loadKnown(env, userId, text, now)]);
+  const [ai, known] = await Promise.all([askAi(), when ? loadKnown(env, userId, text, now) : []]);
   const popup = mergePopup(text, when, ai, now);
-  return popup && useKnown(popup, text, known, isoKst(now).slice(0, 10));
+  if (!popup || popup.kind === "task") return popup;
+  return useKnown(popup, text, known, isoKst(now).slice(0, 10));
+}
+
+/** 날짜·시각 말이 없는 메모를 AI에게 물을 만한가: 글자가 있고(2자 이상), 지난 일(~했다·~었음)이 아니면 */
+function worthAsking(text) {
+  const t = text.trim();
+  return t.length >= 2 && /[가-힣A-Za-z]/.test(t) && !PAST.test(t);
 }
 
 /** 메모의 낱말과 첫 글자가 같은 내 일정(2주 전 ~ 6달 뒤, 옮긴 것 빼고). 줄임말은 첫 글자가 같다(lib/known.js) */
@@ -185,21 +221,11 @@ export function askPopupAi(env, text, now, { fetch, timeoutMs = 2500 } = {}) {
  * - 날짜·시각은 정규식이 먼저. 오전·오후를 짐작한 경우에만 AI의 같은 시각(3시 ↔ 15시)을 따른다.
  */
 export function mergePopup(text, when, ai, now = new Date()) {
-  if (ai ? ai.is_schedule !== true : !looksLikeSchedule(text, when)) return null;
+  const kind = ai ? aiKind(ai) : when && looksLikeSchedule(text, when) ? "schedule" : looksLikeTodo(text, when) ? "task" : "note";
+  if (kind === "task") return taskPopup(text, when, ai, now);
+  if (kind !== "schedule" || !when) return null; // 날짜·시각 말이 없는 일정은 팝업에 날짜를 못 채운다 → 메모로(밤 정리)
 
-  let date = when.date;
-  let time = when.time;
-  let end = when.end;
-  const aiTime = cleanTime(ai?.time);
-  if (time && when.guessed && aiTime && aiTime !== time && sameClock(aiTime, time)) {
-    // 오전·오후를 짐작한 시각은 AI를 따른다(3시 ↔ 15시). 끝 시각도 같이 12시간 옮긴다
-    const shift = toMin(aiTime) - toMin(time);
-    time = aiTime;
-    if (end) end = hhmm((toMin(end) + shift + 1440) % 1440);
-    if (!when.dateExplicit) date = nextDayAt(aiTime, now); // "9시 영화"처럼 날짜를 안 썼으면 그 시각이 다음에 오는 날
-  }
-  if (!time && aiTime) time = aiTime;
-
+  const { date, time, end } = clockOf(when, ai, now);
   const guess = guessTitlePlace(text, when);
   return {
     title: clean(ai?.title) ?? guess.title,
@@ -216,8 +242,51 @@ function looksLikeSchedule(text, when) {
   if (!when.time || when.past) return false;
   const rest = cutSpans(text, when.spans);
   if (/까지|마감|제출/.test(rest)) return false;
-  if (/(었|았|였|했)(다|음|어)/.test(rest)) return false;
+  if (PAST.test(rest)) return false;
   return true;
+}
+
+const PAST = /(었|았|였|했)(다|음|어)/;
+// 할 일 끝말: '풀기'·'물어보기'처럼 -기, '할 것'·'해야 함', 또는 끝내면 되는 일 낱말(제출·신청·예약·연락·전화…)
+const TODO_END = /(?:기|할\s*것|할것|해야\s*(?:함|됨|돼|해|지|할\s*듯)?|하자|제출|신청|예약|연락|전화|구매|결제|준비|정리|확인|복습|예습|공부|등록|납부|반납|수정|출력|인쇄)$/;
+
+/** AI 없이 할 일인지: 지난 일이 아니고, 마감 말(까지·마감·제출)이 있거나 끝말이 할 일 모양 */
+export function looksLikeTodo(text, when) {
+  const rest = when ? cutSpans(text, when.spans) : text;
+  if (when?.past || PAST.test(rest)) return false;
+  if (when && /까지|마감|제출|내기/.test(rest)) return true;
+  return TODO_END.test(rest.trim().replace(/[\s.!~,;:]+$/, ""));
+}
+
+/** AI 답의 종류: 새 칸 kind가 먼저, 없으면 예전 칸 is_schedule */
+function aiKind(ai) {
+  if (["schedule", "task", "note"].includes(ai.kind)) return ai.kind;
+  return ai.is_schedule === true ? "schedule" : "note";
+}
+
+/** 할 일 팝업: 이름은 날짜·시각 말과 그 조사('~까지')를 뺀 나머지 그대로(AI가 있으면 AI).
+ *  마감은 정규식이 읽은 날짜·시각(오전·오후만 AI, 일정과 같은 규칙). 날짜·시각 말이 없으면 마감 없음 */
+function taskPopup(text, when, ai, now) {
+  const rest = tidy(when ? cutSpans(text, when.spans) : text);
+  const due = when ? clockOf(when, ai, now) : {};
+  return { kind: "task", title: clean(ai?.title) ?? (rest || "?"), date: due.date ?? "?", time: due.time ?? "?", by: ai ? "ai" : "rule" };
+}
+
+/** 날짜·시각은 정규식이 먼저. 오전·오후를 짐작한 시각만 AI의 같은 시각(3시 ↔ 15시)을 따른다 */
+function clockOf(when, ai, now) {
+  let date = when.date;
+  let time = when.time;
+  let end = when.end;
+  const aiTime = cleanTime(ai?.time);
+  if (time && when.guessed && aiTime && aiTime !== time && sameClock(aiTime, time)) {
+    // 오전·오후를 짐작한 시각은 AI를 따른다(3시 ↔ 15시). 끝 시각도 같이 12시간 옮긴다
+    const shift = toMin(aiTime) - toMin(time);
+    time = aiTime;
+    if (end) end = hhmm((toMin(end) + shift + 1440) % 1440);
+    if (!when.dateExplicit) date = nextDayAt(aiTime, now); // "9시 영화"처럼 날짜를 안 썼으면 그 시각이 다음에 오는 날
+  }
+  if (!time && aiTime) time = aiTime;
+  return { date, time, end };
 }
 
 // ── 날짜·시각 읽기 (정규식) ──────────────────────────────────
@@ -539,6 +608,9 @@ function popupFields(o = {}) {
   };
 }
 const sameFields = (a, b) => ["title", "date", "time", "end_time", "place"].every((key) => a[key] === b[key]);
+/** 할 일 팝업 칸 정리: 이름·마감 날짜·마감 시각('?'·빈칸 → null) */
+const taskFields = (o = {}) => ({ title: clean(o.title), date: cleanDate(o.date), time: cleanTime(o.time) });
+const sameTask = (a, b) => ["title", "date", "time"].every((key) => a[key] === b[key]);
 
 /** 팝업 칸 → events.start/end. 시각이 없으면 종일 일정: schema.sql대로 start = 그날, end = 다음 날(ICS 방식) */
 function toStartEnd(f) {

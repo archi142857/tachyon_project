@@ -263,8 +263,8 @@ export function listMemos() {
   return ex ? reply({ memos: ex.memos }) : call('GET', '/api/memo?limit=50');
 }
 
-// 메모 하나를 보내고, 일정처럼 보이면 popup { title, date, time, end_time, place, by }를 받는다(모르는 칸 '?').
-// AI 때문에 2.5초까지 걸릴 수 있다.
+// 메모 하나를 보내고, 일정처럼 보이면 popup { title, date, time, end_time, place, by },
+// 할 일처럼 보이면 popup { kind: 'task', title, date, time, by }(마감, 모르면 '?')를 받는다. AI 때문에 2.5초까지 걸릴 수 있다.
 export function sendMemo(text) {
   if (ex) {
     const memo = { id: Date.now(), text, created_at: toKstIso(new Date()), handled: 0, event_id: null };
@@ -275,9 +275,18 @@ export function sendMemo(text) {
 }
 
 // 팝업 저장. fields = { title, date, time, end_time, place }('?' 그대로), suggested = 받았던 popup.
+// 할 일 팝업은 fields = { kind: 'task', title, date, time } → { task }(마감 날짜만 있으면 그날 23:59).
 // 고쳤는지는 서버가 suggested와 견줘 log에 남긴다(팝업 정확도).
 // changeId = 옮길 일정(popup.change.id). 주면 서버가 그 일정을 달력에서 가린다.
 export function savePopup(memoId, fields, suggested, changeId) {
+  if (ex && fields.kind === 'task') {
+    const due = fields.date && fields.date !== '?' ? `${fields.date}T${fields.time && fields.time !== '?' ? fields.time : '23:59'}:00+09:00` : null;
+    const task = { id: Date.now(), title: fields.title, due, minutes: null, ready: 1, done: 0, source: 'memo' };
+    ex.tasks.push(task);
+    const memo = ex.memos.find((m) => m.id === memoId);
+    if (memo) Object.assign(memo, { handled: 1, task_id: task.id });
+    return reply({ task });
+  }
   if (ex) {
     const event = { id: Date.now(), title: fields.title, ...popupToEvent(fields), place: fields.place === '?' ? null : fields.place, source: 'memo', important: 0 };
     ex.events.push(event);
@@ -288,10 +297,10 @@ export function savePopup(memoId, fields, suggested, changeId) {
   return call('POST', `/api/memo/${encodeURIComponent(memoId)}/save`, { ...fields, suggested, change_id: changeId });
 }
 
-// 팝업 취소: 메모는 메모로 남고 밤 정리가 읽는다
-export function cancelPopup(memoId) {
+// 팝업 취소: 메모는 메모로 남는다. 일정 팝업이면 밤 정리가 다시 읽고, 할 일 팝업(kind 'task')이면 메모로만 둔다
+export function cancelPopup(memoId, kind) {
   if (ex) return reply({ ok: true });
-  return call('POST', `/api/memo/${encodeURIComponent(memoId)}/cancel`);
+  return call('POST', `/api/memo/${encodeURIComponent(memoId)}/cancel`, kind === 'task' ? { kind } : undefined);
 }
 
 /* ── 6_feedback (서버 세션) ── */

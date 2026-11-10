@@ -114,8 +114,11 @@ describe('예시 팝업 흉내(서버 없을 때만, 서버와 같은 모양)', 
     expect(examplePopup('다음 주 월요일 회의', now)).toMatchObject({ date: '2026-11-16', time: '?', title: '회의' });
   });
 
-  it('일정처럼 보이지 않으면 팝업 없음', () => {
-    expect(examplePopup('동아리 회비 걷기 물어보기', now)).toBeNull();
+  it('할 일 메모는 할 일 팝업(마감은 날짜 말), 일정도 할 일도 아니면 팝업 없음', () => {
+    expect(examplePopup('동아리 회비 걷기 물어보기', now)).toEqual({ kind: 'task', title: '동아리 회비 걷기 물어보기', date: '?', time: '?', by: 'rule' });
+    expect(examplePopup('금요일까지 실험 보고서 내기', now)).toEqual({ kind: 'task', title: '실험 보고서 내기', date: '2026-11-13', time: '?', by: 'rule' });
+    expect(examplePopup('앱 아이디어 메모', now)).toBeNull();
+    expect(examplePopup('점심 맛있었다', now)).toBeNull();
   });
 
   it('예시 자료는 이번 주 기준, 시각은 +09:00', () => {

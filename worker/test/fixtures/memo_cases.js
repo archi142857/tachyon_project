@@ -4,8 +4,10 @@
 
 export const NOW = new Date("2026-11-09T17:00:00+09:00");
 
-const no = { is_schedule: false };
-const yes = (title, date, time, place, end_time = "?") => ({ is_schedule: true, title, date, time, end_time, place });
+const no = { kind: "note", is_schedule: false };
+const yes = (title, date, time, place, end_time = "?") => ({ kind: "schedule", is_schedule: true, title, date, time, end_time, place });
+// 할 일(11-10부터 '할 일로 넣을까요?' 팝업): 마감 날짜·시각, 모르면 '?'
+const task = (title, date = "?", time = "?") => ({ kind: "task", is_schedule: false, title, date, time });
 
 export const CASES = [
   { text: "내일 3시 301동 스터디", want: yes("스터디", "2026-11-10", "15:00", "301동") },
@@ -16,6 +18,6 @@ export const CASES = [
   { text: "토요일 오후 1시 관악산 입구 등산", want: yes("등산", "2026-11-14", "13:00", "관악산 입구") },
   { text: "수요일 18:30 체육관 배드민턴", want: yes("배드민턴", "2026-11-11", "18:30", "체육관") },
   { text: "12월 3일 기말 발표", want: yes("기말 발표", "2026-12-03", "?", "?") },
-  { text: "다음주 월요일까지 유기화학 과제 제출", want: no }, // 마감 → 할 일(밤 정리)
+  { text: "다음주 월요일까지 유기화학 과제 제출", want: task("유기화학 과제 제출", "2026-11-16") }, // 마감 → 할 일 팝업
   { text: "오늘 점심 맛있었다", want: no }, // 지난 일
 ];

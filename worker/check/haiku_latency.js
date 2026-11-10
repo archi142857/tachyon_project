@@ -1,5 +1,5 @@
 // 위험 확인: Haiku 팝업 지연 (계획 0단계)
-// 지어낸 메모 10개(worker/test/fixtures/memo_cases.js)를 실제 API로 JSON(일정인지·이름·날짜·시각·장소)으로 바꾸고
+// 지어낸 메모 10개(worker/test/fixtures/memo_cases.js)를 실제 API로 JSON(일정·할 일·메모 중 무엇인지·이름·시각·장소)으로 바꾸고
 // 지연 중앙값을 잰다. 앱과 똑같은 함수(3_memo_popup.js의 askPopupAi)와 프롬프트(worker/prompts/memo_popup.js)를 쓴다.
 // 끝 기준: 중앙값이 1초 안이면 그대로, 넘으면 '날짜·시각은 정규식 먼저'(이미 들어 있음) + AI 기다리는 시간(POPUP_AI_MS)을 줄인다.
 //
@@ -58,12 +58,16 @@ for (const { c, r, wall, error, popup } of rows) {
     if (got === want) fieldsOk++;
     marks.push(`${name}${got === want ? "○" : `✗(${got})`}`);
   };
-  check("일정", ai.is_schedule, c.want.is_schedule);
-  if (c.want.is_schedule) {
+  check("종류", ai.kind, c.want.kind); // 11-10부터 is_schedule 대신 kind(schedule·task·note)
+  if (c.want.kind === "schedule") {
     check("이름", popup?.title, c.want.title);
     check("날짜", popup?.date, c.want.date);
     check("시각", popup?.time, c.want.time);
     check("장소", popup?.place, c.want.place);
+  }
+  if (c.want.kind === "task") {
+    check("이름", popup?.title, c.want.title);
+    check("마감", popup?.date, c.want.date);
   }
   const shown = popup ? `${popup.title} · ${popup.date} ${popup.time} · ${popup.place}` : "팝업 없음";
   console.log(`${c.text} | ${wall} | ${r.usage.input}/${r.usage.output} | ${JSON.stringify(ai)} | ${shown} | ${marks.join(" ")}`);

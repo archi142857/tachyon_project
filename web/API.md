@@ -84,10 +84,11 @@
 | 요청 | 보냄 | 받음 |
 | --- | --- | --- |
 | `GET /api/memo?limit=50` | — | `{ memos: [{ id, text, created_at, handled, event_id, task_id }] }` 오래된 것부터. `event_id`가 있으면 '달력에 넣었어요', `task_id`(밤 정리)면 '할 일에 넣었어요' |
-| `POST /api/memo` | `{ text }` | `{ memo, popup }` · `popup` = `null`(일정 아님) 또는 `{ title, date, time, end_time, place, by }` |
-| `POST /api/memo/:id/save` | `{ title, date, time, end_time, place, suggested }` · `suggested` = 받았던 popup 그대로 | `{ event }` |
-| `POST /api/memo/:id/cancel` | — | `{ ok }` · 메모는 남고 밤 정리가 읽는다 |
+| `POST /api/memo` | `{ text }` | `{ memo, popup }` · `popup` = `null`(그냥 메모), 일정 `{ title, date, time, end_time, place, by }`, 할 일 `{ kind: 'task', title, date, time, by }`(마감, 모르면 `'?'`, 11-10) |
+| `POST /api/memo/:id/save` | `{ title, date, time, end_time, place, suggested, change_id? }` · `suggested` = 받았던 popup 그대로, `change_id` = 옮길 일정(`popup.change.id`, 주면 그 일정은 달력에서 가려진다). 할 일은 `{ kind: 'task', title, date, time, suggested }` | `{ event }` · 할 일은 `{ task }`(tasks source `memo`, 마감 날짜만 있으면 23:59, 없으면 마감 없음) |
+| `POST /api/memo/:id/cancel` | `{ kind? }` | `{ ok }` · 일정 팝업: 메모는 남고 밤 정리가 읽는다. 할 일 팝업(`kind: 'task'`, 화면 '메모로만'): 메모로만 남고 밤 정리도 할 일로 안 만든다 |
 
+- 날짜·시각 말이 없어도 지난 일(~했다)·한 글자가 아니면 AI가 일정·할 일·그냥 메모를 가린다(AI가 없거나 실패하면 규칙: '-기'·'할 것'·'해야 함'·제출·신청·전화… 끝말, 마감 말 '까지'). 화면은 할 일이면 '할 일로 넣을까요?'(넣기·고치기·메모로만).
 - 모르는 칸은 `'?'`, 화면도 '?'로 보인다. 예: `내일 3시 301동 스터디` → `{ title: '스터디', date: '2026-11-10', time: '15:00', end_time: '?', place: '301동', by: 'ai' }`.
 - 저장할 때 이름·날짜는 꼭 있어야 한다(없으면 400). 그래서 화면은 이름이나 날짜가 '?'면 '저장' 대신 고치기 칸부터 연다. 시각이 '?'면 종일 일정으로 저장된다.
 - 고쳤는지는 서버가 `suggested`와 견줘 `log`에 남긴다(팝업 정확도). 응답이 2.5초까지 걸릴 수 있어 화면은 메모를 먼저 붙이고 '살펴보는 중…'을 보인다.
