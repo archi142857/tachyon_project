@@ -1,0 +1,4894 @@
+{
+ "meta": {
+  "built_on": "2026-11-10",
+  "compared_with": "data/offerings 2025-1 ~ 2026-2",
+  "note": "수강편람의 이수구분은 개설 학과 기준이라 다른 학과 학생에게는 다를 수 있다. 어긋난 줄은 사람이 학과 내규로 확인한다."
+ },
+ "required_now_but_not_marked": [
+  {
+   "number": "700.212",
+   "name": "경제와 사회",
+   "dept": "사회교육과",
+   "semester": "2025-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "650.1207",
+   "name": "국악개론 및 감상 1",
+   "dept": "국악과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "200.104",
+   "name": "국제정치학개론",
+   "dept": "정치외교학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1262.000200",
+   "name": "근대미학",
+   "dept": "미학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "2071.301",
+   "name": "뇌-마음-행동",
+   "dept": "심리학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "2114.303B",
+   "name": "디지털영상실습1",
+   "dept": "언론정보학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "100.131",
+   "name": "말소리의 세계",
+   "dept": "언어학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "300.319",
+   "name": "분자생물학",
+   "dept": "생명과학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "3346.415",
+   "name": "생태학",
+   "dept": "생명과학부",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "519.002",
+   "name": "유기화학",
+   "dept": "응용생물화학부",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "300.310",
+   "name": "유전학",
+   "dept": "생명과학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "881.001",
+   "name": "응용해석 1",
+   "dept": "바이오시스템·소재학부",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "208.219",
+   "name": "자연지리학개론",
+   "dept": "지리학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "200.103",
+   "name": "정치학원론",
+   "dept": "정치외교학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1262.000100",
+   "name": "고중세미학",
+   "dept": "미학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "650.1208",
+   "name": "국악개론 및 감상 2",
+   "dept": "국악과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "2071.401",
+   "name": "뇌-마음-행동 개별연구",
+   "dept": "심리학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "2071.302",
+   "name": "뇌-마음-행동 세미나",
+   "dept": "심리학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1262.000400",
+   "name": "동양미학개론",
+   "dept": "미학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "2114.413A",
+   "name": "디지털영상실습2",
+   "dept": "언론정보학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "722.206A",
+   "name": "육상 2(필드)",
+   "dept": "체육교육과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "300.218",
+   "name": "은하와 우주",
+   "dept": "물리·천문학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "300.214",
+   "name": "전기와 자기",
+   "dept": "물리·천문학부",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "722.431A",
+   "name": "체육논리및논술",
+   "dept": "체육교육과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "718.419",
+   "name": "화학교재연구 및 지도법",
+   "dept": "화학교육과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "100.153",
+   "name": "미학원론",
+   "dept": "미학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "722.201A",
+   "name": "체육교육론",
+   "dept": "체육교육과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3229.002100",
+   "name": "항공우주 통합 시스템 설계 및 제작 1",
+   "dept": "항공우주공학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3229.002200",
+   "name": "항공우주 통합 시스템 설계 및 제작 2",
+   "dept": "항공우주공학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "4251.002A",
+   "name": "지식경영전략",
+   "dept": "산업공학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1858.001200",
+   "name": "동아시아고중세사",
+   "dept": "역사교육과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1399.000900",
+   "name": "수리통계",
+   "dept": "통계학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2180.002800",
+   "name": "수의전문직업성 1 (수의역사와 직업정체성)",
+   "dept": "수의과대학",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2180.002400",
+   "name": "수의생명의학 2 (생명현상의 이해)",
+   "dept": "수의과대학",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2180.002900",
+   "name": "수의전문직업성 2 (동물 돌봄과 동물복지)",
+   "dept": "수의과대학",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2174.001600",
+   "name": "생활과학신입생세미나",
+   "dept": "생활과학대학",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1513.002400",
+   "name": "선박 해양 탄소중립 에너지 개론",
+   "dept": "조선해양공학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2180.002500",
+   "name": "수의생명의학 3 (수의분자세포생물학)",
+   "dept": "수의과대학",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2180.003000",
+   "name": "수의전문직업성 3 (인간동물관계와 원헬스)",
+   "dept": "수의과대학",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2173.004300",
+   "name": "역학",
+   "dept": "물리·천문학부",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1729.001100",
+   "name": "환경경영과 지속가능성 분석",
+   "dept": "연합전공 글로벌환경경영학",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2180.002600",
+   "name": "수의생명의학 4 (수의유전(체)학)",
+   "dept": "수의과대학",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2180.002700",
+   "name": "수의생명의학실습",
+   "dept": "수의과대학",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2180.003100",
+   "name": "수의전문직업성 4 (진로탐구와 동물병원 실습)",
+   "dept": "수의과대학",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "538.402",
+   "name": "환경정책입문",
+   "dept": "연합전공 글로벌환경경영학",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  }
+ ],
+ "marked_required_but_elective_now": [
+  {
+   "number": "457.307",
+   "name": "건설계획 및 관리",
+   "dept": "건설환경공학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "4013.203A",
+   "name": "건축환경시스템",
+   "dept": "건축학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "457.205",
+   "name": "공간정보공학",
+   "dept": "건설환경공학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M0000.029300",
+   "name": "공간정보분석 1: 통계모형",
+   "dept": "지리학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "5271.321",
+   "name": "공원녹지계획",
+   "dept": "조경·지역시스템공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "6532.3111",
+   "name": "관악합주 2",
+   "dept": "관현악과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "6531.2101",
+   "name": "기악반주",
+   "dept": "피아노과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "713.214",
+   "name": "기후환경론",
+   "dept": "지리교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "6522.1235",
+   "name": "대위법(이론) 1",
+   "dept": "음악학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "457.203",
+   "name": "도시계획",
+   "dept": "건설환경공학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "116.420A",
+   "name": "미술사연습",
+   "dept": "고고미술사학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "209.112",
+   "name": "사회복지개론",
+   "dept": "사회복지학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "209.304",
+   "name": "사회복지정책",
+   "dept": "사회복지학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "209.319",
+   "name": "사회복지현장실습",
+   "dept": "사회복지학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "6531.2209",
+   "name": "성악반주",
+   "dept": "피아노과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "457.207A",
+   "name": "수문학",
+   "dept": "건설환경공학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "6533.3303",
+   "name": "실내악앙상블(중주)",
+   "dept": "관현악과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "6531.3303",
+   "name": "실내앙상블(중주)",
+   "dept": "피아노과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "103.225",
+   "name": "영어담화분석",
+   "dept": "영어영문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "6522.3323",
+   "name": "음악심리학",
+   "dept": "음악학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "5192.250",
+   "name": "일반미생물학",
+   "dept": "응용생물화학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "4190.206A",
+   "name": "전기전자회로",
+   "dept": "컴퓨터공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "5192.358",
+   "name": "진단곤충학 및 실험",
+   "dept": "응용생물화학부",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "2114.409",
+   "name": "창의연구실습",
+   "dept": "언론정보학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "457.206",
+   "name": "토질역학",
+   "dept": "건설환경공학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "700.141A",
+   "name": "프랑스어기초문법 1",
+   "dept": "불어교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "6531.3330",
+   "name": "피아노문헌 1",
+   "dept": "피아노과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "6522.1281",
+   "name": "화성법(이론) 1",
+   "dept": "음악학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "457.208",
+   "name": "교통공학 및 실험",
+   "dept": "건설환경도시공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1586.002000",
+   "name": "구조해석 1",
+   "dept": "건설환경도시공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "5192.355",
+   "name": "농업식물생리학",
+   "dept": "응용생물화학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "6522.1236",
+   "name": "대위법(이론) 2",
+   "dept": "음악학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "106.326A",
+   "name": "러시아어의 과거와 현재",
+   "dept": "노어노문학과",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "209.320",
+   "name": "사회복지실천론",
+   "dept": "사회복지학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "2114.410",
+   "name": "산학연구실습",
+   "dept": "언론정보학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1848.000500",
+   "name": "영어독해",
+   "dept": "영어교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "6522.2357",
+   "name": "음악이론사 2",
+   "dept": "음악학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1587.000100",
+   "name": "응용생화학 2",
+   "dept": "화학생물공학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "3348.217",
+   "name": "전기와 자기 연습",
+   "dept": "물리·천문학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "208.421A",
+   "name": "지리공간의 역사와 사상",
+   "dept": "지리학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "103.340",
+   "name": "코퍼스 영어학",
+   "dept": "영어영문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "708.305A",
+   "name": "프랑스문학개관 2",
+   "dept": "불어교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "700.142",
+   "name": "프랑스어기초문법 2",
+   "dept": "불어교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "6531.3331",
+   "name": "피아노문헌 2",
+   "dept": "피아노과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "603.414",
+   "name": "현대조각론 2",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "6522.1282",
+   "name": "화성법(이론) 2",
+   "dept": "음악학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "457.210A",
+   "name": "환경공학",
+   "dept": "건설환경도시공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "103.201A",
+   "name": "고급영문법",
+   "dept": "영어영문학과",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "103.223",
+   "name": "영어와 사회",
+   "dept": "영어영문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.003600",
+   "name": "영어습득의 이해",
+   "dept": "영어영문학과",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "103.420",
+   "name": "영어학특강",
+   "dept": "영어영문학과",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1419.001500",
+   "name": "양자물리 연습",
+   "dept": "물리·천문학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1419.001400",
+   "name": "역학 연습",
+   "dept": "물리·천문학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.003400",
+   "name": "영어의미의 이해",
+   "dept": "영어영문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1419.001800",
+   "name": "고급 양자물리",
+   "dept": "물리·천문학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1419.001900",
+   "name": "고급 양자물리 연습",
+   "dept": "물리·천문학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3636.000100",
+   "name": "물리화학의 기초",
+   "dept": "첨단융합학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.003500",
+   "name": "영어문장구조의 이해",
+   "dept": "영어영문학과",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3638.001200",
+   "name": "신약연구실험 1",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  }
+ ],
+ "renamed": [
+  {
+   "number": "M1338.000400",
+   "name": "기술 트렌드와 사업기회 분석",
+   "dept": "경영학과",
+   "semester": "2026-1",
+   "offered_as": "전필",
+   "listed_name": "기술 트랜드와 사회기업 분석"
+  },
+  {
+   "number": "M1236.000900",
+   "name": "미국문학개관",
+   "dept": "영어영문학과",
+   "semester": "2025-1",
+   "offered_as": "전선",
+   "listed_name": "미국문학개관 1"
+  },
+  {
+   "number": "552.453",
+   "name": "소동물정형/신경외과학병원실습",
+   "dept": "수의과대학",
+   "semester": "2026-2",
+   "offered_as": "전필",
+   "listed_name": "소동물정형/신경외과병원실습"
+  },
+  {
+   "number": "6125.2202",
+   "name": "애니매이션",
+   "dept": "디자인과",
+   "semester": "2026-1",
+   "offered_as": "전선",
+   "listed_name": "애니메이션"
+  },
+  {
+   "number": "251.335",
+   "name": "재무제표분석과 기업가치평가",
+   "dept": "경영학과",
+   "semester": "2026-2",
+   "offered_as": "전선",
+   "listed_name": "재무제표분석 및 기업가치평가"
+  },
+  {
+   "number": "M2836.000100",
+   "name": "창업론 실습 Ⅰ",
+   "dept": "경영학과",
+   "semester": "2026-1",
+   "offered_as": "전필",
+   "listed_name": "창업론 실습 1"
+  },
+  {
+   "number": "552.228",
+   "name": "동물-수의사-사회",
+   "dept": "수의과대학",
+   "semester": "2026-1",
+   "offered_as": "전필",
+   "listed_name": "동물－수의사－사회"
+  },
+  {
+   "number": "M1513.001400",
+   "name": "선박해양운동조종론",
+   "dept": "조선해양공학과",
+   "semester": "2026-2",
+   "offered_as": "전선",
+   "listed_name": "선박해양운종조종론"
+  },
+  {
+   "number": "M1246.000900",
+   "name": "실험언어학",
+   "dept": "언어학과",
+   "semester": "2026-2",
+   "offered_as": "전선",
+   "listed_name": "실험언어학 Experimental Linguistics"
+  },
+  {
+   "number": "722.205A",
+   "name": "체육사.철학",
+   "dept": "체육교육과",
+   "semester": "2026-2",
+   "offered_as": "전선",
+   "listed_name": "체육사⋅철학"
+  },
+  {
+   "number": "M1744.004600",
+   "name": "수의생리학 2",
+   "dept": "수의과대학",
+   "semester": "2026-2",
+   "offered_as": "전필",
+   "listed_name": "수의생화학 2"
+  },
+  {
+   "number": "M1744.004500",
+   "name": "수의생화학 2",
+   "dept": "수의과대학",
+   "semester": "2026-2",
+   "offered_as": "전필",
+   "listed_name": "수의생리학 2"
+  },
+  {
+   "number": "M1265.000400",
+   "name": "유럽의 17, 18세기 미술",
+   "dept": "고고미술사학과",
+   "semester": "2026-2",
+   "offered_as": "전선",
+   "listed_name": "유럽의 17·18세기 미술"
+  },
+  {
+   "number": "M1314.003800",
+   "name": "경제학과 시장경제의 이해",
+   "dept": "경제학부",
+   "semester": "2026-2",
+   "offered_as": "전선",
+   "listed_name": "경제학과 시장경제의 의해"
+  },
+  {
+   "number": "M2177.008100",
+   "name": "공학 전공 탐색",
+   "dept": "공과대학",
+   "semester": "2026-1",
+   "offered_as": "전선",
+   "listed_name": "1 공학 전공 탐색"
+  },
+  {
+   "number": "M3535.000200",
+   "name": "음악테크놀로지의 역사와 실제",
+   "dept": "음악학과",
+   "semester": "2026-1",
+   "offered_as": "전선",
+   "listed_name": "음악테크놀로지의 역사와 실제 1"
+  },
+  {
+   "number": "M2182.001800",
+   "name": "작품연구: 회화",
+   "dept": "서양화과",
+   "semester": "2025-2",
+   "offered_as": "전선",
+   "listed_name": "작품연구: 회화 Studio Practice : Painting"
+  },
+  {
+   "number": "M3535.000300",
+   "name": "음악테크놀로지의 이론과 실제",
+   "dept": "음악학과",
+   "semester": "2026-2",
+   "offered_as": "전선",
+   "listed_name": "음악테크놀로지의 이론과 실제 2"
+  },
+  {
+   "number": "M1729.000900",
+   "name": "환경경영과 경관계획",
+   "dept": "연합전공 글로벌환경경영학",
+   "semester": "2025-2",
+   "offered_as": "전선",
+   "listed_name": "환경경영과 경관계획Environmental Management and Landscape Planning)"
+  },
+  {
+   "number": "M2174.001600",
+   "name": "생활과학신입생세미나",
+   "dept": "생활과학대학",
+   "semester": "2026-1",
+   "offered_as": "전필",
+   "listed_name": "생활과학신입생세미나(Human 생활대 Ecology Freshman Seminar)"
+  },
+  {
+   "number": "M2175.009400",
+   "name": "약전 밎 의약품 품질제조관리",
+   "dept": "약학대학",
+   "semester": "2026-1",
+   "offered_as": "전필",
+   "listed_name": "약전 및 의약품 품질제조관리"
+  }
+ ],
+ "not_in_2024_list": [
+  {
+   "number": "3349.404",
+   "name": "계산과학 종합설계",
+   "dept": "연합전공 계산과학",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2189.000400",
+   "name": "과학과 윤리",
+   "dept": "치의학과",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "654.3330",
+   "name": "국악공연기획",
+   "dept": "국악과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "6124.4101",
+   "name": "금속공예 3",
+   "dept": "공예과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "6124.4102",
+   "name": "금속공예 4",
+   "dept": "공예과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2182.000500",
+   "name": "기초시각디자인",
+   "dept": "디자인과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "500.E302",
+   "name": "농업생명과학 논리 및 논술",
+   "dept": "식물생산과학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "5252.310A",
+   "name": "동물면역학 및 실험",
+   "dept": "식품·동물생명공학부",
+   "semester": "2025-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "611.2006A",
+   "name": "디자인과 문화",
+   "dept": "디자인과",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1244.000500",
+   "name": "라틴아메리카 연구 입문",
+   "dept": "서어서문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1797.001600",
+   "name": "멀티미디어음악 입문",
+   "dept": "작곡과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1766.000100",
+   "name": "서양근현대미술사",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1246.001300",
+   "name": "수어언어학",
+   "dept": "언어학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2795.002300",
+   "name": "압축성유체역학",
+   "dept": "항공우주공학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2839.000300",
+   "name": "예비 의료인의 평화적 문제 해결",
+   "dept": "치의학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "357.428",
+   "name": "은퇴설계와 재무상담",
+   "dept": "소비자아동학부",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2839.000400",
+   "name": "인간에 대한 다층적 이해",
+   "dept": "치의학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3236.000100",
+   "name": "일본학 입문",
+   "dept": "연계전공 일본학",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "602.341A",
+   "name": "작품연구: 매체와 표현",
+   "dept": "서양화과",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "216A.416",
+   "name": "정치학연습",
+   "dept": "정치외교학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "5272.413",
+   "name": "지역자원보전공학 및 실습",
+   "dept": "조경·지역시스템공학부",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2839.001200",
+   "name": "치의과학 자율연구 1",
+   "dept": "치의학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2839.001000",
+   "name": "치의학 비판적사고 프로젝트",
+   "dept": "치의학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2839.002300",
+   "name": "치의학 역사와 문화",
+   "dept": "치의학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2189.000100",
+   "name": "치의학신입생세미나",
+   "dept": "치의학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "705.319",
+   "name": "한국고전산문교육론",
+   "dept": "국어교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "701.318A",
+   "name": "한국교육제도 및 정책",
+   "dept": "교육학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "611.3004A",
+   "name": "현대디자인론",
+   "dept": "디자인과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "458.405",
+   "name": "환경공학개론",
+   "dept": "화학생물공학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "500.E304",
+   "name": "농업교육학개론",
+   "dept": "식물생산과학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1788.000200",
+   "name": "도자공예사",
+   "dept": "공예과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "719.332A",
+   "name": "동물생리학교육",
+   "dept": "생물교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "1071.203",
+   "name": "라티노 사회와 문화",
+   "dept": "서어서문학과",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "458.311A",
+   "name": "무기 및 재료화학",
+   "dept": "화학생물공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "1071.205",
+   "name": "브라질 사회와 문화",
+   "dept": "서어서문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "711.373",
+   "name": "사회문화교육연습",
+   "dept": "사회교육과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1886.002400",
+   "name": "운동학습및심리-운동학습",
+   "dept": "체육교육과",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1923.006000",
+   "name": "인간·사회·의료 2",
+   "dept": "의학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2043.000500",
+   "name": "인문학과 치의학리더십",
+   "dept": "치의학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "206.219B",
+   "name": "일본문화의 이해",
+   "dept": "인류학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2189.001000",
+   "name": "자기설계성과보고",
+   "dept": "치의학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2839.001400",
+   "name": "치의과학 자율연구 2",
+   "dept": "치의학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2839.001100",
+   "name": "치의학 사회공헌 프로젝트",
+   "dept": "치의학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2839.000900",
+   "name": "치의학 인간이해 프로젝트",
+   "dept": "치의학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1338.001500",
+   "name": "경영빅데이터분석개론",
+   "dept": "경영학과",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2649.001100",
+   "name": "경제원론 1",
+   "dept": "농경제사회학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "500.E301",
+   "name": "산업교육교재론",
+   "dept": "식물생산과학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1744.003900",
+   "name": "수의약리학 1",
+   "dept": "수의과대학",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2649.001600",
+   "name": "경제수학",
+   "dept": "농경제사회학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2649.001200",
+   "name": "경제원론 2",
+   "dept": "농경제사회학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.008500",
+   "name": "(공유)데이터 활용 UX디자인",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.008400",
+   "name": "(공유)디지털 리터러시와 인문적 사고",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.007200",
+   "name": "(공유)메모리와 반도체",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3500.008200",
+   "name": "(공유)미디어위키를 활용한 역사 데이터 편찬",
+   "dept": "혁신공유학부",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.008100",
+   "name": "(공유)빅데이터, 인공지능과 예술",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.007400",
+   "name": "(공유)자연어 처리와 교육",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M0.005100",
+   "name": "근대서양의 인종과 식민주의",
+   "dept": "역사학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2177.007900",
+   "name": "대학 스타트업 콜로키엄",
+   "dept": "공과대학",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3535.001300",
+   "name": "뮤직 프로덕션과 엔지니어링 개론 1",
+   "dept": "음악학과",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1803.001200",
+   "name": "민속음악의이해",
+   "dept": "국악과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1796.001200",
+   "name": "보컬 스코어 문헌 연구 및 리딩",
+   "dept": "작곡과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3535.000100",
+   "name": "서양음악사문헌 3",
+   "dept": "음악학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1744.010200",
+   "name": "수의병태생리학 1",
+   "dept": "수의과대학",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2180.002300",
+   "name": "수의생명의학 1 (생물학개론)",
+   "dept": "수의과대학",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3535.000800",
+   "name": "스튜디오 뮤직 메이킹(로직, 거라지밴드) 고급",
+   "dept": "음악학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3535.000700",
+   "name": "스튜디오 뮤직 메이킹(로직, 사운드 디자인) 고급",
+   "dept": "음악학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1861.000800",
+   "name": "아프리카·오세아니아지역연구",
+   "dept": "지리교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1796.001100",
+   "name": "음악교재연구 및 지도법",
+   "dept": "작곡과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1796.000800",
+   "name": "총보독법",
+   "dept": "작곡과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1461.004500",
+   "name": "테일러링",
+   "dept": "의류학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1796.000600",
+   "name": "현대음악연주 및 제작실습",
+   "dept": "작곡과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3500.008700",
+   "name": "(공유)디지털 역사학과 서양사의 이해",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3500.008300",
+   "name": "(공유)디지털 역사학과 아시아사의 이해",
+   "dept": "혁신공유학부",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3500.008100",
+   "name": "(공유)머신러닝 디자인",
+   "dept": "혁신공유학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.008000",
+   "name": "(공유)빅데이터로 읽는 한국근대사 1",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3500.009100",
+   "name": "(공유)역사 GIS 초급 입문",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3500.009200",
+   "name": "(공유)인공지능과 스토리 생성의 이해",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3500.008800",
+   "name": "(공유)인문 데이터 모델링과 온톨로지",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2808.003800",
+   "name": "가족생활교육",
+   "dept": "소비자아동학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2189.004300",
+   "name": "국제구강보건동향의 이해",
+   "dept": "치의학과",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1245.000500",
+   "name": "라틴아메리카와 세계",
+   "dept": "서어서문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2183.008100",
+   "name": "무대동작기법2",
+   "dept": "성악과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3535.001400",
+   "name": "뮤직 프로덕션과 엔지니어링 개론 2",
+   "dept": "음악학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "458.407",
+   "name": "분리공정",
+   "dept": "화학생물공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1744.010100",
+   "name": "수의병태생리학 2",
+   "dept": "수의과대학",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1796.001000",
+   "name": "음악교육론",
+   "dept": "작곡과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3535.000600",
+   "name": "음악비평",
+   "dept": "음악학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "500.E315",
+   "name": "직업 및 진로지도",
+   "dept": "식물생산과학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3389.001100",
+   "name": "타이포그래피디자인2",
+   "dept": "디자인과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M0.009700",
+   "name": "패션과 비주얼머천다이징",
+   "dept": "의류학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1831.005400",
+   "name": "학습과학기초",
+   "dept": "교육학과",
+   "semester": "2025-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1307.004100",
+   "name": "한국 디지털 문화의 인류학",
+   "dept": "인류학과",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3500.007900",
+   "name": "(공유)기계학습",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3500.010200",
+   "name": "(공유)데이터 창업 설계 기초 이론",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3500.009000",
+   "name": "(공유)디지털 색채학",
+   "dept": "혁신공유학부",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.009300",
+   "name": "(공유)인공지능 반도체 기술 및 응용",
+   "dept": "혁신공유학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1855.000900",
+   "name": "다문화교육 개론",
+   "dept": "사회교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2744.000700",
+   "name": "수직농업",
+   "dept": "식물생산과학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3389.004000",
+   "name": "시각디자인기초",
+   "dept": "디자인과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1319.001300",
+   "name": "정치외교 세미나",
+   "dept": "정치외교학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2183.008200",
+   "name": "지휘법",
+   "dept": "작곡과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.010100",
+   "name": "(공유)AI와 문화예술",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.009000",
+   "name": "(공유)디지털 시스템 임플리멘테이션",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3500.009700",
+   "name": "(공유)빅데이터와 인지과학",
+   "dept": "혁신공유학부",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1704.001000",
+   "name": "기계학습 기초 및 바이오시스템공학 응용",
+   "dept": "바이오시스템·소재학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1878.000900",
+   "name": "다문화 교육과정과 교수법",
+   "dept": "생물교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3389.003900",
+   "name": "디자인포트폴리오",
+   "dept": "디자인과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3535.001600",
+   "name": "스크린 스코어링",
+   "dept": "음악학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1310.001500",
+   "name": "인류세와 지속가능성",
+   "dept": "지리학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2189.000500",
+   "name": "치의학입문",
+   "dept": "치의학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1729.001500",
+   "name": "환경경영을 위한 효과성평가",
+   "dept": "연합전공 글로벌환경경영학",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.010300",
+   "name": "(공유)AWS 클라우드 컴퓨팅",
+   "dept": "혁신공유학부",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.016200",
+   "name": "(공유)그린바이오 생명공학 개론",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3500.009800",
+   "name": "(공유)뇌파 데이터 개론",
+   "dept": "혁신공유학부",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.015400",
+   "name": "(공유)다물리환경 시뮬레이션",
+   "dept": "혁신공유학부",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.012600",
+   "name": "(공유)세포농업과 오가노이드 플랫폼",
+   "dept": "혁신공유학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.014600",
+   "name": "(공유)스마트 팩토리",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.015000",
+   "name": "(공유)식물병원미생물학",
+   "dept": "혁신공유학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.015600",
+   "name": "(공유)친환경 고분자 개론",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.013200",
+   "name": "(공유)항공드론빅데이터알고리즘",
+   "dept": "혁신공유학부",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.012100",
+   "name": "(공유)훼손 산림생태계 복원 및 관리",
+   "dept": "혁신공유학부",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1311.003700",
+   "name": "AI로 배우는 사회복지데이터분석",
+   "dept": "사회복지학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1586.004900",
+   "name": "건설 공정관리",
+   "dept": "건설환경공학부",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1698.003000",
+   "name": "경관생태관리 및 실습",
+   "dept": "산림과학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1419.002300",
+   "name": "계산, 학습, 그리고 물리",
+   "dept": "물리·천문학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2177.010400",
+   "name": "공학지식의 글로벌 공유가치",
+   "dept": "공과대학",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1319.001400",
+   "name": "국제관계사 1",
+   "dept": "정치외교학부",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1704.001100",
+   "name": "기계요소설계 및 응용",
+   "dept": "바이오시스템·소재학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2608.002900",
+   "name": "기계학습 기초",
+   "dept": "전기·정보공학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1851.001600",
+   "name": "기초프랑스어회화 1",
+   "dept": "불어교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1312.004300",
+   "name": "데이터와 기술문화",
+   "dept": "언론정보학과",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1261.000300",
+   "name": "동아시아의 종교와 문화",
+   "dept": "종교학과",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1671.001500",
+   "name": "디지털 전환 시대의 삶, 진로, 직업",
+   "dept": "식물생산과학부",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2608.002800",
+   "name": "디지털신호처리의 기초",
+   "dept": "전기·정보공학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2171.001300",
+   "name": "마케팅 모형",
+   "dept": "경영학과",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1338.001200",
+   "name": "문화예술 마케팅",
+   "dept": "경영학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3388.000800",
+   "name": "물레성형 3",
+   "dept": "공예과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1410.004700",
+   "name": "미생물학 1: 미생물 유전체 발현과 기능 조절",
+   "dept": "생명과학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1855.001300",
+   "name": "민족학 개론",
+   "dept": "사회교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1923.012200",
+   "name": "병원병리학 및 실습",
+   "dept": "의학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1671.001400",
+   "name": "산업인력자원 관리 및 개발",
+   "dept": "식물생산과학부",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1704.001200",
+   "name": "생물생산 기계시스템 분석",
+   "dept": "바이오시스템·소재학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2173.004600",
+   "name": "생화학 1: 생체분자의 구조와 기능",
+   "dept": "생명과학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2173.004700",
+   "name": "생화학 2: 물질대사",
+   "dept": "생명과학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1865.003100",
+   "name": "서양윤리고전강독",
+   "dept": "윤리교육과",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1865.003200",
+   "name": "세계시민교육과 국제교류 실천",
+   "dept": "윤리교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "251.327",
+   "name": "소비자행동",
+   "dept": "경영학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1244.000900",
+   "name": "스페인어 문법과 구조",
+   "dept": "서어서문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1923.012300",
+   "name": "심장혈관흉부외과학 및 실습",
+   "dept": "의학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1851.002100",
+   "name": "심화프랑스어회화 1",
+   "dept": "불어교육과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1419.002400",
+   "name": "양자정보와 양자컴퓨팅 개론",
+   "dept": "물리·천문학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1851.001300",
+   "name": "언어교육 캡스톤디자인",
+   "dept": "불어교육과",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3699.000100",
+   "name": "영화 언어의 이해",
+   "dept": "서어서문학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3537.000100",
+   "name": "음악과 창의적 커리어 개발",
+   "dept": "피아노과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1677.000200",
+   "name": "응용생물학논문연구 1",
+   "dept": "응용생물화학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1677.000300",
+   "name": "응용생물학논문연구 2",
+   "dept": "응용생물화학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1586.005100",
+   "name": "인공지능 응용 교통시스템",
+   "dept": "건설환경공학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3639.002300",
+   "name": "인공지능과 생명공학",
+   "dept": "첨단융합학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2173.004800",
+   "name": "자연과학자를 위한 프로그래밍 및 인공지능 개론",
+   "dept": "통계학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2179.007000",
+   "name": "종묘생산학 및 실험",
+   "dept": "식물생산과학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1411.003100",
+   "name": "지구환경과학연구실습",
+   "dept": "지구환경과학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1411.003200",
+   "name": "지구환경과학현장답사",
+   "dept": "지구환경과학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2836.002100",
+   "name": "창업가와 실용주의 프로그래밍 2",
+   "dept": "경영학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1308.003400",
+   "name": "창의성과 인지과정",
+   "dept": "심리학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1678.001800",
+   "name": "탄소농업과 지속가능성",
+   "dept": "응용생물화학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1855.001200",
+   "name": "통합사회교육론",
+   "dept": "사회교육과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1858.001500",
+   "name": "통합사회교육론",
+   "dept": "역사교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1861.001000",
+   "name": "통합사회교육론",
+   "dept": "지리교육과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1865.003300",
+   "name": "통합사회교육론",
+   "dept": "윤리교육과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1461.005100",
+   "name": "패션콘텐츠기획",
+   "dept": "의류학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1851.001500",
+   "name": "프랑스 문화와 교육",
+   "dept": "불어교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1851.002000",
+   "name": "프랑스 현대문학강독",
+   "dept": "불어교육과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1851.001400",
+   "name": "프랑스어 디지털 리터러시와 커뮤니케이션",
+   "dept": "불어교육과",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1851.002300",
+   "name": "프랑스어교과교육론",
+   "dept": "불어교육과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1851.001800",
+   "name": "프랑스어학습문법",
+   "dept": "불어교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1851.002800",
+   "name": "프랑스언어학의 이해",
+   "dept": "불어교육과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3229.004000",
+   "name": "항공드론빅데이터알고리즘",
+   "dept": "항공우주공학과",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1882.001200",
+   "name": "해양지구과학 빅데이터처리",
+   "dept": "지구과학교육과",
+   "semester": "2025-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1509.001800",
+   "name": "핵공학 물리 기초",
+   "dept": "원자핵공학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1586.004100",
+   "name": "환경생명공학",
+   "dept": "건설환경공학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.016700",
+   "name": "(공유)NPU 기반 인공지능 추론 및 응용",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.016300",
+   "name": "(공유)경제동물과 반려동물학",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.017500",
+   "name": "(공유)그린바이오 릴레이 강좌",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.016400",
+   "name": "(공유)그린바이오 캡스톤 프로젝트",
+   "dept": "혁신공유학부",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.015100",
+   "name": "(공유)그린바이오 현미경 개론",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3500.009900",
+   "name": "(공유)블록체인과 인지컴퓨팅",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.010800",
+   "name": "(공유)빅데이터 정보 철학",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.016800",
+   "name": "(공유)수소에너지 실험",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.015800",
+   "name": "(공유)스마트산림번식학",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.011900",
+   "name": "(공유)식물모델링 및 시뮬레이션",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.016900",
+   "name": "(공유)에너지자원순환공학",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.010600",
+   "name": "(공유)역사 GIS 중급 연습",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.011300",
+   "name": "(공유)원격탐사와 생태계관리",
+   "dept": "혁신공유학부",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.014900",
+   "name": "(공유)음성데이터의 특성과 처리: 기초 음성학과 음향 분석",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.011800",
+   "name": "(공유)작물정보계측",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.012900",
+   "name": "(공유)지역환경보전공학",
+   "dept": "혁신공유학부",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.017700",
+   "name": "(공유)창의프로젝트과제 1",
+   "dept": "혁신공유학부",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.015700",
+   "name": "(공유)친환경 고분자 공정",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1311.004000",
+   "name": "가족 다양성과 돌봄",
+   "dept": "사회복지학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1729.001600",
+   "name": "건설환경시스템 지속가능공학",
+   "dept": "연합전공 글로벌환경경영학",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3637.002100",
+   "name": "결정학 기초",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3533.001800",
+   "name": "공공역사의 이론과 실천",
+   "dept": "역사학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2173.005000",
+   "name": "과학, 권력, 그리고 돈",
+   "dept": "자연과학대학",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1411.004800",
+   "name": "광물학: 지구행성물질과학 및 실험",
+   "dept": "지구환경과학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3228.003400",
+   "name": "광학 이론 및 설계",
+   "dept": "기계공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1844.001000",
+   "name": "국어교육자율탐구세미나",
+   "dept": "국어교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1319.001500",
+   "name": "국제관계사 2",
+   "dept": "정치외교학부",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1311.003800",
+   "name": "글로벌 인구 고령화와 지속가능한 발전",
+   "dept": "사회복지학과",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3546.002300",
+   "name": "글로벌 제국사",
+   "dept": "역사학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1411.003600",
+   "name": "기상기후모델링 개론 및 실습",
+   "dept": "지구환경과학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1540.000300",
+   "name": "기술경영 프로젝트",
+   "dept": "산업공학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3637.002200",
+   "name": "기초전자기학",
+   "dept": "첨단융합학부",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1851.001700",
+   "name": "기초프랑스어회화 2",
+   "dept": "불어교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3639.002700",
+   "name": "기초회로 이론 및 실습",
+   "dept": "첨단융합학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2173.004900",
+   "name": "뇌인지과학의 이해",
+   "dept": "자연과학대학",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1855.001400",
+   "name": "다문화 사회와 교육 정책",
+   "dept": "사회교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1312.004500",
+   "name": "데이터 저널리즘 연습",
+   "dept": "언론정보학과",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.004000",
+   "name": "동시대 미술의 쟁점 2",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1242.000400",
+   "name": "동유럽 문학과 사회",
+   "dept": "노어노문학과",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.002200",
+   "name": "드로잉: 긋기와 그리기",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.001800",
+   "name": "드로잉: 언어와 이미지",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1311.003900",
+   "name": "디지털 시대의 사회갈등과 정책의 전환",
+   "dept": "사회복지학과",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3634.000700",
+   "name": "디지털헬스케어 전공자를 위한 우리 몸의 이해",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1242.000500",
+   "name": "러시아어 음성학: 발음과 억양",
+   "dept": "노어노문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1242.000700",
+   "name": "러시아어문학논문쓰기",
+   "dept": "노어노문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1460.003100",
+   "name": "마이크로바이옴과 영양",
+   "dept": "식품영양학과",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1844.001200",
+   "name": "매체의사소통교육론",
+   "dept": "국어교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1855.001800",
+   "name": "문화와 사회",
+   "dept": "사회교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1410.004800",
+   "name": "미생물학 2: 생체-마이크로바이옴 상호작용",
+   "dept": "생명과학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1498.003900",
+   "name": "방호시설공학설계",
+   "dept": "건축학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.003200",
+   "name": "볼록판화",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.003000",
+   "name": "사운드: 귀로 보기 그리고 눈으로 듣기",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.002600",
+   "name": "사진: 픽셀과 플랫폼",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1855.001700",
+   "name": "사회와 법률",
+   "dept": "사회교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1505.002100",
+   "name": "산업 텍스트 애널리틱스",
+   "dept": "산업공학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1410.004900",
+   "name": "생명과학을 위한 인공지능",
+   "dept": "생명과학부",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3638.002700",
+   "name": "생화학",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3546.002000",
+   "name": "서양중세사: 기독교 세계의 형성과 변화",
+   "dept": "역사학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3546.002200",
+   "name": "서양현대사",
+   "dept": "역사학부",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.002800",
+   "name": "설치: 상황과 실천",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3638.002800",
+   "name": "세포생물학",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3228.003300",
+   "name": "수소에너지 실험",
+   "dept": "기계공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1407.004300",
+   "name": "수학자를 위한 물리학",
+   "dept": "수리과학부",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1698.003100",
+   "name": "스마트산림종자학",
+   "dept": "산림과학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3704.001800",
+   "name": "스마트시스템과학개론",
+   "dept": "스마트시스템과학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1244.001000",
+   "name": "스페인어 문법과 의미",
+   "dept": "서어서문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1851.002200",
+   "name": "심화프랑스어회화 2",
+   "dept": "불어교육과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1594.004000",
+   "name": "에너지자원 전달 현상",
+   "dept": "에너지자원공학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1594.003900",
+   "name": "에너지자원처리공학",
+   "dept": "에너지자원공학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1882.001500",
+   "name": "에어로졸 화학과 기후 변화",
+   "dept": "지구과학교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.003700",
+   "name": "연구와 해석 2: 사진·영화·무빙이미지",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.003800",
+   "name": "연구와 해석 3: 설치·개념·퍼포먼스",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1317.000800",
+   "name": "영상 제작 스튜디오",
+   "dept": "언론정보학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.002400",
+   "name": "영상: 데이터와 이미지",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3699.000200",
+   "name": "영화의 역사",
+   "dept": "서어서문학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1766.000900",
+   "name": "워크숍: 디지털툴",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.001400",
+   "name": "워크숍: 실험적 표현",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.001100",
+   "name": "워크숍: 아티스트북",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.001300",
+   "name": "워크숍: 전시와 제작",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2043.000400",
+   "name": "웹기반 비판적 사고의 실제",
+   "dept": "치의학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1409.002600",
+   "name": "유기재료화학: 설계 및 응용",
+   "dept": "화학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3715.000100",
+   "name": "유럽 포퓰리즘",
+   "dept": "연계전공 유럽지역학",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1407.003200",
+   "name": "유한군의 표현론",
+   "dept": "수리과학부",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3535.001800",
+   "name": "음악학세미나 2",
+   "dept": "음악학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3535.002000",
+   "name": "음악학세미나 4",
+   "dept": "음악학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2175.015600",
+   "name": "의약품합성화학(심화)",
+   "dept": "약학대학",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3638.002900",
+   "name": "의약화학의 기초",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2750.000400",
+   "name": "인도영화와 현대 사회",
+   "dept": "아시아언어문명학부",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3638.002400",
+   "name": "인류를 구원한 혁신신약",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1307.005100",
+   "name": "인류학과 질적연구방법",
+   "dept": "인류학과",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2753.000100",
+   "name": "일본론 특강",
+   "dept": "아시아언어문명학부",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1409.002500",
+   "name": "전기화학: 기초와 응용",
+   "dept": "화학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1671.001600",
+   "name": "전략적 산업인력개발 개론",
+   "dept": "식물생산과학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1855.001500",
+   "name": "정치와 사회",
+   "dept": "사회교육과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1411.003300",
+   "name": "지구환경 데이터과학",
+   "dept": "지구환경과학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1540.000500",
+   "name": "지식재산경영",
+   "dept": "산업공학과",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2836.002000",
+   "name": "창업가와 실용주의 프로그래밍 1",
+   "dept": "경영학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1308.003200",
+   "name": "청소년기와 성인초기 심리학",
+   "dept": "심리학과",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1522.007600",
+   "name": "컴퓨팅 살펴보기",
+   "dept": "컴퓨터공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1678.001900",
+   "name": "토양환경생태학",
+   "dept": "응용생물화학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.003400",
+   "name": "평판화",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1851.002400",
+   "name": "프랑스어 교수법",
+   "dept": "불어교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1851.002900",
+   "name": "프랑스어 데이터와 언어학",
+   "dept": "불어교육과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1851.002500",
+   "name": "프랑스어 발음 및 듣기 지도법",
+   "dept": "불어교육과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1851.002700",
+   "name": "프랑스어 쓰기 지도법",
+   "dept": "불어교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1851.001900",
+   "name": "프랑스어 어휘와 문법",
+   "dept": "불어교육과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1851.002600",
+   "name": "프랑스어권 문화와 문학",
+   "dept": "불어교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3228.003500",
+   "name": "학제간 캡스톤 설계",
+   "dept": "기계공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1858.001600",
+   "name": "한국사교육자료탐구",
+   "dept": "역사교육과",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1844.001100",
+   "name": "한국한문학고전교육론",
+   "dept": "국어교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1411.003700",
+   "name": "해양암석지구화학 및 실험",
+   "dept": "지구환경과학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1245.000700",
+   "name": "현대 라틴아메리카 2",
+   "dept": "서어서문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3716.000100",
+   "name": "현대 일본의 쟁점",
+   "dept": "연계전공 일본학",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1407.004600",
+   "name": "현대기하학탐구",
+   "dept": "수리과학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.002000",
+   "name": "회화: 평면과 공간",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.001600",
+   "name": "회화: 확장된 매체성",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2750.000300",
+   "name": "힌디어 문헌강독",
+   "dept": "아시아언어문명학부",
+   "semester": "2025-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.019800",
+   "name": "(공유)AI 기반 창업 방법론",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.020500",
+   "name": "(공유)그린바이오 캡스톤 프로젝트 1",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.012000",
+   "name": "(공유)기후변화 산림생태계 영향평가",
+   "dept": "혁신공유학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.012800",
+   "name": "(공유)기후변화대응 그린인프라설계",
+   "dept": "혁신공유학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.015500",
+   "name": "(공유)목질계 바이오매스 전환 기술",
+   "dept": "혁신공유학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.020400",
+   "name": "(공유)생태계와 수분매개자",
+   "dept": "혁신공유학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.015900",
+   "name": "(공유)셀룰로오스 활용 소재 기술",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.017400",
+   "name": "(공유)약용작물과 특수대사 조절",
+   "dept": "혁신공유학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.017000",
+   "name": "(공유)에너지와 지속가능경영의 기초",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.017300",
+   "name": "(공유)친환경축산과 동물복지",
+   "dept": "혁신공유학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.002200",
+   "name": "3D 미디어 워크숍 1",
+   "dept": "조소과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2171.003500",
+   "name": "AI와 전략경영",
+   "dept": "경영학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1586.005500",
+   "name": "건설환경도시공학 개론",
+   "dept": "건설환경공학부",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1498.004300",
+   "name": "건축공학캡스톤설계",
+   "dept": "건축학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1261.001000",
+   "name": "경전으로 읽는 종교",
+   "dept": "종교학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1855.001600",
+   "name": "경제와 사회",
+   "dept": "사회교육과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1766.003100",
+   "name": "공판화",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.004700",
+   "name": "근대영미소설",
+   "dept": "영어영문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.002300",
+   "name": "근현대조각사",
+   "dept": "조소과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2177.011400",
+   "name": "글로벌 스타트업 스튜디오",
+   "dept": "공과대학",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3713.000400",
+   "name": "글로벌환경경영 특강",
+   "dept": "연합전공 글로벌환경경영학",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1767.001700",
+   "name": "금속조 1: 형태와 기법",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.001800",
+   "name": "금속조 2: 재료와 맥락",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1540.000200",
+   "name": "기술경영 개론",
+   "dept": "산업공학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3637.002400",
+   "name": "기초전자회로 및 실습",
+   "dept": "첨단융합학부",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1411.003400",
+   "name": "기후역학 개론",
+   "dept": "지구환경과학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2649.002100",
+   "name": "농식품소비경제학",
+   "dept": "농경제사회학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3762.000400",
+   "name": "뇌, 마음, 학습",
+   "dept": "융합학습과학전공",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1844.002900",
+   "name": "다중언어문화와 (한)국어교육",
+   "dept": "국어교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1241.000400",
+   "name": "독문학이란 무엇인가",
+   "dept": "독어독문학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1241.000500",
+   "name": "독일문학 고전읽기",
+   "dept": "독어독문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.003500",
+   "name": "동시대 미술의 역사",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1766.003900",
+   "name": "동시대 미술의 쟁점 1",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3563.000900",
+   "name": "동아시아의 고전 읽기와 현대문화",
+   "dept": "역사학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3563.001000",
+   "name": "동아시아의 대중매체와 문화교류",
+   "dept": "역사학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.002100",
+   "name": "드로잉: 조건과 규칙",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3229.004400",
+   "name": "드론 비행 및 운용",
+   "dept": "항공우주공학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1242.003400",
+   "name": "디지털 방법론으로 읽는 러시아 문학",
+   "dept": "노어노문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.002100",
+   "name": "디지털조각 1: 키네틱 아트",
+   "dept": "조소과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1242.002600",
+   "name": "러시아 단편소설 읽기",
+   "dept": "노어노문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1242.003600",
+   "name": "러시아어학 세미나",
+   "dept": "노어노문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3754.000100",
+   "name": "리테일 개론",
+   "dept": "의류학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1744.010500",
+   "name": "말 기본수의학 실습",
+   "dept": "수의과대학",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.001500",
+   "name": "목조 1: 형태와 기법",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.001600",
+   "name": "목조 2: 재료와 맥락",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1844.003000",
+   "name": "문학감상비평교육론",
+   "dept": "국어교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1844.002300",
+   "name": "문학자료탐구",
+   "dept": "국어교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1407.004500",
+   "name": "미분기하학 개론",
+   "dept": "수리과학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3638.003000",
+   "name": "바이오의약학",
+   "dept": "첨단융합학부",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3637.002300",
+   "name": "반도체공학 연구의 실습",
+   "dept": "첨단융합학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1744.010400",
+   "name": "병리부검 실습 1",
+   "dept": "수의과대학",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1338.005800",
+   "name": "사모펀드 개론",
+   "dept": "경영학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.002500",
+   "name": "사진: 빛과 프레임",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1311.004300",
+   "name": "사회복지 원론",
+   "dept": "사회복지학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1311.004500",
+   "name": "사회복지와 법적 사고력",
+   "dept": "사회복지학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1311.004200",
+   "name": "사회복지학신입생세미나",
+   "dept": "사회복지학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1311.004400",
+   "name": "사회정책 분석 및 평가 응용",
+   "dept": "사회복지학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.001700",
+   "name": "색 이론과 실천",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "406.322",
+   "name": "서비스공학",
+   "dept": "산업공학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3546.001900",
+   "name": "서양고대사: 지중해 세계의 형성과 변화",
+   "dept": "역사학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3546.002100",
+   "name": "서양근대사: 유럽과 근대 세계",
+   "dept": "역사학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.004800",
+   "name": "서양화 졸업작품 발표",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1766.004900",
+   "name": "서양화 졸업작품 연구",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1767.001300",
+   "name": "석조 1: 형태와 기법",
+   "dept": "조소과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.002700",
+   "name": "설치: 관계와 참여",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.004800",
+   "name": "셰익스피어의 시대",
+   "dept": "영어영문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1744.010600",
+   "name": "소동물 영양학 병원 실습",
+   "dept": "수의과대학",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.001900",
+   "name": "소조 1: 인체와 재현",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1767.002000",
+   "name": "소조 2: 형상과 표현",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3705.000100",
+   "name": "스마트 작물생산 기초",
+   "dept": "스마트시스템과학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3705.001000",
+   "name": "스마트시스템 알고리즘 기초",
+   "dept": "스마트시스템과학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3634.000900",
+   "name": "신호 및 시스템",
+   "dept": "첨단융합학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3705.000800",
+   "name": "실험통계학",
+   "dept": "스마트시스템과학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1766.004400",
+   "name": "심화 연구: 개념과 리서치 1",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.004300",
+   "name": "심화 연구: 이미지 실험 1",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.004200",
+   "name": "심화 연구: 회화 1",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3637.002000",
+   "name": "양자물리",
+   "dept": "첨단융합학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1844.002200",
+   "name": "언어시민성교육론",
+   "dept": "국어교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1594.003700",
+   "name": "에너지소재열역학",
+   "dept": "에너지자원공학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1594.004100",
+   "name": "에너지자원공학설계",
+   "dept": "에너지자원공학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1766.003600",
+   "name": "연구와 해석 1: 회화·판화",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.004900",
+   "name": "영국 문학과 현대적 쟁점",
+   "dept": "영어영문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.004500",
+   "name": "영문학과 아시아: 횡단과 조우",
+   "dept": "영어영문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.005000",
+   "name": "영문학과 장르",
+   "dept": "영어영문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.005200",
+   "name": "영문학의 형성",
+   "dept": "영어영문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.005400",
+   "name": "영미문화와 미디어",
+   "dept": "영어영문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1312.004800",
+   "name": "영상 기획 및 제작",
+   "dept": "언론정보학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.002900",
+   "name": "영상: 시간과 공간",
+   "dept": "조소과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.002300",
+   "name": "영상: 시간과 이미지",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3699.000400",
+   "name": "영화 제작론 특강",
+   "dept": "서어서문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.003300",
+   "name": "오목판화",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1242.002800",
+   "name": "유라시아 문화와 사회",
+   "dept": "노어노문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3535.001700",
+   "name": "음악학세미나 1",
+   "dept": "음악학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3535.001900",
+   "name": "음악학세미나 3",
+   "dept": "음악학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1407.004400",
+   "name": "응용위상수학",
+   "dept": "수리과학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3546.002500",
+   "name": "이주와 이동의 역사",
+   "dept": "역사학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3762.000300",
+   "name": "인간 발달과 전인적 성장",
+   "dept": "융합학습과학전공",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1317.000900",
+   "name": "인간-AI 상호작용 이론 및 실습",
+   "dept": "언론정보학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3762.000100",
+   "name": "인공지능입문",
+   "dept": "융합학습과학전공",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M0.011300",
+   "name": "인문지리학",
+   "dept": "지리교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M0.011400",
+   "name": "자연지리학",
+   "dept": "지리교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.001100",
+   "name": "작품연구: 대상과 표상",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.000900",
+   "name": "작품연구: 물질과 경험",
+   "dept": "조소과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.001000",
+   "name": "작품연구: 창작과 해석",
+   "dept": "조소과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1409.002800",
+   "name": "재료화학 2: 기능 및 응용",
+   "dept": "화학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1319.002100",
+   "name": "정치외교방법론 2",
+   "dept": "정치외교학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1252.000500",
+   "name": "젠더철학",
+   "dept": "철학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.003300",
+   "name": "조소 졸업작품 발표",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1767.003100",
+   "name": "조소 졸업작품 연구",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1234.001100",
+   "name": "중국시가 입문",
+   "dept": "중어중문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1234.001400",
+   "name": "중국의 대중문화",
+   "dept": "중어중문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1242.001600",
+   "name": "중급러시아어회화",
+   "dept": "노어노문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2173.005600",
+   "name": "지구 행성 시스템 진화",
+   "dept": "지구환경과학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1411.004900",
+   "name": "지구환경과학 기초수학",
+   "dept": "지구환경과학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3290.000100",
+   "name": "지능 시스템 및 알고리즘 기초",
+   "dept": "바이오시스템·소재학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M0.011500",
+   "name": "지도학",
+   "dept": "지리교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1708.000400",
+   "name": "지역기후시스템공학",
+   "dept": "조경·지역시스템공학부",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3638.003100",
+   "name": "질병의 이해 1 (면역 및 감염)",
+   "dept": "첨단융합학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1420.000600",
+   "name": "천문정보론",
+   "dept": "물리·천문학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3639.002800",
+   "name": "첨단융합전공과 나의 미래 1: 탐색 및 개척",
+   "dept": "첨단융합학부",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M2808.004000",
+   "name": "청년과 가족다양성",
+   "dept": "소비자아동학부",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1311.004800",
+   "name": "커뮤니티 혁신과 사회문제 해결",
+   "dept": "사회복지학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2177.011500",
+   "name": "태양광 자동차",
+   "dept": "공과대학",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2179.007700",
+   "name": "통계 인공지능 개론 및 실습",
+   "dept": "농업생명과학대학",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1672.000200",
+   "name": "특용 및 사료작물학",
+   "dept": "식물생산과학부",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1766.002900",
+   "name": "퍼포먼스: 되기와 하기",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1239.000800",
+   "name": "프랑스어 연습 1",
+   "dept": "불어불문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1239.001100",
+   "name": "프랑스어 연습 2",
+   "dept": "불어불문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1239.000900",
+   "name": "프랑스어의 구조와 의미",
+   "dept": "불어불문학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1239.001000",
+   "name": "프랑스텍스트분석 입문",
+   "dept": "불어불문학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3637.002500",
+   "name": "프로그래밍 개발 방법론",
+   "dept": "첨단융합학부",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3762.000200",
+   "name": "학습과학기초",
+   "dept": "융합학습과학전공",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1232.002200",
+   "name": "한국과 문화번역",
+   "dept": "국어국문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3755.000100",
+   "name": "한국대중문화사",
+   "dept": "국어국문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M0.011600",
+   "name": "한국지리",
+   "dept": "지리교육과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1234.001700",
+   "name": "한문 강독",
+   "dept": "중어중문학과",
+   "semester": "2026-1",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1245.000600",
+   "name": "현대 라틴아메리카 1",
+   "dept": "서어서문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1261.001100",
+   "name": "현대 세계와 종교의 역할",
+   "dept": "종교학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3699.000500",
+   "name": "현대 영화의 쟁점",
+   "dept": "서어서문학과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.001900",
+   "name": "회화: 물질과 몸",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.001500",
+   "name": "회화: 서사와 형상화",
+   "dept": "서양화과",
+   "semester": "2026-1",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.022900",
+   "name": "(공유)ESG와 환경기술",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.019000",
+   "name": "(공유)경제동물 기후변화 대응 기술",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.022700",
+   "name": "(공유)그린바이오소재기기분석의 이해",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.019200",
+   "name": "(공유)기후변화와 농업기상재해",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.015300",
+   "name": "(공유)농업로봇공학",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.009200",
+   "name": "(공유)대규모언어모델 (LLM)를 활용한 빅데이터분석",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.014500",
+   "name": "(공유)빅데이터 캡스톤 디자인",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.019700",
+   "name": "(공유)사회혁신을 위한 빅데이터 응용",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.015200",
+   "name": "(공유)스마트낙농유가공 및 유산균과학",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.017200",
+   "name": "(공유)스마트팜을 위한 기계학습 기초 및 응용",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.019100",
+   "name": "(공유)쌀과 밥맛의 이해",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.022400",
+   "name": "(공유)역사 GIS 고급 연습",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.022500",
+   "name": "(공유)인문코딩",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.022800",
+   "name": "(공유)정밀육종을 위한 식물유전체학",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1265.000700",
+   "name": "20세기의 한국 회화",
+   "dept": "고고미술사학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1242.002700",
+   "name": "21세기 러시아 문학",
+   "dept": "노어노문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.002700",
+   "name": "3D 미디어 워크숍 2",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1314.005800",
+   "name": "AI 금융경제",
+   "dept": "경제학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3244.000800",
+   "name": "AI클래스 논문 연구 1",
+   "dept": "컴퓨터공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1498.004500",
+   "name": "건축도시고전탐구",
+   "dept": "건축학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1242.000600",
+   "name": "고급 러시아어",
+   "dept": "노어노문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1420.000700",
+   "name": "고에너지 천체물리와 활동성 블랙홀",
+   "dept": "물리·천문학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3774.000200",
+   "name": "공연예술과 음악",
+   "dept": "독어독문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2177.011800",
+   "name": "공학자를 위한 데이터 과학",
+   "dept": "공과대학",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1844.002400",
+   "name": "국어자료탐구",
+   "dept": "국어교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1314.005900",
+   "name": "국제거시경제론",
+   "dept": "경제학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.006300",
+   "name": "근대영시",
+   "dept": "영어영문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.006000",
+   "name": "글로벌 영문학",
+   "dept": "영어영문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3228.003800",
+   "name": "기계제품 종합설계",
+   "dept": "기계공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2605.002700",
+   "name": "기초의생명과학",
+   "dept": "의예과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3704.002400",
+   "name": "기후스마트농업 시스템 개론",
+   "dept": "스마트시스템과학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1708.000500",
+   "name": "농업방재공학",
+   "dept": "조경·지역시스템공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3762.001000",
+   "name": "다양한 학습자 이해와 맞춤형 학습",
+   "dept": "융합학습과학전공",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1411.005400",
+   "name": "대기복사에너지",
+   "dept": "지구환경과학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1411.003500",
+   "name": "대기환경 개론",
+   "dept": "지구환경과학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3321.001600",
+   "name": "데이터기반 지역산업분석",
+   "dept": "농경제사회학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1241.000700",
+   "name": "독어학이란 무엇인가",
+   "dept": "독어독문학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1241.000900",
+   "name": "독일어 데이터 처리",
+   "dept": "독어독문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1241.000800",
+   "name": "독일지성 고전읽기",
+   "dept": "독어독문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3637.002800",
+   "name": "디지털 시스템 설계 및 실습",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2839.002500",
+   "name": "디지털 치의학 개론",
+   "dept": "치의학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.002600",
+   "name": "디지털조각 2: 피지컬 컴퓨팅",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1242.003100",
+   "name": "러시아 공연예술 연습",
+   "dept": "노어노문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1242.003500",
+   "name": "러시아 아방가르드",
+   "dept": "노어노문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3754.000200",
+   "name": "리테일 산학연계 프로젝트",
+   "dept": "의류학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3228.003900",
+   "name": "메카트로닉스 종합설계",
+   "dept": "기계공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1844.002500",
+   "name": "문학교육론",
+   "dept": "국어교육과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1236.005700",
+   "name": "미국문학 주제탐구",
+   "dept": "영어영문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1312.005000",
+   "name": "미디어 경영 이론",
+   "dept": "언론정보학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1704.001300",
+   "name": "바이오시스템공학 심화 연구 1",
+   "dept": "바이오시스템·소재학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1704.001400",
+   "name": "바이오시스템공학 심화 연구 2",
+   "dept": "바이오시스템·소재학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3638.003300",
+   "name": "바이오의약품설계",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3637.002600",
+   "name": "반도체 전자 소자",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3635.001100",
+   "name": "보건의료자료분석을 위한 통계방법론",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1420.000800",
+   "name": "빅데이터 천문학",
+   "dept": "물리·천문학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1311.005400",
+   "name": "사회정의와 인권 특강",
+   "dept": "사회복지학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1311.005600",
+   "name": "사회혁신과 소셜임팩트 특강",
+   "dept": "사회복지학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3762.001100",
+   "name": "사회혁신과 평생학습",
+   "dept": "융합학습과학전공",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M0.014400",
+   "name": "생태환경과 지리",
+   "dept": "지리학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.001400",
+   "name": "석조 2: 재료와 맥락",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M0.011700",
+   "name": "세계지리",
+   "dept": "지리교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1304.004100",
+   "name": "세대와 사회변동",
+   "dept": "사회학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3704.001100",
+   "name": "스마트시스템 기계학습 및 딥러닝",
+   "dept": "스마트시스템과학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M1886.004100",
+   "name": "스포츠심리학",
+   "dept": "체육교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1242.001300",
+   "name": "슬라브어의 과거와 현재",
+   "dept": "노어노문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3639.002900",
+   "name": "시스템 소프트웨어",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3704.002100",
+   "name": "시스템식물생산공학",
+   "dept": "스마트시스템과학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.004700",
+   "name": "심화 연구: 개념과 리서치 2",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.004600",
+   "name": "심화 연구: 이미지 실험 2",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.004500",
+   "name": "심화 연구: 회화 2",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3637.002700",
+   "name": "아날로그 반도체 전자회로",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3774.000100",
+   "name": "아시아 공연예술",
+   "dept": "독어독문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3638.003700",
+   "name": "약물전달시스템",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3762.002100",
+   "name": "에듀테크의 개발과 활용",
+   "dept": "융합학습과학전공",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.005500",
+   "name": "영문학 번역과 번안",
+   "dept": "영어영문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.005900",
+   "name": "영문학과 몸",
+   "dept": "영어영문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.005600",
+   "name": "영문학과 퍼포먼스",
+   "dept": "영어영문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1460.003700",
+   "name": "영양교육 및 상담",
+   "dept": "식품영양학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.004200",
+   "name": "영어 말소리의 이해",
+   "dept": "영어영문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3699.000300",
+   "name": "영화 비평 세미나",
+   "dept": "서어서문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.002800",
+   "name": "예술과 사회적 실천",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2177.011700",
+   "name": "오픈소스 반도체 설계 및 제작 종합설계",
+   "dept": "공과대학",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1886.004200",
+   "name": "운동학습 및 제어",
+   "dept": "체육교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.001200",
+   "name": "워크숍: 재료와 도구",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1766.001000",
+   "name": "워크숍: 포트폴리오",
+   "dept": "서양화과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1419.002500",
+   "name": "위상수학과 물질 물리학",
+   "dept": "물리·천문학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3634.000600",
+   "name": "의료인공지능 및 의료소프트웨어 시스템",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2605.002600",
+   "name": "의료인을 위한 스포츠 리더십",
+   "dept": "의예과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1783.000200",
+   "name": "인공지능 예술 실습",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3762.002400",
+   "name": "인공지능과 수학학습",
+   "dept": "융합학습과학전공",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1308.004000",
+   "name": "일과 경력의 심리학",
+   "dept": "심리학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3716.000200",
+   "name": "일본의 사회변동과 시민사회",
+   "dept": "연계전공 일본학",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.002500",
+   "name": "작가와 전시",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.001200",
+   "name": "작품연구: 예술과 기술",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.000800",
+   "name": "작품연구: 자연·역사·문화",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1311.005100",
+   "name": "장애와 사회: 장애인복지의 이해",
+   "dept": "사회복지학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1409.002700",
+   "name": "재료화학 1: 합성 및 특성",
+   "dept": "화학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3228.003700",
+   "name": "적층제조",
+   "dept": "기계공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2888.001100",
+   "name": "정상과 병리: 의학의 인문사회과학적 쟁점들",
+   "dept": "생명과학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1321.003800",
+   "name": "정치사상과 역사",
+   "dept": "정치외교학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1844.003300",
+   "name": "제 2 언어로서의 한국어교육론",
+   "dept": "국어교육과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1410.005100",
+   "name": "조직줄기세포학",
+   "dept": "생명과학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1261.001200",
+   "name": "종교와 젠더",
+   "dept": "종교학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1234.001500",
+   "name": "중국의 놀이와 노래",
+   "dept": "중어중문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3714.000100",
+   "name": "중앙아시아-한민족교류사",
+   "dept": "연계전공 러시아학",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1411.006900",
+   "name": "지구행성물리학 개론",
+   "dept": "지구환경과학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3749.000100",
+   "name": "지반공학",
+   "dept": "건설환경도시공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1461.006700",
+   "name": "지속가능순환소재 프로젝트",
+   "dept": "의류학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3638.003800",
+   "name": "질병의 이해 2 (종양, 대사, 신경)",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1461.006800",
+   "name": "차세대스마트소재공학 프로젝트",
+   "dept": "의류학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2177.012000",
+   "name": "창업가형 공학기술 혁신 강좌 2",
+   "dept": "공과대학",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.004600",
+   "name": "초기영국시",
+   "dept": "영어영문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1505.002000",
+   "name": "최적화알고리즘",
+   "dept": "산업공학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1411.006800",
+   "name": "탄소중립과 기후위기",
+   "dept": "지구환경과학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.003000",
+   "name": "퍼포먼스: 몸과 사물",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1311.004100",
+   "name": "평안한 삶의 기초: 건강, 돌봄, 그리고 사회",
+   "dept": "사회복지학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.006100",
+   "name": "포스트휴머니즘 시대의 영문학",
+   "dept": "영어영문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1239.001400",
+   "name": "프랑스 문학과 공연예술",
+   "dept": "불어불문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1239.001200",
+   "name": "프랑스어의 말소리와 어휘",
+   "dept": "불어불문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1239.001300",
+   "name": "프랑스텍스트분석 심화",
+   "dept": "불어불문학과",
+   "semester": "2026-2",
+   "offered_as": "전필"
+  },
+  {
+   "number": "M3762.000900",
+   "name": "학습과 동기",
+   "dept": "융합학습과학전공",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3762.001300",
+   "name": "학습분석과 학습설계",
+   "dept": "융합학습과학전공",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3762.000800",
+   "name": "학습신경과학과 실험",
+   "dept": "융합학습과학전공",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3762.001200",
+   "name": "학습자 역량 평가",
+   "dept": "융합학습과학전공",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1767.002400",
+   "name": "한국조각의 이해",
+   "dept": "조소과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1234.001800",
+   "name": "한시와 문화",
+   "dept": "중어중문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3229.004600",
+   "name": "항공우주 캡스톤 디자인 2",
+   "dept": "항공우주공학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3638.003900",
+   "name": "혁신신약 창의 연구",
+   "dept": "첨단융합학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M1236.005800",
+   "name": "현대영미소설",
+   "dept": "영어영문학과",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M3502.020900",
+   "name": "현장실습 4",
+   "dept": "혁신공유학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  },
+  {
+   "number": "M2608.003200",
+   "name": "회로 이론 및 실험",
+   "dept": "전기·정보공학부",
+   "semester": "2026-2",
+   "offered_as": "전선"
+  }
+ ]
+}

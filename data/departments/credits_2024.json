@@ -1,0 +1,705 @@
+{
+ "meta": {
+  "table": {
+   "edition": "2024",
+   "what": "교과과정 해설 <표 1> 학사과정 졸업(수료) 이수학점 기준",
+   "source": "https://www.snu.ac.kr/webdata/uploads/kor/file/2025/04/Explanation_kor_2024.pdf",
+   "page": "PDF 1~2쪽(인쇄 쪽 번호 8~9)"
+  },
+  "general_from_2025": {
+   "what": "2026학년도 단과대학별 공통교육과정 이수 규정의 교양 최소 학점(2025학년도 입학생부터 적용)",
+   "source": "https://snuc.snu.ac.kr/wp-content/uploads/sites/305/2026/01/2026학년도-시행-공통교육과정-대학별-이수규정.pdf",
+   "note": "자연과학대학 학부(과)별 규정, 공과대학 광역모집(1학년 1학기 19학점), 치의학대학원 통합과정(44)은 넣지 않음"
+  },
+  "transcribed_on": "2026-11-10",
+  "how": "표 1은 PDF 쪽 그림을 보고 손으로 옮김(병합된 칸은 그림 기준). 2025학번부터 교양은 PDF 글자에서 뽑음",
+  "keys": {
+   "graduation": "졸업(수료) 학점",
+   "general": "교양 학점",
+   "major_single": "주전공 학점(단일전공)",
+   "major_with_other": "주전공 학점(다른 전공 병행)",
+   "null": "표에 － 로 적힘"
+  }
+ },
+ "table": [
+  {
+   "college": "인문대학",
+   "unit": "아래 이외의 학과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 60,
+   "major_with_other": 39,
+   "note": ""
+  },
+  {
+   "college": "인문대학",
+   "unit": "불어불문학과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 60,
+   "major_with_other": 42,
+   "note": "병행 42: 2013학년도 입학자부터"
+  },
+  {
+   "college": "인문대학",
+   "unit": "서어서문학과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 60,
+   "major_with_other": 42,
+   "note": "병행 42: 2017학년도 입학자부터"
+  },
+  {
+   "college": "인문대학",
+   "unit": "노어노문학과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 60,
+   "major_with_other": 42,
+   "note": "병행 42: 2018학년도 입학자부터"
+  },
+  {
+   "college": "인문대학",
+   "unit": "아시아언어문명학부",
+   "graduation": 130,
+   "general": 36,
+   "major_single": null,
+   "major_with_other": 39,
+   "note": "단일전공 불가"
+  },
+  {
+   "college": "사회과학대학",
+   "unit": "전체",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 60,
+   "major_with_other": 39,
+   "note": ""
+  },
+  {
+   "college": "자연과학대학",
+   "unit": "전체",
+   "graduation": 130,
+   "general": 46,
+   "major_single": 60,
+   "major_with_other": 39,
+   "note": ""
+  },
+  {
+   "college": "간호대학",
+   "unit": "전체",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 85,
+   "major_with_other": 85,
+   "note": "2020학년도 입학자부터"
+  },
+  {
+   "college": "경영대학",
+   "unit": "전체",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 60,
+   "major_with_other": 39,
+   "note": ""
+  },
+  {
+   "college": "공과대학",
+   "unit": "건축학과 건축학전공(5년제)",
+   "graduation": 160,
+   "general": 40,
+   "major_single": 110,
+   "major_with_other": 110,
+   "note": ""
+  },
+  {
+   "college": "공과대학",
+   "unit": "건축학과 건축공학전공",
+   "graduation": 130,
+   "general": 40,
+   "major_single": 73,
+   "major_with_other": 54,
+   "note": "2016학년도 입학자부터"
+  },
+  {
+   "college": "공과대학",
+   "unit": "산업공학과",
+   "graduation": 130,
+   "general": 52,
+   "major_single": 59,
+   "major_with_other": 49,
+   "note": "부·연계·학생설계 병행이수자는 해당 없음"
+  },
+  {
+   "college": "공과대학",
+   "unit": "원자핵공학과",
+   "graduation": 130,
+   "general": 53,
+   "major_single": 62,
+   "major_with_other": 48,
+   "note": ""
+  },
+  {
+   "college": "공과대학",
+   "unit": "조선해양공학과",
+   "graduation": 130,
+   "general": 53,
+   "major_single": 66,
+   "major_with_other": 45,
+   "note": ""
+  },
+  {
+   "college": "공과대학",
+   "unit": "전기·정보공학부",
+   "graduation": 130,
+   "general": 53,
+   "major_single": 63,
+   "major_with_other": 45,
+   "note": "부·연계·학생설계 병행은 48학점"
+  },
+  {
+   "college": "공과대학",
+   "unit": "컴퓨터공학부",
+   "graduation": 130,
+   "general": 53,
+   "major_single": 63,
+   "major_with_other": 45,
+   "note": "부·연계·학생설계 병행은 48학점"
+  },
+  {
+   "college": "공과대학",
+   "unit": "재료공학부",
+   "graduation": 130,
+   "general": 52,
+   "major_single": 62,
+   "major_with_other": 48,
+   "note": "부·연계·학생설계 병행은 54학점"
+  },
+  {
+   "college": "공과대학",
+   "unit": "건설환경공학부",
+   "graduation": 130,
+   "general": 50,
+   "major_single": 62,
+   "major_with_other": 48,
+   "note": ""
+  },
+  {
+   "college": "공과대학",
+   "unit": "화학생물공학부",
+   "graduation": 130,
+   "general": 53,
+   "major_single": 62,
+   "major_with_other": 46,
+   "note": ""
+  },
+  {
+   "college": "공과대학",
+   "unit": "에너지자원공학과",
+   "graduation": 130,
+   "general": 49,
+   "major_single": 62,
+   "major_with_other": 47,
+   "note": ""
+  },
+  {
+   "college": "공과대학",
+   "unit": "기계공학부",
+   "graduation": 130,
+   "general": 49,
+   "major_single": 62,
+   "major_with_other": 45,
+   "note": "부·연계·학생설계 병행은 48학점"
+  },
+  {
+   "college": "공과대학",
+   "unit": "항공우주공학과",
+   "graduation": 130,
+   "general": 49,
+   "major_single": 62,
+   "major_with_other": 42,
+   "note": ""
+  },
+  {
+   "college": "농업생명과학대학",
+   "unit": "아래 이외의 학과(부)",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 48,
+   "major_with_other": 48,
+   "note": ""
+  },
+  {
+   "college": "농업생명과학대학",
+   "unit": "조경·지역시스템공학부, 바이오시스템·소재학부(바이오시스템공학전공), 응용생물화학부(응용생명화학전공)",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 60,
+   "major_with_other": 48,
+   "note": ""
+  },
+  {
+   "college": "농업생명과학대학",
+   "unit": "농경제사회학부(농업·자원경제학전공)",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 60,
+   "major_with_other": 39,
+   "note": ""
+  },
+  {
+   "college": "농업생명과학대학",
+   "unit": "응용생물화학부(응용생물학전공)",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 52,
+   "major_with_other": 52,
+   "note": "2020학년도 입학생부터"
+  },
+  {
+   "college": "농업생명과학대학",
+   "unit": "식물생산과학부(산업인력개발학전공)",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 50,
+   "major_with_other": 50,
+   "note": ""
+  },
+  {
+   "college": "미술대학",
+   "unit": "동양화과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 70,
+   "major_with_other": 62,
+   "note": ""
+  },
+  {
+   "college": "미술대학",
+   "unit": "서양화과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 71,
+   "major_with_other": 61,
+   "note": "2012학년도 입학자부터"
+  },
+  {
+   "college": "미술대학",
+   "unit": "조소과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 68,
+   "major_with_other": 68,
+   "note": "2013학년도 입학자부터('12: 64, '08~'11: 60)"
+  },
+  {
+   "college": "미술대학",
+   "unit": "공예과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 69,
+   "major_with_other": 57,
+   "note": "2017학년도 입학자부터"
+  },
+  {
+   "college": "미술대학",
+   "unit": "디자인과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 69,
+   "major_with_other": 57,
+   "note": "2017학년도 입학자부터"
+  },
+  {
+   "college": "사범대학",
+   "unit": "아래 외의 학과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 60,
+   "major_with_other": 52,
+   "note": ""
+  },
+  {
+   "college": "사범대학",
+   "unit": "수학교육과",
+   "graduation": 130,
+   "general": 41,
+   "major_single": 60,
+   "major_with_other": 52,
+   "note": "교양 41: 2023학년도 입학자부터"
+  },
+  {
+   "college": "사범대학",
+   "unit": "과학교육계",
+   "graduation": 130,
+   "general": "38('19학년도부터 39)",
+   "major_single": 60,
+   "major_with_other": 52,
+   "note": ""
+  },
+  {
+   "college": "사범대학",
+   "unit": "사회교육과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 60,
+   "major_with_other": 52,
+   "note": ""
+  },
+  {
+   "college": "사범대학",
+   "unit": "역사교육과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 65,
+   "major_with_other": 59,
+   "note": ""
+  },
+  {
+   "college": "사범대학",
+   "unit": "교육학과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 62,
+   "major_with_other": 62,
+   "note": ""
+  },
+  {
+   "college": "생활과학대학",
+   "unit": "소비자아동학부 소비자학전공",
+   "graduation": 130,
+   "general": 40,
+   "major_single": 60,
+   "major_with_other": 48,
+   "note": ""
+  },
+  {
+   "college": "생활과학대학",
+   "unit": "소비자아동학부 아동가족학전공",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 60,
+   "major_with_other": 39,
+   "note": ""
+  },
+  {
+   "college": "생활과학대학",
+   "unit": "식품영양학과",
+   "graduation": 130,
+   "general": 40,
+   "major_single": 60,
+   "major_with_other": 48,
+   "note": ""
+  },
+  {
+   "college": "생활과학대학",
+   "unit": "의류학과",
+   "graduation": 130,
+   "general": 40,
+   "major_single": 60,
+   "major_with_other": 48,
+   "note": ""
+  },
+  {
+   "college": "수의과대학",
+   "unit": "수의예과",
+   "graduation": 72,
+   "general": 43,
+   "major_single": 23,
+   "major_with_other": 23,
+   "note": ""
+  },
+  {
+   "college": "수의과대학",
+   "unit": "수의학과",
+   "graduation": 148,
+   "general": null,
+   "major_single": 148,
+   "major_with_other": null,
+   "note": ""
+  },
+  {
+   "college": "약학대학",
+   "unit": "2+4학년제",
+   "graduation": 150,
+   "general": null,
+   "major_single": 150,
+   "major_with_other": 150,
+   "note": "2017학년도부터 시행"
+  },
+  {
+   "college": "약학대학",
+   "unit": "6년제",
+   "graduation": 211,
+   "general": 36,
+   "major_single": 174,
+   "major_with_other": 174,
+   "note": "2022학년도부터 시행"
+  },
+  {
+   "college": "음악대학",
+   "unit": "성악과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 68,
+   "major_with_other": 68,
+   "note": "2023학년도 신입생부터"
+  },
+  {
+   "college": "음악대학",
+   "unit": "작곡과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 78,
+   "major_with_other": 78,
+   "note": "2022학년도 신입생부터"
+  },
+  {
+   "college": "음악대학",
+   "unit": "음악학과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": "52(23학번부터), 46(24학번부터)",
+   "major_with_other": "46(23학번부터)",
+   "note": "세부전공별 이수학점 상이"
+  },
+  {
+   "college": "음악대학",
+   "unit": "피아노과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 60,
+   "major_with_other": 60,
+   "note": "2019학년도 신입생부터"
+  },
+  {
+   "college": "음악대학",
+   "unit": "관현악과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": "68(23학번부터)",
+   "major_with_other": 74,
+   "note": "2019학년도 신입생부터, 세부전공별 이수학점 상이"
+  },
+  {
+   "college": "음악대학",
+   "unit": "국악과",
+   "graduation": 130,
+   "general": 36,
+   "major_single": 65,
+   "major_with_other": 65,
+   "note": "2022학년도 신입생부터, 세부전공별 이수학점 상이"
+  },
+  {
+   "college": "의과대학",
+   "unit": "의예과",
+   "graduation": 74,
+   "general": 41,
+   "major_single": 26,
+   "major_with_other": 26,
+   "note": "2024학년도 입학자부터"
+  },
+  {
+   "college": "의과대학",
+   "unit": "의학과",
+   "graduation": 148,
+   "general": null,
+   "major_single": 148,
+   "major_with_other": null,
+   "note": ""
+  },
+  {
+   "college": "자유전공학부",
+   "unit": "기존 전공(연합전공 포함)을 주전공으로 선택",
+   "graduation": 135,
+   "general": 36,
+   "major_single": "선택 전공 이수학점",
+   "major_with_other": "선택 전공 이수학점",
+   "note": "2012학년도부터 시행"
+  },
+  {
+   "college": "자유전공학부",
+   "unit": "학생설계전공을 주전공으로 선택",
+   "graduation": 135,
+   "general": 36,
+   "major_single": 60,
+   "major_with_other": 39,
+   "note": "2012학년도부터 시행"
+  },
+  {
+   "college": "첨단융합학부",
+   "unit": "전체",
+   "graduation": 130,
+   "general": 51,
+   "major_single": 60,
+   "major_with_other": 48,
+   "note": ""
+  }
+ ],
+ "general_from_2025": [
+  {
+   "unit": "학부대학 (자유전공학부)",
+   "general": 36
+  },
+  {
+   "unit": "학부대학 (광역)",
+   "general": 36
+  },
+  {
+   "unit": "인문대학",
+   "general": 36
+  },
+  {
+   "unit": "사회과학대학",
+   "general": 36
+  },
+  {
+   "unit": "자연과학대학 (공통)",
+   "general": 46
+  },
+  {
+   "unit": "간호대학",
+   "general": 36
+  },
+  {
+   "unit": "경영대학",
+   "general": 36
+  },
+  {
+   "unit": "공과대학 (건설환경공학부)",
+   "general": 50
+  },
+  {
+   "unit": "공과대학 (건축학과)",
+   "general": 40
+  },
+  {
+   "unit": "공과대학 (기계공학부)",
+   "general": 49
+  },
+  {
+   "unit": "공과대학 (산업공학과)",
+   "general": 52
+  },
+  {
+   "unit": "공과대학 (에너지자원공학과)",
+   "general": 49
+  },
+  {
+   "unit": "공과대학 (원자핵공학과)",
+   "general": 53
+  },
+  {
+   "unit": "공과대학 (재료공학부)",
+   "general": 49
+  },
+  {
+   "unit": "공과대학 (전기·정보공학부)",
+   "general": 53
+  },
+  {
+   "unit": "공과대학 (조선해양공학과)",
+   "general": 49
+  },
+  {
+   "unit": "공과대학 (컴퓨터공학부)",
+   "general": 49
+  },
+  {
+   "unit": "공과대학 (항공우주공학과)",
+   "general": 49
+  },
+  {
+   "unit": "공과대학 (화학생물공학부)",
+   "general": 53
+  },
+  {
+   "unit": "농업생명과학대학 인문계 (농경제사회학부)",
+   "general": 36
+  },
+  {
+   "unit": "농업생명과학대학 자연계 (스마트시스템과학과)",
+   "general": 42
+  },
+  {
+   "unit": "농업생명과학대학 자연계 (스마트시스템과학과 제외한 전체)",
+   "general": 36
+  },
+  {
+   "unit": "미술대학",
+   "general": 36
+  },
+  {
+   "unit": "사범대학 (교육학과, 불어교육과, 독어교육과, 사회교육과, 지리교육과, 윤리교육과, 체육교육과)",
+   "general": 36
+  },
+  {
+   "unit": "사범대학 (국어교육과, 영어교육과)",
+   "general": 36
+  },
+  {
+   "unit": "사범대학 (역사교육과)",
+   "general": 36
+  },
+  {
+   "unit": "사범대학 (수학교육과)",
+   "general": 41
+  },
+  {
+   "unit": "사범대학 (물리교육과)",
+   "general": 39
+  },
+  {
+   "unit": "사범대학 (화학교육과)",
+   "general": 45
+  },
+  {
+   "unit": "사범대학 (생물교육과)",
+   "general": 45
+  },
+  {
+   "unit": "사범대학 (지구과학교육과)",
+   "general": 44
+  },
+  {
+   "unit": "사범대학 (융합학습과학 전공)",
+   "general": 36
+  },
+  {
+   "unit": "생활과학대학 (소비자아동학부 소비자학전공)",
+   "general": 40
+  },
+  {
+   "unit": "생활과학대학 (소비자아동학부 아동가족학전공)",
+   "general": 36
+  },
+  {
+   "unit": "생활과학대학 (식품영양학과)",
+   "general": 40
+  },
+  {
+   "unit": "생활과학대학 (의류학과)",
+   "general": 40
+  },
+  {
+   "unit": "수의과대학 (수의예과)",
+   "general": 42
+  },
+  {
+   "unit": "약학대학",
+   "general": 36
+  },
+  {
+   "unit": "음악대학",
+   "general": 36
+  },
+  {
+   "unit": "의과대학 (의예과)",
+   "general": 41
+  },
+  {
+   "unit": "첨단융합학부",
+   "general": 48
+  }
+ ]
+}
