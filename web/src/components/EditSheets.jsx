@@ -30,8 +30,8 @@ function DeleteButton({ busy, onDelete }) {
   );
 }
 
-// leg·campus: 수업 사이 동선(campus.js dayLegs)과 캠퍼스 표. 없으면 장소 '지도' 단추만
-export function EventEditSheet({ event, leg, campus, onSave, onDelete, onClose }) {
+// leg·campus·events: 수업 사이 동선(campus.js dayLegs), 캠퍼스 표, 그 주 일정(하루 동선 지도). 없으면 장소 '지도' 단추만
+export function EventEditSheet({ event, leg, campus, events, onSave, onDelete, onClose }) {
   const locked = fromFeed(event);
   const [form, setForm] = useState(() => eventToForm(event));
   const [important, setImportant] = useState(event.important ? 1 : 0);
@@ -64,7 +64,7 @@ export function EventEditSheet({ event, leg, campus, onSave, onDelete, onClose }
       ) : (
         <EventForm form={form} onChange={setForm} idPrefix="edit-event" />
       )}
-      <RouteInfo event={event} leg={leg} campus={campus} />
+      <RouteInfo event={event} leg={leg} campus={campus} events={events} />
       <ImportantToggle value={important} onChange={setImportant} />
       {error && (
         <p className="error" role="alert">

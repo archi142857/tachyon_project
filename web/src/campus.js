@@ -34,6 +34,8 @@ export function makeCampus(json) {
     has: (id) => index.has(id),
     name: (id) => json.names[at(id)],
     point: (id) => (index.has(id) ? { lat: json.lat[at(id)], lon: json.lon[at(id)] } : null),
+    /** 모든 지점 [[lat, lon], ...] — 하루 동선 지도의 옅은 건물 점 */
+    points: () => json.lat.map((lat, i) => [lat, json.lon[i]]),
     byName: (text) => byName.get(nameKey(text)) || null,
     /** a에서 b까지 걷는 분(소수). 같은 건물이면 0, 표에 없으면 null */
     minutes(a, b) {

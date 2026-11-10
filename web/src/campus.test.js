@@ -171,3 +171,56 @@ describe('네이버 지도 주소(키 없음)', () => {
     expect(walkLink({ from: '26', to: '없는곳', campus, appname })).toBeNull();
   });
 });
+
+describe('하루 동선 지도(TT Wizard 요일 동선 지도를 작게)', async () => {
+  const { dayStops, dayWalk, decodePolyline, fit, routeLine, routeSummary, world } = await import('./routeMap.js');
+  const routes = (await import('./campus/route_paths.json')).default;
+
+  it('길 모양 표의 건물 번호는 걷는 시간 표와 같고, 한 방향만 있는 쌍은 거꾸로 찾는다', () => {
+    expect([...routes.ids].sort()).toEqual([...campusJson.ids].sort());
+    const ab = routeLine(routes, '1', '2');
+    const ba = routeLine(routes, '2', '1');
+    expect(ab.length).toBeGreaterThan(1);
+    expect(ba).toEqual([...ab].reverse());
+    expect(routeLine(routes, '1', '없는곳')).toBeNull();
+    // Google polyline 예시(공식 문서의 값)
+    expect(decodePolyline('_p~iF~ps|U_ulLnnqC_mqNvxq`@')).toEqual([
+      [38.5, -120.2],
+      [40.7, -120.95],
+      [43.252, -126.453],
+    ]);
+  });
+
+  it('그날 캠퍼스 건물을 시간 순서로, 같은 건물이 이어지면 번호를 모은다(2·3)', () => {
+    const evs = [
+      ev(1, 18, [9, 0], [10, 0], '500동'),
+      ev(2, 18, [10, 30], [11, 30], '43-1동 101호'),
+      ev(3, 18, [12, 0], [13, 0], '43-1동 201호'),
+      ev(4, 18, [13, 30], [14, 0], '강남역'), // 캠퍼스 밖은 뺌
+      ev(5, 18, [15, 0], [16, 0], '301동'),
+      ev(6, 19, [9, 0], [10, 0], '26동'), // 다른 날
+    ];
+    const stops = dayStops(evs, campus, evs[0].start);
+    expect(stops.map((s) => [s.building, s.label])).toEqual([
+      ['500', '1'],
+      ['43-1', '2·3'],
+      ['301', '4'],
+    ]);
+    const walk = Math.round(campus.minutes('500', '43-1') + campus.minutes('43-1', '301'));
+    expect(dayWalk(stops, campus)).toBe(walk);
+    expect(routeSummary(stops, campus)).toBe(`1 500동 → 2·3 43-1동 → 4 301동, 걷기 ${walk}분`);
+  });
+
+  it('점들이 캔버스 안에 여백을 두고 들어온다', () => {
+    const pts = [world(37.46, 126.95), world(37.45, 126.96)];
+    const { S, ox, oy } = fit(pts, 300, 200, 20);
+    for (const [u, v] of pts) {
+      const x = u * S - ox;
+      const y = v * S - oy;
+      expect(x).toBeGreaterThanOrEqual(19.99);
+      expect(x).toBeLessThanOrEqual(280.01);
+      expect(y).toBeGreaterThanOrEqual(19.99);
+      expect(y).toBeLessThanOrEqual(180.01);
+    }
+  });
+});

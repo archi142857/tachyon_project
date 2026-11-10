@@ -283,6 +283,7 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
           event={sheet.event}
           leg={legs.get(sheet.event.id)}
           campus={campus}
+          events={events}
           onClose={() => setSheet(null)}
           onSave={(fields) => saveEvent(sheet.event.id, fields)}
           onDelete={() => deleteEvent(sheet.event)}

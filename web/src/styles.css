@@ -205,6 +205,10 @@ h1, h2, h3, p { margin: 0; }
 .route-info { display: grid; gap: 2px; margin: 4px 0 8px; }
 .route-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 15px; line-height: 22px; }
 .route-row .map-link { flex: none; display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
+/* 하루 동선 지도(DayRouteMap): 바탕 없이 길 선·건물 점·번호 핀. 색은 --map-* 가 있으면 그걸로(디자인 적용 때) */
+.day-map { margin: 4px 0 0; }
+.day-map canvas { display: block; width: 100%; border-radius: 8px; border: 1px solid var(--line); }
+.day-map figcaption { margin-top: 4px; }
 /* eTL 연결(EtlSheet): 비밀번호를 넣지 않게 경고를 크게, 강의자료·공지 목록 */
 .warn-box { margin: 0; padding: 10px 12px; border: 2px solid var(--danger); border-radius: 8px; color: var(--danger); font-size: 16px; line-height: 24px; font-weight: 700; }
 .etl-steps { margin: 0; padding-left: 20px; font-size: 14px; line-height: 22px; color: var(--text2); }
