@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { makeEnv, makeCtx, addTestUser } from './helpers/server.js';
 import { calendar, vevent } from './ics_fixtures.js';
-import { checkToken, collectDue, collectUser, courseName, handle, nextLink, noticeEvents, query, tagOf, termNames, toDue } from '../9_etl.js';
+import { checkToken, classEvents, collectDue, collectUser, courseName, handle, nextLink, noticeEvents, query, roomLabel, sugangKey, tagOf, termNames, toDue } from '../9_etl.js';
 import { collectUser as collectIcs } from '../2_collect_ics.js';
 import { mightHaveDates, noticeText } from '../prompts/etl_notice.js';
 import { seal } from '../lib/secret.js';
@@ -18,6 +18,7 @@ const calls = [];
 let filesStatus = 403; // 과목 103은 파일 탭이 닫혀 있다
 let aiReplies = [];
 let coursesStatus = 200;
+let syllabus = null; // 과목 101의 강의계획서 칸(수업 시간표 시험에서만)
 const realFetch = globalThis.fetch;
 const realNow = Date.now;
 
@@ -41,7 +42,7 @@ async function fakeFetch(input, init = {}) {
     if (u.searchParams.get('page') === '2') return j([{ id: '103', name: '예시 화학', term: { name: '2026년 2학기' } }]);
     return j(
       [
-        { id: '101', name: '예시 생물', term: { name: '2026년 2학기' } },
+        { id: '101', name: '예시 생물', term: { name: '2026년 2학기' }, ...(syllabus || {}) },
         { id: '102', name: '지난 학기 과목', term: { name: '2026년 1학기' } },
         { id: '9', access_restricted_by_date: true },
       ],
@@ -82,6 +83,7 @@ test.beforeEach(() => {
   calls.length = 0;
   filesStatus = 403;
   coursesStatus = 200;
+  syllabus = null;
   aiReplies = [{ items: [{ kind: 'exam', title: '중간고사', date: '2026-11-18', time: '14:00', end_time: '15:15', place: '26동 101호' }] }];
 });
 
@@ -253,6 +255,44 @@ test('원격 D1에 표가 아직 없으면 503(준비 중)', async () => {
   env.DB.sqlite.exec('DROP TABLE etl_items; DROP TABLE etl;');
   const res = await handle(req('/api/etl'), env, makeCtx(), user);
   assert.equal(res.status, 503);
+});
+
+// 실제 수강편람(data/offerings/2026-2.json)의 한 과목: 4013.311 구조동역학 001 — 월 9:30~10:45 39동 409호, 수 9:30~10:45 38동 417호
+const IFRAME = '<iframe src="https://sugang.snu.ac.kr/sugang/cc/cc103.action?openSchyy=2026&amp;sbjtCd=4013.311&amp;ltNo=001&amp;sbjtSubhCd=000"></iframe>';
+
+test('수업 시간표: 강의계획서 칸의 교과목번호·분반 → 수강편람 → 오늘부터 종강까지 매주 일정(AI 없이)', async () => {
+  syllabus = { syllabus_body: IFRAME, course_code: '2026-2 예시 생물 (001)' };
+  const { env, user } = await setup();
+  const data = await (await handle(put(TOKEN), env, makeCtx(), user)).json();
+  assert.equal(data.result.classes, 1);
+  const classes = rows(env, "SELECT title, start, \"end\", place FROM events WHERE ext_id LIKE 'api-class-%' ORDER BY start");
+  assert.equal(classes.length, 10, '11-11(수)부터 12-14(월, 종강)까지 월·수 10번');
+  assert.deepEqual(classes[0], { title: '예시 생물', start: '2026-11-11T09:30:00+09:00', end: '2026-11-11T10:45:00+09:00', place: '38동 417호' });
+  assert.deepEqual(classes[1], { title: '예시 생물', start: '2026-11-16T09:30:00+09:00', end: '2026-11-16T10:45:00+09:00', place: '39동 409호' });
+  assert.equal(classes.at(-1).start, '2026-12-14T09:30:00+09:00');
+  // 다시 받아도 그대로, ICS 수집 규칙('api-' 건너뜀)으로 남는다
+  await collectUser(env, user.id, { force: true });
+  assert.equal(rows(env, "SELECT count(*) AS n FROM events WHERE ext_id LIKE 'api-class-%'")[0].n, 10);
+});
+
+test('수업 시간표: 시간표 사진으로 넣은 수업이 있으면 넣지 않고, 교과목번호가 없으면 과목 이름 + 분반으로 찾는다', async () => {
+  syllabus = { syllabus_body: IFRAME };
+  const { env, user } = await setup();
+  env.DB.sqlite.prepare("INSERT INTO events (user_id, title, start, \"end\", source, ext_id) VALUES (?, '예시 수업', '2026-11-12T09:00:00+09:00', '2026-11-12T10:00:00+09:00', 'timetable', 'tt:1')").run(user.id);
+  await handle(put(TOKEN), env, makeCtx(), user);
+  assert.equal(rows(env, "SELECT count(*) AS n FROM events WHERE ext_id LIKE 'api-class-%'")[0].n, 0);
+
+  // 이름이 하나뿐인 과목(C30.106 글로벌 이슈와 윤리적 사고 001: 수 10:00~11:20 12동 401호, 금 10-1동 101호)
+  const course = { id: '7', name: '글로벌 이슈와 윤리적 사고', term: '2026년 2학기', ...sugangKey({ name: '2026-2 글로벌 이슈와 윤리적 사고 (001)', syllabus_body: '<p>계획서 없음</p>' }) };
+  assert.deepEqual([course.sbjtCd, course.ltNo], [null, '001']);
+  const r = await classEvents([course], '2026-11-18', '2026-11-20');
+  assert.equal(r.matched, 1);
+  assert.deepEqual(r.events.map((e) => [e.start.slice(0, 16), e.end.slice(11, 16), e.place]), [['2026-11-18T10:00', '11:20', '12동 401호'], ['2026-11-20T10:00', '11:20', '10-1동 101호']]);
+  // 같은 이름 과목이 둘이면(구조동역학: 건축학과·조선해양공학과) 이름으로는 찾지 않는다
+  assert.equal((await classEvents([{ ...course, name: '구조동역학' }], '2026-11-16', '2026-11-18')).matched, 0);
+  assert.equal(await classEvents([{ ...course, term: '2027년 1학기' }], '2027-03-02', '2027-03-03'), null, '그 학기 편람이 없으면 null');
+  assert.equal(roomLabel('301', '강당'), '301동 강당');
+  assert.equal(roomLabel('', ''), null);
 });
 
 test('작은 도우미: 학기 이름, 마감 시각, 다음 쪽, 묻는 글, 공지 거르기·글, 공지 → 일정', () => {

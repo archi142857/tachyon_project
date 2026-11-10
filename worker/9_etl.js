@@ -18,6 +18,9 @@
 //   AI(worker/prompts/etl_notice.js)가 날짜를 찾고, 찾은 것은 events(source 'notice' — 사용자가 고치거나 지울 수 있다. 한 번만 넣고 다시 덮지 않는다).
 // - 강의자료 → etl_items(kind file: 과목·파일 이름·eTL 화면 주소(로그인해야 열림)·올린 시각). 내려받기 주소(검증값 붙음)는 어디에도 남기지 않고, 복사하지 않는다(11-10 정함).
 // - 과목 일정(교수가 eTL 달력에 넣은 것) → events(source 'etl', ext_id 'api-calendar-<id>'). ICS 수집이 지우지 않게 2_collect_ics.js는 'api-'로 시작하는 줄을 건너뛴다.
+// - 수업 시간표(AI 없이, 팀원 11-10 확인): 과목의 강의계획서 칸(syllabus_body) iframe 주소의 sbjtCd(교과목번호)·ltNo(분반)로
+//   수강편람(data/offerings/<학기>.json, TT Wizard 자료 — 학사 과정만)에서 요일·시각·건물·호실을 찾아 오늘부터 종강까지 매주 일정으로
+//   (source 'etl', ext_id 'api-class-…', 이름 = 과목 이름, 장소 = '39동 409호'). 시간표 사진으로 넣은 수업이 있으면 겹치지 않게 넣지 않는다.
 //
 // 지키는 것
 // - 토큰은 APP_SECRET으로 잠가 etl.token에만. 응답·로그·오류 문장·이슈에 토큰·내려받기 주소·공지 글을 넣지 않는다.
@@ -32,6 +35,7 @@ import { seal, unseal } from './lib/secret.js';
 import { fail, json, readJson } from './lib/http.js';
 import { DAY_MS, KST_MS, kstDate, kstIso, kstMidnight } from './lib/time.js';
 import { logStatement } from './lib/log.js';
+import { semesterEnd } from './5_timetable_photo.js';
 
 export const ORIGIN = 'https://myetl.snu.ac.kr';
 const API = `${ORIGIN}/api/v1`;
@@ -44,6 +48,12 @@ const FUTURE_DAYS = 183;
 const AI_PER_USER = 3; // 한 번에 AI로 읽는 새 공지 수(나머지는 다음 차례)
 const FILES_PER_COURSE = 30;
 const NEED_PER_USER = 20; // 한 사람을 시작하려면 남아 있어야 하는 요청 수(강의 6개쯤)
+
+// 학기마다 수강편람 하나(TT Wizard 자료, data/README.md). 새 학기 편람이 data/offerings/에 생기면 줄을 더한다.
+// 처음 쓸 때만 읽는다(350KB JSON — 상태 조회 같은 요청에는 읽지 않게).
+const OFFERINGS = {
+  '2026년 2학기': () => import('../data/offerings/2026-2.json', { with: { type: 'json' } }),
+};
 
 const MSG = {
   auth: 'eTL이 이 토큰을 받지 않아요. 토큰을 지웠거나 만료됐을 수 있어요. eTL에서 새 토큰을 만들어 다시 연결해 주세요',
@@ -331,10 +341,10 @@ export async function collectUser(env, userId, { force = false, minGapMs = 0, no
   const to = new Date(kstMidnight(now) + FUTURE_DAYS * DAY_MS).toISOString();
 
   try {
-    const all = await getAll(get, '/courses', { enrollment_state: 'active', 'include[]': 'term', per_page: 100 });
+    const all = await getAll(get, '/courses', { enrollment_state: 'active', 'include[]': ['term', 'syllabus_body'], per_page: 100 });
     const courses = all
       .filter((c) => c && c.id && c.name && c.term && terms.includes(c.term.name))
-      .map((c) => ({ id: String(c.id), name: courseName(c.name) }));
+      .map((c) => ({ id: String(c.id), name: courseName(c.name), term: c.term.name, ...sugangKey(c) }));
     const nameOf = new Map(courses.map((c) => [`course_${c.id}`, c.name]));
     const contexts = courses.map((c) => `course_${c.id}`);
 
@@ -398,6 +408,11 @@ export async function collectUser(env, userId, { force = false, minGapMs = 0, no
       .all();
     const inIcs = new Set(icsCal.map((r) => r.ext_id.slice('event-calendar-event-'.length)));
     const calendarNew = calendar.filter((e) => !inIcs.has(e.id));
+
+    // 수업 시간표: 시간표 사진으로 넣은 수업이 오늘 뒤로 있으면 건너뛴다(같은 수업이 두 번 보이지 않게)
+    const today = kstDate(now);
+    const photo = await env.DB.prepare("SELECT 1 FROM events WHERE user_id = ? AND source = 'timetable' AND start >= ? LIMIT 1").bind(userId, today).first();
+    const timetable = photo ? null : await classEvents(courses, today, semesterEnd(today));
     const statements = [
       // 과제: ICS와 같은 ext_id. ICS가 있으면 done만 올리고, 없으면 이름·마감도 맞춘다
       env.DB.prepare(
@@ -420,8 +435,16 @@ export async function collectUser(env, userId, { force = false, minGapMs = 0, no
          SELECT ?1, j.value ->> 'title', j.value ->> 'start', j.value ->> 'end', j.value ->> 'place', 'etl', j.value ->> 'extId' FROM json_each(?2) AS j WHERE true
          ON CONFLICT (user_id, source, ext_id) DO UPDATE SET title = excluded.title, start = excluded.start, "end" = excluded."end", place = excluded.place
          WHERE events.title IS NOT excluded.title OR events.start IS NOT excluded.start OR events."end" IS NOT excluded."end" OR events.place IS NOT excluded.place`,
-      ).bind(userId, JSON.stringify(calendarNew)),
+      ).bind(userId, JSON.stringify(timetable ? [...calendarNew, ...timetable.events] : calendarNew)),
     ];
+    if (timetable) {
+      statements.push(
+        env.DB.prepare(
+          `DELETE FROM events WHERE user_id = ?1 AND source = 'etl' AND ext_id LIKE 'api-class-%' AND start >= ?2
+             AND ext_id NOT IN (SELECT value FROM json_each(?3))`,
+        ).bind(userId, today, JSON.stringify(timetable.events.map((e) => e.extId))),
+      );
+    }
     if (calendarOk) {
       statements.push(
         env.DB.prepare(
@@ -433,7 +456,15 @@ export async function collectUser(env, userId, { force = false, minGapMs = 0, no
     await env.DB.batch(statements);
 
     const ai = await readNotices(env, userId, { noticeBody, budget, now, doFetch });
-    const counts = { courses: courses.length, tasks: assignments.length, notices: notices.length, files: files.length, calendar: calendarNew.length, ai };
+    const counts = {
+      courses: courses.length,
+      tasks: assignments.length,
+      notices: notices.length,
+      files: files.length,
+      calendar: calendarNew.length,
+      classes: timetable ? timetable.matched : 0, // 수강편람에서 찾은 과목 수(못 찾은 과목은 대학원 과목 등)
+      ai,
+    };
     await env.DB.batch([
       env.DB.prepare('UPDATE etl SET last_ok_at = ?, last_error = NULL, dead_count = 0 WHERE user_id = ?').bind(kstIso(now), userId),
       logStatement(env, userId, 'etl_sync', counts),
@@ -449,6 +480,67 @@ export async function collectUser(env, userId, { force = false, minGapMs = 0, no
     await saveFailure(env, userId, MSG.down, { now, status: err && err.status });
     return { ok: false, error: MSG.down };
   }
+}
+
+/**
+ * eTL 과목 → 수강편람 열쇠 { sbjtCd, ltNo }. 강의계획서 칸(syllabus_body)의 iframe 주소에 'sbjtCd=…&ltNo=…'가 있다(팀원 11-10).
+ * 없으면 분반만 과목 코드 '2026-2 과목명 (001)'에서.
+ */
+export function sugangKey(course) {
+  const body = String(course.syllabus_body || '');
+  const code = /sbjtCd=([A-Za-z0-9.]+)/.exec(body);
+  const no = /ltNo=(\d{1,3})/.exec(body) || /\((\d{3})\)\s*$/.exec(String(course.course_code || course.name || ''));
+  return { sbjtCd: code ? code[1] : null, ltNo: no ? no[1].padStart(3, '0') : null };
+}
+
+/** TT Wizard roomLabel: '39동 409호', 호실이 글자면 '301동 강당', 건물만 알면 '301동', 모르면 null */
+export function roomLabel(building, room) {
+  if (!building) return null;
+  if (!room) return `${building}동`;
+  return /^[A-Za-z]?\d/.test(room) ? `${building}동 ${room}호` : `${building}동 ${room}`;
+}
+
+const hm = (minutes) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+
+/**
+ * 과목들 → 수강편람에서 찾은 매주 수업 → from~until 날마다 일정. 그 학기 편람이 없으면 null.
+ * 돌려주는 것: { events: [{ extId, title, start, end, place }], matched: 찾은 과목 수 }
+ */
+export async function classEvents(courses, from, until, offerings = OFFERINGS) {
+  const term = courses[0] && courses[0].term;
+  if (!term || !offerings[term]) return null;
+  const book = (await offerings[term]()).default;
+  const byId = new Map(book.courses.map((c) => [c[0], c]));
+  const byName = new Map();
+  for (const c of book.courses) byName.set(c[1], byName.has(c[1]) ? null : c); // 같은 이름 과목이 둘이면 이름으로는 안 찾는다
+  const weekly = [];
+  let matched = 0;
+  for (const c of courses) {
+    if (c.term !== term || !c.ltNo) continue;
+    const entry = (c.sbjtCd && byId.get(c.sbjtCd)) || byName.get(c.name);
+    const section = entry && entry[5].find((sec) => sec[0] === c.ltNo);
+    if (!section) continue;
+    matched += 1;
+    for (const [day, start, end, building, room] of section[2]) {
+      if (!(day >= 0 && day <= 6) || !(end > start)) continue;
+      weekly.push({ courseId: c.id, title: c.name, day, start, end, place: roomLabel(building, room) });
+    }
+  }
+  const events = [];
+  for (let d = from; d <= until; d = nextDate(d)) {
+    const wd = (new Date(`${d}T00:00:00Z`).getUTCDay() + 6) % 7; // 0 = 월
+    for (const w of weekly) {
+      if (w.day !== wd) continue;
+      events.push({
+        extId: `api-class-${w.courseId}-${d}-${hm(w.start).replace(':', '')}`,
+        title: w.title,
+        start: `${d}T${hm(w.start)}:00+09:00`,
+        end: `${d}T${hm(w.end)}:00+09:00`,
+        place: w.place,
+      });
+    }
+  }
+  return { events, matched };
 }
 
 /** eTL 과목 이름 '2026-2 생명과학 (001)' → '생명과학'(앞의 학기·뒤의 분반을 뗀다, 팀원 11-10) */

@@ -110,13 +110,13 @@
 | 요청 | 보냄 | 받음 |
 | --- | --- | --- |
 | `GET /api/etl` | | `{ ok, connected, last_ok_at, last_error, dead, counts: { notice, file } }` (토큰은 안 돌려줌) |
-| `PUT /api/etl` | `{ token }` | 짧거나 띄어쓰기 있는 글(비밀번호 모양)은 400으로 eTL에 보내지도 않음. eTL `/users/self`가 받으면 저장하고 바로 한 번 받음 → 위 상태 + `result { ok, courses, tasks, notices, files, calendar, ai }` |
+| `PUT /api/etl` | `{ token }` | 짧거나 띄어쓰기 있는 글(비밀번호 모양)은 400으로 eTL에 보내지도 않음. eTL `/users/self`가 받으면 저장하고 바로 한 번 받음 → 위 상태 + `result { ok, courses, tasks, notices, files, calendar, classes, ai }`(classes = 수강편람에서 시간표를 찾은 과목 수) |
 | `DELETE /api/etl` | | `{ ok, connected: false }` — 토큰·목록·과목 일정 지움(eTL ICS 주소가 없으면 과제도) |
 | `POST /api/etl/collect` | | 위 상태 + `result`(1분 안에 받았으면 `{ ok, recent: true }`) |
 | `GET /api/etl/items` | | `{ notices: [{ id, course, title, url, posted_at, tag }], files: [...] }` 새 것 먼저, 100개까지. tag = exam·cancel·makeup·none |
 
 - 원격 D1에 `etl`·`etl_items` 표가 아직 없으면 모두 503(화면: 'eTL 연결은 준비 중이에요').
-- 과제는 tasks(source `etl`, ICS와 같은 줄), 공지에서 찾은 시험·휴강·보강은 events(source `notice` — 잠기지 않아 고치기·지우기 됨), 교수가 넣은 과목 일정은 events(source `etl`, ext_id `api-calendar-…`, 잠김).
+- 수업 시간표는 events(source `etl`, ext_id `api-class-…`, 잠김, 이름 = 과목 이름, 장소 = '39동 409호') — 수업 사이 동선이 바로 쓴다. 과제는 tasks(source `etl`, ICS와 같은 줄), 공지에서 찾은 시험·휴강·보강은 events(source `notice` — 잠기지 않아 고치기·지우기 됨), 교수가 넣은 과목 일정은 events(source `etl`, ext_id `api-calendar-…`, 잠김).
 
 ## 아직 화면이 없는 것 (2단계)
 
