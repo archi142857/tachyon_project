@@ -68,6 +68,12 @@ export function androidIntent(app, web) {
 
 /** 이 기기에 맞게 연다(누른 그 순간에 불러야 한다). */
 export function openNaver(link, nav = typeof navigator === 'undefined' ? {} : navigator) {
+  // 안드로이드 앱(app/, Capacitor) 안: 앱 화면(WebView)은 intent·nmap 주소를 못 열 수 있어 웹 지도를 폰 브라우저 창(Browser 플러그인)으로
+  const browser = typeof window !== 'undefined' && window.Capacitor?.isNativePlatform?.() && window.Capacitor.Plugins?.Browser;
+  if (browser) {
+    browser.open({ url: link.web });
+    return;
+  }
   const ua = nav.userAgent || '';
   const ios = /iPhone|iPad|iPod/i.test(ua) || (nav.platform === 'MacIntel' && nav.maxTouchPoints > 1);
   if (/Android/i.test(ua)) {
