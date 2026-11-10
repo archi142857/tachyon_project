@@ -91,26 +91,31 @@ test("AI 없이(규칙만): 이름·장소를 쓴 말 그대로 뽑고, 시각 �
   }
 });
 
-test("AI 답과 합치기: 일정 아님 → null, 오전·오후 짐작은 AI, 쓴 날짜는 정규식", () => {
+test("AI 답과 합치기: 일정 아님 → null, 오전·오후 짐작은 AI, 날짜·끝 시각은 코드", () => {
   const w = (t) => findWhen(t, NOW);
-  assert.equal(mergePopup("내일 3시 스터디", w("내일 3시 스터디"), { is_schedule: false }), null);
+  const ai = (title, time, place = "?") => ({ is_schedule: true, title, time, place }); // 11-10부터 답 칸은 4개
+  assert.equal(mergePopup("내일 3시 스터디", w("내일 3시 스터디"), { is_schedule: false }, NOW), null);
 
-  // 날짜를 안 쓴 "9시 영화": 규칙은 내일 09:00, AI가 오늘 21:00이라 하면 AI를 따른다
-  const movie = mergePopup("9시 영화", w("9시 영화"), { is_schedule: true, title: "영화", date: "2026-11-09", time: "21:00", end_time: "?", place: "?" });
+  // 날짜를 안 쓴 "9시 영화": 규칙은 내일 09:00, AI가 21:00이라 하면 따르고 날짜는 코드가 다시 센다(지금 17:00 → 오늘)
+  const movie = mergePopup("9시 영화", w("9시 영화"), ai("영화", "21:00"), NOW);
   assert.deepEqual([movie.date, movie.time, movie.by], ["2026-11-09", "21:00", "ai"]);
+  // 끝 시각도 같이 12시간 옮긴다
+  const range = mergePopup("9시~11시 영화", w("9시~11시 영화"), ai("영화", "21:00"), NOW);
+  assert.deepEqual([range.date, range.time, range.end_time], ["2026-11-09", "21:00", "23:00"]);
+  // 오후로 짐작한 "3시"를 AI가 03:00이라 하면 따르되, 날짜를 안 썼으니 다음에 오는 03:00(내일)
+  const early = mergePopup("3시 택배", w("3시 택배"), ai("택배", "03:00"), NOW);
+  assert.deepEqual([early.date, early.time], ["2026-11-10", "03:00"]);
 
   // 쓴 날짜·쓴 오후는 AI가 달리 말해도 정규식대로
-  const fixed = mergePopup("다음주 화요일 오후 2시 면담", w("다음주 화요일 오후 2시 면담"), {
-    is_schedule: true, title: "면담", date: "2026-11-10", time: "02:00", end_time: "?", place: "?",
-  });
+  const fixed = mergePopup("다음주 화요일 오후 2시 면담", w("다음주 화요일 오후 2시 면담"), ai("면담", "02:00"), NOW);
   assert.deepEqual([fixed.date, fixed.time], ["2026-11-17", "14:00"]);
 
   // AI가 '?'로 둔 칸은 규칙으로 채우고, 규칙도 모르면 '?'
-  const q = mergePopup("내일 3시 301동 스터디", w("내일 3시 301동 스터디"), { is_schedule: true, title: "?", date: "?", time: "?", end_time: "?", place: "?" });
+  const q = mergePopup("내일 3시 301동 스터디", w("내일 3시 301동 스터디"), ai("?", "?"), NOW);
   assert.deepEqual([q.title, q.place, q.time, q.end_time], ["스터디", "301동", "15:00", "?"]);
 
   // 시각 없는 날짜 메모는 AI가 일정이라 하면 시각 '?'로 팝업
-  const exam = mergePopup("12월 3일 기말 발표", w("12월 3일 기말 발표"), { is_schedule: true, title: "기말 발표", date: "2026-12-03", time: "?", end_time: "?", place: "?" });
+  const exam = mergePopup("12월 3일 기말 발표", w("12월 3일 기말 발표"), ai("기말 발표", "?"), NOW);
   assert.deepEqual([exam.date, exam.time, exam.title], ["2026-12-03", "?", "기말 발표"]);
 });
 
@@ -137,7 +142,7 @@ test("AI에게 지금 시각과 메모를 보내고, 답으로 팝업을 만들�
   let sent;
   const fetch = async (_u, init) => {
     sent = JSON.parse(init.body);
-    return aiReply({ is_schedule: true, title: "스터디", date: "2026-11-10", time: "15:00", end_time: "?", place: "301동" });
+    return aiReply({ is_schedule: true, title: "스터디", time: "15:00", place: "301동" });
   };
   const p = await suggestEvent({ ANTHROPIC_API_KEY: "k", DB }, "내일 3시 301동 스터디", NOW, { ctx, userId: user.id, fetch });
   await ctx.settle();

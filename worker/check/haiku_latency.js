@@ -39,7 +39,7 @@ for (const c of CASES) {
     error = e.message;
   }
   const wall = Math.round(performance.now() - t0);
-  const popup = r ? mergePopup(c.text, findWhen(c.text, NOW), r.data) : null;
+  const popup = r ? mergePopup(c.text, findWhen(c.text, NOW), r.data, NOW) : null;
   rows.push({ c, r, wall, error, popup });
 }
 

@@ -134,7 +134,7 @@ export async function suggestEvent(env, text, now = new Date(), { ctx, userId, f
   };
   // AI에게 묻는 동안 내 일정을 읽는다(기다리는 시간이 안 늘고, AI에게는 일정을 안 보낸다 = 토큰 그대로)
   const [ai, known] = await Promise.all([askAi(), loadKnown(env, userId, text, now)]);
-  const popup = mergePopup(text, when, ai);
+  const popup = mergePopup(text, when, ai, now);
   return popup && useKnown(popup, text, known, isoKst(now).slice(0, 10));
 }
 
@@ -173,22 +173,21 @@ export function askPopupAi(env, text, now, { fetch, timeoutMs = 2500 } = {}) {
  * - 일정인지·이름·장소는 AI가 먼저, 없으면 규칙.
  * - 날짜·시각은 정규식이 먼저. 오전·오후를 짐작한 경우에만 AI의 같은 시각(3시 ↔ 15시)을 따른다.
  */
-export function mergePopup(text, when, ai) {
+export function mergePopup(text, when, ai, now = new Date()) {
   if (ai ? ai.is_schedule !== true : !looksLikeSchedule(text, when)) return null;
 
   let date = when.date;
   let time = when.time;
   let end = when.end;
   const aiTime = cleanTime(ai?.time);
-  const aiEnd = cleanTime(ai?.end_time);
-  const aiDate = cleanDate(ai?.date);
-  if (time && when.guessed && aiTime && sameClock(aiTime, time)) {
+  if (time && when.guessed && aiTime && aiTime !== time && sameClock(aiTime, time)) {
+    // 오전·오후를 짐작한 시각은 AI를 따른다(3시 ↔ 15시). 끝 시각도 같이 12시간 옮긴다
+    const shift = toMin(aiTime) - toMin(time);
     time = aiTime;
-    if (!when.dateExplicit && aiDate) date = aiDate; // "9시 영화"처럼 날짜를 안 쓴 경우만
-    if (end && aiEnd && sameClock(aiEnd, end)) end = aiEnd;
+    if (end) end = hhmm((toMin(end) + shift + 1440) % 1440);
+    if (!when.dateExplicit) date = nextDayAt(aiTime, now); // "9시 영화"처럼 날짜를 안 썼으면 그 시각이 다음에 오는 날
   }
   if (!time && aiTime) time = aiTime;
-  if (!end && time === aiTime) end = aiEnd;
 
   const guess = guessTitlePlace(text, when);
   return {
@@ -502,6 +501,13 @@ export function nowLabel(date) {
   return `${ymd(k.y, k.m, k.d)} (${WEEKDAY_NAMES[k.wd]}) ${pad(k.hh)}:${pad(k.mi)}`;
 }
 const hhmm = (min) => `${pad(Math.floor(min / 60))}:${pad(min % 60)}`;
+const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+/** 그 시각이 아직 안 지났으면 오늘, 지났으면 내일 (한국 날짜) */
+function nextDayAt(time, now) {
+  const k = kst(now);
+  const today = ymd(k.y, k.m, k.d);
+  return toMin(time) > k.hh * 60 + k.mi ? today : addDays(today, 1);
+}
 
 const clean = (v) => {
   const s = typeof v === "string" ? v.trim() : "";
