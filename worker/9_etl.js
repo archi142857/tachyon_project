@@ -597,7 +597,7 @@ async function readNotices(env, userId, { noticeBody, budget, now, doFetch }) {
       console.error('eTL 공지 AI 실패', err && err.message);
       continue;
     }
-    writes.push(logStatement(env, userId, 'llm', { use: 'etl_notice', model: r.model, ms: r.ms, in: r.usage.input, out: r.usage.output }));
+    writes.push(logStatement(env, userId, 'llm', { use: 'etl_notice', model: r.model, ms: r.ms, in: r.usage.input, out: r.usage.output, blocks: r.blocks?.join(',') })); // llm.js usageDetail과 같은 칸(AI 세션 11-10 제안)
     const events = noticeEvents(n, (r.data && r.data.items) || [], now);
     const tag = tagOf((r.data && r.data.items) || []);
     writes.push(env.DB.prepare('UPDATE etl_items SET tag = ? WHERE id = ?').bind(tag, n.id));
