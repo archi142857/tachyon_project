@@ -3,7 +3,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { askJson, imageBlock, usageDetail, LlmError, MODELS } from "../llm.js";
+import { askJson, imageBlock, usageDetail, LlmError, MODELS, shapeFor } from "../llm.js";
 
 const env = { ANTHROPIC_API_KEY: "test-key" }; // 지어낸 값
 const schema = { type: "object", properties: { ok: { type: "boolean" } }, required: ["ok"] };
@@ -41,6 +41,79 @@ test("보내는 모양: 모델·헤더·answer 도구 강제, 받은 JSON을 돌
   assert.deepEqual(r.usage, { input: 321, output: 12 });
   assert.deepEqual(r.blocks, ["tool_use"]);
   assert.ok(r.ms >= 0);
+});
+
+test("Sonnet 5.5는 도구를 강제하지 않는다: tool_choice auto + 앞 생각 끄기(between_tools)", async () => {
+  // 공식 API primer 'Forcing tool use': Sonnet 5.5는 tool_choice any·tool이 400. Haiku 5.5는 강제가 되고 강제 호출은 생각을 건너뛴다
+  let body;
+  const fetch = async (_u, init) => ((body = JSON.parse(init.body)), reply({ ok: true }));
+  const r = await askJson(env, { model: "smart", system: "", content: "x", schema, fetch });
+  assert.equal(body.model, "claude-sonnet-5-5");
+  assert.deepEqual(body.tool_choice, { type: "auto" });
+  assert.deepEqual(body.thinking, { type: "between_tools" });
+  assert.match(body.tools[0].description, /이 도구/);
+  assert.deepEqual(r.data, { ok: true });
+
+  await askJson(env, { model: "fast", system: "", content: "x", schema, fetch });
+  assert.deepEqual(body.tool_choice, { type: "tool", name: "answer" });
+  assert.equal("thinking" in body, false);
+  assert.equal(body.tools[0].description, "답을 이 모양으로 낸다."); // 팝업(잰 그대로)은 한 글자도 안 바뀐다
+});
+
+test("shapeFor: 강제를 거절하는 모델 표", () => {
+  assert.deepEqual(shapeFor("claude-haiku-5-5"), { forced: true, thinking: null });
+  assert.deepEqual(shapeFor("claude-sonnet-5-5"), { forced: false, thinking: { type: "between_tools" } });
+  assert.deepEqual(shapeFor("claude-opus-5-5"), { forced: false, thinking: null }); // 생각은 늘 켜짐(끄는 칸 없음)
+  assert.equal(shapeFor("claude-fable-5-1").forced, false);
+  assert.equal(shapeFor("claude-mythos-5-2").forced, false);
+});
+
+test("모르는 모델이 400으로 tool_choice를 탓하면 auto로 바로 한 번 더(다시 시도 횟수와 따로)", async () => {
+  const sent = [];
+  const fetch = async (_u, init) => {
+    const b = JSON.parse(init.body);
+    sent.push(b.tool_choice.type);
+    return b.tool_choice.type === "tool"
+      ? new Response('{"type":"error","error":{"type":"invalid_request_error","message":"tool_choice forced is not supported for this model"}}', { status: 400 })
+      : reply({ ok: true });
+  };
+  const r = await askJson({ ...env, MODEL_SMART: "claude-new-model" }, { model: "smart", system: "", content: "x", schema, fetch });
+  assert.deepEqual(sent, ["tool", "auto"]);
+  assert.deepEqual(r.data, { ok: true });
+});
+
+test("400이 thinking을 탓하면 thinking 칸을 빼고 한 번 더, 그래도 400이면 멈춘다", async () => {
+  const sent = [];
+  const fetch = async (_u, init) => {
+    const b = JSON.parse(init.body);
+    sent.push(b.thinking?.type ?? "none");
+    return b.thinking ? new Response('{"error":{"message":"thinking.type: between_tools is not supported"}}', { status: 400 }) : reply({ ok: true });
+  };
+  const r = await askJson(env, { model: "smart", system: "", content: "x", schema, fetch, retries: 2 });
+  assert.deepEqual(sent, ["between_tools", "none"]);
+  assert.deepEqual(r.data, { ok: true });
+
+  let calls = 0;
+  const always = async () => (calls++, new Response('{"error":{"message":"thinking is broken"}}', { status: 400 }));
+  await assert.rejects(askJson(env, { model: "smart", system: "", content: "x", schema, fetch: always, retries: 2 }), (e) => e.status === 400);
+  assert.equal(calls, 2); // 칸을 바꿔 한 번 더 보낸 뒤에는 다른 400처럼 멈춘다
+});
+
+test("강제하지 않은 답: 도구 없이 글 속 JSON이 오면 읽고, 아무것도 없으면 다시 시도한다", async () => {
+  const text = async () => reply(null, { content: [{ type: "text", text: '정리했어요.\n{"ok": true}' }], stop_reason: "end_turn" });
+  const r = await askJson(env, { model: "smart", system: "", content: "x", schema, fetch: text });
+  assert.deepEqual(r.data, { ok: true });
+  assert.deepEqual(r.blocks, ["text"]);
+
+  let calls = 0;
+  const empty = async () => (++calls === 1 ? reply(null, { content: [{ type: "text", text: "모르겠어요" }], stop_reason: "end_turn" }) : reply({ ok: false }));
+  const again = await askJson(env, { model: "smart", system: "", content: "x", schema, fetch: empty, retries: 1, retryDelayMs: 5 });
+  assert.equal(calls, 2);
+  assert.deepEqual(again.data, { ok: false });
+
+  // 글 앞에 짧은 말이 있고 도구를 부른 답은 도구 쪽을 쓴다
+  const both = async () => reply(null, { content: [{ type: "text", text: "{}" }, { type: "tool_use", id: "t", name: "answer", input: { ok: true } }] });
+  assert.deepEqual((await askJson(env, { model: "smart", system: "", content: "x", schema, fetch: both })).data, { ok: true });
 });
 
 test("smart는 Sonnet, wrangler.toml 변수로 모델을 바꿀 수 있다", async () => {

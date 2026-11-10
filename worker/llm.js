@@ -5,7 +5,11 @@
 //   선택: ANTHROPIC_API_KEY_2(다른 팀원의 구독 월 API 크레딧 조직 키). 있으면 두 키를 번갈아 쓰고, 한 키가 크레딧 부족·키 오류면 다른 키로 한 번 더 부른다(소통판 11-10 01:30).
 // - temperature는 보내지 않는다: 5.5 모델은 `temperature` is deprecated(400)로 거절한다(11-10 배포본에서 팝업 AI가 모두 실패했던 원인).
 // - 모델: 기본은 아래 MODELS. 바꾸려면 wrangler.toml [vars]에 MODEL_FAST / MODEL_SMART를 둔다.
-// - 답 모양: 'answer' 도구 하나를 꼭 쓰게 해서(tool_choice) 정해진 JSON으로만 받는다.
+// - 답 모양: 'answer' 도구 하나로 정해진 JSON만 받는다. 모델마다 보내는 법이 다르다(공식 API primer 'Forcing tool use'·'Thinking', 11-10 확인).
+//   · Haiku 5.5: tool_choice로 그 도구를 강제한다. 강제 호출은 생각(thinking)을 건너뛴다(배포본 log blocks = tool_use뿐, 출력 약 157토큰).
+//   · Sonnet 5.5: 강제(tool_choice any·tool)를 400으로 거절한다. → tool_choice auto + 앞 생각 끄기(thinking between_tools —
+//     Sonnet 5.5는 생각이 기본으로 켜져 있고 disabled는 400) + 프롬프트의 'answer 도구로만 답한다'. 도구 없이 글로 JSON을 쓰면 그 JSON을 읽는다.
+//   · 다른 모델로 바꿨는데 400이 tool_choice나 thinking을 탓하면 그 칸만 바꿔 바로 한 번 더 보낸다.
 // - 프롬프트 원문은 worker/prompts/에 있다. 이 파일은 보내고 받는 일만 한다.
 
 const API_URL = "https://api.anthropic.com/v1/messages";
@@ -15,6 +19,17 @@ export const MODELS = {
   fast: "claude-haiku-5-5", // 즉시 팝업
   smart: "claude-sonnet-5-5", // 밤 정리 · 시간표 사진
 };
+
+// 도구 강제(tool_choice any·tool)를 400으로 거절하는 모델 (공식 문서: Fable 5.1·5.2, Mythos 5.1·5.2, Opus 5.5, Sonnet 5.5)
+const NO_FORCED_TOOL = /^claude-(?:opus-5-5|sonnet-5-5|fable-5|mythos-5)/;
+// 생각이 기본으로 켜져 있고 disabled가 400이라, between_tools로 앞 생각만 끄는 모델 (같은 문서)
+const BETWEEN_TOOLS = /^claude-sonnet-5-5/;
+
+/** 모델별로 보내는 모양: 도구를 강제할지(forced), thinking 칸에 무엇을 보낼지(null = 안 보냄) */
+export function shapeFor(model) {
+  const forced = !NO_FORCED_TOOL.test(model);
+  return { forced, thinking: !forced && BETWEEN_TOOLS.test(model) ? { type: "between_tools" } : null };
+}
 
 export class LlmError extends Error {
   constructor(message, { status = 0, retryable = false } = {}) {
@@ -48,14 +63,8 @@ export async function askJson(env, req) {
 
   const model = req.model === "smart" ? env.MODEL_SMART || MODELS.smart : env.MODEL_FAST || MODELS.fast;
   const timeoutMs = req.timeoutMs ?? 20000;
-  const body = JSON.stringify({
-    model,
-    max_tokens: req.maxTokens ?? 512,
-    system: req.system,
-    messages: [{ role: "user", content: req.content }],
-    tools: [{ name: "answer", description: "답을 이 모양으로 낸다.", input_schema: req.schema }],
-    tool_choice: { type: "tool", name: "answer" },
-  });
+  let shape = shapeFor(model);
+  let reshaped = 0;
   const doFetch = req.fetch ?? fetch;
 
   for (let attempt = 0; ; attempt++) {
@@ -64,7 +73,7 @@ export async function askJson(env, req) {
       const res = await doFetch(API_URL, {
         method: "POST",
         headers: { "content-type": "application/json", "x-api-key": keys[k], "anthropic-version": API_VERSION },
-        body,
+        body: bodyOf(model, req, shape),
         signal: AbortSignal.timeout(timeoutMs),
       });
       if (!res.ok) {
@@ -75,10 +84,8 @@ export async function askJson(env, req) {
       const json = await res.json();
       const ms = Date.now() - started;
       if (json.stop_reason === "max_tokens") throw new LlmError("답이 max_tokens에서 잘렸다", { status: 200 });
-      const block = (json.content || []).find((b) => b.type === "tool_use" && b.name === "answer");
-      if (!block) throw new LlmError("답에 answer 도구가 없다", { status: 200 });
       return {
-        data: block.input,
+        data: answerOf(json.content || [], shape.forced),
         model: json.model || model,
         ms,
         usage: { input: json.usage?.input_tokens ?? 0, output: json.usage?.output_tokens ?? 0 },
@@ -87,6 +94,13 @@ export async function askJson(env, req) {
       };
     } catch (err) {
       const e = asLlmError(err, timeoutMs);
+      const next = reshaped < 2 ? reshape(shape, e) : null;
+      if (next) {
+        shape = next; // 거절한 칸만 바꿔 바로 한 번 더 (다시 시도 횟수에는 세지 않는다)
+        reshaped++;
+        attempt--;
+        continue;
+      }
       if (keys.length > 1 && !switched && keyProblem(e)) {
         k = 1 - k; // 다른 키로 바로 한 번 더 (다시 시도 횟수에는 세지 않는다)
         switched = true;
@@ -96,6 +110,58 @@ export async function askJson(env, req) {
       if (attempt >= (req.retries ?? 0) || !e.retryable) throw e;
       await new Promise((r) => setTimeout(r, (req.retryDelayMs ?? 1000) * 2 ** attempt)); // 1초, 2초, 4초 …
     }
+  }
+}
+
+/** 보낼 본문. 강제하지 않을 때는 도구 설명에 '글로 쓰지 말고 이 도구로'를 더한다 */
+function bodyOf(model, req, shape) {
+  return JSON.stringify({
+    model,
+    max_tokens: req.maxTokens ?? 512,
+    system: req.system,
+    messages: [{ role: "user", content: req.content }],
+    tools: [
+      {
+        name: "answer",
+        description: shape.forced ? "답을 이 모양으로 낸다." : "답을 이 모양으로 낸다. 글로 쓰지 말고 이 도구를 한 번만 부른다.",
+        input_schema: req.schema,
+      },
+    ],
+    tool_choice: shape.forced ? { type: "tool", name: "answer" } : { type: "auto" },
+    ...(shape.thinking ? { thinking: shape.thinking } : {}),
+  });
+}
+
+/** 400이 tool_choice나 thinking을 탓하면 그 칸만 바꾼 모양(아니면 null) — MODEL_FAST·MODEL_SMART를 표에 없는 모델로 바꿨을 때 */
+function reshape(shape, e) {
+  if (e.status !== 400) return null;
+  if (shape.forced && /tool_choice/i.test(e.message)) return { ...shape, forced: false };
+  if (shape.thinking && /thinking/i.test(e.message)) return { ...shape, thinking: null };
+  return null;
+}
+
+/** 답 JSON: answer 도구의 입력. 강제하지 않았는데 도구 없이 글만 왔으면 글 속 JSON 하나를 읽는다(없으면 다시 시도할 만한 오류) */
+function answerOf(content, forced) {
+  const block = content.find((b) => b.type === "tool_use" && b.name === "answer");
+  if (block) return block.input;
+  const fromText = forced ? null : jsonInText(content);
+  if (fromText) return fromText;
+  throw new LlmError("답에 answer 도구가 없다", { status: 200, retryable: !forced });
+}
+
+function jsonInText(content) {
+  const text = content
+    .filter((b) => b.type === "text")
+    .map((b) => b.text)
+    .join("\n");
+  const from = text.indexOf("{");
+  const to = text.lastIndexOf("}");
+  if (from < 0 || to <= from) return null;
+  try {
+    const v = JSON.parse(text.slice(from, to + 1));
+    return v && typeof v === "object" && !Array.isArray(v) ? v : null;
+  } catch {
+    return null;
   }
 }
 

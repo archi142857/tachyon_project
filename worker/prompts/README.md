@@ -1,6 +1,6 @@
 # 앱 안의 AI 프롬프트 원문
 
-Tachyon 앱이 Claude API에 보내는 프롬프트를 고치지 않은 그대로 둔다. 부르는 곳은 [`worker/llm.js`](../llm.js) 한 곳이고, 답은 `answer` 도구 하나를 꼭 쓰게 해서(tool_choice) 정해진 JSON 모양으로만 받는다.
+Tachyon 앱이 Claude API에 보내는 프롬프트를 고치지 않은 그대로 둔다. 부르는 곳은 [`worker/llm.js`](../llm.js) 한 곳이고, 답은 `answer` 도구 하나로 정해진 JSON 모양으로만 받는다. Haiku 5.5는 그 도구를 강제하고(tool_choice), Sonnet 5.5는 강제를 400으로 거절해서 tool_choice auto + 앞 생각 끄기(`thinking: between_tools`)로 보낸다 — 그래서 모든 프롬프트 첫 줄에 'answer 도구로만 답한다'가 있어야 한다(11-10, 공식 API primer).
 
 | 파일 | 쓰는 곳 | 모델 | 하는 일 |
 |---|---|---|---|

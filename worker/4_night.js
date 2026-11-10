@@ -102,8 +102,8 @@ export async function runNight(env, userId, now = new Date(), { fetch } = {}) {
           memos.map((m) => ({ id: m.id, written: nowLabel(dbTime(m.created_at)), text: m.text })),
           blank,
         ),
-        maxTokens: 4000,
-        timeoutMs: 90000,
+        maxTokens: 8000, // 메모 40 + 할 일 40이면 답이 3천 토큰을 넘을 수 있다(5.5 모델은 같은 글에 토큰이 더 든다). 쓴 만큼만 값을 낸다
+        timeoutMs: 120000,
         retries: 2,
         fetch,
       });

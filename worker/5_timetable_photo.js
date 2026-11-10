@@ -58,7 +58,7 @@ async function readPhoto(request, env, ctx, user) {
       system: SYSTEM,
       schema: SCHEMA,
       content: [imageBlock(bytes, type), { type: "text", text: USER_TEXT }],
-      maxTokens: 3000,
+      maxTokens: 6000, // 수업 15개면 약 1천 토큰. 앞 생각을 못 끄는 모델로 바꿔도 잘리지 않게 넉넉히(쓴 만큼만 값을 낸다)
       timeoutMs: 60000,
       retries: 1,
     });
