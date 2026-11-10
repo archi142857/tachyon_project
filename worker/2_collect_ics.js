@@ -59,6 +59,7 @@ export async function handle(request, env, ctx, user) {
     const results = await collectUser(env, user.id, { force: true, minGapMs: MANUAL_GAP_MS });
     return json({ ok: true, results, feeds: await listFeeds(env, user.id) });
   }
+  if (pathname === '/api/feeds/device' && method === 'POST') return saveDeviceEvents(request, env, user.id);
   if (pathname === '/api/feeds' || pathname === '/api/feeds/collect') return fail(405, '그 방법으로는 안 받아요');
   return fail(404, '없는 주소예요');
 }
@@ -66,6 +67,46 @@ export async function handle(request, env, ctx, user) {
 export async function scheduled(event, env, ctx) {
   const summary = await collectDue(env);
   console.log('ICS 수집(Cron)', JSON.stringify(summary));
+}
+
+// ── 폰 캘린더(안드로이드 앱이 읽어 올림) ─────────────────────────
+//
+//   POST /api/feeds/device  {"events": [{ "id": "12", "title": "…", "start": 1794528000000, "end": …, "allDay": false, "place": "…" }]}
+//   → { ok: true, count: 넣은 수, same: 다른 캘린더와 겹쳐 뺀 수 }
+// 앱(web/src/native.js)이 열릴 때마다 폰 캘린더의 수집 기간 일정을 통째로 보낸다. source = 'device', ext_id = '<폰 일정 id>@<시작>'
+// (되풀이 일정은 id가 같아서 시작을 붙인다). 보낸 목록에 없는 device 일정은 지운다(폰에서 지운 것).
+// 주소로 이미 받는 캘린더(구글 등)와 이름·시작이 같은 것은 넣지 않는다(같은 일정이 두 번 보이지 않게).
+const DEVICE_MAX = 3000;
+
+async function saveDeviceEvents(request, env, userId, now = Date.now()) {
+  const body = await readJson(request, 1024 * 1024);
+  if (!body || !Array.isArray(body.events)) return fail(400, 'JSON 본문이 필요해요: {"events": [...]}');
+  const { from, to } = syncWindow(now);
+  const events = body.events
+    .slice(0, DEVICE_MAX)
+    .filter((e) => e && Number.isFinite(e.start) && e.start >= from.getTime() && e.start < to.getTime())
+    .map((e) => {
+      // 종일 일정: 안드로이드는 UTC 0시로 준다 → 날짜만
+      const day = (ms) => new Date(ms).toISOString().slice(0, 10);
+      const end = Number.isFinite(e.end) && e.end > e.start ? e.end : null;
+      return {
+        extId: `${String(e.id).slice(0, 80)}@${e.start}`,
+        title: String(e.title || '(제목 없음)').slice(0, 200),
+        start: e.allDay ? day(e.start) : kstIso(e.start),
+        end: end ? (e.allDay ? day(end) : kstIso(end)) : null,
+        place: e.place ? String(e.place).slice(0, 200) : null,
+      };
+    });
+  const twin = `EXISTS (SELECT 1 FROM events x WHERE x.user_id = events.user_id AND x.source != 'device' AND x.title = events.title AND x.start = events.start)`;
+  const range = [kstIso(from.getTime()), kstIso(to.getTime())];
+  const results = await env.DB.batch([
+    ...eventStatements(env, userId, 'device', events, range, true),
+    env.DB.prepare(`DELETE FROM events WHERE user_id = ? AND source = 'device' AND ${twin}`).bind(userId),
+    env.DB.prepare("SELECT count(*) AS n FROM events WHERE user_id = ? AND source = 'device' AND start >= ? AND start < ?").bind(userId, ...range),
+    logStatement(env, userId, 'device_sync', { sent: events.length }),
+  ]);
+  const count = results.at(-2).results[0].n;
+  return json({ ok: true, count, same: events.length - count });
 }
 
 // ── 기간 ─────────────────────────────────────────────────────────

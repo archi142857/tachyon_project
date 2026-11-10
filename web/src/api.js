@@ -145,6 +145,9 @@ export async function saveFeeds(urls) {
 }
 
 // 저장된 주소를 지금 다시 받는다(멈춘 주소도 한 번 더). → { results, feeds }
+// 안드로이드 앱이 읽은 폰 캘린더 일정을 통째로 보낸다(native.js). → { count, same }
+export const sendDeviceEvents = (events) => call('POST', '/api/feeds/device', { events });
+
 export async function collectFeeds() {
   if (ex) return reply({ results: ex.feeds.filter((f) => f.set).map((f) => ({ kind: f.kind, ok: true, example: true })), feeds: ex.feeds }, 400);
   const { results, feeds } = await call('POST', '/api/feeds/collect');
@@ -155,7 +158,7 @@ export async function collectFeeds() {
 
 // eTL·구글·애플에서 온 것은 그 캘린더가 원본이라 서버가 제목·시각·장소 고치기를 막는다(409).
 // 그래도 바꿀 수 있는 칸: 할 일 done·minutes·ready, 일정 important
-export const FEED_SOURCES = ['etl', 'google', 'apple'];
+export const FEED_SOURCES = ['etl', 'google', 'apple', 'device']; // device = 앱이 읽은 폰 캘린더
 export const fromFeed = (item) => FEED_SOURCES.includes(item.source);
 
 // 그 주(월요일 0시부터 7일)의 일정. from·to는 한국 날짜, to는 빼고 센다.

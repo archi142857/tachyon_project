@@ -6,6 +6,7 @@
 // 저장하지 못한 칸(saved: false)은 주소를 남겨 두고 까닭을 칸 아래에 그대로 보인다.
 import { useEffect, useState } from 'react';
 import { collectFeeds, getFeeds, markSetupSkipped, saveFeeds, saveProfile } from '../api.js';
+import { inApp, syncDevice } from '../native.js';
 import TopBar from '../components/TopBar.jsx';
 import { FEEDS, YEARS, detectFeed, feedResult, normalizeIcs, resultLine, unsavedErrors } from '../setup.js';
 
@@ -169,6 +170,7 @@ export default function Setup({ user, example, again, onDone }) {
 
         <section className="card" aria-labelledby="setup-feeds">
           <h2 id="setup-feeds">캘린더 연결 (고를 것만)</h2>
+          {inApp() && !example && <PhoneCalendar />}
           <button type="button" className="btn-line" disabled={busy} onClick={paste}>
             복사한 주소 붙여넣기
           </button>
@@ -274,6 +276,28 @@ export default function Setup({ user, example, again, onDone }) {
           </button>
         </div>
       </main>
+    </>
+  );
+}
+
+// 앱에서만: 폰에 들어 있는 캘린더(구글·삼성 등)를 주소 없이 한 번에 잇는다
+function PhoneCalendar() {
+  const [line, setLine] = useState(null);
+  async function connect() {
+    setLine('읽는 중…');
+    try {
+      const got = await syncDevice(true);
+      setLine(got ? `폰 캘린더 일정 ${got.count}개를 넣었어요${got.same ? ` (다른 캘린더와 같은 ${got.same}개는 뺌)` : ''}. 앱을 열 때마다 새로 맞춰요` : '캘린더 권한이 꺼져 있어요. 폰 설정 > 앱 > Tachyon > 권한에서 캘린더를 켜 주세요');
+    } catch (err) {
+      setLine(err.message || '폰 캘린더를 읽지 못했어요');
+    }
+  }
+  return (
+    <>
+      <button type="button" className="btn-line" onClick={connect}>
+        폰 캘린더 연결
+      </button>
+      <p className="hint">{line || '이 폰의 캘린더 앱에 있는 일정을 주소 없이 바로 가져와요.'}</p>
     </>
   );
 }

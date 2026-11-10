@@ -1,5 +1,6 @@
 // 로그인: 구글 로그인(이름·이메일만). 서버 없이 보려면 '예시로 둘러보기'.
 import { LOGIN_URL } from '../api.js';
+import { appLogin, inApp } from '../native.js';
 
 // 아이폰 홈 화면 앱(사파리와 쿠키가 따로)인지
 const iosHomeApp = () => window.navigator.standalone === true && /iPhone|iPad/.test(navigator.userAgent);
@@ -11,7 +12,8 @@ export default function Login({ error, onExample }) {
         <h1 className="wordmark">Tachyon</h1>
         <p className="lead">메모하면 달력과 할 일로 정리해 줘요.</p>
         {error && <p className="error">{error}</p>}
-        <a className="btn" href={LOGIN_URL} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
+        {/* 앱 안에서는 폰 브라우저로 나가 로그인하고 돌아온다(native.js) */}
+        <a className="btn" href={LOGIN_URL} onClick={inApp() ? (e) => (e.preventDefault(), appLogin()) : undefined} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>
           구글로 로그인
         </a>
         <button type="button" className="btn-text" onClick={onExample}>

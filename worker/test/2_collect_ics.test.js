@@ -362,3 +362,31 @@ test('Cron은 작은 캘린더부터 받는다(큰 캘린더가 처리 시간 �
   }
   assert.deepEqual(order, ['calendar.google.com', 'myetl.snu.ac.kr']);
 });
+
+test('폰 캘린더: 앱이 보낸 일정을 넣고, 빠진 것은 지우고, 다른 캘린더와 같은 것은 뺀다', async () => {
+  const { env, user } = await setup();
+  const at = (iso) => Date.parse(iso);
+  const send = async (events) => {
+    const res = await handle(req('/api/feeds/device', { method: 'POST', body: JSON.stringify({ events }) }), env, makeCtx(), user);
+    return { status: res.status, data: await res.json() };
+  };
+  // 구글 주소로 이미 받은 일정과 이름·시작이 같은 것
+  env.DB.sqlite.prepare("INSERT INTO events (user_id, title, start, source, ext_id) VALUES (?, '예시 모임', '2026-11-12T19:00:00+09:00', 'google', 'g1')").run(user.id);
+  const list = [
+    { id: '7', title: '예시 약속', start: at('2026-11-11T05:00:00Z'), end: at('2026-11-11T06:00:00Z'), allDay: false, place: '예시 장소' },
+    { id: '8', title: '예시 종일', start: at('2026-11-13T00:00:00Z'), end: at('2026-11-14T00:00:00Z'), allDay: true },
+    { id: '9', title: '예시 모임', start: at('2026-11-12T10:00:00Z'), end: at('2026-11-12T11:00:00Z') },
+    { id: '10', title: '너무 먼 일정', start: at('2028-01-01T00:00:00Z') },
+  ];
+  assert.deepEqual(await send(list), { status: 200, data: { ok: true, count: 2, same: 1 } });
+  const rows = () => env.DB.sqlite.prepare("SELECT title, start, \"end\", place FROM events WHERE source = 'device' ORDER BY start").all().map((r) => ({ ...r }));
+  assert.deepEqual(rows(), [
+    { title: '예시 약속', start: '2026-11-11T14:00:00+09:00', end: '2026-11-11T15:00:00+09:00', place: '예시 장소' },
+    { title: '예시 종일', start: '2026-11-13', end: '2026-11-14', place: null },
+  ]);
+  // 다시 보내도 그대로, 폰에서 지운 것은 사라진다
+  assert.equal((await send(list)).data.count, 2);
+  assert.equal((await send(list.slice(1))).data.count, 1);
+  assert.equal(await count(env, 'events', "source = 'google'"), 1);
+  assert.equal((await send('x')).status, 400);
+});

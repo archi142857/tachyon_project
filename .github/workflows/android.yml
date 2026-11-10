@@ -1,0 +1,58 @@
+# 안드로이드 앱(APK) 만들기. 흐름과 설치법: app/README.md
+name: 안드로이드 앱
+
+on:
+  push:
+    branches: [main]
+    paths: ['app/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write # Releases에 APK 올리기
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: 1. 안드로이드 프로젝트 만들기
+        run: |
+          npm install
+          npx cap add android
+
+      - name: 2. tachyon:// 주소로 앱이 열리게 (로그인하고 돌아오는 길)
+        run: |
+          manifest=android/app/src/main/AndroidManifest.xml
+          filter='<intent-filter><action android:name="android.intent.action.VIEW" /><category android:name="android.intent.category.DEFAULT" /><category android:name="android.intent.category.BROWSABLE" /><data android:scheme="tachyon" /></intent-filter>'
+          # 첫 </intent-filter>(앱 아이콘으로 열기) 바로 뒤에 넣는다
+          sed -i "0,\\|</intent-filter>|s||</intent-filter>\n            $filter|" "$manifest"
+          grep -c 'android:scheme="tachyon"' "$manifest"
+
+      - name: 3. APK 만들기
+        working-directory: app/android
+        run: |
+          ./gradlew assembleDebug --no-daemon
+          cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/tachyon.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tachyon-apk
+          path: ${{ runner.temp }}/tachyon.apk
+
+      - name: 4. Releases '앱-시험판'에 올리기
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view 앱-시험판 >/dev/null 2>&1 || gh release create 앱-시험판 --prerelease --title "안드로이드 앱 (시험판)" --notes "설치법: app/README.md"
+          gh release upload 앱-시험판 "$RUNNER_TEMP/tachyon.apk" --clobber

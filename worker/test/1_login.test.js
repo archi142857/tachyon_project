@@ -2,6 +2,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import worker from '../index.js';
 import { safeNext } from '../1_login.js';
 import { makeEnv, makeCtx } from './helpers/server.js';
@@ -212,4 +213,29 @@ test('계정 지우기: confirm이 있어야 하고, 내 줄·시간표 사진�
   assert.deepEqual([...photos.keys()], ['timetable/2/c.jpg', 'timetable/10/d.jpg']);
   // 지운 뒤 같은 쿠키는 로그인 안 된 것
   assert.equal((await call(e, '/api/login/me', { headers: { cookie: session } })).status, 401);
+});
+
+test('앱 로그인: 브라우저에는 세션을 주지 않고 앱으로 표를 넘긴다. 표는 확인값을 아는 앱만 쓴다', async () => {
+  const e = env();
+  const v = 'example-app-secret-0123456789';
+  const check = createHash('sha256').update(v).digest('base64url');
+  const start = await call(e, `/api/login?app=${check}`);
+  googleSays(goodClaims());
+  const state = new URL(start.headers.get('location')).searchParams.get('state');
+  const back = await call(e, `/api/login/callback?code=example-code&state=${state}`, { headers: { cookie: cookiesOf(start)[0] } });
+  const to = back.headers.get('location');
+  assert.match(to, /^tachyon:\/\/login\?ticket=/);
+  assert.ok(!cookiesOf(back).some((c) => c.startsWith('tachyon_session=') && c.length > 20));
+  const ticket = new URL(to).searchParams.get('ticket');
+
+  const use = (t, secret) => call(e, `/api/login/ticket?t=${encodeURIComponent(t)}&v=${secret}`);
+  const ok = await use(ticket, v);
+  assert.equal(ok.headers.get('location'), `${ORIGIN}/`);
+  const session = cookiesOf(ok).find((c) => c.startsWith('tachyon_session='));
+  assert.equal((await call(e, '/api/login/me', { headers: { cookie: session } })).status, 200);
+
+  for (const bad of [await use(ticket, 'wrong'), await use('garbage', v), await call(e, '/api/login?app=short')]) {
+    assert.match(bad.headers.get('location'), /login_error=state/);
+    assert.ok(!cookiesOf(bad).some((c) => c.startsWith('tachyon_session=')));
+  }
 });

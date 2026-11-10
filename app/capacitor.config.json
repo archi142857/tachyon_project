@@ -1,0 +1,8 @@
+{
+  "appId": "com.tachyonproject.app",
+  "appName": "Tachyon",
+  "webDir": "www",
+  "server": {
+    "url": "https://tachyon.tachyon-project.workers.dev"
+  }
+}

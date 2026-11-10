@@ -23,8 +23,8 @@ import { json, fail, readJson } from './lib/http.js';
 import { kstDate, DAY_MS } from './lib/time.js';
 import { logStatement } from './lib/log.js';
 
-const FEED_SOURCES = new Set(['etl', 'google', 'apple']);
-const FEED_NAMES = { etl: 'eTL', google: '구글 캘린더', apple: '애플 캘린더' };
+const FEED_SOURCES = new Set(['etl', 'google', 'apple', 'device']);
+const FEED_NAMES = { etl: 'eTL', google: '구글 캘린더', apple: '애플 캘린더', device: '폰 캘린더' };
 const MAX_RANGE_DAYS = 62;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const DATETIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+09:00$/;
@@ -111,7 +111,7 @@ async function patchItem(request, env, user, table, id) {
   const fields = Object.keys(body).filter((k) => always.includes(k) || own.includes(k));
   if (!fields.length) return fail(400, `바꿀 칸이 없어요(${[...always, ...own].join('·')})`);
   if (FEED_SOURCES.has(row.source) && fields.some((k) => own.includes(k))) {
-    return fail(409, `${FEED_NAMES[row.source]}에서 온 항목이라 제목·시각·장소는 ${FEED_NAMES[row.source]}에서 고쳐 주세요(15분 안에 바뀌어요)`);
+    return fail(409, `${FEED_NAMES[row.source]}에서 온 항목이라 제목·시각·장소는 ${FEED_NAMES[row.source]}에서 고쳐 주세요(${row.source === 'device' ? '앱을 다시 열면' : '15분 안에'} 바뀌어요)`);
   }
 
   let values;

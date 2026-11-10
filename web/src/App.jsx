@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as api from './api.js';
 import Dashboard from './screens/Dashboard.jsx';
+import { inApp, listenAppLogin, syncDevice } from './native.js';
 import Login from './screens/Login.jsx';
 import Setup from './screens/Setup.jsx';
 
@@ -17,6 +18,8 @@ export default function App() {
   async function load() {
     try {
       const me = await api.getMe();
+      // 앱: 폰 캘린더를 먼저 올리고 화면을 연다(처음 한 번은 권한을 묻는다). 안 돼도 화면은 연다
+      if (inApp() && !api.isExample()) await syncDevice('once').catch(() => null);
       setUser(me);
       setScreen(me.setup_done ? 'dashboard' : 'setup');
     } catch (err) {
@@ -28,6 +31,7 @@ export default function App() {
 
   useEffect(() => {
     if (new URLSearchParams(window.location.search).has('example') && !api.isExample()) api.startExample();
+    if (inApp()) listenAppLogin();
     load();
     const onPrompt = (e) => {
       e.preventDefault();

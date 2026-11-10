@@ -29,6 +29,7 @@
 | `GET /api/feeds` | — | `{ ok, feeds: [{ kind, set: false } 또는 { kind, set: true, hint, count, okAt, triedAt, error, stopped }] }` |
 | `PUT /api/feeds` | `{ etl?, google?, apple? }` 글 = 저장, `""`·`null` = 지우기, 칸이 없으면 그대로 | `{ ok, results, feeds }` 저장한 칸은 바로 한 번 받아 본다 |
 | `POST /api/feeds/collect` | — | `{ ok, results, feeds }` 저장된 주소를 지금 다시 받는다(멈춘 주소도 한 번 더). 메뉴에서 다시 연 설정의 '지금 다시 받기' |
+| `POST /api/feeds/device` | `{ events: [{ id, title, start, end, allDay, place }] }` (start·end는 ms) | `{ ok, count, same }` 안드로이드 앱이 읽은 폰 캘린더를 통째로 올린다(`native.js`). 빠진 것은 지우고, 다른 캘린더와 이름·시작이 같은 것은 뺀다(same). 온 일정은 `source: 'device'`, 고칠 수 없음 |
 
 ```js
 // results[] 한 칸 (PUT·collect)
