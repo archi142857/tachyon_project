@@ -107,6 +107,11 @@ test('체크하면 끝(task_done 기록), 내 메모 할 일은 제목·마감�
   assert.equal(data.task.done, 1);
   const log = await env.DB.prepare("SELECT user_id, action, detail FROM log WHERE action = 'task_done'").first();
   assert.equal(JSON.parse(log.detail).id, ids.quiz);
+  // 끝낸 일 목록: 방금 끝낸 것이 맨 위(done_at = 끝낸 시각), 기록 없이 끝나 있던 것은 뒤
+  const done = (await read(await call(env, cookieA, '/api/tasks?done=1'))).data.tasks;
+  assert.deepEqual(done.map((t) => t.id), [ids.quiz, ids.doneOne]);
+  assert.match(done[0].done_at, /^2026-11-09T12:00/);
+  assert.equal(done[1].done_at, null);
 
   const edited = await read(await call(env, cookieA, `/api/tasks/${ids.report}`, { method: 'PATCH', body: { title: '  예시 보고서   초안 ', due: '2026-11-14', minutes: 240 } }));
   assert.deepEqual([edited.data.task.title, edited.data.task.due, edited.data.task.minutes], ['예시 보고서 초안', '2026-11-14', 240]);

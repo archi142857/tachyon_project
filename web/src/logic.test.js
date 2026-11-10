@@ -3,7 +3,7 @@ import { normalizeEvent, popupToEvent } from './api.js';
 import { eventToForm, formToEvent, formToPopup, popupToForm } from './components/EventForm.jsx';
 import { examplePopup, makeExample } from './example.js';
 import { endOf, hourRange, isAllDay, layoutDay } from './layout.js';
-import { FEEDS, feedResult, normalizeIcs, resultLine, unsavedErrors } from './setup.js';
+import { FEEDS, detectFeed, feedResult, normalizeIcs, resultLine, unsavedErrors } from './setup.js';
 import { CROWDED, dueThisWeek, minutesLabel, readyLabel, slackLabel, topThree } from './tasks.js';
 import { fromKst, weekStart } from './time.js';
 
@@ -59,6 +59,15 @@ describe('캘린더 주소', () => {
     expect(normalizeIcs('google', 'https://calendar.google.com/calendar/ical/example%40gmail.com/public/basic.ics').error).toMatch('비공개');
     expect(normalizeIcs('apple', 'https://example.com/published/2/EXAMPLE').error).toMatch('애플');
     expect(FEEDS.map((f) => f.key)).toEqual(['etl', 'google', 'apple']);
+  });
+
+  it('붙여 넣은 주소가 어느 캘린더 것인지 알아서 고른다', () => {
+    expect(detectFeed(' https://myetl.snu.ac.kr/feeds/calendars/user_EXAMPLE.ics ')).toBe('etl');
+    expect(detectFeed('https://calendar.google.com/calendar/ical/example%40gmail.com/private-EXAMPLE/basic.ics')).toBe('google');
+    expect(detectFeed('webcal://p01-caldav.icloud.com/published/2/EXAMPLE')).toBe('apple');
+    expect(detectFeed('https://calendar.google.com/calendar/ical/example%40gmail.com/public/basic.ics')).toBeNull(); // 공개 주소는 안 받는다
+    expect(detectFeed('내일 3시 회의')).toBeNull();
+    expect(detectFeed('')).toBeNull();
   });
 
   it('저장된 주소의 지금 상태 한 줄(GET /api/feeds 모양)', () => {

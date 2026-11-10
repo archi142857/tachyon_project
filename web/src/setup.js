@@ -6,6 +6,7 @@ export const FEEDS = [
   {
     key: 'etl',
     label: 'eTL',
+    open: 'https://myetl.snu.ac.kr/calendar',
     how: 'eTL → 왼쪽 ‘캘린더’ → 오른쪽 아래 ‘캘린더 피드’ → 주소 복사 (PC 웹)',
     steps: [
       'PC에서 eTL에 로그인해요.',
@@ -18,6 +19,7 @@ export const FEEDS = [
   {
     key: 'google',
     label: '구글 캘린더',
+    open: 'https://calendar.google.com/calendar/u/0/r/settings',
     how: '구글 캘린더 → 설정 → 내 캘린더 이름 → ‘캘린더 통합’ → ‘iCal 형식의 비공개 주소’ 복사 (PC 웹만)',
     steps: [
       'PC 브라우저로 calendar.google.com에 들어가요. 폰 앱에는 이 메뉴가 없어요.',
@@ -30,6 +32,7 @@ export const FEEDS = [
   {
     key: 'apple',
     label: '애플 캘린더',
+    open: null, // 아이폰 캘린더 앱 안이라 열어 줄 주소가 없다
     how: '아이폰 캘린더 → 아래 ‘캘린더’ → 캘린더 옆 ⓘ → ‘공개 캘린더’ 켜기 → ‘링크 공유’ → 복사',
     steps: [
       '아이폰 ‘캘린더’ 앱 아래쪽 ‘캘린더’를 눌러요.',
@@ -62,6 +65,12 @@ export function normalizeIcs(key, raw) {
   if (u.protocol !== 'https:') return { error: 'https:// 로 시작하는 주소를 넣어 주세요' };
   const error = checkFeed(key, u);
   return error ? { error } : { url: u.toString() };
+}
+
+// 붙여 넣은 글이 어느 캘린더의 주소인지('복사한 주소 붙여넣기' 한 번으로 칸을 고르지 않게) → 'etl' | 'google' | 'apple' | null
+export function detectFeed(raw) {
+  const hit = FEEDS.find((f) => normalizeIcs(f.key, raw).url);
+  return hit ? hit.key : null;
 }
 
 // 1단계는 아는 곳의 주소만 받는다(서버가 아무 주소나 대신 받아 오는 구멍을 막으려고).

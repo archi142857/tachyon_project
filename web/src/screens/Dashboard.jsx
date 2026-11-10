@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import * as api from '../api.js';
 import CalendarSheet from '../components/CalendarSheet.jsx';
 import Composer from '../components/Composer.jsx';
+import DoneSheet from '../components/DoneSheet.jsx';
 import { EventEditSheet, TaskEditSheet } from '../components/EditSheets.jsx';
 import FeedbackSheet from '../components/FeedbackSheet.jsx';
 import InstallSheet from '../components/InstallSheet.jsx';
@@ -44,7 +45,7 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
   const [popup, setPopup] = useState(null); // { memoId, popup }
   const [waiting, setWaiting] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [sheet, setSheet] = useState(null); // 'menu' | 'tasks' | 'feedback' | 'install' | 'calendar' | { event } | { task }
+  const [sheet, setSheet] = useState(null); // 'menu' | 'tasks' | 'done' | 'feedback' | 'install' | 'calendar' | { event } | { task }
   const [snack, setSnack] = useState(null);
 
   const loadWeek = useCallback(
@@ -208,8 +209,11 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
             <button type="button" onClick={() => setSheet('tasks')}>
               할 일 전체 <span className="tag num">{openTasks.length}</span>
             </button>
+            <button type="button" onClick={() => setSheet('done')}>
+              끝낸 일
+            </button>
             <button type="button" onClick={onOpenSetup}>
-              캘린더 주소·학과
+              캘린더 연결·학과
             </button>
             <button type="button" onClick={() => setSheet('calendar')}>
               폰 달력에서 보기
@@ -237,6 +241,16 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
             ))}
           </div>
         </Sheet>
+      )}
+      {sheet === 'done' && (
+        <DoneSheet
+          now={now}
+          onClose={() => setSheet(null)}
+          onUndone={(task) => {
+            loadRank();
+            setSnack({ text: `‘${task.title}’ 할 일로 되돌렸어요` });
+          }}
+        />
       )}
       {sheet === 'feedback' && <FeedbackSheet screen="대시보드" onClose={() => setSheet(null)} onSent={(text) => setSnack({ text })} />}
       {sheet === 'install' && <InstallSheet prompt={installPrompt} onClose={() => setSheet(null)} />}

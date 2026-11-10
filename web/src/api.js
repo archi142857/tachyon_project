@@ -237,6 +237,12 @@ export function getTasks(now = new Date()) {
   return call('GET', '/api/tasks');
 }
 
+// 끝낸 할 일(끝낸 지 얼마 안 된 순). done_at = 끝낸 시각(기록이 없으면 null) → { tasks }
+export function getDoneTasks() {
+  if (ex) return reply({ tasks: ex.tasks.filter((t) => t.done).map((t) => ({ done_at: null, ...t })) });
+  return call('GET', '/api/tasks?done=1&limit=100');
+}
+
 /* ── 3_memo_popup (AI 세션, worker/3_memo_popup.js) ── */
 
 // 최근 메모 50개, 오래된 것부터. event_id가 있으면 팝업으로 일정에 넣은 메모

@@ -4,7 +4,7 @@
 //
 //   GET    /api/tasks?limit=3     끝나지 않은 할 일을 여유 적은 순(4_night.js의 rankTasks)으로 → { tasks, warning }
 //                                 warning = 몰린 주 경고 문장(없으면 null)
-//   GET    /api/tasks?done=1      끝낸 할 일(마감 늦은 순) · done=all 전부(안 끝낸 것 먼저)
+//   GET    /api/tasks?done=1      끝낸 할 일(끝낸 지 얼마 안 된 순, done_at = 끝낸 시각) · done=all 전부(안 끝낸 것 먼저)
 //   PATCH  /api/tasks/:id         { done, minutes, ready, title, due } 가운데 바꿀 것만 → { task }
 //   DELETE /api/tasks/:id         → { ok }
 //   GET    /api/events?from=2026-11-09&to=2026-11-16
@@ -53,6 +53,7 @@ export async function handle(request, env, ctx, user) {
 // ── 읽기 ─────────────────────────────────────────────────────────
 
 const TASK_COLUMNS = 'id, title, due, minutes, ready, done, source';
+const DONE_AT = `(SELECT MAX(at) FROM log WHERE log.user_id = tasks.user_id AND log.action = 'task_done' AND json_extract(log.detail, '$.id') = tasks.id) AS done_at`;
 const EVENT_COLUMNS = 'id, title, start, "end", place, source, important';
 
 async function listTasks(url, env, user) {
@@ -67,8 +68,10 @@ async function listTasks(url, env, user) {
   }
   if (done !== '1' && done !== 'all') return fail(400, 'done은 0·1·all 가운데 하나예요');
   const where = done === '1' ? 'AND done = 1' : '';
-  const order = done === '1' ? 'due DESC' : 'done, due IS NULL, due';
-  const { results } = await env.DB.prepare(`SELECT ${TASK_COLUMNS} FROM tasks WHERE user_id = ? ${where} ORDER BY ${order}, id LIMIT ?`)
+  const order = done === '1' ? 'done_at DESC, due DESC' : 'done, due IS NULL, due';
+  // 끝낸 시각은 tasks 표에 칸이 없어서 log의 마지막 task_done 줄에서 읽는다(기록이 없으면 null → 맨 뒤)
+  const columns = done === '1' ? `${TASK_COLUMNS}, ${DONE_AT}` : TASK_COLUMNS;
+  const { results } = await env.DB.prepare(`SELECT ${columns} FROM tasks WHERE user_id = ? ${where} ORDER BY ${order}, id LIMIT ?`)
     .bind(user.id, limit)
     .all();
   return json({ ok: true, tasks: results });

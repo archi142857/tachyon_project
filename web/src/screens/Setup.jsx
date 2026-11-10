@@ -1,11 +1,13 @@
 // 첫 설정: 학과·학년 + 캘린더(ICS) 주소 칸 3개(eTL·구글·애플, 찾는 법 한 줄씩과 '자세히'). 모두 건너뛸 수 있다.
-// 메뉴에서 다시 열면(again) '건너뛰기' 대신 '닫기'이고, 저장된 주소는 끝 4자만 보인다.
+// 메뉴에서 다시 열면(again) '건너뛰기' 대신 '닫기'. 넣어 둔 학과·학년은 그대로 채워져 있고,
+// 이미 연결한 캘린더는 빈칸 대신 '연결됨 · 주소 끝 4자'로 보인다(다시 넣을 필요 없음, '주소 바꾸기'를 눌러야 칸이 열린다).
+// '복사한 주소 붙여넣기' 한 번이면 어느 캘린더 주소인지 알아서 맞춰 바로 연결한다(클립보드를 못 읽는 브라우저는 칸에 직접 붙인다).
 // 저장하면 서버가 주소를 바로 한 번 받아 보고 칸마다 결과를 준다('과제 3개를 찾았어요').
 // 저장하지 못한 칸(saved: false)은 주소를 남겨 두고 까닭을 칸 아래에 그대로 보인다.
 import { useEffect, useState } from 'react';
 import { collectFeeds, getFeeds, markSetupSkipped, saveFeeds, saveProfile } from '../api.js';
 import TopBar from '../components/TopBar.jsx';
-import { FEEDS, YEARS, feedResult, normalizeIcs, resultLine, unsavedErrors } from '../setup.js';
+import { FEEDS, YEARS, detectFeed, feedResult, normalizeIcs, resultLine, unsavedErrors } from '../setup.js';
 
 const EMPTY = { etl: '', google: '', apple: '' };
 
@@ -18,6 +20,7 @@ export default function Setup({ user, example, again, onDone }) {
   const [lines, setLines] = useState({}); // 방금 저장·다시 받기 한 칸의 결과 한 줄
   const [checked, setChecked] = useState(false); // 저장해서 받아 본 결과를 보이는 중
   const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState({}); // 연결된 캘린더의 '주소 바꾸기'를 누른 칸
   const feedOf = (kind) => feeds.find((f) => f.kind === kind);
 
   useEffect(() => {
@@ -39,8 +42,38 @@ export default function Setup({ user, example, again, onDone }) {
       for (const r of results) next[r.kind] = r.kind in bad ? null : resultLine(r);
       return next;
     });
-    if (raw) setUrls({ ...EMPTY, ...Object.fromEntries(Object.keys(bad).map((k) => [k, raw[k] || ''])) });
+    if (raw) {
+      // 결과가 온 칸만 건드린다(붙여넣기로 한 칸만 연결할 때 다른 칸에 쓰던 주소가 지워지지 않게)
+      setUrls((old) => ({ ...old, ...Object.fromEntries(results.map((r) => [r.kind, r.kind in bad ? raw[r.kind] || '' : ''])) }));
+      setEditing((old) => ({ ...old, ...Object.fromEntries(results.filter((r) => !(r.kind in bad)).map((r) => [r.kind, false])) }));
+    }
     setChecked(true);
+  }
+
+  // 복사한 주소 붙여넣기: 클립보드 → 어느 캘린더인지 알아냄 → 바로 저장하고 받아 본다. 붙인 글은 화면·기록에 남기지 않는다.
+  async function paste() {
+    let text;
+    try {
+      text = await navigator.clipboard.readText();
+    } catch {
+      setErrors({ paste: '이 브라우저는 복사한 것을 바로 읽지 못해요. 아래 칸을 길게 눌러 붙여 넣고 ‘저장’을 눌러 주세요' });
+      return;
+    }
+    const kind = detectFeed(text);
+    if (!kind) {
+      setErrors({ paste: '복사한 것이 캘린더 주소가 아니에요. eTL·구글·애플 캘린더에서 주소를 복사한 뒤 다시 눌러 주세요' });
+      return;
+    }
+    setBusy(true);
+    try {
+      const { results, feeds: next } = await saveFeeds({ [kind]: normalizeIcs(kind, text).url });
+      setFeeds(next);
+      showResults(results, { [kind]: text.trim() });
+    } catch (err) {
+      setErrors({ form: err.message || '저장하지 못했어요. 잠시 뒤에 다시 해 주세요' });
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function save() {
@@ -88,6 +121,7 @@ export default function Setup({ user, example, again, onDone }) {
   }
 
   async function remove(kind) {
+    if (!window.confirm('이 캘린더 연결을 끊을까요? 다시 연결하려면 주소를 다시 복사해야 해요.')) return;
     try {
       const { feeds: next } = await saveFeeds({ [kind]: null });
       setFeeds(next);
@@ -134,11 +168,40 @@ export default function Setup({ user, example, again, onDone }) {
         </section>
 
         <section className="card" aria-labelledby="setup-feeds">
-          <h2 id="setup-feeds">캘린더 주소 (고를 것만)</h2>
+          <h2 id="setup-feeds">캘린더 연결 (고를 것만)</h2>
+          <button type="button" className="btn-line" disabled={busy} onClick={paste}>
+            복사한 주소 붙여넣기
+          </button>
+          <p className="hint">캘린더에서 주소를 복사한 뒤 누르면, 어느 캘린더인지 알아서 맞춰 바로 연결해요.</p>
+          {errors.paste && <p className="error">{errors.paste}</p>}
           <p className="hint">이 주소를 아는 사람은 누구나 그 일정을 볼 수 있어요. 다른 사람에게 보여 주지 마세요.</p>
           {FEEDS.map((feed) => {
             const saved = feedOf(feed.key);
-            const line = lines[feed.key] !== undefined ? lines[feed.key] : again ? feedResult(saved) : null;
+            const line = lines[feed.key] !== undefined ? lines[feed.key] : feedResult(saved);
+            // 이미 연결한 캘린더: 빈칸을 보이지 않는다(다시 넣어야 하는 것처럼 보여서). '주소 바꾸기'를 눌러야 칸이 열린다.
+            if (saved?.set && !editing[feed.key] && !errors[feed.key])
+              return (
+                <div className="feed" key={feed.key}>
+                  <div className="feed-saved">
+                    <span className="name">{feed.label}</span>
+                    <span className="tag ok">연결됨</span>
+                    <span className="addr">{saved.hint}</span>
+                  </div>
+                  {line && (
+                    <p className={line.ok ? 'hint' : 'error'} role="status">
+                      {line.text}
+                    </p>
+                  )}
+                  <div className="feed-acts">
+                    <button type="button" className="btn-text quiet" onClick={() => setEditing({ ...editing, [feed.key]: true })}>
+                      주소 바꾸기
+                    </button>
+                    <button type="button" className="btn-text quiet" onClick={() => remove(feed.key)}>
+                      연결 끊기
+                    </button>
+                  </div>
+                </div>
+              );
             return (
               <div className="feed" key={feed.key}>
                 <label className="field" htmlFor={`feed-${feed.key}`}>
@@ -161,6 +224,11 @@ export default function Setup({ user, example, again, onDone }) {
                 <p className="hint" id={`feed-${feed.key}-how`}>
                   {feed.how}
                 </p>
+                {feed.open && (
+                  <a className="feed-open" href={feed.open} target="_blank" rel="noreferrer">
+                    주소 있는 곳 열기 ↗
+                  </a>
+                )}
                 <details className="how">
                   <summary>자세히</summary>
                   <ol>
@@ -175,15 +243,19 @@ export default function Setup({ user, example, again, onDone }) {
                     {line.text}
                   </p>
                 )}
-                {again && saved?.set && (
-                  <button type="button" className="btn-text quiet" style={{ justifySelf: 'start', height: 36, padding: '0 4px' }} onClick={() => remove(feed.key)}>
-                    저장된 주소 지우기
+                {saved?.set && (
+                  <button type="button" className="btn-text quiet" style={{ justifySelf: 'start', height: 36, padding: '0 4px' }} onClick={() => {
+                      setEditing({ ...editing, [feed.key]: false });
+                      setUrls({ ...urls, [feed.key]: '' });
+                    }}
+                  >
+                    그대로 두기
                   </button>
                 )}
               </div>
             );
           })}
-          {again && anySaved && (
+          {anySaved && (
             <button type="button" className="btn-text" style={{ justifySelf: 'start' }} disabled={busy} onClick={collect}>
               지금 다시 받기
             </button>
