@@ -4,6 +4,8 @@
 //
 //   GET /api/calendar                     (로그인) → { url, webcal } 내 구독 주소. 화면은 '복사' 버튼과 함께 보여 준다.
 //   GET /api/calendar/<id>.<서명>.ics      (로그인 없이 — 주소 자체가 비밀) → ICS
+//   GET /api/calendar/items               (로그인) → { items: [{ key, title, start, end, allDay, place }] } ICS와 같은 줄을 ms 시각으로.
+//                                          안드로이드 앱이 폰 안 'Tachyon' 캘린더를 맞출 때 쓴다(web/src/native.js, 11-10 컨셉 — 사람 요청 '달력 자동 동기화')
 //
 // 들어가는 것
 // - 일정: 메모·시간표·eTL 등에서 온 것. 구글·애플·폰 캘린더에서 온 것(source google·apple·device)은 이미 폰에 있어서 뺀다.
@@ -30,6 +32,11 @@ export async function handle(request, env, ctx, user) {
     const path = `/api/calendar/${user.id}.${await sign(env, user.id)}.ics`;
     ctx?.waitUntil?.(logAction(env, user.id, 'calendar_url'));
     return json({ ok: true, url: `${url.origin}${path}`, webcal: `webcal://${url.host}${path}` });
+  }
+
+  if (url.pathname === '/api/calendar/items') {
+    if (!user) return fail(401, '로그인이 필요해요');
+    return json({ ok: true, items: await calendarItems(env, user.id) });
   }
 
   const m = /^\/api\/calendar\/(\d+)\.([\w-]+)\.ics$/.exec(url.pathname);
@@ -64,7 +71,8 @@ function sameText(a, b) {
 
 // ── ICS 만들기 ───────────────────────────────────────────────────
 
-export async function buildCalendar(env, userId, now = Date.now()) {
+/** 구독 주소와 앱이 같이 쓰는 줄: 내 일정(구글·애플·폰에서 온 것, 옮긴 것 빼고)과 안 끝낸 할 일의 마감, 수집 기간 안 */
+async function feedRows(env, userId, now) {
   const window = syncWindow(now);
   const from = kstDate(window.from.getTime());
   const to = kstDate(window.to.getTime());
@@ -84,7 +92,17 @@ export async function buildCalendar(env, userId, now = Date.now()) {
       .bind(userId, from, to)
       .all(),
   ]);
+  return { events: events.results, tasks: tasks.results };
+}
 
+/** 마감 할 일 → 일정 이름('마감 23:59 · 과제 이름')과 그날 */
+function taskLine(t) {
+  const time = t.due.length > 10 ? ` ${t.due.slice(11, 16)}` : '';
+  return { day: t.due.slice(0, 10), title: `마감${time} · ${t.title}` };
+}
+
+export async function buildCalendar(env, userId, now = Date.now()) {
+  const { events, tasks } = await feedRows(env, userId, now);
   const stamp = utcStamp(now);
   const lines = [
     'BEGIN:VCALENDAR',
@@ -97,20 +115,19 @@ export async function buildCalendar(env, userId, now = Date.now()) {
     'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
     'X-PUBLISHED-TTL:PT1H',
   ];
-  for (const e of events.results) {
+  for (const e of events) {
     lines.push('BEGIN:VEVENT', `UID:event-${e.id}@tachyon`, `DTSTAMP:${stamp}`, ...timeLines(e.start, e.end), `SUMMARY:${escapeText(e.title)}`);
     if (e.place) lines.push(`LOCATION:${escapeText(e.place)}`);
     lines.push('END:VEVENT');
   }
-  for (const t of tasks.results) {
-    const day = t.due.slice(0, 10);
-    const time = t.due.length > 10 ? ` ${t.due.slice(11, 16)}` : '';
+  for (const t of tasks) {
+    const { day, title } = taskLine(t);
     lines.push(
       'BEGIN:VEVENT',
       `UID:task-${t.id}@tachyon`,
       `DTSTAMP:${stamp}`,
       ...timeLines(day, null),
-      `SUMMARY:${escapeText(`마감${time} · ${t.title}`)}`,
+      `SUMMARY:${escapeText(title)}`,
       'TRANSP:TRANSPARENT',
       'END:VEVENT',
     );
@@ -131,6 +148,29 @@ function timeLines(start, end) {
 }
 
 const utcStamp = (ms) => new Date(ms).toISOString().replace(/[-:]|\.\d{3}/g, '');
+
+// ── 앱용 목록 (폰 캘린더에 직접 쓰기) ─────────────────────────────
+
+/** 구독 주소(ICS)와 같은 줄을 ms 시각으로. key는 ICS UID의 앞부분('event-12', 'task-5') — 앱이 폰 일정과 짝을 맞춘다 */
+export async function calendarItems(env, userId, now = Date.now()) {
+  const { events, tasks } = await feedRows(env, userId, now);
+  const items = events.map((e) => ({ key: `event-${e.id}`, title: e.title, ...msTimes(e.start, e.end), place: e.place || null }));
+  for (const t of tasks) {
+    const { day, title } = taskLine(t);
+    items.push({ key: `task-${t.id}`, title, ...msTimes(day, null), place: null });
+  }
+  return items;
+}
+
+/** DB 시각 → { start, end, allDay } ms. 종일은 UTC 자정(안드로이드 캘린더의 종일 규칙)이고 끝은 다음 날(ICS와 같음). 끝 시각이 없으면 시작과 같다(ICS도 DTEND 없음) */
+export function msTimes(start, end) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(start)) {
+    const endDay = end && /^\d{4}-\d{2}-\d{2}$/.test(end) && end > start ? end : kstDate(Date.parse(`${start}T00:00:00+09:00`) + DAY_MS);
+    return { start: Date.parse(`${start}T00:00:00Z`), end: Date.parse(`${endDay}T00:00:00Z`), allDay: true };
+  }
+  const from = Date.parse(start);
+  return { start: from, end: end && end > start ? Date.parse(end) : from, allDay: false };
+}
 
 /** RFC 5545 글 이스케이프: \ ; , 줄바꿈 */
 export function escapeText(text) {

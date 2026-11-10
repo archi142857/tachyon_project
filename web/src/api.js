@@ -238,6 +238,15 @@ export function getCalendarFeed() {
   return call('GET', '/api/calendar');
 }
 
+// 안드로이드 앱이 폰 'Tachyon' 캘린더에 쓸 목록(구독 주소와 같은 줄, ms 시각) → { items: [{ key, title, start, end, allDay, place }] } (native.js)
+export function getCalendarItems() {
+  if (ex) return reply({ items: [] });
+  return call('GET', '/api/calendar/items');
+}
+
+// 구글 캘린더 웹에서 '이 캘린더를 추가할까요?'를 바로 띄우는 주소(PC에서 주소 붙여 넣기 대신 한 번 누르기)
+export const googleSubscribeLink = (webcal) => `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcal)}`;
+
 // 끝나지 않은 할 일 전체를 여유 적은 순(AI 세션 4_night.js의 순서)으로 + 몰린 주 경고 한 줄 → { tasks, warning }
 // 대시보드 '할 일 3개'는 앞 3개, 메뉴의 '할 일 전체'와 달력의 마감 줄도 같은 목록을 쓴다.
 // 예시 모드는 1단계 규칙(마감 가까운 순, 이번 주 마감 4개부터 경고)으로 흉내 낸다.

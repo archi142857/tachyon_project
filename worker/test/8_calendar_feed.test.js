@@ -104,3 +104,27 @@ test('/api/health는 아직 안 넣은 비밀값 이름만 알려 준다(값은 
   assert.deepEqual(data.missing, ['GOOGLE_CLIENT_SECRET', 'ANTHROPIC_API_KEY', 'GITHUB_TOKEN']);
   assert.ok(!JSON.stringify(data).includes('example-id'));
 });
+
+test('앱용 목록(/api/calendar/items): ICS와 같은 줄을 ms 시각으로, 로그인해야 받고 내 것만', async () => {
+  const { env, a } = await setup();
+  assert.equal((await get(env, '/api/calendar/items')).status, 401);
+  const { items } = await (await get(env, '/api/calendar/items', await cookieOf(env, a))).json();
+  const byTitle = Object.fromEntries(items.map((it) => [it.title, it]));
+  assert.deepEqual(Object.keys(byTitle).sort(), ['마감 23:59 · 예시 보고서 [예시 과목]', '예시 수업', '예시 스터디, 2회차; 복습', '예시 시각 모름', '예시 축제'].sort());
+  // 시각이 있는 일정: ms 그대로, 끝 시각이 없으면 시작과 같다
+  assert.deepEqual(byTitle['예시 스터디, 2회차; 복습'], {
+    key: byTitle['예시 스터디, 2회차; 복습'].key,
+    title: '예시 스터디, 2회차; 복습',
+    start: Date.parse('2026-11-10T15:00:00+09:00'),
+    end: Date.parse('2026-11-10T16:30:00+09:00'),
+    allDay: false,
+    place: '예시 301동',
+  });
+  assert.match(byTitle['예시 스터디, 2회차; 복습'].key, /^event-\d+$/);
+  assert.equal(byTitle['예시 시각 모름'].end, byTitle['예시 시각 모름'].start);
+  // 종일: UTC 자정, 끝은 다음 날(여러 날이면 그 끝 날)
+  assert.deepEqual([byTitle['예시 축제'].start, byTitle['예시 축제'].end, byTitle['예시 축제'].allDay], [Date.parse('2026-11-12T00:00:00Z'), Date.parse('2026-11-14T00:00:00Z'), true]);
+  const due = byTitle['마감 23:59 · 예시 보고서 [예시 과목]'];
+  assert.deepEqual([due.start, due.end, due.allDay, due.place], [Date.parse('2026-11-13T00:00:00Z'), Date.parse('2026-11-14T00:00:00Z'), true, null]);
+  assert.match(due.key, /^task-\d+$/);
+});
