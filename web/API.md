@@ -121,8 +121,9 @@
 
 ## 아직 화면이 없는 것 (2단계)
 
-- 아침 브리핑 카드: `GET /api/briefing` (AI, 있음).
-- 시간표 사진: `POST /api/timetable` → 확인 팝업 → `POST /api/timetable/save` / `cancel` (AI, 있음).
+- 아침 브리핑 카드: `GET /api/briefing` (AI, 있음). 시안 3개는 캔버스에 있고, 고르는 것은 디자인 결정과 같이 미뤄짐(컨셉 11-09 23:56).
+- 시간표 사진: `POST /api/timetable` → 확인 팝업 → `POST /api/timetable/save` / `cancel` (AI, 있음). 올리는 곳에 "이름·학번이 보이면 가리고 올려 주세요" 한 줄을 꼭 넣는다(사진이 그대로 Claude API로 감, 컨셉 11-09 19:50 · 개인정보처리방침 초안 1절). eTL을 연결하면 시간표가 저절로 들어오니(컨셉 d53b360) 사진은 eTL을 안 쓰는 사람용.
+- 디자인 '② 차분한 종이'([가이드](../docs/tachyon/디자인/디자인_가이드.md)·`tokens.css`·`components.css`): 11/16 회의 뒤, 11/25 동결 전에 화면 세션이 옮긴다(계획 '디자인 가이드를 화면에 적용'). 그때 컨셉·dhsrua555가 더한 클래스(`.late-*` `.route-*` `.map-link` `.warn-box` `.etl-*` `.seg` `.feed-*` `.btn-line` `.tag.ok` `.task.done`)와 Pretendard 불러오기도 같이.
 
 ## 빌드·배포
 
