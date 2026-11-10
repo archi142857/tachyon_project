@@ -61,9 +61,9 @@ test("주마다 펼치기: 요일이 맞는 날마다 한 줄, 장소 '?'는 비
   assert.equal(rows[0].ext_id, "tt:유기화학|화|09:30|2026-11-10");
 });
 
-test("학기 끝 기본값(짐작)", () => {
-  assert.equal(semesterEnd("2026-11-09"), "2026-12-20");
-  assert.equal(semesterEnd("2027-03-02"), "2027-06-20");
+test("학기 끝 기본값: 종강일(서울대 2026학년도 2학기 12/14, 1학기 6/15)", () => {
+  assert.equal(semesterEnd("2026-11-09"), "2026-12-14");
+  assert.equal(semesterEnd("2027-03-02"), "2027-06-15");
   assert.equal(semesterEnd("2027-01-04"), "2027-02-15"); // 계절학기는 6주 뒤
 });
 

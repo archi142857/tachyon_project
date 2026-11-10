@@ -38,7 +38,7 @@ export class LlmError extends Error {
  * @param {number} [req.timeoutMs=20000] 이 시간 안에 답이 없으면 끊는다
  * @param {number} [req.retries=0] 429·5xx·시간 초과·연결 실패일 때 다시 시도할 횟수
  * @param {Function} [req.fetch] 테스트용 (기본: 전역 fetch)
- * @returns {Promise<{data: object, model: string, ms: number, usage: {input: number, output: number}}>}
+ * @returns {Promise<{data: object, model: string, ms: number, usage: {input: number, output: number}, blocks: string[]}>}
  */
 export async function askJson(env, req) {
   const keys = [env.ANTHROPIC_API_KEY, env.ANTHROPIC_API_KEY_2].filter(Boolean);
@@ -82,6 +82,8 @@ export async function askJson(env, req) {
         model: json.model || model,
         ms,
         usage: { input: json.usage?.input_tokens ?? 0, output: json.usage?.output_tokens ?? 0 },
+        // 답 조각 종류(보통 ["tool_use"]). 11-10 실측 출력이 답 JSON(약 60토큰)보다 많은 160토큰이라, 무엇이 더 나오는지 log로 본다
+        blocks: (json.content || []).map((b) => b.type),
       };
     } catch (err) {
       const e = asLlmError(err, timeoutMs);
@@ -124,5 +126,5 @@ function toBase64(bytes) {
 
 /** log 표에 남길 사용량 한 줄 (메모 글·답 내용은 넣지 않는다) */
 export function usageDetail(use, result) {
-  return JSON.stringify({ use, model: result.model, ms: result.ms, in: result.usage.input, out: result.usage.output });
+  return JSON.stringify({ use, model: result.model, ms: result.ms, in: result.usage.input, out: result.usage.output, blocks: result.blocks?.join(",") });
 }

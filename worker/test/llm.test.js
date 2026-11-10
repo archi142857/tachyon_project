@@ -39,6 +39,7 @@ test("보내는 모양: 모델·헤더·answer 도구 강제, 받은 JSON을 돌
   assert.deepEqual(seen.body.tools[0].input_schema, schema);
   assert.deepEqual(r.data, { ok: true });
   assert.deepEqual(r.usage, { input: 321, output: 12 });
+  assert.deepEqual(r.blocks, ["tool_use"]);
   assert.ok(r.ms >= 0);
 });
 
@@ -107,9 +108,11 @@ test("imageBlock은 base64로 바꾼다", () => {
   assert.equal(imageBlock(big, "image/jpeg").source.data, Buffer.from(big).toString("base64"));
 });
 
-test("usageDetail에는 사용량만 들어간다", () => {
+test("usageDetail에는 사용량과 답 조각 종류만 들어간다", () => {
   const d = JSON.parse(usageDetail("memo_popup", { model: "m", ms: 812, usage: { input: 300, output: 40 }, data: { title: "비밀" } }));
   assert.deepEqual(d, { use: "memo_popup", model: "m", ms: 812, in: 300, out: 40 });
+  const withBlocks = JSON.parse(usageDetail("memo_popup", { model: "m", ms: 9, usage: { input: 1, output: 2 }, blocks: ["thinking", "tool_use"], data: {} }));
+  assert.equal(withBlocks.blocks, "thinking,tool_use");
 });
 
 test("temperature는 보내지 않는다(5.5 모델이 400으로 거절)", async () => {
