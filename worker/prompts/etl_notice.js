@@ -52,9 +52,12 @@ export const SCHEMA = {
   required: ['items'],
 };
 
-/** AI를 부를 만한 공지인지(낱말로 먼저 거름). 아니면 tag 'none'으로 끝. */
+/**
+ * AI를 부를 만한 공지인지(낱말로 먼저 거름 — API 토큰을 아낀다, 팀원 쪽 사람 요청 11-10). 아니면 tag 'none'으로 끝.
+ * 제목에 시험·중간·기말·퀴즈·휴강·보강·변경 같은 말이 있거나, 글에 휴강·결강·보강이 있을 때만(휴강 공지는 제목이 '수업 안내'처럼 흐릴 때가 있어서).
+ */
 export function mightHaveDates(title, text) {
-  return /시험|고사|퀴즈|quiz|exam|midterm|final|휴강|결강|보강|수업\s*(이|은)?\s*없|make-?up|cancel/i.test(`${title}\n${text}`);
+  return /시험|고사|중간|기말|퀴즈|휴강|결강|보강|변경|quiz|exam|midterm|final|cancel|make-?up/i.test(title || '') || /휴강|결강|보강|수업\s*(이|은)?\s*없/.test(text || '');
 }
 
 /** 공지 HTML → 글(태그·여러 빈칸 뺌, 앞 1500자) */

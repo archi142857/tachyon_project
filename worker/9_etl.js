@@ -334,7 +334,7 @@ export async function collectUser(env, userId, { force = false, minGapMs = 0, no
     const all = await getAll(get, '/courses', { enrollment_state: 'active', 'include[]': 'term', per_page: 100 });
     const courses = all
       .filter((c) => c && c.id && c.name && c.term && terms.includes(c.term.name))
-      .map((c) => ({ id: String(c.id), name: String(c.name).trim() }));
+      .map((c) => ({ id: String(c.id), name: courseName(c.name) }));
     const nameOf = new Map(courses.map((c) => [`course_${c.id}`, c.name]));
     const contexts = courses.map((c) => `course_${c.id}`);
 
@@ -450,6 +450,13 @@ export async function collectUser(env, userId, { force = false, minGapMs = 0, no
     return { ok: false, error: MSG.down };
   }
 }
+
+/** eTL 과목 이름 '2026-2 생명과학 (001)' → '생명과학'(앞의 학기·뒤의 분반을 뗀다, 팀원 11-10) */
+export const courseName = (name) =>
+  String(name || '')
+    .trim()
+    .replace(/^\d{4}-[12SW]\s+/, '')
+    .replace(/\s*\(\d{3}\)$/, '') || String(name || '').trim();
 
 const safeUrl = (u) => (typeof u === 'string' && u.startsWith(`${ORIGIN}/`) && !/[?&]verifier=/.test(u) ? u : null);
 

@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { makeEnv, makeCtx, addTestUser } from './helpers/server.js';
 import { calendar, vevent } from './ics_fixtures.js';
-import { checkToken, collectDue, collectUser, handle, nextLink, noticeEvents, query, tagOf, termNames, toDue } from '../9_etl.js';
+import { checkToken, collectDue, collectUser, courseName, handle, nextLink, noticeEvents, query, tagOf, termNames, toDue } from '../9_etl.js';
 import { collectUser as collectIcs } from '../2_collect_ics.js';
 import { mightHaveDates, noticeText } from '../prompts/etl_notice.js';
 import { seal } from '../lib/secret.js';
@@ -269,6 +269,10 @@ test('작은 도우미: 학기 이름, 마감 시각, 다음 쪽, 묻는 글, �
   assert.equal(query({ 'context_codes[]': ['course_1', 'course_2'], per_page: 50 }), 'context_codes[]=course_1&context_codes[]=course_2&per_page=50');
   assert.equal(mightHaveDates('공지', '다음 주 수요일은 휴강입니다'), true);
   assert.equal(mightHaveDates('과제 안내', '과제 2를 올렸어요'), false);
+  assert.equal(mightHaveDates('기말 범위', ''), true);
+  assert.equal(mightHaveDates('과제 안내', '시험 범위는 3장까지'), false, '글에만 시험이 있으면 AI를 부르지 않는다(토큰 아끼기)');
+  assert.equal(courseName('2026-2 생명과학 (001)'), '생명과학');
+  assert.equal(courseName('예시 생물'), '예시 생물');
   assert.equal(noticeText('<p>중간고사&nbsp;안내</p><script>x()</script><br>26동 &amp; 101호'), '중간고사 안내\n26동 & 101호');
   const notice = { course: '예시 생물', ext_id: 'notice-9' };
   const items = [
