@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
   year       INTEGER,                     -- 학년
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S+09:00', 'now', '+9 hours'))
   -- 로그인 세션은 표 없이 서명 쿠키(APP_SECRET HMAC, 30일) — worker/1_login.js
-  -- 3단계: etl_token (암호화해서 저장)
+  -- eTL 토큰은 아래 etl 표(3단계, 11-10)
 );
 
 -- 캘린더 주소: 사용자 × 칸(etl·google·apple)마다 한 줄. 담당 worker/2_collect_ics.js
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS events (
   start     TEXT NOT NULL,
   end       TEXT,
   place     TEXT,
-  source    TEXT NOT NULL,                -- etl · google · apple(ICS 칸 이름) · device(앱이 읽은 폰 캘린더) · memo · timetable · kakao
+  source    TEXT NOT NULL,                -- etl · google · apple(ICS 칸 이름) · device(앱이 읽은 폰 캘린더) · memo · timetable · kakao · notice(eTL 공지에서 찾은 시험·휴강, 고치기·지우기 됨)
   ext_id    TEXT,                         -- ICS의 UID 등. 메모에서 나온 것은 'memo:<메모 id>'(메모 하나에 하나)
   important INTEGER NOT NULL DEFAULT 0,
   UNIQUE (user_id, source, ext_id)
@@ -84,5 +84,30 @@ CREATE TABLE IF NOT EXISTS log (
 );
 -- 의견 한도·같은 오류 찾기(6_feedback)와 수치 뽑기가 action으로 찾는다. 없으면 부를 때마다 log 전체를 읽는다.
 CREATE INDEX IF NOT EXISTS log_action_at ON log (action, at);
+
+-- eTL API(학생 개인 액세스 토큰, 선택). 사용자마다 한 줄. 담당 worker/9_etl.js (소통판 11-10 제안)
+CREATE TABLE IF NOT EXISTS etl (
+  user_id     INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  token       TEXT NOT NULL,              -- APP_SECRET으로 잠근 토큰(seal). 원문은 어디에도 안 둔다
+  term        TEXT,                       -- 가져올 학기(eTL term 이름, 예 '2026년 2학기'). NULL이면 날짜로 고름
+  last_try_at TEXT,
+  last_ok_at  TEXT,
+  last_error  TEXT,                       -- 화면에 'eTL 연결 실패'
+  dead_count  INTEGER NOT NULL DEFAULT 0  -- 401(토큰 지움·만료) 연속 횟수. 2번이면 Cron이 멈춤
+);
+
+-- eTL에서 가져온 공지·강의자료 목록. 과제는 tasks(source etl)로, 공지에서 찾은 시험·휴강·보강은 events(source notice)로 간다
+CREATE TABLE IF NOT EXISTS etl_items (
+  id        INTEGER PRIMARY KEY,
+  user_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind      TEXT NOT NULL,                -- notice(공지) · file(강의자료)
+  course    TEXT NOT NULL,                -- 과목 이름(eTL 그대로)
+  title     TEXT NOT NULL,
+  url       TEXT,                         -- eTL 화면 주소(로그인해야 열림). 파일 내려받기 주소(검증값 붙음)는 안 넣는다
+  posted_at TEXT,                         -- 올린 시각(+09:00)
+  tag       TEXT,                         -- 공지를 읽은 결과: exam · cancel · makeup · none · NULL(아직 안 읽음). 공지 글 자체는 저장 안 함
+  ext_id    TEXT NOT NULL,                -- 'notice-<id>' · 'file-<id>'
+  UNIQUE (user_id, ext_id)
+);
 
 -- 3단계: friends, groups, group_members

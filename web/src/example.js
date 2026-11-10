@@ -63,6 +63,20 @@ export function makeExample(now = new Date()) {
       { id: id(), text: '과제 3장까지 풀기', created_at: ago(6 * 60), handled: 0, event_id: null },
       { id: id(), text: '동아리 회비 걷기 물어보기', created_at: ago(3 * 60), handled: 0, event_id: null },
     ],
+    // eTL 연결(9_etl) 예시: 강의자료·공지 목록. 주소는 모양만 eTL(로그인해야 열림)
+    etl: {
+      status: { connected: true, last_ok_at: ago(25), last_error: null, dead: false, counts: { notice: 3, file: 3 } },
+      notices: [
+        { id: id(), course: '일반화학', title: '[중간고사 안내] 시험 시간·장소', url: 'https://myetl.snu.ac.kr/courses/0/discussion_topics/1', posted_at: ago(2 * 24 * 60), tag: 'exam' },
+        { id: id(), course: '유기화학', title: '다음 주 목요일 휴강·보강 안내', url: 'https://myetl.snu.ac.kr/courses/0/discussion_topics/2', posted_at: ago(4 * 24 * 60), tag: 'cancel' },
+        { id: id(), course: '미적분학', title: '과제 5 올렸습니다', url: 'https://myetl.snu.ac.kr/courses/0/discussion_topics/3', posted_at: ago(5 * 24 * 60), tag: 'none' },
+      ],
+      files: [
+        { id: id(), course: '일반화학', title: '10주차 강의자료.pdf', url: 'https://myetl.snu.ac.kr/courses/0/files/1', posted_at: ago(26 * 60), tag: null },
+        { id: id(), course: '유기화학', title: '중간고사 범위 정리.pdf', url: 'https://myetl.snu.ac.kr/courses/0/files/2', posted_at: ago(3 * 24 * 60), tag: null },
+        { id: id(), course: '미적분학', title: '연습문제 5장.pdf', url: 'https://myetl.snu.ac.kr/courses/0/files/3', posted_at: ago(6 * 24 * 60), tag: null },
+      ],
+    },
   };
 }
 

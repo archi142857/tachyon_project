@@ -302,3 +302,37 @@ export function reportError({ message, stack, screen }) {
   if (ex) return Promise.resolve(null);
   return call('POST', '/api/feedback/error', { message, stack, screen: `${screen} · ${deviceLabel()}` });
 }
+
+/* ── 9_etl (컨셉 세션, worker/9_etl.js) ── */
+// eTL API(학생 개인 액세스 토큰, 선택). 토큰은 서버가 잠가 두고 다시 돌려주지 않는다.
+// 상태 { ok, connected, last_ok_at, last_error, dead, counts: { notice, file } }. 서버에 표가 아직 없으면 503(준비 중).
+export function getEtl() {
+  if (ex) return reply({ ok: true, ...ex.etl.status });
+  return call('GET', '/api/etl');
+}
+
+// 붙여 넣은 토큰 → eTL이 받으면 저장하고 바로 한 번 받는다 → 상태 + result { courses, tasks, notices, files, calendar, ai }
+export function connectEtl(token) {
+  if (ex) return Promise.reject(new Error('예시에서는 eTL을 연결하지 않아요'));
+  return call('PUT', '/api/etl', { token });
+}
+
+export function disconnectEtl() {
+  if (ex) {
+    ex.etl.status = { connected: false };
+    return reply({ ok: true, connected: false });
+  }
+  return call('DELETE', '/api/etl');
+}
+
+// 지금 다시 받기(1분 안에 받았으면 건너뜀) → 상태 + result
+export function collectEtl() {
+  if (ex) return reply({ ok: true, result: { ok: true, recent: true }, ...ex.etl.status });
+  return call('POST', '/api/etl/collect');
+}
+
+// 강의자료·공지 목록(새 것 먼저) → { notices: [{ id, course, title, url, posted_at, tag }], files: [...] }
+export function getEtlItems() {
+  if (ex) return reply({ ok: true, notices: ex.etl.notices, files: ex.etl.files });
+  return call('GET', '/api/etl/items');
+}
