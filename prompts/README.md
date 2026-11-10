@@ -61,6 +61,7 @@
 | Tachyon-AI-01 | 2026-11-09 | Claude Code (Claude Opus 5.5) | Tachyon-AI-01. AI 세션 시작: Claude API 키 안내, Haiku 지연 확인 준비, llm.js · 메모 팝업 · 밤 정리 · 시간표 사진 | [Tachyon-AI-01-키-안내와-메모-팝업.md](Tachyon-AI-01-키-안내와-메모-팝업.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / AI |
 | Tachyon-서버-01 | 2026-11-09 | Claude Code (Claude Opus 5.5) | Tachyon-서버-01. 서버 세션 시작: 주소 나누기, 구글 로그인, ICS 수집기 + 15분 Cron, 할 일·일정 API, 캘린더 내보내기, 의견·오류 보고 | [Tachyon-서버-01-로그인과-ICS-수집.md](Tachyon-서버-01-로그인과-ICS-수집.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Server |
 | Tachyon-화면-01 | 2026-11-09 | Claude (claude.ai, Claude Opus 5.5) | Tachyon-화면-01. 화면 세션 시작: 대시보드 시안 3개 → A, 색 참고, PWA 틀·첫 설정·예시 자료 대시보드 | [Tachyon-화면-01-대시보드-시안과-PWA-틀.md](Tachyon-화면-01-대시보드-시안과-PWA-틀.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Front |
+| Tachyon-디자인-01 | 2026-11-10 | Claude (claude.ai 채팅, Claude Opus 5.5), Artifact 도구, Claude 데스크톱 앱 연결(사용자 PC 폴더) | Tachyon-디자인-01. 디자인 세션 시작, 다른 프로젝트 디자인 가이드에서 원칙 165개 배우기, 시안 3개 | [Tachyon-디자인-01-시작과-배우기.md](Tachyon-디자인-01-시작과-배우기.md) | 사용자 직접 지시 | 사용자(archi142857) → Tachyon / Design |
 
 ## AI 세션 간 작업 지시·수정 요청·결과 보고
 
