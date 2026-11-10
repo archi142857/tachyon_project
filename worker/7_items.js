@@ -61,7 +61,7 @@ async function listTasks(url, env, user) {
   const limit = Math.min(Math.max(Number(url.searchParams.get('limit')) || 200, 1), 500);
   if (done === '0') {
     const { results } = await env.DB.prepare(`SELECT ${TASK_COLUMNS} FROM tasks WHERE user_id = ? AND done = 0`).bind(user.id).all();
-    const now = new Date();
+    const now = new Date(Date.now()); // Date.now를 거쳐야 시험의 고정 시각을 따른다(new Date()는 시스템 시계)
     const daily = Number(env.DAILY_TASK_MIN) || undefined;
     const ranked = rankTasks(results, now, daily);
     return json({ ok: true, tasks: ranked.slice(0, limit), warning: crowdedWarning(ranked, now, daily) });

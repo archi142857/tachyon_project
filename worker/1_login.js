@@ -18,6 +18,8 @@
 //   앱 화면이 /api/login/ticket 으로 표를 내면 로그인 쿠키를 받는다. 표를 다른 앱이 가로채도 못 쓰게, 앱이 처음에 만든
 //   비밀(v)의 SHA-256(app=확인값)을 표에 넣어 두고 v를 같이 내야만 받아 준다(PKCE와 같은 방식).
 //   ponytail: 표는 2분 안에 여러 번 쓸 수 있다(v를 아는 그 앱만). 한 번만 쓰게 하려면 쓴 표를 DB에 적는다.
+//   /api/login/ticket은 이 사이트 화면이 연 것만 받는다(Sec-Fetch-Site: same-origin, 없으면 Referer가 이 사이트).
+//   남이 자기 표를 링크로 보내 피해자 브라우저를 '남의 계정'으로 로그인시키는 것(로그인 CSRF)을 막는다.
 //
 // 필요한 비밀값: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, APP_SECRET
 // 구글 콘솔의 '승인된 리디렉션 URI'에 <배포 주소>/api/login/callback 을 넣어야 한다.
@@ -42,7 +44,7 @@ export async function handle(request, env, ctx, user) {
 
   if (pathname === '/api/login' && method === 'GET') return startLogin(url, env);
   if (pathname === '/api/login/callback' && method === 'GET') return finishLogin(request, url, env, user);
-  if (pathname === '/api/login/ticket' && method === 'GET') return useTicket(url, env);
+  if (pathname === '/api/login/ticket' && method === 'GET') return useTicket(request, url, env);
   if (pathname === '/api/login/logout' && method === 'POST') {
     return json({ ok: true }, 200, { 'set-cookie': clearSessionCookie() });
   }
@@ -141,11 +143,23 @@ function toApp(params, clearFlow) {
 }
 
 /** 앱 화면이 표(t)와 처음 만든 비밀(v)을 낸다 → 로그인 쿠키 */
-async function useTicket(url, env) {
+async function useTicket(request, url, env) {
+  if (!openedHere(request, url)) return backToApp(url, '/', 'state');
   const ticket = await readFlow(env, url.searchParams.get('t'));
   const v = url.searchParams.get('v') || '';
   if (!ticket || ticket.uid == null || !ticket.app || (await challenge(v)) !== ticket.app) return backToApp(url, '/', 'state');
   return new Response(null, { status: 302, headers: { location: new URL('/', url.origin).toString(), 'set-cookie': await makeSessionCookie(env, ticket.uid) } });
+}
+
+/** 이 사이트 화면에서 연 요청인가(앱의 window.location 이동). 다른 사이트·다른 앱에서 연 링크는 아니다. */
+function openedHere(request, url) {
+  const site = request.headers.get('sec-fetch-site');
+  if (site) return site === 'same-origin';
+  try {
+    return new URL(request.headers.get('referer') || '').origin === url.origin; // Sec-Fetch-*가 없는 오래된 브라우저
+  } catch {
+    return false;
+  }
 }
 
 /** 받은 code를 구글 토큰 주소에서 ID 토큰으로 바꾸고 내용을 확인한다. */
@@ -202,7 +216,8 @@ export function safeNext(next) {
 
 // 이 사람의 줄은 표마다 다 지운다(schema의 ON DELETE CASCADE에 기대지 않고 직접, 한 batch = 한 번에).
 // log도 지운다(남는 것은 이름 없는 'account_delete' 한 줄). GitHub 이슈에는 '사용자 #번호'만 있어 그대로 둔다.
-const USER_TABLES = ['feeds', 'events', 'tasks', 'memos', 'briefings', 'log'];
+// 새 표에 user_id가 생기면 여기에 더한다. 원격 D1에 아직 없는 표는 건너뛴다(없는 표 하나 때문에 batch 전체가 실패하지 않게).
+const USER_TABLES = ['feeds', 'events', 'tasks', 'memos', 'briefings', 'etl', 'etl_items', 'log'];
 
 async function deleteAccount(request, env, user) {
   const body = await readJson(request);
@@ -220,8 +235,10 @@ async function deleteAccount(request, env, user) {
       console.error('시간표 사진 지우기 실패', err && err.message);
     }
   }
+  const { results } = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all();
+  const present = new Set(results.map((r) => r.name));
   await env.DB.batch([
-    ...USER_TABLES.map((table) => env.DB.prepare(`DELETE FROM ${table} WHERE user_id = ?`).bind(user.id)),
+    ...USER_TABLES.filter((table) => present.has(table)).map((table) => env.DB.prepare(`DELETE FROM ${table} WHERE user_id = ?`).bind(user.id)),
     env.DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id),
     logStatement(env, null, 'account_delete', null),
   ]);

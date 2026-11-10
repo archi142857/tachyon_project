@@ -384,8 +384,17 @@ test('폰 캘린더: 앱이 보낸 일정을 넣고, 빠진 것은 지우고, �
     { title: '예시 약속', start: '2026-11-11T14:00:00+09:00', end: '2026-11-11T15:00:00+09:00', place: '예시 장소' },
     { title: '예시 종일', start: '2026-11-13', end: '2026-11-14', place: null },
   ]);
-  // 다시 보내도 그대로, 폰에서 지운 것은 사라진다
+  // 다시 보내도 그대로(쓰기 0줄: 겹치는 일정은 넣었다 지우지 않고 처음부터 뺀다), 폰에서 지운 것은 사라진다
+  const batch = env.DB.batch.bind(env.DB);
+  let written = 0;
+  env.DB.batch = async (list) => {
+    const results = await batch(list);
+    written += results.reduce((n, r) => n + (r.meta.changes || 0), 0) - 1; // log 한 줄은 빼고 센다
+    return results;
+  };
   assert.equal((await send(list)).data.count, 2);
+  assert.equal(written, 0);
+  env.DB.batch = batch;
   assert.equal((await send(list.slice(1))).data.count, 1);
   assert.equal(await count(env, 'events', "source = 'google'"), 1);
   assert.equal((await send('x')).status, 400);

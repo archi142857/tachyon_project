@@ -100,7 +100,7 @@ async function saveDeviceEvents(request, env, userId, now = Date.now()) {
   const twin = `EXISTS (SELECT 1 FROM events x WHERE x.user_id = events.user_id AND x.source != 'device' AND x.title = events.title AND x.start = events.start)`;
   const range = [kstIso(from.getTime()), kstIso(to.getTime())];
   const results = await env.DB.batch([
-    ...eventStatements(env, userId, 'device', events, range, true),
+    ...eventStatements(env, userId, 'device', events, range, true, { skipTwins: true }),
     env.DB.prepare(`DELETE FROM events WHERE user_id = ? AND source = 'device' AND ${twin}`).bind(userId),
     env.DB.prepare("SELECT count(*) AS n FROM events WHERE user_id = ? AND source = 'device' AND start >= ? AND start < ?").bind(userId, ...range),
     logStatement(env, userId, 'device_sync', { sent: events.length }),
@@ -420,15 +420,21 @@ export function splitItems(kind, items) {
   return { tasks, events };
 }
 
-function eventStatements(env, userId, source, events, [from, to], allowDelete) {
+// skipTwins: 다른 source에 이름·시작이 같은 일정이 있으면 넣지 않는다(폰 캘린더). 넣었다가 지우면 보낼 때마다
+// 겹치는 일정 수 × 2번 쓰기가 되어(무료 D1 하루 10만 줄) 처음부터 뺀다.
+function eventStatements(env, userId, source, events, [from, to], allowDelete, { skipTwins = false } = {}) {
   const rows = events.map((e) => ({ extId: e.extId, title: e.title, start: e.start, end: e.end, place: e.place }));
   const list = [];
   if (rows.length) {
+    const twin = skipTwins
+      ? `AND NOT EXISTS (SELECT 1 FROM events x WHERE x.user_id = ?1 AND x.source != ?2
+           AND x.title = j.value ->> 'title' AND x.start = j.value ->> 'start')`
+      : '';
     list.push(
       env.DB.prepare(
         `INSERT INTO events (user_id, title, start, "end", place, source, ext_id)
          SELECT ?1, j.value ->> 'title', j.value ->> 'start', j.value ->> 'end', j.value ->> 'place', ?2, j.value ->> 'extId'
-         FROM json_each(?3) AS j WHERE true
+         FROM json_each(?3) AS j WHERE true ${twin}
          ON CONFLICT (user_id, source, ext_id) DO UPDATE SET
            title = excluded.title, start = excluded.start, "end" = excluded."end", place = excluded.place
          WHERE events.title IS NOT excluded.title OR events.start IS NOT excluded.start

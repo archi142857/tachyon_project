@@ -198,6 +198,8 @@ test('계정 지우기: confirm이 있어야 하고, 내 줄·시간표 사진�
     run("INSERT INTO memos (user_id, text) VALUES (?, '예시 메모')");
     run("INSERT INTO briefings (user_id, date, text) VALUES (?, '2026-11-10', '{}')");
     run("INSERT INTO log (user_id, action) VALUES (?, 'popup_save')");
+    run("INSERT INTO etl (user_id, token) VALUES (?, 'v1.example.sealed')");
+    run("INSERT INTO etl_items (user_id, kind, course, title, ext_id) VALUES (?, 'notice', '예시 과목', '예시 공지', 'notice-1')");
   }
   const del = (body) => call(e, '/api/login/me', { method: 'DELETE', headers: { origin: ORIGIN, cookie: session }, body: body && JSON.stringify(body) });
   assert.equal((await del()).status, 400);
@@ -207,7 +209,7 @@ test('계정 지우기: confirm이 있어야 하고, 내 줄·시간표 사진�
   assert.match(res.headers.get('set-cookie'), /^tachyon_session=; .*Max-Age=0/);
 
   const left = (table) => e.DB.sqlite.prepare(`SELECT user_id, count(*) n FROM ${table} GROUP BY user_id ORDER BY user_id`).all().map((r) => [r.user_id, r.n]);
-  for (const table of ['feeds', 'events', 'tasks', 'memos', 'briefings']) assert.deepEqual(left(table), [[2, 1]], table);
+  for (const table of ['feeds', 'events', 'tasks', 'memos', 'briefings', 'etl', 'etl_items']) assert.deepEqual(left(table), [[2, 1]], table);
   assert.deepEqual(e.DB.sqlite.prepare('SELECT id FROM users').all().map((r) => r.id), [2]);
   assert.deepEqual(e.DB.sqlite.prepare('SELECT user_id, action FROM log ORDER BY id').all().map((r) => [r.user_id, r.action]), [[2, 'popup_save'], [null, 'account_delete']]);
   assert.deepEqual([...photos.keys()], ['timetable/2/c.jpg', 'timetable/10/d.jpg']);
@@ -228,14 +230,32 @@ test('앱 로그인: 브라우저에는 세션을 주지 않고 앱으로 표를
   assert.ok(!cookiesOf(back).some((c) => c.startsWith('tachyon_session=') && c.length > 20));
   const ticket = new URL(to).searchParams.get('ticket');
 
-  const use = (t, secret) => call(e, `/api/login/ticket?t=${encodeURIComponent(t)}&v=${secret}`);
+  const use = (t, secret, headers = { 'sec-fetch-site': 'same-origin' }) => call(e, `/api/login/ticket?t=${encodeURIComponent(t)}&v=${secret}`, { headers });
   const ok = await use(ticket, v);
   assert.equal(ok.headers.get('location'), `${ORIGIN}/`);
   const session = cookiesOf(ok).find((c) => c.startsWith('tachyon_session='));
   assert.equal((await call(e, '/api/login/me', { headers: { cookie: session } })).status, 200);
 
-  for (const bad of [await use(ticket, 'wrong'), await use('garbage', v), await call(e, '/api/login?app=short')]) {
+  // 다른 사이트·다른 앱에서 연 링크로는 못 쓴다(로그인 CSRF): 표와 v가 맞아도
+  const elsewhere = [
+    await use(ticket, v, { 'sec-fetch-site': 'cross-site' }),
+    await use(ticket, v, { 'sec-fetch-site': 'none' }),
+    await use(ticket, v, { referer: 'https://evil.example/x' }),
+    await use(ticket, v, {}),
+  ];
+  assert.equal((await use(ticket, v, { referer: `${ORIGIN}/` })).headers.get('location'), `${ORIGIN}/`); // Sec-Fetch가 없는 브라우저
+  for (const bad of [...elsewhere, await use(ticket, 'wrong'), await use('garbage', v), await call(e, '/api/login?app=short')]) {
     assert.match(bad.headers.get('location'), /login_error=state/);
     assert.ok(!cookiesOf(bad).some((c) => c.startsWith('tachyon_session=')));
   }
+});
+
+test('계정 지우기: 원격 D1에 아직 없는 표가 있어도 지운다', async () => {
+  const e = env();
+  const { back } = await login(e);
+  const session = cookiesOf(back).find((c) => c.startsWith('tachyon_session='));
+  e.DB.sqlite.exec('DROP TABLE etl_items; DROP TABLE etl;');
+  const res = await call(e, '/api/login/me', { method: 'DELETE', headers: { origin: ORIGIN, cookie: session }, body: JSON.stringify({ confirm: true }) });
+  assert.equal(res.status, 200);
+  assert.equal(e.DB.sqlite.prepare('SELECT count(*) n FROM users').get().n, 0);
 });
