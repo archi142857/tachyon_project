@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { fromFeed } from '../api.js';
 import { dateInput, isoFromInputs, timeInput } from '../time.js';
 import EventForm, { eventToForm, formToEvent } from './EventForm.jsx';
+import RouteInfo from './RouteInfo.jsx';
 import Sheet from './Sheet.jsx';
 
 const FEED_NAME = { etl: 'eTL', google: '구글 캘린더', apple: '애플 캘린더' };
@@ -29,7 +30,8 @@ function DeleteButton({ busy, onDelete }) {
   );
 }
 
-export function EventEditSheet({ event, onSave, onDelete, onClose }) {
+// leg·campus: 수업 사이 동선(campus.js dayLegs)과 캠퍼스 표. 없으면 장소 '지도' 단추만
+export function EventEditSheet({ event, leg, campus, onSave, onDelete, onClose }) {
   const locked = fromFeed(event);
   const [form, setForm] = useState(() => eventToForm(event));
   const [important, setImportant] = useState(event.important ? 1 : 0);
@@ -62,6 +64,7 @@ export function EventEditSheet({ event, onSave, onDelete, onClose }) {
       ) : (
         <EventForm form={form} onChange={setForm} idPrefix="edit-event" />
       )}
+      <RouteInfo event={event} leg={leg} campus={campus} />
       <ImportantToggle value={important} onChange={setImportant} />
       {error && (
         <p className="error" role="alert">

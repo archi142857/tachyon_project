@@ -1,6 +1,8 @@
 // 주간 달력(오른쪽, 폰은 아래). 오늘부터 7칸(오늘이 늘 맨 앞), 좌우 화살표·밀기로 7일씩 이동, 아래 점은 오늘부터 3장(21일).
 // 맨 위 줄은 과제 마감과 하루 종일 일정, 아래는 시간 칸. 중요한 일정은 굵은 테두리.
+// 앞 수업에서 걸어오는 시간이 쉬는 시간보다 길면 칸 안에 빨간 'N분 지각'(TT Wizard 말투, legs = campus.js dayLegs).
 import { useRef } from 'react';
+import { arriveText, lateOf } from '../campus.js';
 import { endOf, hourRange, isAllDay, layoutDay } from '../layout.js';
 import { WEEKDAYS, addDays, dayIndex, hhmm, kst, minuteOfDay, weekTitle } from '../time.js';
 import Icon from './Icon.jsx';
@@ -10,11 +12,13 @@ export const PAGES = 3; // 오늘부터 7일, 그다음 7일, 그다음 7일
 const timeText = (ev) => `${hhmm(ev.start)}–${ev.end ? hhmm(ev.end) : '?'}`;
 
 // 마우스를 올리면 보이는 한 줄(title)
-function eventLabel(ev) {
-  return [ev.title, timeText(ev), ev.place, ev.important ? '중요' : null].filter(Boolean).join(', ');
+function eventLabel(ev, leg) {
+  const late = lateOf(leg && leg.arrive);
+  const walk = leg && leg.arrive ? `${arriveText(leg.arrive)}${late ? ` — ${late}분 지각` : ''}` : null;
+  return [ev.title, timeText(ev), ev.place, ev.important ? '중요' : null, walk].filter(Boolean).join(', ');
 }
 
-export default function WeekCalendar({ start, events, tasks, now, page, onPage, onEvent, onTask }) {
+export default function WeekCalendar({ start, events, tasks, now, page, onPage, onEvent, onTask, legs }) {
   const touch = useRef(null);
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
   const todayIdx = dayIndex(start, now);
@@ -106,18 +110,20 @@ export default function WeekCalendar({ start, events, tasks, now, page, onPage, 
               {layoutDay(timed.filter((e) => dayIndex(start, e.start) === i)).map(({ ev, col, cols }) => {
                 const s = hourAt(ev.start);
                 const len = Math.min((endOf(ev) - Date.parse(ev.start)) / 3600000, last - first - s);
+                const leg = legs && legs.get(ev.id);
+                const late = lateOf(leg && leg.arrive);
                 return (
                   <button
                     key={ev.id}
                     type="button"
-                    className={`ev ${ev.source === 'timetable' || ev.source === 'memo' ? ev.source : 'ics'}${ev.important ? ' important' : ''}`}
+                    className={`ev ${ev.source === 'timetable' || ev.source === 'memo' ? ev.source : 'ics'}${ev.important ? ' important' : ''}${late > 0 ? ' late-ev' : ''}`}
                     style={{
                       top: `calc(var(--hour) * ${s} + 1px)`,
                       height: `calc(var(--hour) * ${Math.max(len, 0.5)} - 2px)`,
                       left: `calc(${(col / cols) * 100}% + 2px)`,
                       width: `calc(${100 / cols}% - 4px)`,
                     }}
-                    title={eventLabel(ev)}
+                    title={eventLabel(ev, leg)}
                     onClick={() => onEvent(ev)}
                   >
                     {/* 이름은 보이는 글자 그대로 + 화면 읽기용 시각·중요(보이는 글자가 이름 안에 있어야 한다) */}
@@ -126,6 +132,7 @@ export default function WeekCalendar({ start, events, tasks, now, page, onPage, 
                     {!ev.end && <span className="end-unknown"> (끝 ?)</span>}
                     {ev.place && <span className="place">{ev.place}</span>}
                     {ev.important ? <span className="sr-only">, 중요</span> : null}
+                    {late > 0 && <span className="late-pill">{late}분 지각</span>}
                   </button>
                 );
               })}

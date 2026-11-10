@@ -1,7 +1,8 @@
 // 대시보드(시안 A, 손그림 2): 할 일 3개 · 메모(나와의 채팅) · 주간 달력 · 아래 긴 메모 칸.
 // 일정처럼 보이는 메모를 보내면 메모 옆에 '이대로 저장할까요?' 팝업이 뜬다. 나머지 기능은 햄버거 메뉴.
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as api from '../api.js';
+import { dayLegs, loadCampus } from '../campus.js';
 import CalendarSheet from '../components/CalendarSheet.jsx';
 import Composer from '../components/Composer.jsx';
 import DoneSheet from '../components/DoneSheet.jsx';
@@ -76,6 +77,14 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
       .then((r) => setMemos(r.memos))
       .catch(() => setSnack({ text: '메모를 불러오지 못했어요' }));
   }, []);
+
+  // 수업 사이 동선(TT Wizard 걷는 시간): 장소가 있는 일정이 보이면 캠퍼스 표를 한 번 받아 둔다
+  const [campus, setCampus] = useState(null);
+  const hasPlace = events.some((e) => e.place);
+  useEffect(() => {
+    if (!campus && hasPlace) loadCampus().then(setCampus, () => {});
+  }, [campus, hasPlace]);
+  const legs = useMemo(() => dayLegs(events, campus), [events, campus]);
 
   const closeSnack = useCallback(() => setSnack(null), []);
   const goPage = (p) => setPage(Math.max(0, Math.min(PAGES - 1, p)));
@@ -199,6 +208,7 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
           onPage={goPage}
           onEvent={(event) => setSheet({ event })}
           onTask={(task) => setSheet({ task })}
+          legs={legs}
         />
       </main>
       <Composer onSend={sendMemo} />
@@ -256,7 +266,14 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
       {sheet === 'install' && <InstallSheet prompt={installPrompt} onClose={() => setSheet(null)} />}
       {sheet === 'calendar' && <CalendarSheet onClose={() => setSheet(null)} />}
       {sheet?.event && (
-        <EventEditSheet event={sheet.event} onClose={() => setSheet(null)} onSave={(fields) => saveEvent(sheet.event.id, fields)} onDelete={() => deleteEvent(sheet.event)} />
+        <EventEditSheet
+          event={sheet.event}
+          leg={legs.get(sheet.event.id)}
+          campus={campus}
+          onClose={() => setSheet(null)}
+          onSave={(fields) => saveEvent(sheet.event.id, fields)}
+          onDelete={() => deleteEvent(sheet.event)}
+        />
       )}
       {sheet?.task && <TaskEditSheet task={sheet.task} onClose={() => setSheet(null)} onSave={(fields) => saveTask(sheet.task.id, fields)} onDelete={() => deleteTask(sheet.task)} />}
       {snack && <Snackbar {...snack} layer={sheetKey(sheet)} onDone={closeSnack} />}

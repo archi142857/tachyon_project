@@ -9,6 +9,8 @@ const ymd = (p) => `${p.y}-${two(p.m)}-${two(p.d)}`;
 export function makeExample(now = new Date()) {
   const mon = kst(weekStart(now));
   const at = (day, h, min = 0) => toKstIso(fromKst(mon.y, mon.m, mon.d + day, h, min));
+  const todayWd = kst(now).wd; // 0 = 월
+  const demoDay = todayWd <= 4 ? todayWd : 7; // 동선 예시를 둘 날: 평일이면 오늘, 주말이면 다음 월요일
   const ago = (minutes) => toKstIso(new Date(new Date(now).getTime() - minutes * 60000));
   let n = 0;
   const id = () => ++n;
@@ -37,6 +39,11 @@ export function makeExample(now = new Date()) {
     ev(6, [18, 0], [20, 0], '가족 저녁', null, 'ics'),
     ev(9, [10, 0], [11, 15], '미적분학', '26동', 'timetable'),
     ev(11, [14, 0], [16, 0], '동아리 정기 모임', '학생회관', 'ics'),
+    // 수업 사이 동선(TT Wizard 걷는 시간)을 보이는 오후 세 수업 — 주간 달력이 오늘부터라 오늘(주말이면 다음 월요일)에 둔다.
+    // 500동 → 43-1동은 걷기 7분·쉬는 시간 15분으로 괜찮고, 43-1동 → 301동은 걷기 17분인데 쉬는 시간 15분 → '2분 지각'
+    ev(demoDay, [16, 30], [17, 20], '공학수학 실습', '500동', 'timetable'),
+    ev(demoDay, [17, 35], [18, 25], '물리학', '43-1동', 'timetable'),
+    ev(demoDay, [18, 40], [19, 30], '공학수학', '301동 118호', 'timetable'),
   ];
   const alba = events.find((e) => e.title === '알바');
 

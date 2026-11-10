@@ -40,6 +40,8 @@ npm run build      # dist/
 | `src/tasks.js` | 할 일 표시(걸리는 시간·여유·준비) |
 | `src/layout.js` | 달력에서 겹치는 일정 나란히 놓기, 시간 축 |
 | `src/setup.js` | 캘린더 주소 찾는 법·확인 규칙([캘린더 주소 찾기](../docs/tachyon/캘린더_주소_찾기.md)) |
+| `src/campus.js` | 수업 사이 동선: 장소 글 → 캠퍼스 건물, 이어지는 일정 사이 걷는 시간·쉬는 시간·'N분 지각'(TT Wizard evaluate와 같은 셈·말투). 표는 `src/campus/campus.json`(TT Wizard `data/walk.csv`·`buildings.csv`, ODbL — 화면에 출처). 자료가 바뀌면 `node web/scripts/campus.mjs` |
+| `src/naverMap.js` | 네이버 지도(키 없음): 장소 열기, 두 건물 사이 도보 길찾기. 안드로이드는 앱 없으면 웹, 아이폰은 앱 먼저 열어 보고 웹 |
 | `src/screens/` | Login, Setup, Dashboard |
 | `src/components/` | 위 막대, 할 일, 메모, 팝업, 주간 달력, 메모 칸, 시트들 |
 | `src/styles.css` | 색(맨 위 `:root` 한 곳)과 모양 |

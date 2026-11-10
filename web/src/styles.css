@@ -193,6 +193,18 @@ h1, h2, h3, p { margin: 0; }
 .ev.memo { background: var(--ev-memo); }
 .ev.important { box-shadow: inset 0 0 0 2px var(--ev-important); font-weight: 700; }
 .ev .place, .ev .end-unknown { display: none; font-weight: 400; }
+/* 수업 사이 동선(TT Wizard): 걸어오는 시간이 쉬는 시간보다 길면 칸 안에 빨간 'N분 지각' */
+.ev.late-ev { box-shadow: inset 0 3px 0 var(--danger); }
+.ev.important.late-ev { box-shadow: inset 0 0 0 2px var(--ev-important), inset 0 3px 0 var(--danger); }
+/* 폰은 칸이 좁아 글은 숨기고(화면 읽기는 읽는다) 위의 빨간 줄만. 넓은 화면은 칸 오른쪽 위에 알약 */
+.ev .late-pill { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (min-width: 1024px) {
+  .ev .late-pill { width: auto; height: auto; overflow: visible; clip: auto; top: 4px; right: 3px; padding: 0 4px; border-radius: 4px; background: var(--danger); color: #fff; font-size: 11px; line-height: 15px; font-weight: 700; }
+}
+.late { color: var(--danger); font-weight: 700; }
+.route-info { display: grid; gap: 2px; margin: 4px 0 8px; }
+.route-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 15px; line-height: 22px; }
+.route-row .map-link { flex: none; display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
 .now-line { position: absolute; left: 0; right: 0; border-top: 2px solid var(--now); z-index: 2; pointer-events: none; }
 .cal-dots { display: flex; justify-content: center; gap: 6px; padding-top: 10px; }
 .cal-dots span { width: 8px; height: 8px; border-radius: 9999px; background: var(--dot-off); }
