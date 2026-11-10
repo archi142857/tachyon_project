@@ -1,0 +1,196 @@
+/* Tachyon 디자인 토큰 — ② 차분한 종이 (디자인 세션, 2026-11-10)
+
+   쓰는 법(화면 세션)
+   1단계: web/src/styles.css 맨 위 :root { … } 블록을 아래 '밝게' :root 블록으로 통째로 바꾼다.
+          이름은 지금 앱과 같다. [새]는 새 이름이고, --muted는 쓰는 곳이 없어 뺐다.
+          styles.css에 있는 @media (min-width: 1024px) { :root { --hour: 40px; } }는 그대로 둔다.
+   2단계: '동작 줄이기' 블록을 붙인다.
+   3단계(어둡게): styles.css의 하드코딩 색 두 곳(.snackbar button의 #b4c8e1,
+          .segmented 고른 칸의 box-shadow)을 토큰으로 바꾼 뒤 '어둡게' 두 블록을 붙인다.
+   전체 규칙과 견본: https://claude.ai/artifact/G2PQz4wkzavUgeT4kcc4Dv (Tachyon 디자인 시스템)
+   값의 근거(대비·색각): 같은 아티팩트의 '접근성 점검표' */
+
+/* ── 밝게 ── */
+:root {
+  /* 바탕·면 */
+  --bg: #efebe2;
+  --card: #fbf9f4;
+  --inset: #fffdf8; /* [새] */
+  --raised: #fbf9f4; /* [새] */
+  /* 글자 */
+  --heading: #23305e;
+  --text: #23305e;
+  --text2: #574e3f;
+  --text3: #655d4e;
+  /* 선 */
+  --line: #e6dfcf;
+  --grid: #ece6d8;
+  --line-strong: #8c8169;
+  /* 면 채움 */
+  --fill: #e9e3d6;
+  --bubble: #efe8d8;
+  /* 남색 잉크(강조) */
+  --accent: #23305e;
+  --accent-press: #18213f;
+  --accent-text: #23305e;
+  --on-accent: #fdf8e6;
+  --focus: #23305e; /* [새] */
+  /* 알림 */
+  --warn: #8f3807;
+  --warn-bg: #fbe7d6;
+  --danger: #9b0032;
+  /* 종이 표시 */
+  --stamp: #c62f2f; /* [새] */
+  --highlight: #f3d65f; /* [새] */
+  --postit: #fdf1bf; /* [새] */
+  --postit-text2: #574d2a; /* [새] */
+  --postit-unknown: #6a5f33; /* [새] */
+  /* 달력 */
+  --now: #b8452a;
+  --dot-off: #b3aa98;
+  --today-wash: #faf5e2; /* [새] */
+  --ev-class: #cbddee;
+  --ev-ics: #cdb4eb;
+  --ev-memo: #eda9a8;
+  --ev-deadline: var(--highlight);
+  --ev-text: var(--text);
+  --ev-important: var(--text);
+  /* 스낵바·막 */
+  --snack-bg: #23305e; /* [새] */
+  --snack-text: #fdf8e6; /* [새] */
+  --snack-action: #c9d4f6; /* [새] */
+  --scrim: #23305e66;
+
+  /* 크기 */
+  --r-chip: 3px;
+  --r-postit: 4px; /* [새] */
+  --r-card: 6px;
+  --r-btn: 6px;
+  --r-bubble: 8px; /* [새] */
+  --r-sheet: 10px; /* [새] */
+  --hour: 30px; /* 달력 한 시간 높이(폰). 1024px 이상 40px */
+  --tap: 48px; /* [새] 누르는 영역의 가장 작은 크기 */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; /* [새] 간격 눈금 */
+
+  /* 그림자: 떠 있는 것(포스트잇, 시트, 스낵바)에만 */
+  --shadow: 0 6px 16px #23305e29;
+
+  /* 글꼴: 본문 Pretendard, 제목 고운바탕 */
+  --font: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  --font-head: 'Gowun Batang', 'Noto Serif KR', AppleMyungjo, Batang, serif; /* [새] 제목에만 */
+
+  /* 움직임 [새] */
+  --dur-in: 200ms;
+  --dur-out: 150ms;
+  --dur-stamp: 250ms;
+  --dur-week: 150ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+
+  color-scheme: light;
+}
+
+/* ── 동작 줄이기: 모든 움직임이 바로 바뀐다 ── */
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-in: 0ms; --dur-out: 0ms; --dur-stamp: 0ms; --dur-week: 0ms; }
+}
+
+/* ── 어둡게(3단계): 기기 설정을 따르고, data-theme으로 고를 수 있다 ── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    /* 바탕·면 */
+    --bg: #1b1a18;
+    --card: #252420;
+    --inset: #2b2a26;
+    --raised: #2f2d29;
+    /* 글자 */
+    --heading: #ece6d8;
+    --text: #ece6d8;
+    --text2: #cfc6b4;
+    --text3: #b0a793;
+    /* 선 */
+    --line: #37352f;
+    --grid: #312f2a;
+    --line-strong: #8a8170;
+    /* 면 채움 */
+    --fill: #37352f;
+    --bubble: #35322c;
+    /* 남색 잉크(강조) */
+    --accent: #46558e;
+    --accent-press: #3a4778;
+    --accent-text: #afbdf0;
+    --focus: #afbdf0;
+    /* 알림 */
+    --warn: #f2a774;
+    --warn-bg: #3e2b1d;
+    --danger: #f593a6;
+    /* 종이 표시 */
+    --stamp: #f28b80;
+    --highlight: #6b5a1c;
+    --postit: #3a3423;
+    --postit-text2: #d8cda8;
+    --postit-unknown: #cabe96;
+    /* 달력 */
+    --now: #e97c60;
+    --dot-off: #5b5750;
+    --today-wash: #333024;
+    --ev-class: #15364f;
+    --ev-ics: #4a4273;
+    --ev-memo: #54220f;
+    /* 스낵바·막 */
+    --snack-bg: #3a3833;
+    --snack-text: #ece6d8;
+    --snack-action: #afbdf0;
+    --scrim: #0b0a09b3;
+    --shadow: 0 0 0 1px #46433c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  /* 바탕·면 */
+  --bg: #1b1a18;
+  --card: #252420;
+  --inset: #2b2a26;
+  --raised: #2f2d29;
+  /* 글자 */
+  --heading: #ece6d8;
+  --text: #ece6d8;
+  --text2: #cfc6b4;
+  --text3: #b0a793;
+  /* 선 */
+  --line: #37352f;
+  --grid: #312f2a;
+  --line-strong: #8a8170;
+  /* 면 채움 */
+  --fill: #37352f;
+  --bubble: #35322c;
+  /* 남색 잉크(강조) */
+  --accent: #46558e;
+  --accent-press: #3a4778;
+  --accent-text: #afbdf0;
+  --focus: #afbdf0;
+  /* 알림 */
+  --warn: #f2a774;
+  --warn-bg: #3e2b1d;
+  --danger: #f593a6;
+  /* 종이 표시 */
+  --stamp: #f28b80;
+  --highlight: #6b5a1c;
+  --postit: #3a3423;
+  --postit-text2: #d8cda8;
+  --postit-unknown: #cabe96;
+  /* 달력 */
+  --now: #e97c60;
+  --dot-off: #5b5750;
+  --today-wash: #333024;
+  --ev-class: #15364f;
+  --ev-ics: #4a4273;
+  --ev-memo: #54220f;
+  /* 스낵바·막 */
+  --snack-bg: #3a3833;
+  --snack-text: #ece6d8;
+  --snack-action: #afbdf0;
+  --scrim: #0b0a09b3;
+  --shadow: 0 0 0 1px #46433c;
+  color-scheme: dark;
+}
