@@ -1,7 +1,8 @@
 // 눌러서 고치기: 일정(이름·시간·장소·중요)과 할 일(이름·마감·걸리는 시간), 그리고 지우기.
-// eTL·구글·애플에서 온 것은 그 캘린더가 원본이라 이름·시간·장소·마감은 그쪽에서 고치고 지운다(서버도 막는다).
-// 그래도 여기서 바꿀 수 있는 것: 일정의 '중요', 할 일의 걸리는 시간·'수업·자료 뒤'.
-// 지우기는 메모·시간표에서 온 것만, 한 번 더 눌러야 지운다.
+// eTL·구글·애플·폰 캘린더에서 온 일정도 여기서 고친다: Tachyon 안에서만 바뀌고(서버가 고친 사본을 넣고 원본을 가린다, 7_items.js)
+// 그 캘린더는 그대로다. 고친 것을 지우면 원래 일정이 다시 보인다. 캘린더에서 온 일정 자체를 지우는 것은 그 캘린더에서 한다.
+// 캘린더에서 온 할 일은 이름·마감을 그쪽에서 고친다(서버도 막는다). 여기서 바꿀 수 있는 것: 걸리는 시간·'수업·자료 뒤'.
+// 지우기는 한 번 더 눌러야 지운다.
 import { useState } from 'react';
 import { fromFeed } from '../api.js';
 import { dateInput, isoFromInputs, timeInput } from '../time.js';
@@ -9,7 +10,7 @@ import EventForm, { eventToForm, formToEvent } from './EventForm.jsx';
 import RouteInfo from './RouteInfo.jsx';
 import Sheet from './Sheet.jsx';
 
-const FEED_NAME = { etl: 'eTL', google: '구글 캘린더', apple: '애플 캘린더' };
+const FEED_NAME = { etl: 'eTL', google: '구글 캘린더', apple: '애플 캘린더', device: '폰 캘린더' };
 
 function ImportantToggle({ value, onChange }) {
   return (
@@ -32,11 +33,13 @@ function DeleteButton({ busy, onDelete }) {
 
 // leg·campus·events: 수업 사이 동선(campus.js dayLegs), 캠퍼스 표, 그 주 일정(하루 동선 지도). 없으면 장소 '지도' 단추만
 export function EventEditSheet({ event, leg, campus, events, onSave, onDelete, onClose }) {
-  const locked = fromFeed(event);
+  const feed = fromFeed(event);
   const [form, setForm] = useState(() => eventToForm(event));
+  // 캘린더에서 온 일정은 칸을 실제로 바꿨을 때만 이름·시간·장소를 보낸다('중요'만 누르면 사본을 만들지 않게)
+  const dirty = JSON.stringify(form) !== JSON.stringify(eventToForm(event));
   const [important, setImportant] = useState(event.important ? 1 : 0);
   const [busy, setBusy] = useState(false);
-  const ready = locked || (form.title.trim() && form.date);
+  const ready = form.title.trim() && form.date;
 
   const [error, setError] = useState(null);
   async function run(job) {
@@ -52,18 +55,14 @@ export function EventEditSheet({ event, leg, campus, events, onSave, onDelete, o
   }
 
   return (
-    <Sheet title={locked ? '일정' : '일정 고치기'} onClose={onClose}>
-      {locked ? (
-        <div className="form-grid">
-          <p style={{ fontSize: 16, lineHeight: '24px' }}>
-            {event.title}
-            {event.place ? ` · ${event.place}` : ''}
-          </p>
-          <p className="hint">{FEED_NAME[event.source]}에서 온 일정이라 이름·시간·장소는 그 캘린더에서 고치거나 지워 주세요.</p>
-        </div>
-      ) : (
-        <EventForm form={form} onChange={setForm} idPrefix="edit-event" />
+    <Sheet title="일정 고치기" onClose={onClose}>
+      <EventForm form={form} onChange={setForm} idPrefix="edit-event" />
+      {feed && (
+        <p className="hint">
+          {FEED_NAME[event.source]}에서 온 일정이에요. 여기서 고치면 Tachyon에서만 바뀌고 {FEED_NAME[event.source]}는 그대로예요. 지우기는 {FEED_NAME[event.source]}에서 해 주세요.
+        </p>
       )}
+      {!!event.edited && <p className="hint">캘린더에서 온 일정을 여기서 고친 거예요. 지우면 원래 일정이 다시 보여요.</p>}
       <RouteInfo event={event} leg={leg} campus={campus} events={events} />
       <ImportantToggle value={important} onChange={setImportant} />
       {error && (
@@ -72,8 +71,8 @@ export function EventEditSheet({ event, leg, campus, events, onSave, onDelete, o
         </p>
       )}
       <div className="sheet-actions">
-        {!locked && onDelete && <DeleteButton busy={busy} onDelete={() => run(onDelete)} />}
-        <button type="button" className="btn" disabled={busy || !ready} onClick={() => run(() => onSave(locked ? { important } : { ...formToEvent(form), important }))}>
+        {!feed && onDelete && <DeleteButton busy={busy} onDelete={() => run(onDelete)} />}
+        <button type="button" className="btn" disabled={busy || !ready} onClick={() => run(() => onSave(feed && !dirty ? { important } : { ...formToEvent(form), important }))}>
           저장
         </button>
       </div>

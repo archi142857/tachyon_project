@@ -50,18 +50,20 @@
 | `PATCH /api/tasks/:id` | `{ done, minutes, ready, title, due }` 가운데 바꿀 것 (`done`·`ready`는 true·false 또는 1·0, `minutes`는 1~1440 정수) | `{ task }` |
 | `DELETE /api/tasks/:id` | — | `{ ok }` 메모·시간표에서 온 것만(캘린더에서 온 것은 409) |
 | `GET /api/events?from=2026-11-09&to=2026-11-16` | 한국 날짜, `to`는 빼고 센다(최대 62일) | `{ events }` 그 기간과 겹치는 일정 |
-| `PATCH /api/events/:id` | `{ important, title, start, end, place }` 가운데 바꿀 것 (시각을 모르면 `start`는 날짜만, `end`는 null) | `{ event }` |
-| `DELETE /api/events/:id` | — | `{ ok }` 메모·시간표에서 온 것만(캘린더에서 온 것은 409) |
+| `PATCH /api/events/:id` | `{ important, title, start, end, place }` 가운데 바꿀 것 (시각을 모르면 `start`는 날짜만, `end`는 null) | `{ event }` 캘린더에서 온 일정의 이름·시간·장소를 바꾸면 **새 id의 사본**(`source` memo, `edited` 1)이 오고 원본은 가려진다 → 고친 뒤 목록을 다시 부른다 |
+| `DELETE /api/events/:id` | — | `{ ok }` 메모·시간표에서 온 것과 고친 사본만(캘린더에서 온 것은 409). 고친 사본을 지우면 원본이 다시 보인다 |
 
 ```js
 // event (schema.sql events 그대로)
 { id, title, start /* '…T15:00:00+09:00' 또는 종일이면 '2026-11-13' */, end /* 모르면 null, 종일이면 다음 날 날짜 */, place /* null */,
-  source /* 'etl'|'google'|'apple'|'device'|'memo'|'timetable'|'kakao' */, important /* 0|1 */ }
+  source /* 'etl'|'google'|'apple'|'device'|'memo'|'timetable'|'kakao' */, important /* 0|1 */,
+  edited /* 1 = 캘린더에서 온 일정을 여기서 고친 사본 */ }
 ```
 
 - 대시보드 '할 일 3개' = `tasks` 앞 3개, `warning`은 할 일 카드 머리에 그대로. 메뉴의 '할 일 전체', 달력 맨 위 마감 줄도 같은 목록. 체크하거나 고친 뒤에는 다시 불러 순서를 새로 받는다.
 - 화면 표시: `minutes` null이면 '시간 ?', `ready` 0이면 '수업·자료 뒤'(1은 `minutes`가 있을 때만 '지금 가능'), `slack_days`(소수)는 내림해서 '여유 N일', 1 미만은 '빠듯', 음수는 '시간 모자람'. 폰의 할 일 카드는 좁아서 마감·지금 가능만, '할 일 전체' 창과 PC는 걸리는 시간·여유까지.
-- eTL·구글·애플에서 온 것은 그 캘린더가 원본이라 이름·시간·장소·마감 고치기를 서버가 막는다(409). 화면도 그런 항목은 고치기 칸을 잠그고, 일정은 '중요' 표시만, 할 일은 걸리는 시간과 '수업·자료 뒤'(ready)만 고치게 한다.
+- eTL·구글·애플·폰 캘린더에서 온 **일정**도 이름·시간·장소를 고칠 수 있다(11-10). 서버는 원본을 건드리지 않고 고친 사본(`source` memo, `ext_id` 'edit:<원본 id>')을 넣고 원본을 가린다(`moved_to`). Tachyon 안에서만 바뀌고 그 캘린더는 그대로다. 사본을 지우면 원본이 다시 보인다. 화면은 고치는 창에 이 말을 적고, 칸을 안 바꿨으면 `important`만 보낸다(사본을 안 만들게).
+- 캘린더에서 온 **할 일**은 그대로 잠금: 제목·마감 고치기를 서버가 막고(409) 화면은 걸리는 시간과 '수업·자료 뒤'(ready)만 고치게 한다.
 - 종일 일정은 달력 맨 위 줄에 그린다.
 - 지우기: 고치는 창의 [지우기] → [한 번 더 누르면 지워요]. 캘린더에서 온 것은 버튼이 없다. 고치기·지우기가 실패하면(400·409) 서버 문장을 창 안에 보인다.
 

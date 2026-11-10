@@ -79,7 +79,7 @@ test('주간 달력: 기간과 겹치는 내 일정만(종일·시각 섞여도 
   const { status, data } = await read(await call(env, cookieA, '/api/events?from=2026-11-09&to=2026-11-16'));
   assert.equal(status, 200);
   assert.deepEqual(data.events.map((e) => e.id), [ids.class, ids.fest]); // 지난 일요일 종일(end=11-09)·다음 주·남의 것 빠짐
-  assert.deepEqual(data.events[1], { id: ids.fest, title: '예시 축제', start: '2026-11-12', end: '2026-11-14', place: null, source: 'memo', important: 0 });
+  assert.deepEqual(data.events[1], { id: ids.fest, title: '예시 축제', start: '2026-11-12', end: '2026-11-14', place: null, source: 'memo', important: 0, edited: 0 });
   const dflt = (await read(await call(env, cookieA, '/api/events'))).data.events; // 기본: 오늘부터 7일
   assert.deepEqual(dflt.map((e) => e.id), [ids.class, ids.fest]);
   for (const q of ['from=2026-11-16&to=2026-11-09', 'from=2026-11-01&to=2027-03-01', 'from=11/9&to=11/16']) {
@@ -122,7 +122,7 @@ test('체크하면 끝(task_done 기록), 내 메모 할 일은 제목·마감�
   assert.equal(await env.DB.prepare('SELECT id FROM tasks WHERE id = ?').bind(ids.noDue).first(), null);
 });
 
-test('캘린더에서 온 것: 체크·중요 표시는 되고, 제목·시각 고치기와 지우기는 막는다(409)', async () => {
+test('캘린더에서 온 것: 체크·중요 표시는 되고, 할 일 제목 고치기와 지우기는 막는다(409)', async () => {
   const { env, cookieA, ids } = await setup();
   assert.equal((await call(env, cookieA, `/api/tasks/${ids.etlTask}`, { method: 'PATCH', body: { done: true, minutes: 90 } })).status, 200);
   const blocked = await read(await call(env, cookieA, `/api/tasks/${ids.etlTask}`, { method: 'PATCH', body: { title: '예시 바꾼 제목' } }));
@@ -132,8 +132,43 @@ test('캘린더에서 온 것: 체크·중요 표시는 되고, 제목·시각 �
 
   const star = await read(await call(env, cookieA, `/api/events/${ids.class}`, { method: 'PATCH', body: { important: true } }));
   assert.equal(star.data.event.important, 1);
-  assert.equal((await call(env, cookieA, `/api/events/${ids.class}`, { method: 'PATCH', body: { place: '예시 302동' } })).status, 409);
   assert.equal((await call(env, cookieA, `/api/events/${ids.class}`, { method: 'DELETE' })).status, 409);
+});
+
+test('캘린더에서 온 일정 고치기: 사본을 넣고 원본은 가린다. 사본을 지우면 원본이 다시 보인다', async () => {
+  const { env, cookieA, ids } = await setup();
+  const week = async () => (await read(await call(env, cookieA, '/api/events?from=2026-11-09&to=2026-11-16'))).data.events;
+  const patch = async (id, body) => read(await call(env, cookieA, `/api/events/${id}`, { method: 'PATCH', body }));
+  const original = (await week()).find((e) => e.id === ids.class);
+  const count = (await week()).length;
+
+  // 같은 값 + 중요: 사본 없이 원본의 중요만 바뀐다
+  const same = await patch(ids.class, { title: original.title, start: original.start, end: original.end, place: original.place, important: true });
+  assert.equal(same.data.event.id, ids.class);
+  assert.equal((await week()).length, count);
+
+  // 시각·장소를 고침: 새 줄(edited)이 보이고 원본은 가려진다. 원본 줄은 그대로라 다음 수집이 되돌리지 않는다
+  const moved = await patch(ids.class, { start: '2026-11-09T13:00:00+09:00', end: '2026-11-09T14:15:00+09:00', place: '예시 302동' });
+  assert.equal(moved.status, 200);
+  const copy = moved.data.event;
+  assert.deepEqual([copy.title, copy.start, copy.place, copy.source, copy.important, copy.edited], ['예시 수업', '2026-11-09T13:00:00+09:00', '예시 302동', 'memo', 1, 1]);
+  assert.notEqual(copy.id, ids.class);
+  let list = await week();
+  assert.deepEqual([list.length, list.some((e) => e.id === ids.class), list.find((e) => e.id === copy.id).edited], [count, false, 1]);
+  assert.equal(env.DB.sqlite.prepare('SELECT start FROM events WHERE id = ?').get(ids.class).start, '2026-11-09T10:00:00+09:00');
+
+  // 사본은 내 일정이라 그 줄을 바로 고친다(새 사본 없음)
+  const again = await patch(copy.id, { place: '예시 301동' });
+  assert.deepEqual([again.data.event.id, again.data.event.place], [copy.id, '예시 301동']);
+
+  // 사본을 지우면 원본이 다시 보인다
+  assert.equal((await call(env, cookieA, `/api/events/${copy.id}`, { method: 'DELETE' })).status, 200);
+  list = await week();
+  assert.deepEqual([list.length, list.some((e) => e.id === ids.class)], [count, true]);
+
+  // 틀린 시각은 사본도 안 만든다
+  assert.equal((await patch(ids.class, { end: '2026-11-09T09:00:00+09:00' })).status, 400);
+  assert.equal((await week()).some((e) => e.edited), false);
 });
 
 test('내 일정 고치기: 시각 모양·순서 확인', async () => {

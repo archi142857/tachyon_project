@@ -12,8 +12,10 @@
 //   PATCH  /api/events/:id        { important, title, start, end, place } 가운데 바꿀 것만 → { event }
 //   DELETE /api/events/:id        → { ok }
 //
-// 캘린더(eTL·구글·애플)에서 온 것은 그 캘린더가 원본이다. 여기서 제목·시각·장소를 바꾸면 15분 수집 때 되돌아가므로 막고,
-// 지우는 것도 막는다(다음 수집 때 다시 생김). 그런 것도 바꿀 수 있는 칸: 할 일 done·minutes·ready, 일정 important.
+// 캘린더(eTL·구글·애플·폰)에서 온 것은 그 캘린더가 원본이다. 그 줄의 제목·시각·장소를 바꾸면 15분 수집 때 되돌아가고, 지우면 다시 생긴다.
+//   일정을 고치면: 고친 사본(source memo, ext_id 'edit:<원본 id>')을 넣고 원본은 가린다(events.moved_to, 메모의 '일정 변경'과 같은 길).
+//                  Tachyon 안에서만 바뀌고 그 캘린더는 그대로다. 사본을 지우면 원본이 다시 보인다. 사본은 응답에 edited: 1.
+//   할 일의 제목·마감, 지우기: 막는다(409). 그런 것도 바꿀 수 있는 칸: 할 일 done·minutes·ready, 일정 important.
 // 메모·시간표 등에서 온 것은 다 바꾸고 지울 수 있다.
 // 시각은 schema.sql 머리말 모양: '2026-11-13T15:00:00+09:00', 종일은 날짜만 '2026-11-13'(end는 다음 날).
 // log: task_done · task_undone(체크), item_edit(그 밖에 고침), item_delete
@@ -54,7 +56,7 @@ export async function handle(request, env, ctx, user) {
 
 const TASK_COLUMNS = 'id, title, due, minutes, ready, done, source';
 const DONE_AT = `(SELECT MAX(at) FROM log WHERE log.user_id = tasks.user_id AND log.action = 'task_done' AND json_extract(log.detail, '$.id') = tasks.id) AS done_at`;
-const EVENT_COLUMNS = 'id, title, start, "end", place, source, important';
+const EVENT_COLUMNS = `id, title, start, "end", place, source, important, (source = 'memo' AND ext_id LIKE 'edit:%') AS edited`; // edited = 캘린더 일정을 여기서 고친 사본
 
 async function listTasks(url, env, user) {
   const done = url.searchParams.get('done') || '0';
@@ -108,11 +110,8 @@ async function patchItem(request, env, user, table, id) {
   if (!row) return fail(404, '없는 항목이에요');
 
   const { always, own } = EDITABLE[table];
-  const fields = Object.keys(body).filter((k) => always.includes(k) || own.includes(k));
+  let fields = Object.keys(body).filter((k) => always.includes(k) || own.includes(k));
   if (!fields.length) return fail(400, `바꿀 칸이 없어요(${[...always, ...own].join('·')})`);
-  if (FEED_SOURCES.has(row.source) && fields.some((k) => own.includes(k))) {
-    return fail(409, `${FEED_NAMES[row.source]}에서 온 항목이라 제목·시각·장소는 ${FEED_NAMES[row.source]}에서 고쳐 주세요(${row.source === 'device' ? '앱을 다시 열면' : '15분 안에'} 바뀌어요)`);
-  }
 
   let values;
   try {
@@ -123,6 +122,14 @@ async function patchItem(request, env, user, table, id) {
     throw err;
   }
 
+  if (FEED_SOURCES.has(row.source)) {
+    const changed = fields.filter((k) => own.includes(k) && values[k] !== row[k]);
+    if (changed.length && table === 'tasks') return fail(409, `${FEED_NAMES[row.source]}에서 온 할 일이라 제목·마감은 ${FEED_NAMES[row.source]}에서 고쳐 주세요(15분 안에 바뀌어요)`);
+    if (changed.length) return editCopy(env, user, { ...row, ...values }, changed);
+    fields = fields.filter((k) => always.includes(k)); // 같은 값으로 온 제목·시각은 건드리지 않는다
+    if (!fields.length) return fail(400, '바뀐 것이 없어요');
+  }
+
   const set = fields.map((k) => `${k === 'end' ? '"end"' : k} = ?`).join(', ');
   const update = env.DB.prepare(`UPDATE ${table} SET ${set} WHERE id = ? AND user_id = ? RETURNING *`).bind(...fields.map((k) => values[k]), id, user.id);
   let action = 'item_edit';
@@ -131,6 +138,25 @@ async function patchItem(request, env, user, table, id) {
   const updated = res.results[0];
   const pick = table === 'tasks' ? ['id', 'title', 'due', 'minutes', 'ready', 'done', 'source'] : ['id', 'title', 'start', 'end', 'place', 'source', 'important'];
   return json({ ok: true, [table === 'tasks' ? 'task' : 'event']: Object.fromEntries(pick.map((k) => [k, updated[k] ?? null])) });
+}
+
+/** 캘린더에서 온 일정을 고침: 고친 값으로 사본을 넣고(같은 원본을 또 고치면 그 사본을 덮는다) 원본은 가린다. e = 원본 줄에 고친 값을 덮은 것 */
+// ponytail: 원본이 그 캘린더에서 지워지거나 바뀌어도 사본은 그대로 남는다. 따라가야 하면 수집(2_collect_ics.js)에서 맞춘다.
+async function editCopy(env, user, e, fields) {
+  const extId = `edit:${e.id}`;
+  const [saved] = await env.DB.batch([
+    env.DB.prepare(
+      `INSERT INTO events (user_id, title, start, "end", place, source, ext_id, important) VALUES (?, ?, ?, ?, ?, 'memo', ?, ?)
+       ON CONFLICT (user_id, source, ext_id) DO UPDATE
+         SET title = excluded.title, start = excluded.start, "end" = excluded."end", place = excluded.place, important = excluded.important
+       RETURNING ${EVENT_COLUMNS}`,
+    ).bind(user.id, e.title, e.start, e.end, e.place, extId, e.important),
+    env.DB.prepare(
+      `UPDATE events SET moved_to = (SELECT id FROM events WHERE user_id = ?1 AND source = 'memo' AND ext_id = ?2) WHERE id = ?3 AND user_id = ?1`,
+    ).bind(user.id, extId, e.id),
+    logStatement(env, user.id, 'item_edit', { table: 'events', id: e.id, fields, copy: true }),
+  ]);
+  return json({ ok: true, event: saved.results[0] });
 }
 
 async function deleteItem(env, user, table, id) {

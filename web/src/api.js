@@ -166,8 +166,9 @@ export async function collectFeeds() {
 
 /* ── 7_items (서버 세션, worker/7_items.js): 할 일·일정 읽기·고치기 ── */
 
-// eTL·구글·애플에서 온 것은 그 캘린더가 원본이라 서버가 제목·시각·장소 고치기를 막는다(409).
-// 그래도 바꿀 수 있는 칸: 할 일 done·minutes·ready, 일정 important
+// eTL·구글·애플·폰 캘린더에서 온 것은 그 캘린더가 원본이다.
+// 일정: 고치면 서버가 고친 사본(새 id, edited 1)을 넣고 원본을 가린다(Tachyon에서만 바뀜). 지우기는 409.
+// 할 일: 제목·마감 고치기와 지우기는 409, done·minutes·ready만 된다.
 export const FEED_SOURCES = ['etl', 'google', 'apple', 'device']; // device = 앱이 읽은 폰 캘린더
 export const fromFeed = (item) => FEED_SOURCES.includes(item.source);
 
@@ -203,6 +204,7 @@ export function updateTask(id, fields) {
 }
 
 // 눌러서 고치기: fields = { important, title, start, end, place } 가운데 바꾼 것 (시각을 모르면 start는 날짜만, end는 null)
+// 캘린더에서 온 일정은 돌아온 event의 id가 새 것이다 → 목록을 다시 부른다
 export function updateEvent(id, fields) {
   if (ex) {
     const event = ex.events.find((e) => e.id === id);
@@ -212,7 +214,7 @@ export function updateEvent(id, fields) {
   return call('PATCH', `/api/events/${encodeURIComponent(id)}`, fields);
 }
 
-// 지우기: 메모·시간표에서 온 것만 된다(캘린더에서 온 것은 서버가 409)
+// 지우기: 메모·시간표에서 온 것과 고친 사본만 된다(캘린더에서 온 것은 서버가 409)
 export function deleteTask(id) {
   if (ex) {
     ex.tasks = ex.tasks.filter((t) => t.id !== id);
