@@ -187,7 +187,7 @@ function minutesOf(v) {
 async function buildBriefing(env, userId, now, { by, newTasks = [] }) {
   const date = kstDate(now);
   const [events, tasks] = await Promise.all([
-    env.DB.prepare(`SELECT id, title, start, "end", place, important FROM events WHERE user_id = ? AND start >= ? AND start < ? ORDER BY start`)
+    env.DB.prepare(`SELECT id, title, start, "end", place, important FROM events WHERE user_id = ? AND moved_to IS NULL AND start >= ? AND start < ? ORDER BY start`)
       .bind(userId, date, addDays(date, 1))
       .all()
       .then((r) => r.results),

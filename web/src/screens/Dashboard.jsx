@@ -108,14 +108,15 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
     }
   }
 
-  async function savePopup(fields) {
+  async function savePopup(fields, changeId) {
     setBusy(true);
     try {
-      const { event } = await api.savePopup(popup.memoId, fields, popup.popup);
+      const { event } = await api.savePopup(popup.memoId, fields, popup.popup, changeId);
       setMemos((m) => m.map((x) => (x.id === popup.memoId ? { ...x, handled: 1, event_id: event.id } : x)));
       setPopup(null);
       const shown = api.normalizeEvent(event);
       const weeksAhead = Math.floor((Date.parse(shown.start) - Date.parse(today)) / (7 * 24 * 3600 * 1000));
+      if (changeId) setEvents((list) => list.filter((e) => e.id !== changeId)); // 옮긴 옛 일정은 바로 빠진다
       if (weeksAhead >= 0 && weeksAhead < PAGES && weeksAhead !== page) setPage(weeksAhead);
       else {
         if (weeksAhead === page) setEvents((list) => [...list.filter((e) => e.id !== shown.id), shown]); // 바로 보이고, 서버 목록으로 다시 맞춘다

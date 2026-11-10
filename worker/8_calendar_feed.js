@@ -71,7 +71,7 @@ export async function buildCalendar(env, userId, now = Date.now()) {
   const [events, tasks] = await Promise.all([
     env.DB.prepare(
       `SELECT id, title, start, "end", place FROM events
-        WHERE user_id = ? AND source NOT IN (${SKIP_SOURCES.map(() => '?').join(', ')}) AND start >= ? AND start < ?
+        WHERE user_id = ? AND moved_to IS NULL AND source NOT IN (${SKIP_SOURCES.map(() => '?').join(', ')}) AND start >= ? AND start < ?
         ORDER BY start, id LIMIT 3000`,
     )
       .bind(userId, ...SKIP_SOURCES, from, to)

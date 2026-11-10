@@ -86,7 +86,7 @@ async function listEvents(url, env, user) {
   // 글자 비교: '2026-11-12' < '2026-11-12T…' 이라 종일·시각 일정이 섞여도 순서·겹침이 맞다(lib/time.js)
   const { results } = await env.DB.prepare(
     `SELECT ${EVENT_COLUMNS} FROM events
-      WHERE user_id = ?1 AND start < ?3 AND (COALESCE("end", start) > ?2 OR start >= ?2)
+      WHERE user_id = ?1 AND moved_to IS NULL AND start < ?3 AND (COALESCE("end", start) > ?2 OR start >= ?2)
       ORDER BY start, id`,
   )
     .bind(user.id, from, to)
@@ -142,6 +142,8 @@ async function deleteItem(env, user, table, id) {
   }
   await env.DB.batch([
     env.DB.prepare(`DELETE FROM ${table} WHERE id = ? AND user_id = ?`).bind(id, user.id),
+    // 메모로 '일정 변경'한 새 일정을 지우면 가려 둔 옛 일정이 다시 보인다(3_memo_popup.js)
+    ...(table === 'events' ? [env.DB.prepare('UPDATE events SET moved_to = NULL WHERE moved_to = ? AND user_id = ?').bind(id, user.id)] : []),
     logStatement(env, user.id, 'item_delete', { table, id }),
   ]);
   return json({ ok: true });

@@ -5,13 +5,14 @@
 // 날짜·시각은 코드가 먼저 계산한다(위험 확인 '팝업 1초'의 대처). AI 답이 늦거나 실패하면 규칙만으로 팝업을 만든다.
 // 일정이 아닌 메모(할 일·생각)는 팝업 없이 메모로 남고, 밤 정리(4_night.js)가 읽는다.
 // 아는 일정으로 채우기(lib/known.js, AI 없이): '공수2 휴강 16일' → 내 '공학수학 2' 수업 시각·장소(popup.from),
-//       '… 16일로 변경' → 옮길 일정(popup.change). 지금은 알려 주기만 한다(옛 일정을 가리는 것은 가지 '일정-옮기기': events.moved_to 칸이 필요).
+//       '… 16일로 변경' → 옮길 일정(popup.change). 저장 때 change_id를 주면 새 일정을 넣고 옛 일정은 가린다(events.moved_to).
 //
 // 주소 (worker/index.js가 /api/memo* 를 여기로 보낸다. 응답은 모두 JSON)
 //   POST   /api/memo              { text }                    → { memo, popup }   popup은 일정이 아니면 null
 //   GET    /api/memo?before=&limit=                           → { memos }         오래된 것부터, event_id·task_id = 이 메모로 만든 일정·할 일
-//   POST   /api/memo/:id/save     { title, date, time, end_time, place, suggested } → { event }
+//   POST   /api/memo/:id/save     { title, date, time, end_time, place, suggested, change_id } → { event }
 //                                 suggested = 받았던 popup 그대로(고쳤는지 재려고). 모르는 칸은 '?'
+//                                 change_id = 옮길 일정(popup.change.id). 주면 그 일정은 달력에서 가려진다
 //   POST   /api/memo/:id/cancel                               → { ok }            메모는 남아서 밤 정리가 읽는다
 //   DELETE /api/memo/:id                                      → { ok }
 //
@@ -82,6 +83,7 @@ async function savePopup(request, env, ctx, user, memoId) {
   if (!memo) return json({ error: "없는 메모" }, 404);
 
   const { start, end } = toStartEnd(f);
+  const changeId = Number.isInteger(body.change_id) ? body.change_id : null;
   const [saved] = await env.DB.batch([
     env.DB.prepare(
       `INSERT INTO events (user_id, title, start, "end", place, source, ext_id) VALUES (?, ?, ?, ?, ?, 'memo', ?)
@@ -90,11 +92,20 @@ async function savePopup(request, env, ctx, user, memoId) {
        RETURNING id, title, start, "end", place, source`,
     ).bind(user.id, f.title, start, end, f.place, `memo:${memoId}`),
     env.DB.prepare("UPDATE memos SET handled = 1 WHERE id = ? AND user_id = ?").bind(memoId, user.id),
+    // 일정 변경: 옛 일정은 지우지 않고 가린다(캘린더에서 온 것은 못 고친다). 새 일정을 지우면 다시 보인다(7_items.js)
+    ...(changeId
+      ? [
+          env.DB.prepare(
+            `UPDATE events SET moved_to = (SELECT id FROM events WHERE user_id = ?1 AND source = 'memo' AND ext_id = ?2)
+              WHERE id = ?3 AND user_id = ?1 AND (source != 'memo' OR ext_id != ?2)`,
+          ).bind(user.id, `memo:${memoId}`, changeId),
+        ]
+      : []),
   ]);
 
   // 측정: 고치지 않고 저장한 비율 = AI(또는 규칙) 정확도
   const edited = body.suggested ? !sameFields(f, popupFields(body.suggested)) : Boolean(body.edited);
-  const detail = JSON.stringify({ memo_id: memoId, by: body.suggested?.by ?? null, known: Boolean(body.suggested?.from) });
+  const detail = JSON.stringify({ memo_id: memoId, by: body.suggested?.by ?? null, known: Boolean(body.suggested?.from), moved: Boolean(changeId) });
   background(ctx, writeLog(env, user.id, edited ? "popup_edit" : "popup_save", detail));
   return json({ event: saved.results[0] });
 }
@@ -138,14 +149,14 @@ export async function suggestEvent(env, text, now = new Date(), { ctx, userId, f
   return popup && useKnown(popup, text, known, isoKst(now).slice(0, 10));
 }
 
-/** 메모의 낱말과 첫 글자가 같은 내 일정(2주 전 ~ 6달 뒤). 줄임말은 첫 글자가 같다(lib/known.js) */
+/** 메모의 낱말과 첫 글자가 같은 내 일정(2주 전 ~ 6달 뒤, 옮긴 것 빼고). 줄임말은 첫 글자가 같다(lib/known.js) */
 async function loadKnown(env, userId, text, now) {
   if (!env.DB || !userId) return [];
   const today = isoKst(now).slice(0, 10);
   const firsts = [...new Set(text.split(/\s+/).filter(Boolean).map((w) => w[0]))];
   return env.DB.prepare(
     `SELECT id, title, start, "end", place FROM events
-      WHERE user_id = ? AND start >= ? AND start < ?
+      WHERE user_id = ? AND moved_to IS NULL AND start >= ? AND start < ?
         AND substr(title, 1, 1) IN (SELECT value FROM json_each(?))
       ORDER BY start LIMIT 400`,
   )

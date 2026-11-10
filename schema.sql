@@ -42,6 +42,8 @@ CREATE TABLE IF NOT EXISTS events (
   source    TEXT NOT NULL,                -- etl · google · apple(ICS 칸 이름) · device(앱이 읽은 폰 캘린더) · memo · timetable · kakao · notice(eTL 공지에서 찾은 시험·휴강, 고치기·지우기 됨)
   ext_id    TEXT,                         -- ICS의 UID 등. 메모에서 나온 것은 'memo:<메모 id>'(메모 하나에 하나)
   important INTEGER NOT NULL DEFAULT 0,
+  moved_to  INTEGER,                      -- 메모로 '일정 변경'을 하면 옛 일정에 새 일정 id를 적는다 → 달력·브리핑에서 가린다(NULL = 보임).
+                                          -- 새 일정을 지우면 NULL로 돌아온다. 11-10 추가: 있던 DB는 ALTER TABLE events ADD COLUMN moved_to INTEGER;
   UNIQUE (user_id, source, ext_id)
 );
 

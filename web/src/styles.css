@@ -158,6 +158,8 @@ h1, h2, h3, p { margin: 0; }
 .popup-rows dt { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--text2); }
 .popup-rows dd { margin: 0; font-size: 16px; line-height: 24px; }
 .unknown { color: var(--text3); }
+.popup-move { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; min-height: 44px; }
+.popup-move input { margin-top: 2px; flex: none; }
 .popup-actions { display: flex; gap: 4px; margin-top: 14px; }
 .popup-actions .btn { flex: 1; }
 .form-grid { display: grid; gap: 10px; }

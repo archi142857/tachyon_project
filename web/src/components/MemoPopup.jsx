@@ -1,7 +1,7 @@
 // 메모 즉시 팝업: '이대로 저장할까요?' → 저장 / 고치기 / 취소.
 // 서버가 준 popup { title, date, time, end_time, place }의 모르는 칸('?')은 그대로 '?'로 보인다(앱 프롬프트 규칙).
 // 이름이나 날짜를 모르면 '저장' 대신 고치기 칸부터 연다(서버는 이름·날짜가 없으면 받지 않는다).
-// popup.from = 시각·장소를 가져온 내 일정 이름(알려 준다), popup.change = 옮기려는 옛 일정(아직 못 가려서, 남아 있다고 알려 준다).
+// popup.from = 시각·장소를 가져온 내 일정 이름(알려 준다), popup.change = 옮길 일정(저장하면 그 일정은 달력에서 빠진다. 끌 수 있다).
 import { useState } from 'react';
 import { WEEKDAYS, dayStartKst, isDateOnly, kst, timeInput } from '../time.js';
 import EventForm, { formToPopup, popupToForm } from './EventForm.jsx';
@@ -25,6 +25,8 @@ const show = (v) => (v && v !== '?' ? v : <span className="unknown">?</span>);
 export default function MemoPopup({ popup, busy, onSave, onCancel }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(() => popupToForm(popup));
+  const [move, setMove] = useState(Boolean(popup.change));
+  const changeId = move ? popup.change.id : undefined;
   const canSaveAsIs = popup.title !== '?' && popup.date !== '?';
   const formReady = form.title.trim() && form.date;
   const fields = ({ title, date, time, end_time, place }) => ({ title, date, time, end_time, place });
@@ -49,9 +51,12 @@ export default function MemoPopup({ popup, busy, onSave, onCancel }) {
         </>
       )}
       {popup.change && (
-        <p className="hint" style={{ marginTop: 6 }}>
-          ‘{popup.change.title}’({whenText(popup.change.start)})은 달력에 그대로 남아요.
-        </p>
+        <label className="hint popup-move">
+          <input type="checkbox" checked={move} onChange={(e) => setMove(e.target.checked)} />
+          <span>
+            ‘{popup.change.title}’({whenText(popup.change.start)})을 이 날짜로 옮겨요. 끄면 새 일정으로 넣어요.
+          </span>
+        </label>
       )}
       <div className="popup-actions">
         <button
@@ -59,8 +64,8 @@ export default function MemoPopup({ popup, busy, onSave, onCancel }) {
           className="btn"
           disabled={busy || (editing && !formReady)}
           onClick={() => {
-            if (editing) onSave(formToPopup(form));
-            else if (canSaveAsIs) onSave(fields(popup));
+            if (editing) onSave(formToPopup(form), changeId);
+            else if (canSaveAsIs) onSave(fields(popup), changeId);
             else setEditing(true);
           }}
         >

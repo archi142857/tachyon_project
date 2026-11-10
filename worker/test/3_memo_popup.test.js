@@ -323,12 +323,14 @@ test("일정 변경: 옮길 일정을 찾고, 이름에서 '변경' 말을 뺀�
   assert.equal(useKnown(base({ title: "공학수학 2 중간고사" }), "공학수학 2 중간고사 16일로 변경", KNOWN, "2026-11-12").change.title, "공학수학 2 기말");
 });
 
-test("메모 → 팝업: 내 일정의 시각·장소와 옮길 일정이 담기고, AI에게는 내 일정을 안 보낸다", async () => {
+test("메모 → 팝업(내 일정 반영) → 옮겨 저장: 옛 일정은 달력에서 가려지고, 새 일정을 지우면 돌아온다", async () => {
   const DB = fakeD1();
   const user = addUser(DB);
+  const other = addUser(DB, { email: "other@example.com", googleSub: "sub-other" });
   const add = DB.sqlite.prepare(`INSERT INTO events (user_id, title, start, "end", place, source, ext_id) VALUES (?, ?, ?, ?, ?, 'google', ?) RETURNING id`);
   const ids = KNOWN.map((e, i) => add.get(user.id, e.title, e.start, e.end, e.place, `g${i}`).id);
   const oldId = ids[KNOWN.findIndex((e) => e.title === "공학수학 2 중간 2")];
+  const theirs = add.get(other.id, "공학수학 2 중간 2", "2026-11-11T09:30:00+09:00", null, null, "x").id;
 
   let sent;
   const fetch = async (_u, init) => {
@@ -343,4 +345,23 @@ test("메모 → 팝업: 내 일정의 시각·장소와 옮길 일정이 담기
     from: "공학수학 2", change: { id: oldId, title: "공학수학 2 중간 2", start: "2026-11-11T09:30:00+09:00" },
   });
 
+  const memo = DB.sqlite.prepare("INSERT INTO memos (user_id, text) VALUES (?, ?) RETURNING id").get(user.id, text);
+  const saved = await call({ DB }, user, "POST", `/api/memo/${memo.id}/save`, { ...popup, suggested: popup, change_id: popup.change.id });
+  await saved.ctx.settle();
+  assert.equal(saved.body.event.start, "2026-11-16T09:30:00+09:00");
+  const movedTo = (id) => DB.sqlite.prepare("SELECT moved_to FROM events WHERE id = ?").get(id).moved_to;
+  assert.equal(movedTo(oldId), saved.body.event.id);
+  assert.deepEqual(JSON.parse(DB.sqlite.prepare("SELECT detail FROM log WHERE action = 'popup_save'").get().detail), { memo_id: memo.id, by: "ai", known: true, moved: true });
+
+  // 남의 일정 id를 줘도 건드리지 않는다
+  const memo2 = DB.sqlite.prepare("INSERT INTO memos (user_id, text) VALUES (?, ?) RETURNING id").get(user.id, "x");
+  await call({ DB }, user, "POST", `/api/memo/${memo2.id}/save`, { title: "x", date: "2026-11-20", change_id: theirs });
+  assert.equal(movedTo(theirs), null);
+
+  // 달력(7_items)에는 옛 일정이 안 보이고, 새 일정을 지우면 다시 보인다
+  const items = await import("../7_items.js");
+  const week = async () => (await (await items.handle(new Request("https://x.test/api/events?from=2026-11-09&to=2026-11-18"), { DB }, fakeCtx(), user)).json()).events.map((e) => e.title);
+  assert.ok(!(await week()).includes("공학수학 2 중간 2") && (await week()).includes("공학수학 2 중간고사"));
+  await items.handle(new Request(`https://x.test/api/events/${saved.body.event.id}`, { method: "DELETE" }), { DB }, fakeCtx(), user);
+  assert.ok((await week()).includes("공학수학 2 중간 2") && !(await week()).includes("공학수학 2 중간고사"));
 });

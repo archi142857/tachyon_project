@@ -276,7 +276,8 @@ export function sendMemo(text) {
 
 // 팝업 저장. fields = { title, date, time, end_time, place }('?' 그대로), suggested = 받았던 popup.
 // 고쳤는지는 서버가 suggested와 견줘 log에 남긴다(팝업 정확도).
-export function savePopup(memoId, fields, suggested) {
+// changeId = 옮길 일정(popup.change.id). 주면 서버가 그 일정을 달력에서 가린다.
+export function savePopup(memoId, fields, suggested, changeId) {
   if (ex) {
     const event = { id: Date.now(), title: fields.title, ...popupToEvent(fields), place: fields.place === '?' ? null : fields.place, source: 'memo', important: 0 };
     ex.events.push(event);
@@ -284,7 +285,7 @@ export function savePopup(memoId, fields, suggested) {
     if (memo) Object.assign(memo, { handled: 1, event_id: event.id });
     return reply({ event });
   }
-  return call('POST', `/api/memo/${encodeURIComponent(memoId)}/save`, { ...fields, suggested });
+  return call('POST', `/api/memo/${encodeURIComponent(memoId)}/save`, { ...fields, suggested, change_id: changeId });
 }
 
 // 팝업 취소: 메모는 메모로 남고 밤 정리가 읽는다
