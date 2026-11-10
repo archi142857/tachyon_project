@@ -27,6 +27,12 @@ export function weekStart(dateOrIso) {
   return fromKst(p.y, p.m, p.d - p.wd);
 }
 
+// 그날 0시(한국 시간). 주간 달력은 오늘 0시부터 7일을 보인다
+export function dayStart(dateOrIso) {
+  const p = kst(dateOrIso);
+  return fromKst(p.y, p.m, p.d);
+}
+
 export function addDays(date, n) {
   return new Date(new Date(date).getTime() + n * DAY);
 }

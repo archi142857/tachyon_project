@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, dateInput, dayIndex, dayLabel, dayStartKst, dueLabel, fromKst, hhmm, isDateOnly, isoFromInputs, kst, minuteOfDay, popupTime, timeInput, toKstIso, weekStart, weekTitle } from './time.js';
+import { addDays, dateInput, dayIndex, dayLabel, dayStart, dayStartKst, dueLabel, fromKst, hhmm, isDateOnly, isoFromInputs, kst, minuteOfDay, popupTime, timeInput, toKstIso, weekStart, weekTitle } from './time.js';
 
 // 예시 시각: 2026-11-09(월) 16:55 한국 시간
 const now = fromKst(2026, 11, 9, 16, 55);
@@ -13,6 +13,19 @@ describe('time', () => {
   it('주의 시작은 월요일 0시(한국 시간)', () => {
     expect(weekStart(fromKst(2026, 11, 15, 23, 59)).toISOString()).toBe('2026-11-08T15:00:00.000Z');
     expect(weekStart(fromKst(2026, 11, 16, 0, 0)).toISOString()).toBe('2026-11-15T15:00:00.000Z');
+  });
+
+  it('주간 달력은 오늘 0시부터 7일(오늘이 맨 앞)', () => {
+    // 11-10(화) 15:30 → 그날 0시(한국), 7칸은 화·수·목·금·토·일·월
+    const start = dayStart(fromKst(2026, 11, 10, 15, 30));
+    expect(start.toISOString()).toBe('2026-11-09T15:00:00.000Z');
+    expect(Array.from({ length: 7 }, (_, i) => kst(addDays(start, i)).wd)).toEqual([1, 2, 3, 4, 5, 6, 0]);
+    expect(weekTitle(start)).toBe('11월 10일 – 16일');
+    expect(dayIndex(start, fromKst(2026, 11, 10, 0, 0))).toBe(0);
+    expect(dayIndex(start, fromKst(2026, 11, 9, 23, 59))).toBe(-1);
+    // 자정 바로 전후
+    expect(dayStart(fromKst(2026, 11, 30, 23, 59)).toISOString()).toBe('2026-11-29T15:00:00.000Z');
+    expect(weekTitle(dayStart(fromKst(2026, 11, 28, 9)))).toBe('11월 28일 – 12월 4일');
   });
 
   it('주 제목과 달이 바뀌는 주', () => {

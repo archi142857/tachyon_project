@@ -1,11 +1,11 @@
-// 주간 달력(오른쪽, 폰은 아래). 7칸, 좌우 화살표·밀기로 주 이동, 아래 점은 이번 주부터 3주.
+// 주간 달력(오른쪽, 폰은 아래). 오늘부터 7칸(오늘이 늘 맨 앞), 좌우 화살표·밀기로 7일씩 이동, 아래 점은 오늘부터 3장(21일).
 // 맨 위 줄은 과제 마감과 하루 종일 일정, 아래는 시간 칸. 중요한 일정은 굵은 테두리.
 import { useRef } from 'react';
 import { endOf, hourRange, isAllDay, layoutDay } from '../layout.js';
 import { WEEKDAYS, addDays, dayIndex, hhmm, kst, minuteOfDay, weekTitle } from '../time.js';
 import Icon from './Icon.jsx';
 
-export const PAGES = 3; // 이번 주, 다음 주, 다다음 주
+export const PAGES = 3; // 오늘부터 7일, 그다음 7일, 그다음 7일
 
 const timeText = (ev) => `${hhmm(ev.start)}–${ev.end ? hhmm(ev.end) : '?'}`;
 
@@ -47,13 +47,13 @@ export default function WeekCalendar({ start, events, tasks, now, page, onPage, 
         <h2 className="card-title num">{weekTitle(start)}</h2>
         {page > 0 && (
           <button type="button" className="btn-text" onClick={() => onPage(0)}>
-            이번 주
+            오늘
           </button>
         )}
-        <button type="button" className="icon-btn" aria-label="지난주" disabled={page === 0} onClick={() => onPage(page - 1)}>
+        <button type="button" className="icon-btn" aria-label="앞 7일" disabled={page === 0} onClick={() => onPage(page - 1)}>
           <Icon name="left" />
         </button>
-        <button type="button" className="icon-btn" aria-label="다음 주" disabled={page === PAGES - 1} onClick={() => onPage(page + 1)}>
+        <button type="button" className="icon-btn" aria-label="다음 7일" disabled={page === PAGES - 1} onClick={() => onPage(page + 1)}>
           <Icon name="right" />
         </button>
       </div>
@@ -62,7 +62,7 @@ export default function WeekCalendar({ start, events, tasks, now, page, onPage, 
         <span />
         {days.map((day, i) => (
           <span key={i} className={i === todayIdx ? 'today' : undefined}>
-            <span className="wd">{WEEKDAYS[i]}</span>
+            <span className="wd">{WEEKDAYS[kst(day).wd]}</span>
             <span className="dn num">{kst(day).d}</span>
           </span>
         ))}
@@ -137,7 +137,7 @@ export default function WeekCalendar({ start, events, tasks, now, page, onPage, 
         </div>
       </div>
 
-      <div className="cal-dots" role="img" aria-label={`${PAGES}주 가운데 ${page + 1}번째`}>
+      <div className="cal-dots" role="img" aria-label={`7일씩 ${PAGES}장 가운데 ${page + 1}번째`}>
         {Array.from({ length: PAGES }, (_, i) => (
           <span key={i} className={i === page ? 'on' : undefined} />
         ))}

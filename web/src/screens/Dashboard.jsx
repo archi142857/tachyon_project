@@ -14,7 +14,7 @@ import Snackbar from '../components/Snackbar.jsx';
 import TasksCard, { TaskRow } from '../components/TasksCard.jsx';
 import TopBar from '../components/TopBar.jsx';
 import WeekCalendar, { PAGES } from '../components/WeekCalendar.jsx';
-import { addDays, dayIndex, weekStart } from '../time.js';
+import { addDays, dayIndex, dayStart } from '../time.js';
 
 function useNow() {
   const [now, setNow] = useState(() => new Date());
@@ -33,9 +33,10 @@ const standalone = () => window.matchMedia('(display-mode: standalone)').matches
 
 export default function Dashboard({ example, installPrompt, onOpenSetup, onLogout }) {
   const now = useNow();
-  const thisWeek = weekStart(now).toISOString();
+  // 주간 달력은 오늘부터 7일(오늘이 늘 맨 앞). 다음 장은 그다음 7일. 자정이 지나면 저절로 하루 밀린다.
+  const today = dayStart(now).toISOString();
   const [page, setPage] = useState(0);
-  const start = addDays(thisWeek, page * 7).toISOString();
+  const start = addDays(today, page * 7).toISOString();
 
   const [events, setEvents] = useState([]);
   const [rank, setRank] = useState({ tasks: [], warning: null });
@@ -102,7 +103,7 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
       setMemos((m) => m.map((x) => (x.id === popup.memoId ? { ...x, handled: 1, event_id: event.id } : x)));
       setPopup(null);
       const shown = api.normalizeEvent(event);
-      const weeksAhead = Math.floor((Date.parse(shown.start) - Date.parse(thisWeek)) / (7 * 24 * 3600 * 1000));
+      const weeksAhead = Math.floor((Date.parse(shown.start) - Date.parse(today)) / (7 * 24 * 3600 * 1000));
       if (weeksAhead >= 0 && weeksAhead < PAGES && weeksAhead !== page) setPage(weeksAhead);
       else {
         if (weeksAhead === page) setEvents((list) => [...list.filter((e) => e.id !== shown.id), shown]); // 바로 보이고, 서버 목록으로 다시 맞춘다
