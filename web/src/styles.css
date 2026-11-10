@@ -248,6 +248,7 @@ dialog.sheet::backdrop { background: var(--scrim); }
 .sheet-head h2 { font-size: 17px; line-height: 24px; font-weight: 700; color: var(--heading); }
 .menu-list { display: grid; }
 .menu-list button { display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 4px; border: 0; border-top: 1px solid var(--line); background: none; text-align: left; font-size: 16px; color: var(--text); }
+.menu-list button.danger { color: var(--danger); }
 .menu-list button:first-child { border-top: 0; }
 .segmented { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; background: var(--fill); border-radius: var(--r-btn); }
 .segmented button { height: 40px; border: 0; border-radius: 6px; background: transparent; font-size: 15px; font-weight: 500; color: var(--text2); }

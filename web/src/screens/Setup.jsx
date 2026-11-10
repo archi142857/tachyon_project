@@ -7,12 +7,13 @@
 import { useEffect, useState } from 'react';
 import { collectFeeds, getFeeds, markSetupSkipped, saveFeeds, saveProfile } from '../api.js';
 import { inApp, syncDevice } from '../native.js';
+import DeleteAccount from '../components/DeleteAccount.jsx';
 import TopBar from '../components/TopBar.jsx';
 import { FEEDS, YEARS, detectFeed, feedResult, normalizeIcs, resultLine, unsavedErrors } from '../setup.js';
 
 const EMPTY = { etl: '', google: '', apple: '' };
 
-export default function Setup({ user, example, again, onDone }) {
+export default function Setup({ user, example, again, onDone, onDeleted }) {
   const [dept, setDept] = useState(user.dept || '');
   const [year, setYear] = useState(user.year || null);
   const [urls, setUrls] = useState(EMPTY);
@@ -275,6 +276,11 @@ export default function Setup({ user, example, again, onDone }) {
             {primary.label}
           </button>
         </div>
+        {again && onDeleted && (
+          <section className="card" aria-labelledby="delete-account">
+            <DeleteAccount example={example} heading onDeleted={onDeleted} />
+          </section>
+        )}
       </main>
     </>
   );

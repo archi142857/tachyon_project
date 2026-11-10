@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as api from '../api.js';
 import { dayLegs, loadCampus } from '../campus.js';
 import CalendarSheet from '../components/CalendarSheet.jsx';
+import DeleteAccount from '../components/DeleteAccount.jsx';
 import Composer from '../components/Composer.jsx';
 import DoneSheet from '../components/DoneSheet.jsx';
 import { EventEditSheet, TaskEditSheet } from '../components/EditSheets.jsx';
@@ -34,7 +35,7 @@ const sheetKey = (sheet) => (!sheet ? '' : typeof sheet === 'string' ? sheet : s
 // 이미 홈 화면 앱이거나 Capacitor 앱이면 '홈 화면에 추가'를 숨긴다
 const standalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true || !!window.Capacitor?.isNativePlatform?.();
 
-export default function Dashboard({ example, installPrompt, onOpenSetup, onLogout }) {
+export default function Dashboard({ example, installPrompt, onOpenSetup, onLogout, onDeleted }) {
   const now = useNow();
   // 주간 달력은 오늘부터 7일(오늘이 늘 맨 앞). 다음 장은 그다음 7일. 자정이 지나면 저절로 하루 밀린다.
   const today = dayStart(now).toISOString();
@@ -243,6 +244,9 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
             <button type="button" onClick={onLogout}>
               {example ? '예시 끝내기' : '로그아웃'}
             </button>
+            <button type="button" className="danger" onClick={() => setSheet('delete')}>
+              계정 지우기
+            </button>
           </div>
         </Sheet>
       )}
@@ -269,6 +273,11 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
       {sheet === 'feedback' && <FeedbackSheet screen="대시보드" onClose={() => setSheet(null)} onSent={(text) => setSnack({ text })} />}
       {sheet === 'install' && <InstallSheet prompt={installPrompt} onClose={() => setSheet(null)} />}
       {sheet === 'calendar' && <CalendarSheet onClose={() => setSheet(null)} />}
+      {sheet === 'delete' && (
+        <Sheet title="계정 지우기" onClose={() => setSheet(null)}>
+          <DeleteAccount example={example} onDeleted={onDeleted} />
+        </Sheet>
+      )}
       {sheet === 'etl' && (
         <EtlSheet
           onClose={() => setSheet(null)}

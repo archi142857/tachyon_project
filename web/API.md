@@ -16,6 +16,7 @@
 | `GET /api/login?next=/` | 화면이 이 주소로 **이동**한다 | 구글 로그인 뒤 `next`로 돌아온다. 실패하면 `/?login_error=denied·state·google·email·config` |
 | `GET /api/login/me` | — | `{ ok, user: { id, email, name, dept, year }, needsSetup }` · 로그인 전 401 |
 | `PUT /api/login/me` | `{ dept, year }` (둘 다 있어야 한다, 학년 1~8) | `{ ok, user, needsSetup }` |
+| `DELETE /api/login/me` | `{ confirm: true }` (없으면 400) | `{ ok }` + 로그인 쿠키 지움. 내 자료를 모두 지운다 → 화면은 로그인 화면에 '계정과 내 자료를 모두 지웠어요'. 메뉴 맨 끝 '계정 지우기' 창과 다시 연 설정 맨 아래, 두 번 눌러야 지움 |
 | `POST /api/login/logout` | — | `{ ok }` |
 
 - `needsSetup`은 학과·학년이 비었을 때 true. 첫 설정을 건너뛰면 화면이 이 기기(localStorage)에 적어 두고 다시 띄우지 않는다.

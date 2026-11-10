@@ -13,6 +13,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [again, setAgain] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
+  const [notice, setNotice] = useState(null); // 로그인 화면의 알림 한 줄(계정을 지운 뒤 등)
   const [loginError, setLoginError] = useState(() => api.loginErrorText(new URLSearchParams(window.location.search).get('login_error')));
 
   async function load() {
@@ -54,12 +55,22 @@ export default function App() {
     document.body.dataset.screen = screen; // 오류 자동 보고에 화면 이름으로 붙는다
   }, [screen]);
 
+  // 계정을 지운 뒤(또는 예시에서 '계정 지우기') → 로그인 화면
+  const onDeleted = (example) => {
+    setAgain(false);
+    setLoginError(null);
+    setNotice(example ? '예시를 끝냈어요. 아무것도 지우지 않았어요' : '계정과 내 자료를 모두 지웠어요');
+    setScreen('login');
+  };
+
   if (screen === 'loading') return null;
   if (screen === 'login')
     return (
       <Login
         error={loginError}
+        notice={notice}
         onExample={() => {
+          setNotice(null);
           api.startExample();
           load();
         }}
@@ -75,6 +86,7 @@ export default function App() {
           setAgain(false);
           load();
         }}
+        onDeleted={onDeleted}
       />
     );
   return (
@@ -88,8 +100,10 @@ export default function App() {
       onLogout={async () => {
         await api.logout().catch(() => {});
         setLoginError(null);
+        setNotice(null);
         setScreen('login');
       }}
+      onDeleted={onDeleted}
     />
   );
 }

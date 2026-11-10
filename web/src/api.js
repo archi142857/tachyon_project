@@ -111,6 +111,16 @@ export function logout() {
 }
 
 // 학과·학년 저장(서버는 둘 다 있어야 받는다)
+// 계정 지우기(서버 1_login.js): { confirm: true }가 있어야 지운다. 내 자료를 모두 지우고 로그인 쿠키도 지운다.
+// 예시 모드는 아무것도 보내지 않고 예시만 끝낸다.
+export async function deleteAccount() {
+  if (ex) {
+    ex = null;
+    return { ok: true, example: true };
+  }
+  return call('DELETE', '/api/login/me', { confirm: true });
+}
+
 export async function saveProfile({ dept, year }) {
   if (ex) {
     Object.assign(ex.user, { dept, year, setup_done: true });
