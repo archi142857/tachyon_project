@@ -23,13 +23,15 @@ database_id = "2c6de759-4b5c-44e2-9d07-b81a1236a0d5"
 # Cron (UTC). worker/index.js가 번호 파일로 보낸다. 파일이 아직 없으면 건너뛴다.
 #   */15 * * * *  → 2_collect_ics.js  ICS 15분마다 수집
 #   30 16 * * *   → 4_night.js        한국 01:30 밤 정리
+#   */10 * * * *  → 9_etl.js          eTL API 수집(한 번에 요청 ETL_REQUESTS_PER_RUN개 안에서)
 [triggers]
-crons = ["*/15 * * * *", "30 16 * * *"]
+crons = ["*/15 * * * *", "30 16 * * *", "*/10 * * * *"]
 
 [vars]
 FEEDS_PER_RUN = "20"   # Cron 한 번에 받는 캘린더 주소 수 (무료 요금제: 한 번에 외부 요청 50개·DB 질의 50개까지)
 POPUP_AI_MS = "2500"   # 즉시 팝업이 AI를 기다리는 시간(ms) — AI 세션 요청
 DAILY_TASK_MIN = "180" # 하루에 할 일에 쓰는 시간(분), 밀도 계산 — AI 세션 요청
+ETL_REQUESTS_PER_RUN = "40" # eTL Cron 한 번에 eTL·AI 요청 수 (무료 요금제 한 번 50개)
 GITHUB_REPO = "archi142857/tachyon_project" # 의견·오류 이슈가 쌓이는 저장소 (토큰은 비밀값 GITHUB_TOKEN)
 
 # 시간표 사진 저장 (5_timetable_photo.js). 버킷은 dhsrua555가 만듦(11-09).

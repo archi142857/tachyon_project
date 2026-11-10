@@ -215,7 +215,7 @@ async function addFeed(env, userId, kind, raw, now) {
 function removeFeedStatements(env, userId, kind) {
   const list = [
     env.DB.prepare('DELETE FROM feeds WHERE user_id = ? AND kind = ?').bind(userId, kind),
-    env.DB.prepare('DELETE FROM events WHERE user_id = ? AND source = ?').bind(userId, kind),
+    env.DB.prepare("DELETE FROM events WHERE user_id = ? AND source = ? AND ext_id NOT LIKE 'api-%'").bind(userId, kind), // eTL API 일정은 9_etl.js가 맡음
   ];
   if (kind === 'etl') list.push(env.DB.prepare('DELETE FROM tasks WHERE user_id = ? AND source = ?').bind(userId, kind));
   return list;
@@ -399,7 +399,7 @@ function eventStatements(env, userId, source, events, [from, to], allowDelete) {
     list.push(
       env.DB.prepare(
         `DELETE FROM events WHERE user_id = ?1 AND source = ?2 AND start >= ?3 AND start < ?4
-           AND ext_id NOT IN (SELECT value FROM json_each(?5))`,
+           AND ext_id NOT IN (SELECT value FROM json_each(?5)) AND ext_id NOT LIKE 'api-%'`, // 'api-…'는 eTL API(9_etl.js)가 넣은 과목 일정
       ).bind(userId, source, from, to, JSON.stringify(rows.map((r) => r.extId))),
     );
   }

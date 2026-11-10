@@ -7,6 +7,7 @@ import CalendarSheet from '../components/CalendarSheet.jsx';
 import Composer from '../components/Composer.jsx';
 import DoneSheet from '../components/DoneSheet.jsx';
 import { EventEditSheet, TaskEditSheet } from '../components/EditSheets.jsx';
+import EtlSheet from '../components/EtlSheet.jsx';
 import FeedbackSheet from '../components/FeedbackSheet.jsx';
 import InstallSheet from '../components/InstallSheet.jsx';
 import MemoCard from '../components/MemoCard.jsx';
@@ -46,7 +47,7 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
   const [popup, setPopup] = useState(null); // { memoId, popup }
   const [waiting, setWaiting] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [sheet, setSheet] = useState(null); // 'menu' | 'tasks' | 'done' | 'feedback' | 'install' | 'calendar' | { event } | { task }
+  const [sheet, setSheet] = useState(null); // 'menu' | 'tasks' | 'done' | 'feedback' | 'install' | 'calendar' | 'etl' | { event } | { task }
   const [snack, setSnack] = useState(null);
 
   const loadWeek = useCallback(
@@ -225,6 +226,9 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
             <button type="button" onClick={onOpenSetup}>
               캘린더 연결·학과
             </button>
+            <button type="button" onClick={() => setSheet('etl')}>
+              eTL 연결·강의자료
+            </button>
             <button type="button" onClick={() => setSheet('calendar')}>
               폰 달력에서 보기
             </button>
@@ -265,6 +269,15 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
       {sheet === 'feedback' && <FeedbackSheet screen="대시보드" onClose={() => setSheet(null)} onSent={(text) => setSnack({ text })} />}
       {sheet === 'install' && <InstallSheet prompt={installPrompt} onClose={() => setSheet(null)} />}
       {sheet === 'calendar' && <CalendarSheet onClose={() => setSheet(null)} />}
+      {sheet === 'etl' && (
+        <EtlSheet
+          onClose={() => setSheet(null)}
+          onChanged={() => {
+            loadWeek();
+            loadRank();
+          }}
+        />
+      )}
       {sheet?.event && (
         <EventEditSheet
           event={sheet.event}
