@@ -22,3 +22,12 @@
 
 - 고침: `worker/3_memo_popup.js`, `worker/prompts/memo_popup.js`, `worker/prompts/README.md`, `worker/check/haiku_latency.js`, `worker/test/3_memo_popup.test.js`, `docs/tachyon/소통.md`(알림)
 - 새로: 이 기록
+
+## 이어서: 11-10 저녁 체크인 (AI 세션이 스스로 예약한 확인, 사람 요청 아님)
+
+- 쓴 도구: Claude Code(Claude Opus 5.5)의 웹 검색·웹 읽기(Claude API 공식 문서), git, node 시험, `wrangler deploy --dry-run`(묶기만, 배포 안 함), 구글 드라이브(받은편지함).
+- 팀원 글(17:53, 시험 준비 모드 측정)에 '5.5 모델은 생각이 기본으로 켜짐'이 있어 앱 안 호출 넷을 공식 문서와 맞춰 봤다. API primer 'Forcing tool use'에 **Sonnet 5.5는 `tool_choice` any·tool이 400**이라고 적혀 있다. 밤 정리·시간표 사진은 Sonnet이고 answer 도구를 강제해 왔으니 부를 때마다 실패했을 것이다(밤 정리는 AI가 실패해도 규칙 브리핑은 만들고, 오늘 01:30이 첫 실제 실행이라 아직 아무도 못 봤다).
+- 고침(73b6057): [worker/llm.js](../worker/llm.js)가 Sonnet 5.5에는 `tool_choice: auto` + `thinking: between_tools`(앞 생각 끔, disabled는 400)로 보낸다. 도구 없이 글로 JSON을 쓰면 그것을 읽고, 없으면 다시 시도. 표에 없는 모델이 400으로 tool_choice·thinking을 탓하면 그 칸만 바꿔 한 번 더. Haiku 5.5(팝업·eTL 공지)는 그대로 강제(강제 호출은 생각을 건너뜀). 밤 정리 max_tokens 4000 → 8000(시간 제한 120초), 시간표 사진 3000 → 6000.
+- 컨셉이 사람 요청으로 고친 3f7cef7(할 일 팝업, `kind`)과 팀원의 9710247(`moved_to`)을 읽었다. 고칠 것 없음. 드라이브 쪽지 1개(컨셉 16:47) 처리됨으로.
+- 확인: worker 시험 143개 모두 통과(새 시험 5개: Sonnet·Haiku 보내는 모양, 모델 표, tool_choice·thinking 400 뒤 다시 보내기, 글 속 JSON). 진짜 API 호출은 팀원 log로 확인 부탁(소통판) — 01:30 밤 정리의 `llm`·`llm_fail` 줄.
+- 고친 파일: `worker/llm.js`, `worker/4_night.js`, `worker/5_timetable_photo.js`, `worker/prompts/README.md`, `worker/test/llm.test.js`, `docs/tachyon/소통.md`, 이 기록
