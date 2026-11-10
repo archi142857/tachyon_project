@@ -260,3 +260,82 @@ test("시각 글자 모양", () => {
   assert.equal(isoKst(new Date("2026-11-09T08:02:03Z")), "2026-11-09T17:02:03+09:00");
   assert.equal(nowLabel(new Date("2026-11-09T15:30:00Z")), "2026-11-10 (화) 00:30");
 });
+
+// ── 아는 일정으로 채우기 (lib/known.js): AI에게는 일정을 안 보낸다 ──
+
+import { abbreviates, likeness, useKnown } from "../lib/known.js";
+
+// 지어낸 일정: 월·수 09:30 수업, 수요일 시험, 금요일 기말
+const weekly = (title, firstDate, n, time, end, place = null) =>
+  Array.from({ length: n }, (_, i) => {
+    const d = new Date(Date.parse(`${firstDate}T00:00:00Z`) + i * 7 * 86400000).toISOString().slice(0, 10);
+    return { title, start: `${d}T${time}:00+09:00`, end: `${d}T${end}:00+09:00`, place };
+  });
+const KNOWN = [
+  ...weekly("공학수학 2", "2026-11-02", 6, "09:30", "10:45", "43-1동 201호"), // 월
+  ...weekly("공학수학 2", "2026-11-04", 6, "09:30", "10:45", "43-1동 201호"), // 수
+  { title: "공학수학 2 중간 2", start: "2026-11-11T09:30:00+09:00", end: "2026-11-11T10:45:00+09:00", place: null },
+  { title: "공학수학 2 기말", start: "2026-12-18T18:00:00+09:00", end: null, place: null },
+  { title: "공부방 · 공학수학 중간2 · 모의시험", start: "2026-11-10T20:30:00+09:00", end: null, place: null },
+].map((e, i) => ({ id: i + 1, ...e }));
+const base = (o) => ({ title: "?", date: "2026-11-16", time: "?", end_time: "?", place: "?", by: "ai", ...o });
+
+test("줄임말: 글자를 순서대로 고른 말, 첫 글자는 같아야 한다", () => {
+  assert.ok(abbreviates("공수2", "공학수학2"));
+  assert.ok(abbreviates("공수", "공학수학2"));
+  assert.ok(!abbreviates("수학", "공학수학2")); // 첫 글자가 다름
+  assert.ok(!abbreviates("공", "공학수학2")); // 한 글자는 안 봄
+  assert.ok(!abbreviates("데이터", "데이트"));
+  assert.equal(likeness(["과제"], "공학수학 2"), null);
+});
+
+test("시각을 모르면 내 수업의 그 요일 시각·장소로 채운다 (줄임말도)", () => {
+  for (const title of ["공학수학 2 휴강", "공수2 휴강", "공수 휴강"]) {
+    const p = useKnown(base({ title }), `${title} 16일`, KNOWN, "2026-11-10");
+    assert.deepEqual([p.title, p.time, p.end_time, p.place, p.from], [title, "09:30", "10:45", "43-1동 201호", "공학수학 2"], title);
+    assert.equal(p.change, undefined);
+  }
+  // 수업이 없는 요일(화)이면 그대로 '?'
+  assert.equal(useKnown(base({ title: "공수 보강", date: "2026-11-17" }), "공수 보강 17일", KNOWN, "2026-11-10").time, "?");
+  // 메모에 시각이 있으면 건드리지 않는다
+  const own = useKnown(base({ title: "공수 스터디", time: "19:00" }), "16일 7시 공수 스터디", KNOWN, "2026-11-10");
+  assert.deepEqual([own.time, own.place, own.from], ["19:00", "?", undefined]);
+  // 닮은 이름이 둘이면(1등이 비김) 채우지 않는다
+  const two = [...KNOWN, ...weekly("공학수학 1", "2026-11-02", 6, "13:00", "14:15").map((e, i) => ({ id: 100 + i, ...e }))];
+  assert.equal(useKnown(base({ title: "공수 휴강" }), "공수 휴강 16일", two, "2026-11-10").time, "?");
+  assert.equal(useKnown(base({ title: "공수2 휴강" }), "공수2 휴강 16일", two, "2026-11-10").time, "09:30");
+});
+
+test("일정 변경: 옮길 일정을 찾고, 이름에서 '변경' 말을 뺀다", () => {
+  const p = useKnown(base({ title: "공학수학 2 중간고사" }), "공학수학 2 중간고사 11월 16일로 변경", KNOWN, "2026-11-10");
+  assert.equal(p.change.title, "공학수학 2 중간 2"); // 기말·공부방 일정이 아니라
+  assert.deepEqual([p.title, p.time, p.end_time, p.from], ["공학수학 2 중간고사", "09:30", "10:45", "공학수학 2"]);
+  // 수업 없는 날로 옮기면 옛 시각 그대로
+  const fri = useKnown(base({ title: "공수2 기말 로 변경", date: "2026-12-19" }), "공수2 기말 12월 19일로 변경", KNOWN, "2026-11-10");
+  assert.deepEqual([fri.title, fri.change.title, fri.time, fri.end_time], ["공수2 기말", "공학수학 2 기말", "18:00", "?"]);
+  // '변경' 말이 없으면 옮기지 않는다 · 지난 일정은 옮길 것이 아니다
+  assert.equal(useKnown(base({ title: "공학수학 2 중간고사" }), "공학수학 2 중간고사 11월 16일", KNOWN, "2026-11-10").change, undefined);
+  assert.equal(useKnown(base({ title: "공학수학 2 중간고사" }), "공학수학 2 중간고사 16일로 변경", KNOWN, "2026-11-12").change.title, "공학수학 2 기말");
+});
+
+test("메모 → 팝업: 내 일정의 시각·장소와 옮길 일정이 담기고, AI에게는 내 일정을 안 보낸다", async () => {
+  const DB = fakeD1();
+  const user = addUser(DB);
+  const add = DB.sqlite.prepare(`INSERT INTO events (user_id, title, start, "end", place, source, ext_id) VALUES (?, ?, ?, ?, ?, 'google', ?) RETURNING id`);
+  const ids = KNOWN.map((e, i) => add.get(user.id, e.title, e.start, e.end, e.place, `g${i}`).id);
+  const oldId = ids[KNOWN.findIndex((e) => e.title === "공학수학 2 중간 2")];
+
+  let sent;
+  const fetch = async (_u, init) => {
+    sent = init.body;
+    return aiReply({ is_schedule: true, title: "공학수학 2 중간고사", date: "2026-11-16", time: "?", end_time: "?", place: "?" });
+  };
+  const text = "공학수학 2 중간고사 11월 16일로 변경";
+  const popup = await suggestEvent({ ANTHROPIC_API_KEY: "k", DB }, text, new Date("2026-11-10T15:42:00+09:00"), { userId: user.id, fetch });
+  assert.ok(!sent.includes("43-1동") && !sent.includes("중간 2"), "내 일정은 AI에게 보내지 않는다");
+  assert.deepEqual(popup, {
+    title: "공학수학 2 중간고사", date: "2026-11-16", time: "09:30", end_time: "10:45", place: "43-1동 201호", by: "ai",
+    from: "공학수학 2", change: { id: oldId, title: "공학수학 2 중간 2", start: "2026-11-11T09:30:00+09:00" },
+  });
+
+});

@@ -4,6 +4,8 @@
 //       → 팝업 후보(이름·날짜·시각·장소, 모르면 '?')를 돌려준다 → 사용자가 저장/고치기/취소 → events.
 // 날짜·시각은 코드가 먼저 계산한다(위험 확인 '팝업 1초'의 대처). AI 답이 늦거나 실패하면 규칙만으로 팝업을 만든다.
 // 일정이 아닌 메모(할 일·생각)는 팝업 없이 메모로 남고, 밤 정리(4_night.js)가 읽는다.
+// 아는 일정으로 채우기(lib/known.js, AI 없이): '공수2 휴강 16일' → 내 '공학수학 2' 수업 시각·장소(popup.from),
+//       '… 16일로 변경' → 옮길 일정(popup.change). 지금은 알려 주기만 한다(옛 일정을 가리는 것은 가지 '일정-옮기기': events.moved_to 칸이 필요).
 //
 // 주소 (worker/index.js가 /api/memo* 를 여기로 보낸다. 응답은 모두 JSON)
 //   POST   /api/memo              { text }                    → { memo, popup }   popup은 일정이 아니면 null
@@ -13,11 +15,13 @@
 //   POST   /api/memo/:id/cancel                               → { ok }            메모는 남아서 밤 정리가 읽는다
 //   DELETE /api/memo/:id                                      → { ok }
 //
-// popup 모양: { title, date: "2026-11-10", time: "15:00", end_time: "?", place: "301동", by: "ai" | "rule" }
+// popup 모양: { title, date: "2026-11-10", time: "15:00", end_time: "?", place: "301동", by: "ai" | "rule",
+//               from: "공학수학 2"(시각·장소를 가져온 내 일정, 없으면 없음), change: { id, title, start }(옮길 일정, 없으면 없음) }
 // 표: memos(쓰기·읽기), events(source='memo', ext_id='memo:<메모 id>'), log(popup_save·popup_edit·popup_cancel·llm·llm_fail)
 
 import { askJson, usageDetail } from "./llm.js";
 import { SYSTEM, SCHEMA, userMessage } from "./prompts/memo_popup.js";
+import { useKnown } from "./lib/known.js";
 
 export async function handle(request, env, ctx, user) {
   if (!user) return json({ error: "로그인이 필요하다" }, 401);
@@ -90,7 +94,7 @@ async function savePopup(request, env, ctx, user, memoId) {
 
   // 측정: 고치지 않고 저장한 비율 = AI(또는 규칙) 정확도
   const edited = body.suggested ? !sameFields(f, popupFields(body.suggested)) : Boolean(body.edited);
-  const detail = JSON.stringify({ memo_id: memoId, by: body.suggested?.by ?? null });
+  const detail = JSON.stringify({ memo_id: memoId, by: body.suggested?.by ?? null, known: Boolean(body.suggested?.from) });
   background(ctx, writeLog(env, user.id, edited ? "popup_edit" : "popup_save", detail));
   return json({ event: saved.results[0] });
 }
@@ -117,17 +121,38 @@ export async function suggestEvent(env, text, now = new Date(), { ctx, userId, f
   const when = findWhen(text, now);
   if (!when) return null;
 
-  let ai = null;
-  if (env.ANTHROPIC_API_KEY) {
+  const askAi = async () => {
+    if (!env.ANTHROPIC_API_KEY) return null;
     try {
       const r = await askPopupAi(env, text, now, { fetch, timeoutMs: Number(env.POPUP_AI_MS) || 2500 });
-      ai = r.data;
       background(ctx, writeLog(env, userId, "llm", usageDetail("memo_popup", r)));
+      return r.data;
     } catch (e) {
       background(ctx, writeLog(env, userId, "llm_fail", JSON.stringify({ use: "memo_popup", error: e.message.slice(0, 160) })));
+      return null;
     }
-  }
-  return mergePopup(text, when, ai);
+  };
+  // AI에게 묻는 동안 내 일정을 읽는다(기다리는 시간이 안 늘고, AI에게는 일정을 안 보낸다 = 토큰 그대로)
+  const [ai, known] = await Promise.all([askAi(), loadKnown(env, userId, text, now)]);
+  const popup = mergePopup(text, when, ai);
+  return popup && useKnown(popup, text, known, isoKst(now).slice(0, 10));
+}
+
+/** 메모의 낱말과 첫 글자가 같은 내 일정(2주 전 ~ 6달 뒤). 줄임말은 첫 글자가 같다(lib/known.js) */
+async function loadKnown(env, userId, text, now) {
+  if (!env.DB || !userId) return [];
+  const today = isoKst(now).slice(0, 10);
+  const firsts = [...new Set(text.split(/\s+/).filter(Boolean).map((w) => w[0]))];
+  return env.DB.prepare(
+    `SELECT id, title, start, "end", place FROM events
+      WHERE user_id = ? AND start >= ? AND start < ?
+        AND substr(title, 1, 1) IN (SELECT value FROM json_each(?))
+      ORDER BY start LIMIT 400`,
+  )
+    .bind(userId, addDays(today, -14), addDays(today, 180), JSON.stringify(firsts))
+    .all()
+    .then((r) => r.results)
+    .catch(() => []); // 일정을 못 읽어도 팝업은 뜬다
 }
 
 /** 빠른 모델에게 묻기 (위험 확인 스크립트 worker/check/haiku_latency.js도 이걸 쓴다) */
