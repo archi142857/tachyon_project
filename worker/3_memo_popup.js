@@ -347,7 +347,7 @@ const DATE_RULES = [
   { kind: "md", re: /(?<!\d)(\d{1,2})\s*월\s*(\d{1,2})\s*일/g }, // 11월 13일
   { kind: "md", re: /(?<![\d./])(\d{1,2})\s*[/.]\s*(\d{1,2})(?![\d./%]|\s*(?:시|배|점|퍼))/g }, // 11/13, 11.13 (3.5시간 아님)
   { kind: "rel", re: /(?<![가-힣])(오늘|금일|이따가?|내일모레|내일|낼|명일|모레|글피|어제|그저께|그제)/g }, // '보낼'의 낼은 아님
-  { kind: "later", re: /(?<!\d)(\d{1,2})\s*일\s*(?:뒤|후)(?![가-힣])/g }, // 3일 뒤
+  { kind: "later", re: /(?<![\d.])(?:(\d{1,2})\s*(일|주일|주)|(일주일))\s*(?:뒤|후)(?=에|쯤|$|[^가-힣])/g }, // 3일 뒤, 2주 후에, 일주일 뒤 ('뒤풀이'는 아님)
   { kind: "wd", re: /(?:(다다음|이번|다음|저번|지난|금|담|차)\s*주\s*)?([월화수목금토일])\s*(?:요일|욜)/g }, // (다음주) 금요일
   { kind: "wd", re: /(다다음|이번|다음|저번|지난|금|담|차)\s*주\s*([월화수목금토일])(?![가-힣])/g }, // 담주 화 3시 ('다음 주 수업'은 아님)
   { kind: "wd", re: /(?<![가-힣\d])()([월화수목금토일])(?=\s*(?:\d{1,2}\s*시|\d{1,2}:\d{2}|오전|오후|아침|점심|저녁|밤|새벽))/g }, // 금 7시, 수 18:30
@@ -364,6 +364,9 @@ const TIME_RULES = [
   new RegExp(PERIOD + "(정오|자정)", "g"),
 ];
 const RANGE_GLUE = /^\s*(?:~|-|–|부터)\s*/;
+// 지금부터 얼마 뒤: 2시간 뒤, 1시간 반 후에, 한 시간 뒤, 30분 있다가 ('2시간 동안'·'30분 전'은 아님 — 길이는 lib/known.js lengthOf)
+const LATER_TIME =
+  /(?<![\d.])(?:(\d{1,2})(\.5)?\s*시간(?:\s*(반|\d{1,2}\s*분))?|(한|두|세|네|다섯|여섯)\s*시간(?:\s*(반))?|(\d{1,3})\s*분)\s*(?:뒤|후|있다가)(?=에|쯤|$|[^가-힣])/;
 
 /**
  * 메모에서 날짜·시각을 읽는다. 둘 다 없으면 null.
@@ -380,6 +383,11 @@ export function findWhen(text, now = new Date()) {
   if (d) spans.push(d.span);
   const t = findTime(text);
   if (t) spans.push(...t.spans);
+  if (!t && (!d || d.date === today)) {
+    // '2시간 뒤 빨래 걷기'·'오늘 30분 뒤 회의': 지금(메모를 쓴 때)부터 센 시각. 5분 단위로 올린다
+    const later = findLaterTime(text, now);
+    if (later) return { date: later.date, time: later.time, end: null, guessed: false, dateExplicit: true, past: false, spans: [...spans, later.span] };
+  }
   if (!d && !t) return null;
 
   let date = d?.date ?? null;
@@ -404,6 +412,20 @@ export function findWhen(text, now = new Date()) {
     }
   }
   return { date, time, end, guessed, dateExplicit: Boolean(d), past: Boolean(d?.past), spans };
+}
+
+/** '2시간 뒤' → 지금 + 2시간의 { date, time, span } (1분 ~ 72시간만) */
+function findLaterTime(text, now) {
+  const m = LATER_TIME.exec(text);
+  if (!m) return null;
+  const minutes = m[1]
+    ? +m[1] * 60 + (m[2] ? 30 : 0) + (m[3] === "반" ? 30 : m[3] ? parseInt(m[3]) : 0)
+    : m[4]
+      ? KO_HOUR[m[4]] * 60 + (m[5] ? 30 : 0)
+      : +m[6];
+  if (minutes < 1 || minutes > 72 * 60) return null;
+  const at = kst(new Date(Math.ceil((now.getTime() + minutes * 60000) / 300000) * 300000));
+  return { date: ymd(at.y, at.m, at.d), time: hhmm(at.hh * 60 + at.mi), span: [m.index, m.index + m[0].length] };
 }
 
 function findDate(text, k, today) {
@@ -443,7 +465,7 @@ function readDate(kind, m, k, today) {
     const n = REL_DAYS[m[1]];
     return { date: addDays(today, n), past: n < 0 };
   }
-  if (kind === "later") return { date: addDays(today, +m[1]), past: false };
+  if (kind === "later") return { date: addDays(today, m[3] ? 7 : +m[1] * (m[2] === "일" ? 1 : 7)), past: false };
   if (kind === "wd") {
     const target = WEEKDAY[m[2]];
     if (!m[1]) {
