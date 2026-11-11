@@ -1,7 +1,8 @@
 /* Tachyon 화면 스타일.
    색·크기는 아래 :root 한 곳에서만 정한다. 지금 값은 디자인 가이드 '② 차분한 종이'의 밝게 블록이다
-   (docs/tachyon/디자인/tokens.css 1·2단계를 그대로 옮김. 어둡게 블록과 글꼴 패키지는 아직 안 넣었다). */
-:root {
+   (docs/tachyon/디자인/tokens.css 1·2단계를 그대로 옮김. 어둡게 블록과 글꼴 패키지는 아직 안 넣었다).
+   이 값이 기본 테마 '차분한 종이'다. 다른 테마는 themes.css에서 같은 이름의 값을 덮는다. */
+:root, [data-theme='차분한 종이'] {
   /* 바탕·면 */
   --bg: #efebe2;
   --card: #fbf9f4;
@@ -245,7 +246,7 @@ h1, h2, h3, p { margin: 0; }
 /* 폰은 칸이 좁아 글은 숨기고(화면 읽기는 읽는다) 위의 빨간 줄만. 넓은 화면은 칸 오른쪽 위에 알약 */
 .ev .late-pill { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (min-width: 1024px) {
-  .ev .late-pill { width: auto; height: auto; overflow: visible; clip: auto; top: 4px; right: 3px; padding: 0 4px; border-radius: 4px; background: var(--danger); color: #fff; font-size: 11px; line-height: 15px; font-weight: 700; }
+  .ev .late-pill { width: auto; height: auto; overflow: visible; clip: auto; top: 4px; right: 3px; padding: 0 4px; border-radius: 4px; background: var(--danger); color: var(--card); font-size: 11px; line-height: 15px; font-weight: 700; }
 }
 .late { color: var(--danger); font-weight: 700; }
 .route-info { display: grid; gap: 2px; margin: 4px 0 8px; }
@@ -265,7 +266,7 @@ h1, h2, h3, p { margin: 0; }
 .etl-list li + li { border-top: 1px solid var(--line); }
 .etl-list a { display: grid; gap: 2px; min-height: 44px; padding: 8px 2px; color: var(--text); text-decoration: none; }
 .etl-title { font-size: 15px; line-height: 22px; }
-.etl-tag { display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 4px; font-size: 12px; line-height: 18px; font-weight: 700; color: #fff; background: var(--danger); }
+.etl-tag { display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 4px; font-size: 12px; line-height: 18px; font-weight: 700; color: var(--card); background: var(--danger); }
 .etl-tag.cancel, .etl-tag.makeup { background: var(--text2); }
 .now-line { position: absolute; left: 0; right: 0; border-top: 2px solid var(--now); z-index: 2; pointer-events: none; }
 .cal-dots { display: flex; justify-content: center; gap: 6px; padding-top: 10px; }
@@ -301,8 +302,8 @@ dialog.sheet::backdrop { background: var(--scrim); }
 .segmented button[aria-pressed='true'] { background: var(--card); color: var(--text); box-shadow: 0 1px 3px #1e19192e; }
 
 /* 알림 막대(되돌리기 등) */
-.snackbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(88px + env(safe-area-inset-bottom)); z-index: 9; width: max-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 16px; border-radius: var(--r-btn); background: var(--heading); color: var(--bg); font-size: 14px; line-height: 20px; }
-.snackbar button { height: 36px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: #b4c8e1; font-weight: 700; }
+.snackbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(88px + env(safe-area-inset-bottom)); z-index: 9; width: max-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 16px; border-radius: var(--r-btn); background: var(--snack-bg); color: var(--snack-text); font-size: 14px; line-height: 20px; }
+.snackbar button { height: 36px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--snack-action); font-weight: 700; }
 /* 아래 창이 열려 있으면 창 안(맨 위 층)에 그리고, 창 내용을 가리지 않게 화면 위쪽에 둔다 */
 dialog .snackbar { top: calc(12px + env(safe-area-inset-top)); bottom: auto; }
 
@@ -355,11 +356,12 @@ select.input { padding-right: 36px; }
 
 /* ── 오늘 화면: 폰 = 고리 → 타임라인 → 할 일 → 메모 / PC = 왼쪽 타임라인(좁게), 오른쪽 고리 · 할 일 · 메모 ── */
 .dash.today { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'ring' 'day' 'tasks' 'memo'; max-width: 1120px; }
-.dash > .day { grid-area: day; min-width: 0; padding: 10px 12px 12px; --hour: 44px; }
+/* 타임라인은 굴리지 않는다: 하루 전체를 --day-h 높이에 맞춰 넣는다(한 시간 높이는 TodayView가 나눠서 정한다). 카드를 누르면 주간 달력으로 간다 */
+.dash > .day { grid-area: day; min-width: 0; padding: 10px 12px 12px; --day-h: 440px; cursor: pointer; }
+.day .tasks-head .btn-text { height: 32px; margin: -4px -8px -4px 0; font-size: 14px; }
 .dash > .ring-card { grid-area: ring; min-width: 0; padding: 12px 12px 0; display: flex; flex-direction: column; align-items: center; }
-.day .cal-scroll { max-height: calc(var(--hour) * 6); }
 .cal-grid.one { grid-template-columns: 24px minmax(0, 1fr); }
-.day .ev { padding: 3px 6px; font-size: 13px; line-height: 17px; }
+.day .ev { min-height: 20px; padding: 2px 6px; font-size: 13px; line-height: 17px; } /* 짧은 칸도 제목 한 줄은 보이게 */
 .day .ev .place { display: block; font-size: 12px; line-height: 16px; }
 .ev.slot { background: var(--inset); border: 1px dashed var(--line-strong); color: var(--text2); }
 .ev.sel { outline: 2px solid var(--focus); outline-offset: 1px; z-index: 1; }
@@ -399,9 +401,20 @@ select.input { padding-right: 36px; }
 @media (min-width: 1024px) {
   .today-head { padding: 0 24px 4px; }
   .dash.today { grid-template-columns: clamp(300px, 36%, 420px) minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: 'day ring' 'day tasks' 'day memo'; }
-  .dash > .day { align-self: start; }
-  .day .cal-scroll { max-height: none; }
+  .dash > .day { align-self: start; --day-h: clamp(440px, calc(100vh - 270px), 720px); }
   .cal-grid.one { grid-template-columns: 44px minmax(0, 1fr); }
   .day .card-title { font-size: 20px; line-height: 28px; }
   .slot-note { margin: -8px 0 12px 36px; }
 }
+
+/* ── 테마 고르기 창(메뉴 → 테마). 색 견본은 그 테마의 값으로 그린다 ── */
+.theme-list { display: grid; gap: 8px; }
+.theme-row { display: flex; align-items: center; gap: 4px; }
+.theme { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--r-btn); background: var(--card); color: var(--text); font-size: 16px; text-align: left; }
+.theme[aria-pressed='true'] { border-color: var(--accent-text); box-shadow: inset 0 0 0 1px var(--accent-text); font-weight: 700; }
+.theme .tag { margin-left: auto; }
+.swatch { flex: none; display: flex; align-items: center; justify-content: center; gap: 4px; width: 64px; height: 40px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--bg); }
+.swatch i { width: 12px; height: 22px; border-radius: 3px; background: var(--card); border: 1px solid var(--line); }
+.swatch i:nth-child(2) { background: var(--accent); border-color: var(--accent); }
+.swatch i:nth-child(3) { background: var(--ev-class); border-color: var(--ev-class); }
+.theme-text { height: 112px; padding: 10px 14px; font: 13px/18px ui-monospace, Menlo, Consolas, monospace; resize: vertical; }

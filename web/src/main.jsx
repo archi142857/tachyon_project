@@ -3,6 +3,11 @@ import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import { reportError } from './api.js';
 import './styles.css';
+import './themes.css';
+import { applyTheme, currentTheme } from './themes.js';
+
+// 지난번에 고른 테마를 첫 화면이 그려지기 전에 입힌다(메뉴 → 테마).
+applyTheme(currentTheme());
 
 // 화면 오류 자동 보고(서버 6_feedback → GitHub 이슈). 한 번 열었을 때 같은 메시지는 한 번만, 다 합쳐 5개까지.
 // 보내다 실패하면 다시 보내지 않는다(렌더마다 나는 오류가 요청을 쏟지 않게).

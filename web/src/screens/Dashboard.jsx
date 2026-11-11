@@ -16,6 +16,7 @@ import MemoPopup from '../components/MemoPopup.jsx';
 import Sheet from '../components/Sheet.jsx';
 import Snackbar from '../components/Snackbar.jsx';
 import TasksCard, { TaskRow } from '../components/TasksCard.jsx';
+import ThemeSheet from '../components/ThemeSheet.jsx';
 import TodayView from '../components/TodayView.jsx';
 import TopBar from '../components/TopBar.jsx';
 import WeekCalendar, { PAGES } from '../components/WeekCalendar.jsx';
@@ -50,7 +51,7 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
   const [popup, setPopup] = useState(null); // { memoId, popup }
   const [waiting, setWaiting] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [sheet, setSheet] = useState(null); // 'menu' | 'tasks' | 'done' | 'feedback' | 'install' | 'calendar' | 'etl' | { event } | { task }
+  const [sheet, setSheet] = useState(null); // 'menu' | 'tasks' | 'done' | 'feedback' | 'install' | 'calendar' | 'etl' | 'theme' | { event } | { task }
   const [snack, setSnack] = useState(null);
 
   const loadWeek = useCallback(
@@ -244,6 +245,7 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
             onEvent={(event) => setSheet({ event })}
             onTask={(task) => setSheet({ task })}
             onAll={() => setSheet('tasks')}
+            onWeek={() => setView('week')}
           />
           {memoWrap}
         </main>
@@ -289,6 +291,9 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
                 홈 화면에 추가
               </button>
             )}
+            <button type="button" onClick={() => setSheet('theme')}>
+              테마
+            </button>
             <button type="button" onClick={() => setSheet('feedback')}>
               의견 보내기
             </button>
@@ -324,6 +329,7 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
       {sheet === 'feedback' && <FeedbackSheet screen="대시보드" onClose={() => setSheet(null)} onSent={(text) => setSnack({ text })} />}
       {sheet === 'install' && <InstallSheet prompt={installPrompt} onClose={() => setSheet(null)} />}
       {sheet === 'calendar' && <CalendarSheet onClose={() => setSheet(null)} />}
+      {sheet === 'theme' && <ThemeSheet onClose={() => setSheet(null)} />}
       {sheet === 'delete' && (
         <Sheet title="계정 지우기" onClose={() => setSheet(null)}>
           <DeleteAccount example={example} onDeleted={onDeleted} />

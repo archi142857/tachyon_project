@@ -1,7 +1,8 @@
 // 오늘 화면: 오늘 타임라인 · 하루 고리 · 할 일을 한 번에 본다(넓은 화면은 타임라인 왼쪽, 고리 오른쪽 위, 할 일 오른쪽 아래. 폰은 고리 → 타임라인 → 할 일).
-// 고리의 색 구간, 타임라인 칸, 할 일 줄 가운데 하나를 누르면 셋이 같이 골라진다(sel = 'e일정 id' | 't할 일 id').
+// 고리의 색 구간이나 할 일 줄을 누르면 고리 · 타임라인 · 할 일이 같이 골라진다(sel = 'e일정 id' | 't할 일 id').
+// 타임라인은 굴리지 않고 하루가 한눈에 보이며, 누르면 주간 달력으로 간다(onWeek).
 // 옅은 점선 칸은 빈 시간에 할 일을 넣어 본 자리다(slots.js). 저장하지 않는다.
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { layoutDay } from '../layout.js';
 import { dayEvents, daySlots, freeMinutes, hm } from '../slots.js';
 import { minuteOfDay } from '../time.js';
@@ -19,9 +20,8 @@ function noSlot(task) {
 }
 
 // today = 오늘 0시(ISO), tasks = 화면에 보일 할 일(순서대로), total = 안 끝낸 할 일 수
-export default function TodayView({ today, events, tasks, total, now, onDone, onEvent, onTask, onAll }) {
+export default function TodayView({ today, events, tasks, total, now, onDone, onEvent, onTask, onAll, onWeek }) {
   const [sel, setSel] = useState(null);
-  const scroll = useRef(null);
   const nowMin = minuteOfDay(now);
   const busy = dayEvents(events, today);
   const slots = daySlots(tasks, busy, nowMin);
@@ -40,71 +40,58 @@ export default function TodayView({ today, events, tasks, total, now, onDone, on
   const top = (min) => `calc(var(--hour) * ${(min - first * 60) / 60})`;
   const box = (from, to) => ({ top: `calc(${top(from)} + 1px)`, height: `calc(var(--hour) * ${Math.max(to - from, 30) / 60} - 2px)` });
 
-  // 폰에서는 타임라인이 짧은 상자라, 고른 칸(없으면 지금)이 보이게 상자 안에서만 굴린다
-  useEffect(() => {
-    const el = scroll.current?.querySelector('.sel, .now-line');
-    if (el) scroll.current.scrollTop = Math.max(0, el.offsetTop - 48);
-  }, [sel]);
-
   return (
     <>
-      <section className="card day" aria-label="오늘 타임라인">
+      {/* 카드 어디를 눌러도 주간 달력으로 간다. 키보드로는 머리의 '주간 달력' 단추(누름이 카드로 올라온다) */}
+      <section className="card day" aria-label="오늘 타임라인" onClick={onWeek}>
         <div className="tasks-head">
           <h2 className="card-title">오늘 일정</h2>
           <span className="tag num">{busy.length}</span>
+          <button type="button" className="btn-text">
+            주간 달력
+          </button>
         </div>
-        <div className="cal-scroll" ref={scroll}>
-          <div className="cal-grid one" style={{ height: `calc(var(--hour) * ${last - first})` }}>
-            {Array.from({ length: last - first - 1 }, (_, i) => (
-              <div key={i} className="hline" style={{ top: `calc(var(--hour) * ${i + 1})` }} aria-hidden="true" />
+        {/* 하루 전체가 --day-h 높이에 들어가게 한 시간 높이를 나눈다 */}
+        <div className="cal-grid one" style={{ '--hour': `calc(var(--day-h) / ${last - first})`, height: 'var(--day-h)' }}>
+          {Array.from({ length: last - first - 1 }, (_, i) => (
+            <div key={i} className="hline" style={{ top: `calc(var(--hour) * ${i + 1})` }} aria-hidden="true" />
+          ))}
+          <div className="hours" aria-hidden="true">
+            {Array.from({ length: last - first }, (_, i) => (
+              <span key={i} className="num" style={{ top: i === 0 ? '2px' : `calc(var(--hour) * ${i} - 8px)` }}>
+                {first + i}
+              </span>
             ))}
-            <div className="hours" aria-hidden="true">
-              {Array.from({ length: last - first }, (_, i) => (
-                <span key={i} className="num" style={{ top: i === 0 ? '2px' : `calc(var(--hour) * ${i} - 8px)` }}>
-                  {first + i}
-                </span>
-              ))}
-            </div>
-            <div className="col">
-              {layoutDay(busy.map((b) => b.ev)).map(({ ev, col, cols }) => {
-                const { from, to } = busy.find((b) => b.ev === ev);
-                const key = `e${ev.id}`;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    className={`ev ${kindOf(ev)}${ev.important ? ' important' : ''}${sel === key ? ' sel' : ''}`}
-                    style={{ ...box(from, to), left: `calc(${(col / cols) * 100}% + 2px)`, width: `calc(${100 / cols}% - 4px)` }}
-                    aria-pressed={sel === key}
-                    onClick={() => pick(key)}
-                  >
-                    <span className="sr-only">
-                      {hm(from)}–{hm(to)},{' '}
-                    </span>
-                    {ev.title}
-                    {ev.place && <span className="place">{ev.place}</span>}
-                    {ev.important ? <span className="sr-only">, 중요</span> : null}
-                  </button>
-                );
-              })}
-              {placed.map(({ task, slot, key }) => (
-                <button
+          </div>
+          <div className="col">
+            {layoutDay(busy.map((b) => b.ev)).map(({ ev, col, cols }) => {
+              const { from, to } = busy.find((b) => b.ev === ev);
+              const key = `e${ev.id}`;
+              return (
+                <div
                   key={key}
-                  type="button"
-                  className={`ev slot${sel === key ? ' sel' : ''}`}
-                  style={{ ...box(slot[0], slot[1]), left: '2px', width: 'calc(100% - 4px)' }}
-                  aria-pressed={sel === key}
-                  onClick={() => pick(key)}
+                  className={`ev ${kindOf(ev)}${ev.important ? ' important' : ''}${sel === key ? ' sel' : ''}`}
+                  style={{ ...box(from, to), left: `calc(${(col / cols) * 100}% + 2px)`, width: `calc(${100 / cols}% - 4px)` }}
                 >
                   <span className="sr-only">
-                    {hm(slot[0])}–{hm(slot[1])},{' '}
+                    {hm(from)}–{hm(to)},{' '}
                   </span>
-                  {task.title}
-                  <span className="place">넣어 본 자리</span>
-                </button>
-              ))}
-              <div className="now-line" role="img" style={{ top: top(nowMin) }} aria-label={`지금 ${hm(nowMin)}`} />
-            </div>
+                  {ev.title}
+                  {ev.place && <span className="place">{ev.place}</span>}
+                  {ev.important ? <span className="sr-only">, 중요</span> : null}
+                </div>
+              );
+            })}
+            {placed.map(({ task, slot, key }) => (
+              <div key={key} className={`ev slot${sel === key ? ' sel' : ''}`} style={{ ...box(slot[0], slot[1]), left: '2px', width: 'calc(100% - 4px)' }}>
+                <span className="sr-only">
+                  {hm(slot[0])}–{hm(slot[1])},{' '}
+                </span>
+                {task.title}
+                <span className="place">넣어 본 자리</span>
+              </div>
+            ))}
+            <div className="now-line" role="img" style={{ top: top(nowMin) }} aria-label={`지금 ${hm(nowMin)}`} />
           </div>
         </div>
       </section>
