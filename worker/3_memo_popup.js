@@ -283,14 +283,19 @@ export function mergePopup(text, when, ai, now = new Date()) {
 
 /** AI 없이 판단할 때: 시각이 있고, 마감·지난 일이 아니면 일정 ("2시부터 4시까지"의 까지는 시각 말이라 뺀다) */
 function looksLikeSchedule(text, when) {
-  if (!when.time || when.past) return false;
+  if (when.past) return false;
   const rest = cutSpans(text, when.spans);
+  // 시각이 없으면 시간대 말이 있고 할 일 끝말이 아닐 때만: '내일 점심 밥약'은 일정(빈 시간은 lib/known.js), '내일 저녁에 장보기'는 할 일
+  if (!when.time && (!PART_OF_DAY.test(rest) || TODO_END.test(tidy(rest)))) return false;
   if (/까지|마감|제출/.test(rest)) return false;
   if (PAST.test(rest)) return false;
   return true;
 }
 
 const PAST = /(었|았|였|했)(다|음|어)/;
+// 시각 없이 시간대만 쓴 말(낱말로 떨어져 있을 때만, '아침밥'은 아님). 그 시간대의 빈 시간은 lib/known.js suggestFree가 고른다
+const PART_OF_DAY = /(?<![가-힣])(?:늦은\s*밤|밤\s*늦게|심야|한밤중?|아침|오전|점심|낮|오후|저녁|밤)(?=에|쯤|\s|$)/;
+const LEADING_PART = /^\s*(?:늦은\s*밤|밤\s*늦게|심야|한밤중?|아침|오전|점심|낮|오후|저녁|밤)(?:에|쯤에?)?\s+/;
 // 할 일 끝말: '풀기'·'물어보기'처럼 -기, '할 것'·'해야 함', 또는 끝내면 되는 일 낱말(제출·신청·예약·연락·전화…)
 const TODO_END = /(?:기|할\s*것|할것|해야\s*(?:함|됨|돼|해|지|할\s*듯)?|하자|제출|신청|예약|연락|전화|구매|결제|준비|정리|확인|복습|예습|공부|등록|납부|반납|수정|출력|인쇄)$/;
 
@@ -311,7 +316,9 @@ function aiKind(ai) {
 /** 할 일 팝업: 이름은 날짜·시각 말과 그 조사('~까지')를 뺀 나머지 그대로(AI가 있으면 AI).
  *  마감은 정규식이 읽은 날짜·시각(오전·오후만 AI, 일정과 같은 규칙). 날짜·시각 말이 없으면 마감 없음 */
 function taskPopup(text, when, ai, now) {
-  const rest = tidy(when ? cutSpans(text, when.spans) : text);
+  const left = tidy(when ? cutSpans(text, when.spans) : text);
+  // '금요일 23:59 마감 과제 제출' → '과제 제출'(마감은 날짜 칸에), '오늘 밤 과제 하기' → '과제 하기'(날짜 말에 붙은 시간대)
+  const rest = tidy(left.replace(/(?:^|\s)마감(?=\s|$)/g, " ").replace(LEADING_PART, "")) || left;
   const due = when ? clockOf(when, ai, now) : {};
   return { kind: "task", title: clean(ai?.title) ?? (rest || "?"), date: due.date ?? "?", time: due.time ?? "?", by: ai ? "ai" : "rule" };
 }
@@ -347,7 +354,9 @@ const DATE_RULES = [
   { kind: "md", re: /(?<!\d)(\d{1,2})\s*월\s*(\d{1,2})\s*일/g }, // 11월 13일
   { kind: "md", re: /(?<![\d./])(\d{1,2})\s*[/.]\s*(\d{1,2})(?![\d./%]|\s*(?:시|배|점|퍼))/g }, // 11/13, 11.13 (3.5시간 아님)
   { kind: "rel", re: /(?<![가-힣])(오늘|금일|이따가?|내일모레|내일|낼|명일|모레|글피|어제|그저께|그제)/g }, // '보낼'의 낼은 아님
+  { kind: "month", re: /(다음\s*달|담달|이번\s*달|이달)\s*(\d{1,2})\s*일/g }, // 다음 달 20일 (그냥 '20일'은 지났으면 다음 달)
   { kind: "later", re: /(?<![\d.])(?:(\d{1,2})\s*(일|주일|주)|(일주일))\s*(?:뒤|후)(?=에|쯤|$|[^가-힣])/g }, // 3일 뒤, 2주 후에, 일주일 뒤 ('뒤풀이'는 아님)
+  { kind: "weekend", re: /(?:(다다음|이번|다음|저번|지난|담)\s*)?주말(?=에|엔|쯤|까지|$|[^가-힣])/g }, // (다음) 주말 = 토요일, '주말까지'는 일요일
   { kind: "wd", re: /(?:(다다음|이번|다음|저번|지난|금|담|차)\s*주\s*)?([월화수목금토일])\s*(?:요일|욜)/g }, // (다음주) 금요일
   { kind: "wd", re: /(다다음|이번|다음|저번|지난|금|담|차)\s*주\s*([월화수목금토일])(?![가-힣])/g }, // 담주 화 3시 ('다음 주 수업'은 아님)
   { kind: "wd", re: /(?<![가-힣\d])()([월화수목금토일])(?=\s*(?:\d{1,2}\s*시|\d{1,2}:\d{2}|오전|오후|아침|점심|저녁|밤|새벽))/g }, // 금 7시, 수 18:30
@@ -459,13 +468,25 @@ function readDate(kind, m, k, today) {
   if (kind === "day") {
     const day = +m[1];
     if (day < 1 || day > 31) return null;
-    return day >= k.d ? validDate(k.y, k.m, day) : validDate(k.y, k.m + 1, day);
+    return day >= k.d ? validDate(k.y, k.m, day) : nextMonthDate(k, day);
   }
   if (kind === "rel") {
     const n = REL_DAYS[m[1]];
     return { date: addDays(today, n), past: n < 0 };
   }
   if (kind === "later") return { date: addDays(today, m[3] ? 7 : +m[1] * (m[2] === "일" ? 1 : 7)), past: false };
+  if (kind === "month") {
+    if (!/^(?:이번|이달)/.test(m[1])) return nextMonthDate(k, +m[2]);
+    const r = validDate(k.y, k.m, +m[2]);
+    return r && { ...r, past: r.date < today };
+  }
+  if (kind === "weekend") {
+    const offset = m[1] ? WEEK_OFFSET[m[1]] : 0;
+    const saturday = addDays(today, -((k.wd + 6) % 7) + offset * 7 + 5);
+    const byEnd = m.input.slice(m.index + m[0].length).startsWith("까지");
+    const date = byEnd ? addDays(saturday, 1) : offset === 0 && saturday < today ? today : saturday; // 일요일에 쓴 '주말'은 오늘
+    return { date, past: offset < 0 };
+  }
   if (kind === "wd") {
     const target = WEEKDAY[m[2]];
     if (!m[1]) {
@@ -477,6 +498,11 @@ function readDate(kind, m, k, today) {
     return { date, past: offset < 0 };
   }
   return null;
+}
+
+/** 다음 달의 그날 (12월이면 내년 1월) — 12월에 쓴 '5일'·'다음 달 5일' */
+function nextMonthDate(k, d) {
+  return k.m === 12 ? validDate(k.y + 1, 1, d) : validDate(k.y, k.m + 1, d);
 }
 
 function validDate(y, mo, d) {
@@ -575,12 +601,12 @@ function to24({ period, h, min, fixed }, nowMinIfToday) {
 // ── AI 없이 이름·장소 짐작 ───────────────────────────────────
 
 const PLACE_RULES = [
-  /(\S+(?:\s+(?:앞|뒤|옆|안|입구|\d+층))?)\s*에서(?=\s|$)/, // 학관에서, 자하연 앞에서
+  /(\S+역\s*\d{1,2}\s*번\s*출구|\S+(?:\s+(?:앞|뒤|옆|안|입구|\d+층))?)\s*에서(?=\s|$)/, // 학관에서, 자하연 앞에서, 낙성대역 4번 출구에서
   /((?<!\d)\d{2,3}(?:-\d)?\s*동(?:\s*\d{1,4}\s*호)?(?:\s*\d+층)?)/, // 301동, 220동 302호
   /((?<![\d:])\d{2,3}-\d{3,4}(?:호)?)(?![\d:]|\s*시)/, // 301-118
   /((?:학관|학생회관|중도|중앙도서관|관정도서관|도서관|자하연|버들골|체육관|기숙사|관악사|행정관|아크로|동방|과방|강의실|실험실|카페)(?:\s+(?:앞|뒤|옆|입구|\d+층))?)/,
   /(\S+\s+(?:입구|앞|정문|후문))(?=\s|$)/, // 관악산 입구
-  /(\S+역)(?=\s|$)/, // 강남역, 낙성대역
+  /(\S+역(?:\s*\d{1,2}\s*번\s*출구)?)(?=\s|$)/, // 강남역, 낙성대역, 홍대입구역 4번 출구
 ];
 const PARTICLE = "(?:에서|에는|에|까지|부터|쯤|경|으로|로)";
 

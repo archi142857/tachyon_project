@@ -89,6 +89,42 @@ test("지금부터 얼마 뒤: '3일 뒤에'·'2주 후'·'2시간 뒤'·'30분 
 });
 const pick = (w) => [w.date, w.time];
 
+test("주말·다음 달 N일 (지금 = 11/9 월 17:00), 12월에 쓴 '5일'은 내년 1월", () => {
+  const cases = [
+    ["이번 주말 MT", "2026-11-14"], // 토요일
+    ["다음 주말 본가", "2026-11-21"],
+    ["주말에 빨래", "2026-11-14"],
+    ["주말까지 과제", "2026-11-15"], // '까지'는 일요일
+    ["다음 달 20일 발표", "2026-12-20"], // 전엔 이번 달 20일로 읽었다
+    ["담달 3일 생일파티", "2026-12-03"],
+  ];
+  for (const [text, date] of cases) assert.equal(findWhen(text, NOW)?.date, date, text);
+  const sunday = new Date("2026-11-15T10:00:00+09:00");
+  assert.equal(findWhen("주말에 빨래", sunday).date, "2026-11-15"); // 일요일에 쓴 '주말'은 오늘
+  assert.equal(findWhen("지난 주말 MT 사진", NOW).past, true);
+  assert.equal(findWhen("이번 달 5일 회비", NOW).past, true);
+  const december = new Date("2026-12-20T10:00:00+09:00");
+  assert.equal(findWhen("5일 시험", december).date, "2027-01-05"); // 전엔 13월이라 못 읽었다
+  assert.equal(findWhen("다음 달 3일 개강 준비", december).date, "2027-01-03");
+  assert.equal(findWhen("13/5 회의", NOW), null);
+});
+
+test("AI 없이: 날짜 + 시간대 말이면 일정(빈 시간 채움), 할 일 끝말이면 할 일. 역 출구, 할 일 이름의 '마감'", async () => {
+  const at = new Date("2026-11-11T14:50:00+09:00"); // 예시 시각
+  const lunch = await suggestEvent({}, "내일 점심 밥약", at);
+  assert.deepEqual([lunch.title, lunch.date, lunch.time, lunch.end_time, lunch.by], ["밥약", "2026-11-12", "12:00", "13:00", "rule"]);
+  assert.equal((await suggestEvent({}, "금요일 오전 실험", at)).time, "09:00");
+  const errand = await suggestEvent({}, "내일 저녁에 장보기", at);
+  assert.deepEqual([errand.kind, errand.title, errand.date], ["task", "장보기", "2026-11-12"]);
+  assert.equal((await suggestEvent({}, "오늘 밤 과제 하기", at)).title, "과제 하기");
+  assert.equal(await suggestEvent({}, "내일 1교시 휴강", at), null); // 시간대 말이 없으면 그대로 팝업 없음
+  const exit = await suggestEvent({}, "토요일 오후 2시 홍대입구역 4번 출구에서 만나기", at);
+  assert.equal(exit.place, "홍대입구역 4번 출구");
+  const due = await suggestEvent({}, "금요일 23:59 마감 과제 제출", at);
+  assert.deepEqual([due.kind, due.title, due.time], ["task", "과제 제출", "23:59"]);
+  assert.equal((await suggestEvent({}, "금요일 마감", at)).title, "마감"); // 남는 게 없으면 그대로
+});
+
 test("날짜·시각이 아닌 말은 읽지 않는다", () => {
   for (const text of ["3시간 공부", "3.5시간 걸림", "한시적으로 운영", "한 시점에서 보면", "메일 보낼 것", "저녁에 장보기", "과제 아이디어 정리", "다음 주 수업 자료 읽기", "토익 2시간 공부"]) {
     assert.equal(findWhen(text, NOW), null, text);
