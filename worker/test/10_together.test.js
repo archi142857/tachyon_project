@@ -246,3 +246,15 @@ test('셈 도우미: 이어진 칸만 후보(날이 바뀌면 끊김), 사람이
   // 16일 10:00~11:00은 1명, 16일 10:30 + 17일 10:00은 이어진 칸이 아니라 후보가 아님, 17일 10:00~11:00은 2명
   assert.deepEqual(best.map((x) => [x.start, x.free, x.who]), [['2026-11-16T10:00:00+09:00', 1, [1]], ['2026-11-17T10:00:00+09:00', 2, [1, 2]]]);
 });
+
+test('후보는 지금 뒤에 시작하는 시각만(오늘 아침 칸은 빠짐), 표의 칸은 지난 것도 그대로', async () => {
+  const { env, a, b, g } = await meetSetup();
+  const made = await call(env, a, `/groups/${g}/meets`, { method: 'POST', body: { title: '예시 오늘 모임', from: '2026-11-12', to: '2026-11-12', dayStart: '09:00', dayEnd: '14:00', length: 60 } });
+  addEvent(env, b, '예시 지난주', '2026-11-05T09:00:00+09:00', '2026-11-05T10:00:00+09:00'); // 나도 달력 있음 → 다 빔
+  addEvent(env, a, '예시 지난주', '2026-11-05T09:00:00+09:00', '2026-11-05T10:00:00+09:00');
+  const { data } = await call(env, a, `/meets/${made.data.meet.id}`);
+  assert.equal(data.slots[0].start, '2026-11-12T09:00:00+09:00'); // 지난 칸도 표에는 있음
+  assert.deepEqual(data.best.map((x) => x.start.slice(11, 16)), ['12:00', '13:00']); // 지금 12:00 → 12:00~13:00, 13:00~14:00만
+  const unit = bestTimes({ starts: [0, 1, 2, 3], slotMs: 1, free: [1, 1, 1, 1], length: 2, members: [{ id: 7 }], now: 1 });
+  assert.deepEqual(unit.map((x) => x.free), [1]); // 0에서 시작하는 창은 빠지고 1~3 사이 겹치지 않는 하나
+});

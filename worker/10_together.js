@@ -24,7 +24,7 @@
 // 모임 시간표: 사람마다 칸(slot)의 빈/바쁨 = 손으로 칠한 칸이 있으면 그것, 없으면 그 사람 달력(events)에 시각이 있는 일정이
 //   칸과 겹치면 바쁨(종일 일정·마감은 바쁨으로 치지 않음, 옮긴 일정 moved_to는 뺌). 달력이 없는 사람(시각 있는 일정이 하나도 없음)은
 //   when2meet처럼 칠한 '된다' 칸만 된다. 칠한 칸도 달력도 없는 사람은 '아직 모름'(unknown)이라 세지 않는다.
-//   후보 = 모임 길이만큼 이어진 칸(같은 날) 가운데 처음부터 끝까지 되는 사람이 많은 순, 겹치지 않게 3개.
+//   후보 = 지금 뒤에 시작하는, 모임 길이만큼 이어진 칸(같은 날) 가운데 처음부터 끝까지 되는 사람이 많은 순, 겹치지 않게 3개.
 //
 // 표는 TOGETHER_SQL(아래, schema.sql에 넣자고 소통판에 제안). 원격 D1에 표가 없으면 503 '준비 중'.
 
@@ -521,7 +521,7 @@ async function showMeet(env, user, meetId) {
     known: memberList.filter((m) => m.known).length,
     unknown: memberList.filter((m) => !m.known).length,
     slots,
-    best: bestTimes({ starts, slotMs, free: grid.free, length: meet.length_min / meet.slot_min, members: members.results }),
+    best: bestTimes({ starts, slotMs, free: grid.free, length: meet.length_min / meet.slot_min, members: members.results, now: Date.now() }),
   });
 
   function idsOf(mask, list) {
@@ -584,10 +584,11 @@ export function availability({ starts, slotMs, members, marks, events }) {
   return { free, known, marked, stateOf };
 }
 
-/** 후보: 모임 길이(칸 수 length)만큼 같은 날 이어진 칸에서 처음부터 끝까지 되는 사람이 많은 순, 겹치지 않게 3개 */
-export function bestTimes({ starts, slotMs, free, length, members, count = 3 }) {
+/** 후보: 지금(now) 뒤에 시작하고, 모임 길이(칸 수 length)만큼 같은 날 이어진 칸에서 처음부터 끝까지 되는 사람이 많은 순, 겹치지 않게 3개 */
+export function bestTimes({ starts, slotMs, free, length, members, count = 3, now = -Infinity }) {
   const windows = [];
   for (let j = 0; j + length <= starts.length; j++) {
+    if (starts[j] < now) continue; // 이미 시작한 시각은 후보가 아님(화면 세션 11-11 23:13 쪽지)
     const last = j + length - 1;
     if (starts[last] - starts[j] !== (length - 1) * slotMs) continue; // 날이 바뀌면 이어진 칸이 아님
     let mask = 0xffffffff;
