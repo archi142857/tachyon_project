@@ -43,7 +43,38 @@ test("몰린 주 경고: 모자라면 몇 시간 모자란지, 다 들어가도 
   ); // 9칸 1620분이라 들어가지만 다음 주에 1400분이 몰림
   assert.equal(crowdedWarning(nextWeek, NIGHT), "다음 주 마감인 할 일이 약 23시간 몰려 있어요. 미리 시작해 두세요");
   const overdue = rankTasks([{ id: 1, title: "놓친 퀴즈", due: "2026-11-09T23:59:00+09:00", minutes: 30 }], NIGHT);
-  assert.equal(crowdedWarning(overdue, NIGHT), "마감이 지난 할 일이 있어요: 놓친 퀴즈");
+  assert.equal(crowdedWarning(overdue, NIGHT), "마감이 지난 할 일이 있어요: 놓친 퀴즈. 끝났으면 체크해 주세요");
+  // 여럿이면 개수와 가장 최근에 지난 것 하나 (eTL 주소만 붙이면 지난 과제가 끝남 표시 없이 들어온다)
+  const many = rankTasks(
+    [
+      { id: 1, title: "[예시] 1주차 과제", due: "2026-10-20T23:59:00+09:00" },
+      { id: 2, title: "[예시] 5주차 과제", due: "2026-11-09T23:59:00+09:00" },
+      { id: 3, title: "[예시] 3주차 과제", due: "2026-11-02T23:59:00+09:00" },
+      { id: 4, title: "다음 주 발표", due: "2026-11-18", minutes: 60 },
+    ],
+    NIGHT,
+  );
+  assert.equal(crowdedWarning(many, NIGHT), "마감이 지난 할 일이 3개 있어요: [예시] 5주차 과제 등. 끝났으면 체크해 주세요");
+});
+
+test("걸리는 시간 채우기는 마감이 다가오는 것부터(지난 것은 맨 뒤), 브리핑에 여러 날 이어지는 하루 종일 일정도", async () => {
+  const DB = fakeD1();
+  const user = addUser(DB);
+  const q = (sql, ...a) => DB.sqlite.prepare(sql).run(...a).lastInsertRowid;
+  // 지어낸 예시. id 순서는 일부러 지난 것 → 마감 없음 → 다가오는 것
+  const old = q("INSERT INTO tasks (user_id, title, due, source, ext_id) VALUES (?, '[예시] 지난 과제', '2026-10-28T23:59:00+09:00', 'etl', 'u1')", user.id);
+  const none = q("INSERT INTO tasks (user_id, title, source, ext_id) VALUES (?, '[예시] 마감 없는 일', 'memo', 'u2')", user.id);
+  const soon = q("INSERT INTO tasks (user_id, title, due, source, ext_id) VALUES (?, '[예시] 금요일 퀴즈', '2026-11-13T23:59:00+09:00', 'etl', 'u3')", user.id);
+  const sooner = q("INSERT INTO tasks (user_id, title, due, source, ext_id) VALUES (?, '[예시] 오늘 실습', '2026-11-10T18:00:00+09:00', 'etl', 'u4')", user.id);
+  q("INSERT INTO events (user_id, title, start, \"end\", source, ext_id) VALUES (?, '[예시] 학회 여행', '2026-11-09', '2026-11-12', 'ics', 'e1')", user.id); // 9~11일
+  q("INSERT INTO events (user_id, title, start, \"end\", source, ext_id) VALUES (?, '[예시] 어제 끝난 일', '2026-11-08', '2026-11-10', 'ics', 'e2')", user.id); // 8~9일
+  q("INSERT INTO events (user_id, title, start, \"end\", source, ext_id) VALUES (?, '[예시] 어젯밤 회식', '2026-11-09T23:00:00+09:00', '2026-11-10T01:00:00+09:00', 'ics', 'e3')", user.id);
+  let sent;
+  const fetch = async (_u, init) => ((sent = JSON.parse(init.body).messages[0].content), aiReply({ memos: [], tasks: [] }));
+  const card = await runNight({ DB, ANTHROPIC_API_KEY: "k" }, user.id, NIGHT, { fetch });
+  const order = [...sent.matchAll(/^- (\d+) · /gm)].map((m) => Number(m[1]));
+  assert.deepEqual(order, [sooner, soon, none, old]);
+  assert.deepEqual(card.events.map((e) => e.title), ["[예시] 학회 여행"]); // 끝난 여러 날 일정·어젯밤 일정은 빼고
 });
 
 // ── 밤 정리 ──

@@ -84,9 +84,14 @@ export async function runNight(env, userId, now = new Date(), { fetch } = {}) {
       .bind(userId, MAX_MEMOS)
       .all()
   ).results;
+  // 걸리는 시간을 채울 할 일: 마감이 다가오는 것부터, 그다음 마감 없는 것, 마감이 지난 것은 맨 뒤
+  // (eTL 주소를 처음 붙이면 지난 30일 과제가 끝남 표시 없이 들어와서, 앞에서부터 40개를 고르면 지난 과제가 다 차지한다)
   const blank = (
-    await env.DB.prepare("SELECT id, title, due FROM tasks WHERE user_id = ? AND done = 0 AND minutes IS NULL ORDER BY id LIMIT ?")
-      .bind(userId, MAX_TASKS)
+    await env.DB.prepare(
+      `SELECT id, title, due FROM tasks WHERE user_id = ? AND done = 0 AND minutes IS NULL
+       ORDER BY CASE WHEN due IS NULL THEN 1 WHEN due < ? THEN 2 ELSE 0 END, due, id LIMIT ?`,
+    )
+      .bind(userId, kstDate(now), MAX_TASKS)
       .all()
   ).results;
 
@@ -187,8 +192,12 @@ function minutesOf(v) {
 async function buildBriefing(env, userId, now, { by, newTasks = [] }) {
   const date = kstDate(now);
   const [events, tasks] = await Promise.all([
-    env.DB.prepare(`SELECT id, title, start, "end", place, important FROM events WHERE user_id = ? AND moved_to IS NULL AND start >= ? AND start < ? ORDER BY start`)
-      .bind(userId, date, addDays(date, 1))
+    // 오늘 시작하는 일정 + 전에 시작해 오늘도 이어지는 하루 종일 일정(여행·시험 기간 같은 여러 날 일정)
+    env.DB.prepare(
+      `SELECT id, title, start, "end", place, important FROM events
+       WHERE user_id = ? AND moved_to IS NULL AND start < ? AND (start >= ? OR (length(start) = 10 AND "end" > ?)) ORDER BY start`,
+    )
+      .bind(userId, addDays(date, 1), date, date)
       .all()
       .then((r) => r.results),
     openTasks(env, userId),
@@ -271,7 +280,12 @@ export function crowdedWarning(ranked, now = new Date(), dailyMinutes = DAILY_MI
   const hours = (min) => Math.max(1, Math.round(min / 60));
   const worst = ranked.filter((t) => t.slack_days != null && t.slack_days < 0).sort((a, b) => a.slack_days - b.slack_days)[0];
   if (worst) {
-    if (worst.due.slice(0, 10) < today) return `마감이 지난 할 일이 있어요: ${worst.title}`;
+    const overdue = ranked.filter((t) => t.due && t.due.slice(0, 10) < today);
+    if (worst.due.slice(0, 10) < today) {
+      // 마감이 가장 가까웠던 것 하나를 이름으로. eTL 주소만 붙이면 제출해도 끝남이 안 들어와서 '끝났으면 체크'를 함께 적는다
+      const latest = overdue.reduce((a, b) => (String(b.due) > String(a.due) ? b : a));
+      return `마감이 지난 할 일이 ${overdue.length > 1 ? `${overdue.length}개 ` : ""}있어요: ${latest.title}${overdue.length > 1 ? " 등" : ""}. 끝났으면 체크해 주세요`;
+    }
     return `${weekName(worst.due, today)} 마감까지 하루 ${dailyMinutes / 60}시간으로는 약 ${hours(-worst.slack_days * dailyMinutes)}시간 모자라요`;
   }
   const monday = mondayOf(today);
