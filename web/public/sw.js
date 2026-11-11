@@ -3,7 +3,8 @@
 // - /assets/*: 파일 이름에 해시가 붙어 있어 저장본 먼저
 // 화면을 크게 바꿔 옛 저장본을 한 번에 지우고 싶으면 CACHE 이름의 숫자를 올린다.
 const CACHE = 'ngs-shell-v2'; // v2(11-12): 앱 아이콘을 같은 이름으로 바꿈
-const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon.svg'];
+// 아이콘 주소의 ?v=2는 브라우저가 따로 쥐고 있는 옛 파비콘·홈 화면 아이콘을 새로 받게 하려고 붙였다(index.html·manifest와 같게). 아이콘을 또 바꾸면 숫자를 같이 올린다.
+const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png?v=2', '/icons/icon.svg?v=2'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));

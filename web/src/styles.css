@@ -179,7 +179,8 @@ h1, h2, h3, p { margin: 0; }
 }
 
 /* 메모(나와의 채팅) */
-.memo { height: 100%; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+/* 메모 카드. 이름을 .memo로 두면 일정 종류 class(ev memo, 하루 고리의 <rect class="ev memo">)에 height: 100%가 새어 들어가서 memo-card */
+.memo-card { height: 100%; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
 .memo-log { flex: 1; min-height: 0; max-height: 156px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; scrollbar-width: none; }
 .memo-log::-webkit-scrollbar { display: none; }
 .memo-day { text-align: center; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--text3); padding: 2px 0; }
@@ -189,10 +190,10 @@ h1, h2, h3, p { margin: 0; }
 .bubble.on { border-color: var(--accent-text); }
 .memo-saved { align-self: flex-end; font-size: 12px; line-height: 16px; color: var(--text3); }
 .memo-wait { align-self: flex-end; font-size: 12px; line-height: 16px; color: var(--text3); }
-.memo .empty { font-size: 13px; color: var(--text3); margin: auto 0; }
+.memo-card .empty { font-size: 13px; color: var(--text3); margin: auto 0; }
 @media (min-width: 1024px) {
-  .memo { padding: 16px; gap: 8px; }
-  .memo .card-title { font-size: 20px; line-height: 28px; }
+  .memo-card { padding: 16px; gap: 8px; }
+  .memo-card .card-title { font-size: 20px; line-height: 28px; }
   .memo-log { max-height: none; gap: 8px; }
   .bubble-row { max-width: 88%; }
   .bubble-row time { display: inline; }
