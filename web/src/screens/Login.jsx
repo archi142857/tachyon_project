@@ -1,6 +1,7 @@
 // 로그인: 구글 로그인(이름·이메일만). 서버 없이 보려면 '예시로 둘러보기'.
 // 서울대 구글 계정(@snu.ac.kr)으로 하라고 안내만 한다(11-11 사람 요청). 막지는 않는다: 팀원 개인 계정과 구글 시험 사용자 목록이 걸려서.
 import { LOGIN_URL } from '../api.js';
+import Logo from '../components/Logo.jsx';
 import { appLogin, inApp } from '../native.js';
 
 // 아이폰 홈 화면 앱(사파리와 쿠키가 따로)인지
@@ -10,7 +11,9 @@ export default function Login({ error, notice, onExample }) {
   return (
     <main className="center-page">
       <div className="card login">
-        <h1 className="wordmark">Tachyon</h1>
+        <h1 className="wordmark">
+          <Logo height={40} />
+        </h1>
         <p className="lead">메모하면 달력과 할 일로 정리해 줘요.</p>
         {notice && (
           <p className="hint" role="status">

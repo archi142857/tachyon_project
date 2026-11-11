@@ -1,10 +1,13 @@
 // 위 막대: 이름, 예시 표시, 의견 버튼, 햄버거 메뉴
 import Icon from './Icon.jsx';
+import Logo from './Logo.jsx';
 
 export default function TopBar({ example, onFeedback, onMenu }) {
   return (
     <header className="topbar">
-      <h1 className="wordmark">Tachyon</h1>
+      <h1 className="wordmark">
+        <Logo height={24} />
+      </h1>
       {example && <span className="tag">예시 자료</span>}
       <span className="grow" />
       {onFeedback && (

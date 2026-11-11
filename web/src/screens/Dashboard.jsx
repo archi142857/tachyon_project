@@ -15,6 +15,7 @@ import FeedbackSheet from '../components/FeedbackSheet.jsx';
 import Icon from '../components/Icon.jsx';
 import InstallSheet from '../components/InstallSheet.jsx';
 import JoinSheet from '../components/JoinSheet.jsx';
+import Logo from '../components/Logo.jsx';
 import MemoCard from '../components/MemoCard.jsx';
 import MemoPopup from '../components/MemoPopup.jsx';
 import MonthCalendar from '../components/MonthCalendar.jsx';
@@ -342,7 +343,9 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
     <div className="shell">
       <aside className="side">
         <div className="side-brand">
-          <h1 className="wordmark">Tachyon</h1>
+          <h1 className="wordmark">
+            <Logo height={26} />
+          </h1>
           {example && <span className="tag">예시 자료</span>}
         </div>
         <nav className="side-nav" aria-label="쪽">
@@ -357,7 +360,9 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
 
       <div className="main">
         <header className="topbar">
-          <h1 className="wordmark only-narrow">Tachyon</h1>
+          <h1 className="wordmark only-narrow">
+            <Logo height={24} />
+          </h1>
           {example && <span className="tag only-narrow">예시 자료</span>}
           <span className="date only-wide num">{dateText}</span>
           <span className="only-wide">{controls}</span>

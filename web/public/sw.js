@@ -2,7 +2,7 @@
 // - 페이지 열기: 네트워크 먼저, 끊기면 저장해 둔 index.html
 // - /assets/*: 파일 이름에 해시가 붙어 있어 저장본 먼저
 // 화면을 크게 바꿔 옛 저장본을 한 번에 지우고 싶으면 CACHE 이름의 숫자를 올린다.
-const CACHE = 'ngs-shell-v1';
+const CACHE = 'ngs-shell-v2'; // v2(11-12): 앱 아이콘을 같은 이름으로 바꿈
 const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon.svg'];
 
 self.addEventListener('install', (event) => {

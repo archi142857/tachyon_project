@@ -1,9 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#415fec"/>
-  <g fill="none" stroke="#ffffff" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="136" y="148" width="240" height="224" rx="40"/>
-    <path d="M136 220h240"/>
-    <path d="M196 120v56M316 120v56"/>
-    <path d="M206 298l36 34 66-70"/>
+  <title>Tachyon</title>
+  <defs>
+    <clipPath id="tile"><rect width="512" height="512" rx="112"/></clipPath>
+    <linearGradient id="band" x1="0" y1="0" x2="322" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffffff" stop-opacity="0.14"/><stop offset="0.6" stop-color="#ffffff" stop-opacity="0.41"/><stop offset="1" stop-color="#ffffff" stop-opacity="0.75"/></linearGradient>
+  </defs>
+  <g clip-path="url(#tile)">
+    <rect width="512" height="512" fill="#141414"/>
+    <rect x="0" y="186" width="322" height="140" fill="url(#band)"/>
+    <circle cx="322" cy="256" r="70" fill="#ff5545"/>
   </g>
 </svg>

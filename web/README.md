@@ -56,8 +56,7 @@ npm run build      # dist/
 
 - 색은 `styles.css`의 `:root` 한 곳(기본 테마 '③ 바우하우스', 11-11부터), 다른 테마(11-11까지의 기본 '② 차분한 종이' 포함)는 `themes.css`. 새 색 값 이름을 만들면 `themes.css` 각 블록에도 넣는다(`themes.test.js`가 잰다). 앱을 열 때는 테마 이름을 적지 않고 테마 창에서 고를 때만 적는다 — 다음에 기본이 바뀌어도 고르지 않은 기기는 새 기본을 따른다.
 - 글꼴은 앱 안에 싣는다(바깥 글꼴 주소를 부르지 않음): 본문 Pretendard(`pretendard`, 화면에 나온 글자 조각만 받는 dynamic subset), 바우하우스 제목·날짜·숫자 Jost(`@fontsource-variable/jost`). 둘 다 SIL OFL 1.1 — [디자인 가이드 '글꼴'](../docs/tachyon/디자인/디자인_가이드.md).
-- 아이콘 원본은 `public/icons/icon.svg`·`icon-maskable.svg`. PNG는 다시 만든다:
-  `rsvg-convert -w 512 icon.svg -o icon-512.png` (192, maskable 512, apple-touch 180도 같은 방법).
+- 로고(A18-1)와 앱 아이콘(I1)의 원본은 디자인 세션의 [docs/tachyon/디자인/로고/](../docs/tachyon/디자인/로고/README.md)(11-12 사람이 고름). 앱 안 로고는 `src/components/Logo.jsx`(띠가 담긴 칸의 왼쪽 벽에 닿게, CSS는 `shell.css` 끝). 아이콘을 바꾸면 여섯 개를 `public/icons/`에 같은 이름으로 덮어쓰고 `public/sw.js`의 CACHE 숫자를 올린다(아이콘을 저장본에서 먼저 꺼내서).
 - 서비스 워커는 화면 파일만 저장하고 `/api`(개인 자료)는 저장하지 않는다.
 - 예시 자료는 모두 지어낸 것이고 화면 위에 '예시 자료'가 뜬다. 캘린더 주소는 화면 기록·오류 보고에 넣지 않는다.
 - 앱(Capacitor)으로 감쌀 때는 `VITE_API_BASE`에 서버 주소를 넣고 빌드한다.

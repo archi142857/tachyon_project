@@ -223,3 +223,10 @@ html.locked, html.locked body { height: 100%; overflow: hidden; overscroll-behav
 .mg-cell.picked { outline: 2px solid var(--focus); outline-offset: 1px; z-index: 1; }
 .meet-who { margin: 6px 0 0; font-size: 13px; line-height: 18px; color: var(--text); }
 .meet-key { margin: 6px 0 0; }
+
+/* 로고(디자인 A18-1, 사람 11-12 00:15): 띠가 담긴 칸의 왼쪽 벽에 닿게 — 칸의 왼쪽 안쪽 여백만큼 당긴다(docs/tachyon/디자인/로고/README.md) */
+.wordmark .logo { display: block; width: auto; }
+.topbar > .wordmark { margin-left: -20px; } /* styles.css .topbar 왼쪽 여백 20(첫 설정) */
+.shell .topbar > .wordmark { margin-left: -16px; } /* 폰 위 막대 16 */
+.side-brand { padding-left: 0; } /* 넓은 화면 왼쪽 메뉴: 메뉴 왼쪽 끝이 벽 */
+.login .wordmark { margin-left: -24px; } /* 로그인 칸 왼쪽 여백 24 */
