@@ -15,6 +15,7 @@
 }
 
 /* ── 틀 ── */
+html.locked, html.locked body { height: 100%; overflow: hidden; overscroll-behavior: none; } /* Dashboard가 붙인다: 폰에서 화면 전체가 끌려 내려가지 않게 */
 .shell { display: grid; grid-template-columns: minmax(0, 1fr); height: 100dvh; overflow: hidden; background: var(--bg); }
 .shell > .main { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; height: 100dvh; }
 .shell .topbar { position: static; flex: none; height: calc(52px + env(safe-area-inset-top)); padding-left: 16px; }
@@ -79,6 +80,7 @@
 .dring .track { stroke: var(--grid); }
 .dring .ev { stroke: var(--accent); }
 .dring .task { stroke: var(--highlight); }
+.dring .extra { stroke: var(--warn); } /* 빠듯(서버 extra_min) — 색은 디자인 세션이 정하면 바꾼다 */
 .dring.over .track { stroke: var(--stamp); stroke-width: 7.5; }
 .dring.past { opacity: 0.45; }
 .dring-empty { display: inline-block; flex: none; }

@@ -90,3 +90,24 @@ describe('월 달력', () => {
     expect(shiftMonth({ y: 2026, m: 1 }, -1)).toEqual({ y: 2025, m: 12 });
   });
 });
+
+describe('서버 날마다 몫(GET /api/briefing/plan) → 화면 날 모양', () => {
+  it('할 일 몫 = 편한 몫 + 빠듯, 넘침·몰아서 그대로, 모르는 할 일은 뺀다', async () => {
+    const { fromServerPlan } = await import('./density.js');
+    const res = {
+      days: [
+        { date: '2026-11-11', event_min: 300, room_min: 120, task_min: 90, extra_min: 30, over_min: 0, cram_min: 0, items: [{ task_id: 1, min: 90 }, { task_id: 9, min: 30 }] },
+        { date: '2026-11-12', event_min: 0, room_min: 1020, task_min: 0, extra_min: 0, over_min: 45, cram_min: 240, items: [] },
+      ],
+    };
+    const [a, b] = fromServerPlan(res, [{ id: 1, title: '예시 과제' }]);
+    expect(a.key).toBe('2026-11-11');
+    expect(a.today).toBe(true);
+    expect(a.taskMin).toBe(120);
+    expect(a.extraMin).toBe(30);
+    expect(a.items).toEqual([{ task: { id: 1, title: '예시 과제' }, min: 90 }]);
+    expect(b.over).toBe(45);
+    expect(b.naiveTaskMin).toBe(240);
+    expect(b.date.toISOString()).toBe('2026-11-11T15:00:00.000Z'); // 11/12 0시(한국)
+  });
+});

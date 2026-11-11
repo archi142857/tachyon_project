@@ -4,7 +4,7 @@
 // 견주어 보이려고 '마감 날에 몰아서 할 때'(naive)도 같이 센다. 화면에서만 셈하고 저장하지 않는다.
 import { endOf, isAllDay } from './layout.js';
 import { WAKE } from './slots.js';
-import { addDays, dayStart, minuteOfDay } from './time.js';
+import { addDays, dayStart, dayStartKst, minuteOfDay } from './time.js';
 
 export const AWAKE = (24 - WAKE) * 60; // 깨어 있는 분(1020)
 export const PLAN_DAYS = 42; // 오늘부터 6주까지 나눈다
@@ -16,6 +16,27 @@ export const dateKey = (date) => {
   const d = new Date(dayStart(date).getTime() + 9 * 3600000);
   return d.toISOString().slice(0, 10);
 };
+
+// 서버 셈(GET /api/briefing/plan) → planDensity와 같은 날 모양. 할 일 몫 = 편한 몫(task_min) + 빠듯(extra_min),
+// 넘침 = over_min, 몰아서 할 때 = cram_min. items의 task_id는 지금 할 일 목록에서 찾고, 없는 것(끝낸 것 등)은 뺀다.
+export function fromServerPlan(res, tasks = []) {
+  const byId = new Map(tasks.map((t) => [t.id, t]));
+  return (res?.days || []).map((d, i) => {
+    const date = dayStartKst(d.date);
+    return {
+      date,
+      key: d.date,
+      today: i === 0,
+      eventMin: d.event_min || 0,
+      room: d.room_min || 0,
+      taskMin: (d.task_min || 0) + (d.extra_min || 0),
+      extraMin: d.extra_min || 0,
+      over: d.over_min || 0,
+      naiveTaskMin: d.cram_min || 0,
+      items: (d.items || []).map((it) => ({ task: byId.get(it.task_id), min: it.min })).filter((it) => it.task),
+    };
+  });
+}
 
 // 그날 fromMin(분)부터 자정까지 시간 일정이 차지하는 분(겹친 것은 한 번만)
 export function busyMinutes(events, day, fromMin = WAKE * 60) {

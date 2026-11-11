@@ -24,7 +24,7 @@ import ThemeSheet from '../components/ThemeSheet.jsx';
 import TodayView from '../components/TodayView.jsx';
 import TtwSheet from '../components/TtwSheet.jsx';
 import WeekCalendar from '../components/WeekCalendar.jsx';
-import { PLAN_DAYS, dateKey, eventOnlyDay, planDensity } from '../density.js';
+import { PLAN_DAYS, dateKey, eventOnlyDay, fromServerPlan, planDensity } from '../density.js';
 import { WEEKDAYS, addDays, dayStart, kst, monthGrid, sameDay, shiftMonth, shortDate } from '../time.js';
 
 function useNow() {
@@ -169,8 +169,23 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
 
   const openTasks = useMemo(() => rank.tasks.filter((t) => !t.done), [rank.tasks]);
 
-  // 날마다 밀도(오늘부터 6주). 지난날·6주 밖은 일정만
-  const plan = useMemo(() => planDensity({ events: planEvents, tasks: openTasks, now }), [planEvents, openTasks, now]);
+  // 날마다 밀도(오늘부터 6주). 서버 셈(AI 4_night planDays — 할 일 순서·경고와 같은 셈)을 그리고, 예시 모드나 못 받았을 때만 화면 셈.
+  // 할 일·일정이 바뀌면 다시 받는다. 지난날·6주 밖은 일정만
+  const [daily, setDaily] = useState(null);
+  useEffect(() => {
+    let live = true;
+    api
+      .getDailyPlan(PLAN_DAYS)
+      .then((res) => live && setDaily(res))
+      .catch(() => live && setDaily(null));
+    return () => {
+      live = false;
+    };
+  }, [rank.tasks, planEvents]);
+  const plan = useMemo(
+    () => (daily?.days?.length ? fromServerPlan(daily, openTasks) : planDensity({ events: planEvents, tasks: openTasks, now })),
+    [daily, planEvents, openTasks, now],
+  );
   const densityOf = useMemo(() => {
     const byKey = new Map(plan.map((d) => [d.key, d]));
     const start = dayStart(now).getTime();
