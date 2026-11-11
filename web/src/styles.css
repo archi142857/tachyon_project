@@ -1,76 +1,89 @@
 /* Tachyon 화면 스타일.
-   색·크기는 아래 :root 한 곳에서만 정한다. 지금 값은 디자인 가이드 '② 차분한 종이'의 밝게 블록이다
-   (docs/tachyon/디자인/tokens.css 1·2단계를 그대로 옮김. 어둡게 블록과 글꼴 패키지는 아직 안 넣었다).
-   이 값이 기본 테마 '차분한 종이'다. 다른 테마는 themes.css에서 같은 이름의 값을 덮는다. */
-:root, [data-theme='차분한 종이'] {
-  /* 바탕·면 */
-  --bg: #efebe2;
-  --card: #fbf9f4;
-  --inset: #fffdf8; /* [새] */
-  --raised: #fbf9f4; /* [새] */
-  /* 글자 */
-  --heading: #23305e;
-  --text: #23305e;
-  --text2: #574e3f;
-  --text3: #655d4e;
-  /* 선 */
-  --line: #e6dfcf;
-  --grid: #ece6d8;
-  --line-strong: #8c8169;
+   색·크기는 아래 :root 한 곳에서만 정한다. 지금 값은 디자인 가이드 '③ 바우하우스'의 기본 블록이다
+   (docs/tachyon/디자인/tokens.css 'A. 기본'을 그대로 옮김 — 11-11 22:42 사람이 ③을 앱 기본 옷으로 골랐다).
+   이 값이 기본 테마 '바우하우스'다. 다른 테마(11-11까지의 기본 '차분한 종이' 포함)는 themes.css에서 같은 이름의 값을 덮는다. */
+:root, [data-theme='바우하우스'] {
+  /* 바탕·면: 흰 종이 한 장. 면은 가는 선으로 나눈다 */
+  --bg: #ffffff;
+  --card: #ffffff;
+  --inset: #faf9f6;
+  --raised: #ffffff;
+  /* 글자: 먹 */
+  --heading: #141414;
+  --text: #141414;
+  --text2: #45423d;
+  --text3: #625e57;
+  /* 선: 칸은 옅게, 굵은 선(입력 칸·구분)은 먹 */
+  --line: #e6e3dd;
+  --grid: #eeece7;
+  --line-strong: #141414;
   /* 면 채움 */
-  --fill: #e9e3d6;
-  --bubble: #efe8d8;
-  /* 남색 잉크(강조) */
-  --accent: #23305e;
-  --accent-press: #18213f;
-  --accent-text: #23305e;
-  --on-accent: #fdf8e6;
-  --focus: #23305e; /* [새] */
-  /* 알림 */
-  --warn: #8f3807;
-  --warn-bg: #fbe7d6;
-  --danger: #9b0032;
-  /* 종이 표시 */
-  --stamp: #c62f2f; /* [새] */
-  --highlight: #f3d65f; /* [새] */
-  --postit: #fdf1bf; /* [새] */
-  --postit-text2: #574d2a; /* [새] */
-  --postit-unknown: #6a5f33; /* [새] */
+  --fill: #f3f2ee;
+  --bubble: #f3f2ee;
+  /* 강조: 검정. 색은 강조에 쓰지 않는다 */
+  --accent: #141414;
+  --accent-press: #000000;
+  --accent-text: #141414;
+  --on-accent: #ffffff;
+  --focus: #141414;
+  /* 알림: 경고는 먹 글자 + 옅은 노랑 면, 위험·시간 경고는 빨강 */
+  --warn: #141414;
+  --warn-bg: #fcf1c9;
+  --danger: #c4321e;
+  /* 표시 */
+  --stamp: #c4321e;
+  --highlight: #fcf1c9; /* 마감 칩의 면 */
+  --postit: #ffffff; /* [바뀜] 즉시 확인 창은 노란 종이가 아니라 흰 면 + 먹 테두리(--shadow) */
+  --postit-text2: #45423d;
+  --postit-unknown: #625e57;
   /* 달력 */
-  --now: #b8452a;
-  --dot-off: #b3aa98;
-  --today-wash: #faf5e2; /* [새] */
-  --ev-class: #cbddee;
-  --ev-ics: #cdb4eb;
-  --ev-memo: #eda9a8;
+  --now: #c4321e; /* 지금 = 빨강(11-11 20:29 사람) */
+  --dot-off: #b4b0a8;
+  --today-wash: #f7f6f2;
+  --ev-class: #f0efea; /* 수업 칸은 옅은 면 + 파란 ● */
+  --ev-ics: #ffffff; /* 내 일정 칸은 흰 면 + 먹 테두리(--ev-mine-line) + □ */
+  --ev-memo: #ffffff;
   --ev-deadline: var(--highlight);
   --ev-text: var(--text);
   --ev-important: var(--text);
+  /* 모양의 색 [새]: 모든 테마에 있다 */
+  --mark-class: #1e4d9b; /* ● 수업 */
+  --mark-task: #edb200; /* ▲ 할 일. 흰 바탕에서 옅으니 늘 --accent-text 테두리와 같이 쓴다 */
+  --ev-mine-line: #141414; /* 내 일정 칸 테두리. 칸에 색이 있는 테마는 transparent */
   /* 스낵바·막 */
-  --snack-bg: #23305e; /* [새] */
-  --snack-text: #fdf8e6; /* [새] */
-  --snack-action: #c9d4f6; /* [새] */
-  --scrim: #23305e66;
+  --snack-bg: #141414;
+  --snack-text: #ffffff;
+  --snack-action: #ffffff;
+  --scrim: #14141466;
 
-  /* 크기 */
-  --r-chip: 3px;
-  --r-postit: 4px; /* [새] */
-  --r-card: 6px;
-  --r-btn: 6px;
-  --r-bubble: 8px; /* [새] */
-  --r-sheet: 10px; /* [새] */
+  /* 크기: 면은 각지게, 누르는 것은 알약·동그라미(점), 말풍선만 둥글게 */
+  --r-chip: 0px;
+  --r-postit: 0px;
+  --r-card: 0px;
+  --r-btn: 24px;
+  --r-bubble: 20px;
+  --r-sheet: 0px;
   --hour: 30px; /* 달력 한 시간 높이(폰). 1024px 이상 40px */
-  --tap: 48px; /* [새] 누르는 영역의 가장 작은 크기 */
-  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; /* [새] 간격 눈금 */
+  --tap: 48px; /* 누르는 영역의 가장 작은 크기 */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; /* 간격 눈금 */
 
-  /* 그림자: 떠 있는 것(포스트잇, 시트, 스낵바)에만 */
-  --shadow: 0 6px 16px #23305e29;
+  /* 그림자 대신 먹 테두리: 떠 있는 것(시트·즉시 확인 창)에만 */
+  --shadow: 0 0 0 1px #141414;
 
-  /* 글꼴: 본문 Pretendard, 제목 고운바탕 */
+  /* 글꼴: 본문 Pretendard, 제목·숫자 Jost(한글은 Pretendard로 이어진다) */
   --font: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-  --font-head: 'Gowun Batang', 'Noto Serif KR', AppleMyungjo, Batang, serif; /* [새] 제목에만 */
+  --font-head: 'Jost Variable', Jost, 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
 
-  /* 움직임 [새] */
+  /* 하루 동선 지도 */
+  --map-bg: #f3f2ee;
+  --map-dot: #d6d3cc;
+  --map-halo: #ffffff;
+  --map-route: #141414;
+  --map-pin: #141414;
+  --map-pin-text: #ffffff;
+  --map-label: #45423d;
+
+  /* 움직임 */
   --dur-in: 200ms;
   --dur-out: 150ms;
   --dur-stamp: 250ms;
@@ -91,13 +104,13 @@ body { word-break: keep-all; overflow-wrap: anywhere; }
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 h1, h2, h3, p { margin: 0; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .num { font-variant-numeric: tabular-nums; }
 
 /* ── 공통 부품 ── */
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-card); }
-.card-title { font-size: 17px; line-height: 24px; font-weight: 700; color: var(--heading); letter-spacing: -0.01em; }
+.card-title { font-family: var(--font-head); font-size: 17px; line-height: 24px; font-weight: 700; color: var(--heading); letter-spacing: -0.01em; }
 .tag { display: inline-block; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--text2); background: var(--fill); border-radius: var(--r-chip); padding: 2px 6px; white-space: nowrap; }
 .tag.warn { color: var(--warn); background: var(--warn-bg); min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .btn { height: 48px; padding: 0 20px; border: 0; border-radius: var(--r-btn); background: var(--accent); color: var(--on-accent); font-size: 17px; font-weight: 700; }
@@ -109,19 +122,21 @@ h1, h2, h3, p { margin: 0; }
 .sheet-actions { display: flex; gap: 8px; align-items: center; }
 .sheet-actions .btn { flex: 1; }
 .btn-text:hover, .icon-btn:hover { background: var(--grid); }
-.icon-btn { width: 48px; height: 48px; flex: none; border: 0; border-radius: var(--r-btn); background: transparent; color: var(--text2); display: inline-flex; align-items: center; justify-content: center; }
+.icon-btn { width: 48px; height: 48px; flex: none; border: 0; border-radius: var(--r-btn); background: transparent; color: var(--heading); display: inline-flex; align-items: center; justify-content: center; }
 .icon-btn:disabled { color: var(--dot-off); cursor: default; background: transparent; }
 .field { display: grid; gap: 6px; }
 .field > span:first-child { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--text2); }
-.input { height: 48px; width: 100%; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: var(--r-btn); background: var(--card); font-size: 16px; color: var(--text); }
+.input { height: 48px; width: 100%; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: var(--r-btn); background: var(--inset); font-size: 16px; color: var(--text); }
 .input::placeholder { color: var(--text3); }
 .hint { font-size: 13px; line-height: 18px; color: var(--text3); }
-.error { font-size: 13px; line-height: 18px; color: var(--danger); }
+/* 오류: 문장은 기본 글자색, 빨강은 앞의 동그라미에만(③ 빨강 = 지금과 시간 경고) */
+.error { display: flex; gap: 6px; align-items: flex-start; font-size: 13px; line-height: 18px; color: var(--text); }
+.error::before { content: '!'; content: '!' / ''; flex: none; width: 16px; height: 16px; margin-top: 1px; border-radius: 50%; background: var(--danger); color: var(--card); font-size: 11px; line-height: 16px; font-weight: 700; text-align: center; }
 .note { font-size: 13px; line-height: 18px; color: var(--warn); }
 
 /* ── 위 막대 ── */
 .topbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 8px; height: calc(56px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 8px 0 20px; background: var(--bg); }
-.wordmark { font-size: 20px; line-height: 24px; font-weight: 800; letter-spacing: -0.03em; color: var(--heading); }
+.wordmark { font-family: var(--font-head); font-size: 21px; line-height: 26px; font-weight: 700; letter-spacing: -0.01em; color: var(--heading); }
 .topbar .grow { flex: 1; }
 .topbar .btn-text { font-size: 14px; }
 
@@ -142,7 +157,7 @@ h1, h2, h3, p { margin: 0; }
 .tasks { padding: 10px 12px 4px; display: flex; flex-direction: column; }
 .tasks-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 2px 6px; }
 .task { display: flex; gap: 10px; align-items: flex-start; padding: 8px 2px; border-top: 1px solid var(--line); }
-.task input { width: 20px; height: 20px; margin: 1px 0 0; flex: none; accent-color: var(--accent); }
+.task input { width: 20px; height: 20px; margin: 1px 0 0; flex: none; accent-color: var(--accent-text); }
 .task .body { min-width: 0; flex: 1; }
 .task .title { display: block; width: 100%; padding: 0; border: 0; background: none; text-align: left; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--text); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .task .meta { display: block; font-size: 12px; line-height: 16px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -171,7 +186,7 @@ h1, h2, h3, p { margin: 0; }
 .bubble-row { align-self: flex-end; max-width: 100%; display: flex; align-items: flex-end; gap: 6px; }
 .bubble-row time { font-size: 12px; line-height: 16px; color: var(--text3); flex: none; display: none; }
 .bubble { background: var(--bubble); border: 2px solid transparent; border-radius: 10px 10px 2px 10px; padding: 4px 8px; font-size: 13px; line-height: 18px; color: var(--text); white-space: pre-wrap; }
-.bubble.on { border-color: var(--accent); }
+.bubble.on { border-color: var(--accent-text); }
 .memo-saved { align-self: flex-end; font-size: 12px; line-height: 16px; color: var(--text3); }
 .memo-wait { align-self: flex-end; font-size: 12px; line-height: 16px; color: var(--text3); }
 .memo .empty { font-size: 13px; color: var(--text3); margin: auto 0; }
@@ -186,21 +201,22 @@ h1, h2, h3, p { margin: 0; }
 
 /* 아래 긴 메모 칸 */
 .composer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; padding: 8px 16px calc(16px + env(safe-area-inset-bottom)); background: var(--bg); }
-.composer form { display: flex; align-items: center; gap: 8px; max-width: 1392px; margin: 0 auto; background: var(--card); border: 1px solid var(--line-strong); border-radius: var(--r-btn); padding: 2px 2px 2px 16px; }
+.composer form { display: flex; align-items: center; gap: 8px; max-width: 1392px; margin: 0 auto; background: var(--inset); border: 1px solid var(--line-strong); border-radius: var(--r-btn); padding: 0 0 0 16px; }
+.composer form:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; } /* 입력 칸의 outline: none을 칸 전체 초점으로 */
 .composer input { flex: 1; min-width: 0; height: 48px; border: 0; outline: none; background: transparent; font-size: 16px; }
 .composer input::placeholder { color: var(--text3); }
-.composer .send { width: 44px; height: 44px; border: 0; border-radius: 6px; background: var(--accent); color: var(--on-accent); display: inline-flex; align-items: center; justify-content: center; }
+.composer .send { width: 48px; height: 48px; flex: none; border: 0; border-radius: 6px; background: var(--accent); color: var(--on-accent); display: inline-flex; align-items: center; justify-content: center; }
 .composer .send:disabled { background: var(--fill); color: var(--text3); cursor: default; }
 @media (min-width: 1024px) { .composer { padding: 12px 24px 24px; } }
 
 /* 메모 즉시 팝업: 폰은 메모 칸 바로 위, PC는 메모 카드 옆 */
-.popup { position: fixed; left: 16px; right: 16px; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 7; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--shadow); padding: 16px 16px 8px; max-width: 480px; margin: 0 auto; }
+.popup { position: fixed; left: 16px; right: 16px; bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 7; background: var(--postit); color: var(--text); border: 0; outline: 1px solid transparent; border-radius: var(--r-postit); box-shadow: var(--shadow); padding: 16px 16px 8px; max-width: 480px; margin: 0 auto; }
 @media (min-width: 1024px) {
   .popup { position: absolute; left: calc(100% - 24px); right: auto; bottom: 16px; width: 340px; margin: 0; }
 }
-.popup-title { font-size: 17px; line-height: 24px; font-weight: 700; color: var(--heading); margin-bottom: 10px; }
+.popup-title { font-family: var(--font-head); font-size: 17px; line-height: 24px; font-weight: 700; color: var(--heading); margin-bottom: 10px; }
 .popup-rows { display: grid; grid-template-columns: 40px minmax(0, 1fr); row-gap: 6px; column-gap: 12px; align-items: baseline; }
-.popup-rows dt { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--text2); }
+.popup-rows dt { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--postit-text2); }
 .popup-rows dd { margin: 0; font-size: 16px; line-height: 24px; }
 .unknown { color: var(--text3); }
 .popup-move { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; min-height: 44px; }
@@ -271,7 +287,7 @@ h1, h2, h3, p { margin: 0; }
 .now-line { position: absolute; left: 0; right: 0; border-top: 2px solid var(--now); z-index: 2; pointer-events: none; }
 .cal-dots { display: flex; justify-content: center; gap: 6px; padding-top: 10px; }
 .cal-dots span { width: 8px; height: 8px; border-radius: 9999px; background: var(--dot-off); }
-.cal-dots span.on { background: var(--accent); }
+.cal-dots span.on { background: var(--accent-text); }
 @media (min-width: 1024px) {
   .cal { padding: 8px 16px 16px; }
   .cal .card-title { font-size: 20px; line-height: 28px; }
@@ -287,23 +303,23 @@ h1, h2, h3, p { margin: 0; }
 }
 
 /* 시트(아래에서 올라오는 창, 넓은 화면은 가운데) */
-dialog.sheet { border: 0; padding: 0; margin: auto auto 0; width: 100%; max-width: 560px; max-height: 88dvh; background: var(--card); color: var(--text); border-radius: 12px 12px 0 0; box-shadow: var(--shadow); }
+dialog.sheet { border: 0; padding: 0; margin: auto auto 0; width: 100%; max-width: 560px; max-height: 88dvh; background: var(--raised); color: var(--text); border-radius: var(--r-sheet) var(--r-sheet) 0 0; box-shadow: var(--shadow); outline: 1px solid transparent; }
 dialog.sheet::backdrop { background: var(--scrim); }
-@media (min-width: 600px) { dialog.sheet { margin: auto; border-radius: var(--r-card); } }
+@media (min-width: 600px) { dialog.sheet { margin: auto; border-radius: var(--r-sheet); } }
 .sheet-inner { padding: 8px 20px calc(20px + env(safe-area-inset-bottom)); display: grid; gap: 14px; }
 .sheet-head { display: flex; align-items: center; justify-content: space-between; min-height: 48px; }
-.sheet-head h2 { font-size: 17px; line-height: 24px; font-weight: 700; color: var(--heading); }
+.sheet-head h2 { font-family: var(--font-head); font-size: 17px; line-height: 24px; font-weight: 700; color: var(--heading); }
 .menu-list { display: grid; }
 .menu-list button { display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 4px; border: 0; border-top: 1px solid var(--line); background: none; text-align: left; font-size: 16px; color: var(--text); }
 .menu-list button.danger { color: var(--danger); }
 .menu-list button:first-child { border-top: 0; }
-.segmented { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; background: var(--fill); border-radius: var(--r-btn); }
-.segmented button { height: 40px; border: 0; border-radius: 6px; background: transparent; font-size: 15px; font-weight: 500; color: var(--text2); }
-.segmented button[aria-pressed='true'] { background: var(--card); color: var(--text); box-shadow: 0 1px 3px #1e19192e; }
+.segmented { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; padding: 3px; background: var(--fill); border-radius: var(--r-btn); }
+.segmented button { height: 48px; border: 1px solid transparent; border-radius: max(0px, calc(var(--r-btn) - 3px)); background: transparent; font-size: 15px; font-weight: 500; color: var(--text2); } /* 바깥 알약과 같은 결로 둥글게 */
+.segmented button[aria-pressed='true'] { background: var(--raised); color: var(--text); border-color: var(--line-strong); } /* 그림자 대신 테두리 */
 
 /* 알림 막대(되돌리기 등) */
-.snackbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(88px + env(safe-area-inset-bottom)); z-index: 9; width: max-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 16px; border-radius: var(--r-btn); background: var(--snack-bg); color: var(--snack-text); font-size: 14px; line-height: 20px; }
-.snackbar button { height: 36px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; color: var(--snack-action); font-weight: 700; }
+.snackbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(88px + env(safe-area-inset-bottom)); z-index: 9; width: max-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 4px; padding: 0 0 0 16px; border-radius: var(--r-btn); background: var(--snack-bg); color: var(--snack-text); font-size: 14px; line-height: 20px; outline: 1px solid transparent; box-shadow: var(--shadow); }
+.snackbar button { height: 48px; padding: 0 14px; border: 0; border-radius: var(--r-btn); background: transparent; color: var(--snack-action); font-weight: 700; }
 /* 아래 창이 열려 있으면 창 안(맨 위 층)에 그리고, 창 내용을 가리지 않게 화면 위쪽에 둔다 */
 dialog .snackbar { top: calc(12px + env(safe-area-inset-top)); bottom: auto; }
 
@@ -322,12 +338,12 @@ dialog .snackbar { top: calc(12px + env(safe-area-inset-top)); bottom: auto; }
 .feed-saved { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--r-btn); background: var(--fill); }
 .feed-saved .name { font-size: 15px; font-weight: 700; color: var(--text); white-space: nowrap; }
 .feed-saved .addr { min-width: 0; flex: 1; text-align: right; font-size: 13px; color: var(--text3); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.tag.ok { color: var(--on-accent); background: var(--accent); }
+.tag.ok { color: var(--text); background: transparent; border: 1px solid var(--text); padding: 1px 5px; }
 .feed-acts { display: flex; gap: 4px; }
-.feed-acts .btn-text { height: 36px; padding: 0 6px; font-size: 14px; }
+.feed-acts .btn-text { height: 48px; padding: 0 8px; font-size: 14px; }
 .feed-open { width: max-content; font-size: 13px; line-height: 20px; font-weight: 500; color: var(--accent-text); }
-.btn-line { height: 48px; padding: 0 20px; border: 1px solid var(--accent); border-radius: var(--r-btn); background: var(--card); color: var(--accent-text); font-size: 16px; font-weight: 700; }
-.btn-line:disabled { border-color: var(--line); color: var(--text3); cursor: default; }
+.btn-line { height: 48px; padding: 0 20px; border: 1.5px solid var(--accent-text); border-radius: var(--r-btn); background: transparent; color: var(--accent-text); font-size: 16px; font-weight: 700; }
+.btn-line:disabled { border-color: var(--line-strong); color: var(--text3); cursor: default; }
 .task.done .title { color: var(--text3); text-decoration: line-through; }
 .how summary { width: max-content; font-size: 13px; line-height: 20px; font-weight: 500; color: var(--accent-text); cursor: pointer; }
 .how ol { margin: 6px 0 0; padding-left: 20px; font-size: 13px; line-height: 20px; color: var(--text2); }

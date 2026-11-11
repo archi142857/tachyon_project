@@ -203,7 +203,7 @@ html.locked, html.locked body { height: 100%; overflow: hidden; overscroll-behav
 .together-wait { padding: 16px; display: grid; gap: 8px; align-content: start; }
 .together-empty { justify-content: center; text-align: center; padding: 24px; }
 .t-meet-form { display: grid; gap: 8px; padding: 8px 0; }
-/* 모임 시간표: 진하기 = 되는 사람 / 아는 사람, 노란 점 = 내가 되는 칸 */
+/* 모임 시간표: 진하기 = 되는 사람 / 아는 사람, 점 = 내가 되는 칸(③ 흰 점 + 먹 테는 shape.css) */
 .meet-best { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0 8px; }
 .meet-best .group-title { margin: 0 4px 0 0; }
 .best { padding: 3px 8px; border-radius: var(--r-chip); background: var(--highlight); color: var(--text); font-size: 13px; line-height: 18px; font-weight: 700; }

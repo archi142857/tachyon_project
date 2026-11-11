@@ -2,19 +2,21 @@
 // 들어 있는 테마의 값은 styles.css(기본)와 themes.css에 있고, 여기서는 고르기 · 기억하기 · 가져오기만 한다.
 // 고른 테마와 가져온 테마는 이 기기(localStorage)에만 둔다. 서버에는 아무것도 안 보낸다.
 
-export const DEFAULT = '차분한 종이';
-export const BUILT_IN = [DEFAULT, '입자 밤', '입자 낮', '벤토 위젯', '조용한 갤러리', '호박색 터미널'];
+export const DEFAULT = '바우하우스'; // 11-11 22:42 사람이 ③을 기본으로. 그 전 기본 '차분한 종이'는 테마로 남는다
+export const BUILT_IN = [DEFAULT, '차분한 종이', '입자 밤', '입자 낮', '벤토 위젯', '조용한 갤러리', '호박색 터미널'];
 
 // 테마가 바꿀 수 있는 값의 이름. 가져온 테마에서 이 밖의 이름은 버린다.
 export const KEYS = `--bg --card --inset --raised --heading --text --text2 --text3 --line --grid --line-strong --fill --bubble
   --accent --accent-press --accent-text --on-accent --focus --warn --warn-bg --danger
   --stamp --highlight --postit --postit-text2 --postit-unknown --now --dot-off --today-wash
-  --ev-class --ev-ics --ev-memo --ev-deadline --ev-text --ev-important
+  --ev-class --ev-ics --ev-memo --ev-deadline --ev-text --ev-important --mark-class --mark-task --ev-mine-line
   --snack-bg --snack-text --snack-action --scrim --shadow
   --r-chip --r-postit --r-card --r-btn --r-bubble --r-sheet --font --font-head
   --map-bg --map-dot --map-halo --map-route --map-pin --map-pin-text --map-label`.split(/\s+/);
 
-const PICK = 'tachyon_theme'; // 고른 테마 이름
+const PICK = 'tachyon_theme'; // 고른 테마 이름(테마 창에서 고를 때만 적는다)
+const PICK_V = 'tachyon_theme_v'; // 기본 바꿈을 지나 온 기기 표시. '2' = 바우하우스가 기본이 된 뒤(11-11)
+const OLD_DEFAULT = '차분한 종이';
 const MINE = 'tachyon_themes'; // 가져온 테마 목록
 export const MAX_MINE = 20;
 
@@ -66,14 +68,21 @@ export function saveThemes(list) {
 
 export function currentTheme() {
   try {
+    // 11-11까지는 앱을 열 때마다 그때 기본('차분한 종이')을 적어 두었다. 그런 기기는 한 번만 새 기본으로 옮긴다.
+    // 테마 창에서 다시 고르면 그 이름이 남는다.
+    if (!localStorage.getItem(PICK_V)) {
+      if (localStorage.getItem(PICK) === OLD_DEFAULT) localStorage.removeItem(PICK);
+      localStorage.setItem(PICK_V, '2');
+    }
     return localStorage.getItem(PICK) || DEFAULT;
   } catch {
     return DEFAULT;
   }
 }
 
-// 테마를 화면에 입히고 기억한다. 없는 이름이면 기본 테마로. 돌려주는 값 = 실제로 입힌 이름.
-export function applyTheme(name, mine = loadThemes()) {
+// 테마를 화면에 입히고, 고른 것이면(save) 기억한다. 없는 이름이면 기본 테마로. 돌려주는 값 = 실제로 입힌 이름.
+// 앱을 열 때 입히는 것은 기억하지 않는다 — 기본 이름을 적어 두면 다음에 기본이 바뀌어도 옛 옷으로 남는다.
+export function applyTheme(name, mine = loadThemes(), { save = true } = {}) {
   const root = document.documentElement;
   const own = mine.find((t) => t.name === name);
   if (!own && !BUILT_IN.includes(name)) name = DEFAULT;
@@ -89,13 +98,15 @@ export function applyTheme(name, mine = loadThemes()) {
   // 폰 주소창 색도 바탕색에 맞춘다(기본 테마는 index.html에 적힌 값 그대로)
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
-    meta.dataset.paper ??= meta.content;
-    meta.content = name === DEFAULT ? meta.dataset.paper : getComputedStyle(root).getPropertyValue('--bg').trim();
+    meta.dataset.base ??= meta.content;
+    meta.content = name === DEFAULT ? meta.dataset.base : getComputedStyle(root).getPropertyValue('--bg').trim();
   }
-  try {
-    localStorage.setItem(PICK, name);
-  } catch {
-    // 못 적어도 이번 화면에는 입혀졌다
+  if (save) {
+    try {
+      localStorage.setItem(PICK, name);
+    } catch {
+      // 못 적어도 이번 화면에는 입혀졌다
+    }
   }
   return name;
 }

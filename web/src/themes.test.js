@@ -21,7 +21,7 @@ function contrast(a, b) {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-// [글자, 바탕, 최소 대비]. 글자는 4.5, 선·표시는 3.
+// [글자, 바탕, 최소 대비]. 글자는 4.5, 선·표시는 3. 지금(--now)은 시각 글자에도 쓰여 4.5(디자인 11-11 23:25).
 const PAIRS = [
   ['--text', '--bg', 4.5], ['--text', '--card', 4.5], ['--heading', '--card', 4.5], ['--text', '--fill', 4.5],
   ['--text2', '--bg', 4.5], ['--text2', '--card', 4.5], ['--text2', '--fill', 4.5], ['--text2', '--inset', 4.5], ['--text3', '--card', 4.5],
@@ -30,7 +30,7 @@ const PAIRS = [
   ['--ev-text', '--ev-class', 4.5], ['--ev-text', '--ev-ics', 4.5], ['--ev-text', '--ev-memo', 4.5], ['--ev-text', '--ev-deadline', 4.5],
   ['--snack-text', '--snack-bg', 4.5], ['--snack-action', '--snack-bg', 4.5],
   ['--map-pin-text', '--map-pin', 4.5], ['--map-label', '--map-bg', 4.5],
-  ['--line-strong', '--card', 3], ['--focus', '--card', 3], ['--now', '--card', 3],
+  ['--line-strong', '--card', 3], ['--focus', '--card', 3], ['--now', '--card', 4.5], ['--mark-class', '--card', 3],
 ];
 
 describe('테마 값', () => {

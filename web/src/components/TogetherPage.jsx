@@ -160,7 +160,7 @@ export default function TogetherPage({ example, now, onSnack }) {
         )}
         <div className="t-list">
           {data.groups.map((g) => (
-            <button key={g.id} type="button" className={`t-row${view.kind !== 'home' && view.groupId === g.id ? ' on' : ''}`} onClick={() => setView({ kind: 'group', id: g.id, groupId: g.id })}>
+            <button key={g.id} type="button" className={`t-row${view.kind !== 'home' && view.groupId === g.id ? ' on' : ''}`} aria-current={view.kind !== 'home' && view.groupId === g.id ? 'true' : undefined} onClick={() => setView({ kind: 'group', id: g.id, groupId: g.id })}>
               <span className="t-name">{g.name}</span>
               <span className="hint num">
                 {g.members}명{g.owner ? ' · 방장' : ''}
@@ -468,7 +468,7 @@ function MeetPanel({ id, now, run, onBack }) {
           {pickedSlot.who.length ? `: ${pickedSlot.who.map((w) => nameOf.get(w) || '?').join(', ')}` : ''}
         </p>
       )}
-      <p className="hint meet-key">진할수록 되는 사람이 많아요 · 노란 점 = 내가 되는 칸 · 남에게는 내 일정이 이름 없이 '바쁨'으로만 보여요</p>
+      <p className="hint meet-key">진할수록 되는 사람이 많아요 · 흰 점 = 내가 되는 칸 · 남에게는 내 일정이 이름 없이 '바쁨'으로만 보여요</p>
     </section>
   );
 }

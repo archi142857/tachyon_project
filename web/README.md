@@ -49,11 +49,13 @@ npm run build      # dist/
 | `src/themes.css` | 테마마다 값 묶음(메뉴 → 테마) |
 | `src/components/TogetherPage.jsx` · `MeetGrid.jsx` · `JoinSheet.jsx` · `src/meet.js` · `src/togetherExample.js` | '같이' 쪽: 친구·그룹·모임 시간표(when2meet 모양), 초대 링크 받기, 후보 고르기, 예시 자료 |
 | `src/shell.css` | 앱 틀: 100dvh 꽉 찬 화면, 문서는 안 굴리고 칸 안에서만, 넓은 화면(900px~) 왼쪽 메뉴 · 폰 위 탭, 오늘 쪽 칸 배치, 주·월 달력, 밀도 고리, 할 일 쪽. 색은 모두 `var(--…)`라 테마를 따른다 |
+| `src/shape.css` | ③ 바우하우스 모양 층(디자인 `components.css` 셋째 묶음 그대로): 하루 고리 ● □ ▲·바깥 테, 달력 칸 앞 모양, 월 보기 모양, 밀도 고리 색, '같이' 쪽 흰 점·후보 칩. shell.css 다음에 부른다 |
 | `public/` | `manifest.webmanifest`, `sw.js`, `_headers`, `icons/` |
 
 ## 정한 것
 
-- 색은 `styles.css`의 `:root` 한 곳(기본 테마 '② 차분한 종이'), 다른 테마는 `themes.css`. 새 색 값 이름을 만들면 `themes.css` 각 블록에도 넣는다(`themes.test.js`가 잰다). 로고·전용 글꼴은 쓰지 않는다.
+- 색은 `styles.css`의 `:root` 한 곳(기본 테마 '③ 바우하우스', 11-11부터), 다른 테마(11-11까지의 기본 '② 차분한 종이' 포함)는 `themes.css`. 새 색 값 이름을 만들면 `themes.css` 각 블록에도 넣는다(`themes.test.js`가 잰다). 앱을 열 때는 테마 이름을 적지 않고 테마 창에서 고를 때만 적는다 — 다음에 기본이 바뀌어도 고르지 않은 기기는 새 기본을 따른다.
+- 글꼴은 앱 안에 싣는다(바깥 글꼴 주소를 부르지 않음): 본문 Pretendard(`pretendard`, 화면에 나온 글자 조각만 받는 dynamic subset), 바우하우스 제목·날짜·숫자 Jost(`@fontsource-variable/jost`). 둘 다 SIL OFL 1.1 — [디자인 가이드 '글꼴'](../docs/tachyon/디자인/디자인_가이드.md).
 - 아이콘 원본은 `public/icons/icon.svg`·`icon-maskable.svg`. PNG는 다시 만든다:
   `rsvg-convert -w 512 icon.svg -o icon-512.png` (192, maskable 512, apple-touch 180도 같은 방법).
 - 서비스 워커는 화면 파일만 저장하고 `/api`(개인 자료)는 저장하지 않는다.

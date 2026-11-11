@@ -1,8 +1,27 @@
 /* 테마: 화면 구조는 그대로 두고 색·모서리·글꼴 값 묶음만 바꾼다.
-   기본 테마(차분한 종이)의 값은 styles.css 맨 위에 있고, 여기에는 나머지 테마가 블록 하나씩 있다.
+   기본 테마(바우하우스)의 값은 styles.css 맨 위에 있고, 여기에는 나머지 테마가 블록 하나씩 있다.
    새 테마 = 블록 하나를 더하고 themes.js의 BUILT_IN에 이름을 적는다(docs/tachyon/디자인/테마_만드는_법.md).
    글자와 바탕의 대비는 themes.test.js가 잰다(npm test). html[…]은 실제 화면, […]은 테마 고르기 창의 색 견본이다. */
 
+/* 차분한 종이: 따뜻한 종이색 바탕, 남색 잉크, 고운바탕 제목 (11-10에 고른 ②, 11-11까지의 기본) */
+html[data-theme='차분한 종이'], [data-theme='차분한 종이'] {
+  --bg: #efebe2; --card: #fbf9f4; --inset: #fffdf8; --raised: #fbf9f4;
+  --heading: #23305e; --text: #23305e; --text2: #574e3f; --text3: #655d4e;
+  --line: #e6dfcf; --grid: #ece6d8; --line-strong: #8c8169;
+  --fill: #e9e3d6; --bubble: #efe8d8;
+  --accent: #23305e; --accent-press: #18213f; --accent-text: #23305e; --on-accent: #fdf8e6; --focus: #23305e;
+  --warn: #8f3807; --warn-bg: #fbe7d6; --danger: #9b0032;
+  --stamp: #c62f2f; --highlight: #f3d65f; --postit: #fdf1bf; --postit-text2: #574d2a; --postit-unknown: #6a5f33;
+  --now: #c62f2f; --dot-off: #b3aa98; --today-wash: #faf5e2;
+  --ev-class: #cbddee; --ev-ics: #cdb4eb; --ev-memo: #eda9a8;
+  --mark-class: #3d6fa5; --mark-task: #f3d65f; --ev-mine-line: transparent;
+  --snack-bg: #23305e; --snack-text: #fdf8e6; --snack-action: #c9d4f6;
+  --scrim: #23305e66; --shadow: 0 6px 16px #23305e29;
+  --r-chip: 3px; --r-postit: 4px; --r-card: 6px; --r-btn: 6px; --r-bubble: 8px; --r-sheet: 10px;
+  --font-head: 'Gowun Batang', 'Noto Serif KR', AppleMyungjo, Batang, serif;
+  --map-bg: #f4f2ec; --map-dot: #cfcac0; --map-halo: #ffffff; --map-route: #23305e; --map-pin: #23305e; --map-pin-text: #ffffff; --map-label: #3a3a3a;
+  color-scheme: light;
+}
 /* 입자 밤: 검은 바탕에 보라·청록 (팀원 시연 9판의 어두운 쪽) */
 html[data-theme='입자 밤'], [data-theme='입자 밤'] {
   --bg: #040406; --card: #0b0b0e; --inset: #0c0c10; --raised: #15151b;
@@ -12,12 +31,13 @@ html[data-theme='입자 밤'], [data-theme='입자 밤'] {
   --accent: #8f7bff; --accent-press: #7a64f0; --accent-text: #a99aff; --on-accent: #0b0714; --focus: #35e0c0;
   --warn: #ffb86b; --warn-bg: #33210c; --danger: #ff7a8a;
   --stamp: #ff7a8a; --highlight: #5a4a10; --postit: #2a2610; --postit-text2: #cfc79a; --postit-unknown: #b5ad82;
-  --now: #35e0c0; --dot-off: #4a4858; --today-wash: #111018;
+  --now: #ff5a5a; --dot-off: #4a4858; --today-wash: #111018;
   --ev-class: #2a2466; --ev-ics: #0f4a41; --ev-memo: #5a2440;
   --snack-bg: #f2f1f7; --snack-text: #0b0b0e; --snack-action: #5f49dc;
   --scrim: #000000a6; --shadow: 0 8px 24px #000000a6;
   --r-chip: 6px; --r-postit: 8px; --r-card: 16px; --r-btn: 12px; --r-bubble: 14px; --r-sheet: 20px;
   --map-bg: #0f0f14; --map-dot: #2c2b38; --map-halo: #040406; --map-route: #8f7bff; --map-pin: #8f7bff; --map-pin-text: #0b0714; --map-label: #d6d3e4;
+  --mark-class: #8f7bff; --mark-task: #f5c84c; --ev-mine-line: transparent;
   color-scheme: dark;
 }
 
@@ -30,12 +50,13 @@ html[data-theme='입자 낮'], [data-theme='입자 낮'] {
   --accent: #5f49dc; --accent-press: #4c38c2; --accent-text: #5540d0; --on-accent: #ffffff; --focus: #5f49dc;
   --warn: #8a4300; --warn-bg: #fbe6cf; --danger: #b3123c;
   --stamp: #b3123c; --highlight: #f5dc7a; --postit: #fdf1bf; --postit-text2: #574d2a; --postit-unknown: #6a5f33;
-  --now: #0a8a74; --dot-off: #b9b3c4; --today-wash: #f7f2ff;
+  --now: #d42a3c; --dot-off: #b9b3c4; --today-wash: #f7f2ff;
   --ev-class: #d9d2fb; --ev-ics: #bfe9df; --ev-memo: #f8cfd6;
   --snack-bg: #1d1b22; --snack-text: #fcf9f3; --snack-action: #c3b9ff;
   --scrim: #1d1b2266; --shadow: 0 8px 24px #1d1b2224;
   --r-chip: 6px; --r-postit: 8px; --r-card: 16px; --r-btn: 12px; --r-bubble: 14px; --r-sheet: 20px;
   --map-bg: #f1ede3; --map-dot: #d2ccbf; --map-halo: #ffffff; --map-route: #5f49dc; --map-pin: #5f49dc; --map-pin-text: #ffffff; --map-label: #3a3740;
+  --mark-class: #5f49dc; --mark-task: #f2c94c; --ev-mine-line: transparent;
   color-scheme: light;
 }
 
@@ -48,12 +69,13 @@ html[data-theme='벤토 위젯'], [data-theme='벤토 위젯'] {
   --accent: #182033; --accent-press: #0d1322; --accent-text: #2457e6; --on-accent: #ffffff; --focus: #2f6bff;
   --warn: #a03d00; --warn-bg: #ffe7d9; --danger: #c4162f;
   --stamp: #ff6a2b; --highlight: #d7f36a; --postit: #f3fbd0; --postit-text2: #4a5320; --postit-unknown: #5b6430;
-  --now: #e2531a; --dot-off: #c3c7cf; --today-wash: #f2f6ff;
+  --now: #dc2f2a; --dot-off: #c3c7cf; --today-wash: #f2f6ff;
   --ev-class: #d5e1ff; --ev-ics: #cfeee6; --ev-memo: #ffdccb;
   --snack-bg: #182033; --snack-text: #ffffff; --snack-action: #d7f36a;
   --scrim: #11131766; --shadow: 0 10px 30px #1113171f;
   --r-chip: 8px; --r-postit: 10px; --r-card: 22px; --r-btn: 14px; --r-bubble: 16px; --r-sheet: 26px;
   --map-bg: #eef0f3; --map-dot: #cfd3da; --map-halo: #ffffff; --map-route: #2f6bff; --map-pin: #182033; --map-pin-text: #ffffff; --map-label: #2c313b;
+  --mark-class: #2f6bff; --mark-task: #d7f36a; --ev-mine-line: transparent;
   color-scheme: light;
 }
 
@@ -66,12 +88,13 @@ html[data-theme='조용한 갤러리'], [data-theme='조용한 갤러리'] {
   --accent: #0c0c0c; --accent-press: #2a2a2a; --accent-text: #c4006a; --on-accent: #ffffff; --focus: #e6007a;
   --warn: #8f3d00; --warn-bg: #fdebd8; --danger: #c1121f;
   --stamp: #e6007a; --highlight: #ffd6ea; --postit: #fff3c4; --postit-text2: #574d2a; --postit-unknown: #6a5f33;
-  --now: #e6007a; --dot-off: #c4c4c4; --today-wash: #fff5fa;
+  --now: #d9003a; --dot-off: #c4c4c4; --today-wash: #fff5fa;
   --ev-class: #e3e3e3; --ev-ics: #f9d3e6; --ev-memo: #d9e6f2;
   --snack-bg: #0c0c0c; --snack-text: #ffffff; --snack-action: #ff8cc6;
   --scrim: #0c0c0c66; --shadow: 0 8px 28px #0000001f;
   --r-chip: 2px; --r-postit: 2px; --r-card: 2px; --r-btn: 2px; --r-bubble: 4px; --r-sheet: 4px;
   --map-bg: #f2f2f2; --map-dot: #d0d0d0; --map-halo: #ffffff; --map-route: #e6007a; --map-pin: #0c0c0c; --map-pin-text: #ffffff; --map-label: #333333;
+  --mark-class: #0c0c0c; --mark-task: #ffd6ea; --ev-mine-line: transparent;
   color-scheme: light;
 }
 
@@ -84,7 +107,7 @@ html[data-theme='호박색 터미널'], [data-theme='호박색 터미널'] {
   --accent: #ffb000; --accent-press: #e09a00; --accent-text: #ffd27a; --on-accent: #100b03; --focus: #ffd27a;
   --warn: #ffd27a; --warn-bg: #3a2805; --danger: #ff6a3d;
   --stamp: #ff6a3d; --highlight: #5c3f00; --postit: #2a1d04; --postit-text2: #cf9020; --postit-unknown: #b07a1a;
-  --now: #ff6a3d; --dot-off: #5c400d; --today-wash: #1c1406;
+  --now: #ff4d3d; --dot-off: #5c400d; --today-wash: #1c1406;
   --ev-class: #3d2a00; --ev-ics: #4a2a0c; --ev-memo: #55200f;
   --snack-bg: #ffb000; --snack-text: #100b03; --snack-action: #5c2a00;
   --scrim: #000000b3; --shadow: 0 0 0 1px #3a2805;
@@ -92,5 +115,6 @@ html[data-theme='호박색 터미널'], [data-theme='호박색 터미널'] {
   --font: ui-monospace, 'SF Mono', 'D2Coding', 'Nanum Gothic Coding', Menlo, Consolas, monospace;
   --font-head: ui-monospace, 'SF Mono', 'D2Coding', 'Nanum Gothic Coding', Menlo, Consolas, monospace;
   --map-bg: #171005; --map-dot: #3a2805; --map-halo: #100b03; --map-route: #ffb000; --map-pin: #ffb000; --map-pin-text: #100b03; --map-label: #ffd27a;
+  --mark-class: #ffd27a; --mark-task: #cf9020; --ev-mine-line: transparent;
   color-scheme: dark;
 }
