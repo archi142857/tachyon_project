@@ -184,6 +184,18 @@ export async function getWeekEvents(start) {
   return { events: res.events.map(normalizeEvent) };
 }
 
+// 아무 기간의 일정(from 0시부터 days일, 서버는 한 번에 62일까지). 달력 월 보기·밀도(오늘부터 6주)가 쓴다(11-11 컨셉)
+export async function getEvents(from, days) {
+  const to = addDays(from, days);
+  if (ex) {
+    const start = new Date(from);
+    return reply({ events: ex.events.map(normalizeEvent).filter((e) => new Date(e.start) < to && new Date(e.end || e.start) >= start) });
+  }
+  const day = (d) => toKstIso(d).slice(0, 10);
+  const res = await call('GET', `/api/events?from=${day(from)}&to=${day(to)}`);
+  return { events: res.events.map(normalizeEvent) };
+}
+
 export function setTaskDone(id, done) {
   if (ex) {
     const task = ex.tasks.find((t) => t.id === id);

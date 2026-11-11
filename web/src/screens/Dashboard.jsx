@@ -1,27 +1,31 @@
-// 대시보드(시안 A, 손그림 2): 할 일 3개 · 메모(나와의 채팅) · 주간 달력 · 아래 긴 메모 칸.
-// 일정처럼 보이는 메모를 보내면 메모 옆에 '이대로 저장할까요?' 팝업이 뜬다. 나머지 기능은 햄버거 메뉴.
+// 대시보드 틀(11-11 사람 피드백 → 컨셉): 모든 기기에서 화면을 꽉 채우고, 전체 화면은 스크롤하지 않고 칸 안에서만 스크롤한다.
+// 넓은 화면(900px부터) = 왼쪽 메뉴(오늘 · 달력 · 할 일 · 메모) + 오른쪽 내용, 폰 = 위 막대 + 작은 탭 + 한 번에 한 칸(덜 복잡하게).
+// 모양은 dhsrua555 시연 9판(100dvh 앱 틀)을 차분한 종이 색으로. 메모 칸은 늘 맨 아래.
+// 일정처럼 보이는 메모를 보내면 메모 칸 바로 위에 '이대로 저장할까요?' 팝업이 뜬다. 설정은 햄버거 메뉴.
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as api from '../api.js';
 import { dayLegs, loadCampus } from '../campus.js';
 import CalendarSheet from '../components/CalendarSheet.jsx';
-import DeleteAccount from '../components/DeleteAccount.jsx';
 import Composer from '../components/Composer.jsx';
+import DeleteAccount from '../components/DeleteAccount.jsx';
 import DoneSheet from '../components/DoneSheet.jsx';
 import { EventEditSheet, TaskEditSheet } from '../components/EditSheets.jsx';
 import EtlSheet from '../components/EtlSheet.jsx';
 import FeedbackSheet from '../components/FeedbackSheet.jsx';
+import Icon from '../components/Icon.jsx';
 import InstallSheet from '../components/InstallSheet.jsx';
 import MemoCard from '../components/MemoCard.jsx';
 import MemoPopup from '../components/MemoPopup.jsx';
+import MonthCalendar from '../components/MonthCalendar.jsx';
 import Sheet from '../components/Sheet.jsx';
 import Snackbar from '../components/Snackbar.jsx';
-import TasksCard, { TaskRow } from '../components/TasksCard.jsx';
+import TaskList from '../components/TaskList.jsx';
 import ThemeSheet from '../components/ThemeSheet.jsx';
 import TodayView from '../components/TodayView.jsx';
-import TopBar from '../components/TopBar.jsx';
 import TtwSheet from '../components/TtwSheet.jsx';
-import WeekCalendar, { PAGES } from '../components/WeekCalendar.jsx';
-import { WEEKDAYS, addDays, dayIndex, dayStart, kst } from '../time.js';
+import WeekCalendar from '../components/WeekCalendar.jsx';
+import { PLAN_DAYS, dateKey, eventOnlyDay, planDensity } from '../density.js';
+import { WEEKDAYS, addDays, dayStart, kst, monthGrid, sameDay, shiftMonth, shortDate } from '../time.js';
 
 function useNow() {
   const [now, setNow] = useState(() => new Date());
@@ -38,21 +42,54 @@ const sheetKey = (sheet) => (!sheet ? '' : typeof sheet === 'string' ? sheet : s
 // 이미 홈 화면 앱이거나 Capacitor 앱이면 '홈 화면에 추가'를 숨긴다
 const standalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true || !!window.Capacitor?.isNativePlatform?.();
 
+const PAGES = [
+  ['today', '오늘'],
+  ['cal', '달력'],
+  ['tasks', '할 일'],
+  ['memo', '메모'],
+];
+const PANES = [
+  ['ring', '하루'],
+  ['day', '일정'],
+  ['tasks', '할 일'],
+];
+
+// 두 목록을 id로 합친다(같은 일정이 오늘부터 6주 목록과 보이는 달력 목록에 같이 있을 수 있다)
+function mergeEvents(a, b) {
+  const seen = new Map();
+  for (const ev of [...a, ...b]) seen.set(ev.id, ev);
+  return [...seen.values()];
+}
+
+function Segmented({ label, items, value, onChange }) {
+  return (
+    <div className="segmented" role="group" aria-label={label}>
+      {items.map(([key, text]) => (
+        <button key={key} type="button" aria-pressed={value === key} onClick={() => onChange(key)}>
+          {text}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup, onLogout, onDeleted }) {
   const now = useNow();
-  // 주간 달력은 오늘부터 7일(오늘이 늘 맨 앞). 다음 장은 그다음 7일. 자정이 지나면 저절로 하루 밀린다.
-  const today = dayStart(now).toISOString();
-  const [page, setPage] = useState(0);
-  const [view, setView] = useState('today'); // 'today' = 오늘 화면(하루 고리), 'week' = 주간 달력
-  const start = addDays(today, page * 7).toISOString();
+  const today = dayStart(now).toISOString(); // 자정이 지나면 저절로 하루 밀린다
+  const [page, setPage] = useState('today');
+  const [pane, setPane] = useState('ring'); // 폰의 오늘 쪽에서 보이는 한 칸
+  const [calMode, setCalMode] = useState('week');
+  const [weekFrom, setWeekFrom] = useState(today); // 주간 달력 첫 칸(처음엔 오늘)
+  const [month, setMonth] = useState(() => ({ y: kst(now).y, m: kst(now).m }));
 
-  const [events, setEvents] = useState([]);
+  const [planEvents, setPlanEvents] = useState([]); // 오늘부터 6주: 오늘 화면 · 밀도
+  const [calEvents, setCalEvents] = useState([]); // 달력에 보이는 기간
   const [rank, setRank] = useState({ tasks: [], warning: null });
   const [memos, setMemos] = useState([]);
   const [popup, setPopup] = useState(null); // { memoId, popup }
   const [waiting, setWaiting] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [sheet, setSheet] = useState(null); // 'menu' | 'tasks' | 'done' | 'feedback' | 'install' | 'calendar' | 'etl' | 'theme' | { event } | { task }
+  const [sheet, setSheet] = useState(null); // 'menu' | 'done' | 'feedback' | 'install' | 'calendar' | 'etl' | 'theme' | 'delete' | { event } | { task }
   const [snack, setSnack] = useState(null);
   // TT Wizard의 'Tachyon으로 보내기'로 들어왔으면(App.jsx가 받아 둔 #ttw=…) 그 시간표 창을 바로 연다(11-11 컨셉)
   const [ttwFrom] = useState(ttwLink || null);
@@ -61,14 +98,41 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadWeek = useCallback(
+  // 전체 화면이 스크롤되지 않게(칸 안에서만). 로그인·첫 설정 화면은 그대로 스크롤된다
+  useEffect(() => {
+    document.documentElement.classList.add('locked');
+    return () => document.documentElement.classList.remove('locked');
+  }, []);
+
+  // 자정이 지나 오늘이 바뀌면 주간 달력이 오늘에 있던 경우 함께 민다
+  const [lastToday, setLastToday] = useState(today);
+  if (lastToday !== today) {
+    setLastToday(today);
+    if (weekFrom === lastToday) setWeekFrom(today);
+  }
+
+  const calRange = useMemo(() => (calMode === 'week' ? [weekFrom, 7] : [monthGrid(month.y, month.m)[0].toISOString(), 42]), [calMode, weekFrom, month]);
+
+  const loadPlan = useCallback(
     () =>
       api
-        .getWeekEvents(start)
-        .then((r) => setEvents(r.events))
+        .getEvents(today, PLAN_DAYS)
+        .then((r) => setPlanEvents(r.events))
         .catch(() => setSnack({ text: '일정을 불러오지 못했어요' })),
-    [start],
+    [today],
   );
+  const loadCal = useCallback(
+    () =>
+      api
+        .getEvents(calRange[0], calRange[1])
+        .then((r) => setCalEvents(r.events))
+        .catch(() => setSnack({ text: '달력을 불러오지 못했어요' })),
+    [calRange],
+  );
+  const loadEvents = useCallback(() => {
+    loadPlan();
+    loadCal();
+  }, [loadPlan, loadCal]);
   const loadRank = useCallback(
     () =>
       api
@@ -78,8 +142,11 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
     [],
   );
   useEffect(() => {
-    loadWeek();
-  }, [loadWeek]);
+    loadPlan();
+  }, [loadPlan]);
+  useEffect(() => {
+    loadCal();
+  }, [loadCal]);
   useEffect(() => {
     loadRank();
   }, [loadRank]);
@@ -90,16 +157,27 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
       .catch(() => setSnack({ text: '메모를 불러오지 못했어요' }));
   }, []);
 
+  const allEvents = useMemo(() => mergeEvents(planEvents, calEvents), [planEvents, calEvents]);
+
   // 수업 사이 동선(TT Wizard 걷는 시간): 장소가 있는 일정이 보이면 캠퍼스 표를 한 번 받아 둔다
   const [campus, setCampus] = useState(null);
-  const hasPlace = events.some((e) => e.place);
+  const hasPlace = allEvents.some((e) => e.place);
   useEffect(() => {
     if (!campus && hasPlace) loadCampus().then(setCampus, () => {});
   }, [campus, hasPlace]);
-  const legs = useMemo(() => dayLegs(events, campus), [events, campus]);
+  const legs = useMemo(() => dayLegs(allEvents, campus), [allEvents, campus]);
+
+  const openTasks = useMemo(() => rank.tasks.filter((t) => !t.done), [rank.tasks]);
+
+  // 날마다 밀도(오늘부터 6주). 지난날·6주 밖은 일정만
+  const plan = useMemo(() => planDensity({ events: planEvents, tasks: openTasks, now }), [planEvents, openTasks, now]);
+  const densityOf = useMemo(() => {
+    const byKey = new Map(plan.map((d) => [d.key, d]));
+    const start = dayStart(now).getTime();
+    return (date) => byKey.get(dateKey(date)) || eventOnlyDay(allEvents, date, new Date(date).getTime() < start);
+  }, [plan, allEvents, now]);
 
   const closeSnack = useCallback(() => setSnack(null), []);
-  const goPage = (p) => setPage(Math.max(0, Math.min(PAGES - 1, p)));
 
   /* 메모 → 즉시 팝업 */
   async function sendMemo(text) {
@@ -118,6 +196,12 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
     }
   }
 
+  function showWeekOf(date) {
+    setPage('cal');
+    setCalMode('week');
+    setWeekFrom(dayStart(date).toISOString());
+  }
+
   async function savePopup(fields, changeId, weekly) {
     setBusy(true);
     try {
@@ -131,19 +215,17 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
         return;
       }
       const { event, repeat } = await api.savePopup(popup.memoId, fields, popup.popup, changeId, weekly);
-      if (repeat) setSnack({ text: `매주 같은 요일로 ${repeat}번 넣었어요` });
       setMemos((m) => m.map((x) => (x.id === popup.memoId ? { ...x, handled: 1, event_id: event.id } : x)));
       setPopup(null);
       const shown = api.normalizeEvent(event);
-      const weeksAhead = Math.floor((Date.parse(shown.start) - Date.parse(today)) / (7 * 24 * 3600 * 1000));
-      if (changeId) setEvents((list) => list.filter((e) => e.id !== changeId)); // 옮긴 옛 일정은 바로 빠진다
-      if (weeksAhead >= 0 && weeksAhead < PAGES && weeksAhead !== page) {
-        setPage(weeksAhead);
-        setView('week'); // 다른 주에 넣은 일정은 주간 달력에서 보여 준다
-      } else {
-        if (weeksAhead === page) setEvents((list) => [...list.filter((e) => e.id !== shown.id), shown]); // 바로 보이고, 서버 목록으로 다시 맞춘다
-        loadWeek();
+      if (changeId) {
+        setPlanEvents((list) => list.filter((e) => e.id !== changeId)); // 옮긴 옛 일정은 바로 빠진다
+        setCalEvents((list) => list.filter((e) => e.id !== changeId));
       }
+      if (sameDay(shown.start, now)) setPlanEvents((list) => [...list.filter((e) => e.id !== shown.id), shown]); // 바로 보이고, 서버 목록으로 다시 맞춘다
+      loadEvents();
+      if (repeat) setSnack({ text: `매주 같은 요일로 ${repeat}번 넣었어요` });
+      else if (!sameDay(shown.start, now)) setSnack({ text: `${shortDate(shown.start)}에 넣었어요`, actionLabel: '달력에서 보기', onAction: () => showWeekOf(shown.start) });
     } catch {
       setSnack({ text: '저장하지 못했어요. 다시 해 주세요' });
     } finally {
@@ -185,7 +267,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
   async function saveEvent(id, fields) {
     await api.updateEvent(id, fields);
     setSheet(null);
-    loadWeek();
+    loadEvents();
   }
 
   async function saveTask(id, fields) {
@@ -198,9 +280,10 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
   async function deleteEvent(event) {
     await api.deleteEvent(event.id);
     setSheet(null);
-    setEvents((list) => list.filter((e) => e.id !== event.id));
+    setPlanEvents((list) => list.filter((e) => e.id !== event.id));
+    setCalEvents((list) => list.filter((e) => e.id !== event.id));
     setMemos((m) => m.map((x) => (x.event_id === event.id ? { ...x, event_id: null } : x)));
-    loadWeek();
+    loadEvents();
     setSnack({ text: `‘${event.title}’ 지웠어요` });
   }
 
@@ -213,74 +296,136 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
     setSnack({ text: `‘${task.title}’ 지웠어요` });
   }
 
-  const openTasks = rank.tasks.filter((t) => !t.done);
-  const activeMemo = popup?.memoId;
   const date = kst(now);
-  const memoWrap = (
-    <div className="memo-wrap">
-      <MemoCard memos={memos} now={now} activeId={activeMemo} waiting={waiting} />
-      {popup && <MemoPopup key={popup.memoId} popup={popup.popup} busy={busy} onSave={savePopup} onCancel={cancelPopup} />}
-    </div>
-  );
+  const dateText = `${date.m}월 ${date.d}일 ${WEEKDAYS[date.wd]}요일`;
+  const memoCard = <MemoCard memos={memos} now={now} activeId={popup?.memoId} waiting={waiting} />;
+
+  // 쪽마다 머리 줄에 붙는 고르기
+  const controls =
+    page === 'today' ? (
+      <span className="only-narrow">
+        <Segmented label="오늘 보기" items={PANES} value={pane} onChange={setPane} />
+      </span>
+    ) : page === 'cal' ? (
+      <Segmented
+        label="달력 보기"
+        items={[
+          ['week', '주'],
+          ['month', '월'],
+        ]}
+        value={calMode}
+        onChange={setCalMode}
+      />
+    ) : null;
 
   return (
-    <>
-      <TopBar example={example} onFeedback={() => setSheet('feedback')} onMenu={() => setSheet('menu')} />
-      <div className="today-head">
-        <span className="date num">
-          {date.m}월 {date.d}일 {WEEKDAYS[date.wd]}요일
-        </span>
-        <span className="grow" />
-        <div className="segmented" role="group" aria-label="보기">
-          <button type="button" aria-pressed={view === 'today'} onClick={() => (setView('today'), setPage(0))}>
-            오늘
-          </button>
-          <button type="button" aria-pressed={view === 'week'} onClick={() => setView('week')}>
-            주간
-          </button>
+    <div className="shell">
+      <aside className="side">
+        <div className="side-brand">
+          <h1 className="wordmark">Tachyon</h1>
+          {example && <span className="tag">예시 자료</span>}
         </div>
+        <nav className="side-nav" aria-label="쪽">
+          {PAGES.map(([key, label]) => (
+            <button key={key} type="button" aria-current={page === key ? 'page' : undefined} onClick={() => setPage(key)}>
+              {label}
+              {key === 'tasks' && openTasks.length > 0 && <span className="count num">{openTasks.length}</span>}
+            </button>
+          ))}
+        </nav>
+      </aside>
+
+      <div className="main">
+        <header className="topbar">
+          <h1 className="wordmark only-narrow">Tachyon</h1>
+          {example && <span className="tag only-narrow">예시 자료</span>}
+          <span className="date only-wide num">{dateText}</span>
+          <span className="only-wide">{controls}</span>
+          <span className="grow" />
+          <button type="button" className="btn-text" onClick={() => setSheet('feedback')}>
+            의견
+          </button>
+          <button type="button" className="icon-btn" aria-label="메뉴" onClick={() => setSheet('menu')}>
+            <Icon name="menu" />
+          </button>
+        </header>
+        <nav className="tabs only-narrow" aria-label="쪽">
+          {PAGES.map(([key, label]) => (
+            <button key={key} type="button" aria-current={page === key ? 'page' : undefined} onClick={() => setPage(key)}>
+              {label}
+            </button>
+          ))}
+        </nav>
+        {(page === 'today' || page === 'cal') && (
+          <div className="subbar only-narrow">
+            <span className="date num">{page === 'today' ? dateText : ''}</span>
+            <span className="grow" />
+            {controls}
+          </div>
+        )}
+
+        <main className={`page page-${page}`} data-pane={pane}>
+          {page === 'today' && (
+            <div className="today-grid">
+              <TodayView
+                today={today}
+                events={planEvents}
+                tasks={openTasks.slice(0, 6)}
+                total={openTasks.length}
+                now={now}
+                onDone={doneTask}
+                onEvent={(event) => setSheet({ event })}
+                onTask={(task) => setSheet({ task })}
+                onAll={() => setPage('tasks')}
+                onWeek={() => showWeekOf(today)}
+              />
+              <div className="today-memo only-xl">{memoCard}</div>
+            </div>
+          )}
+          {page === 'cal' &&
+            (calMode === 'week' ? (
+              <WeekCalendar
+                start={weekFrom}
+                events={calEvents}
+                tasks={openTasks}
+                now={now}
+                density={densityOf}
+                isCurrent={weekFrom === today}
+                onPrev={() => setWeekFrom(addDays(weekFrom, -7).toISOString())}
+                onNext={() => setWeekFrom(addDays(weekFrom, 7).toISOString())}
+                onToday={() => setWeekFrom(today)}
+                onEvent={(event) => setSheet({ event })}
+                onTask={(task) => setSheet({ task })}
+                legs={legs}
+              />
+            ) : (
+              <MonthCalendar
+                anchor={month}
+                events={calEvents}
+                tasks={openTasks}
+                now={now}
+                density={densityOf}
+                onPrev={() => setMonth((m) => shiftMonth(m, -1))}
+                onNext={() => setMonth((m) => shiftMonth(m, 1))}
+                onToday={() => setMonth({ y: date.y, m: date.m })}
+                onDay={(day) => showWeekOf(day)}
+              />
+            ))}
+          {page === 'tasks' && (
+            <div className="tasks-grid">
+              <TaskList tasks={openTasks} now={now} plan={plan} onDone={doneTask} onEdit={(task) => setSheet({ task })} onDoneList={() => setSheet('done')} />
+            </div>
+          )}
+          {page === 'memo' && <div className="memo-page">{memoCard}</div>}
+        </main>
+
+        {popup && <MemoPopup key={popup.memoId} popup={popup.popup} busy={busy} onSave={savePopup} onCancel={cancelPopup} />}
+        <Composer onSend={sendMemo} />
       </div>
-      {view === 'today' ? (
-        <main className="dash today">
-          <TodayView
-            today={today}
-            events={events}
-            tasks={openTasks.slice(0, 5)}
-            total={openTasks.length}
-            now={now}
-            onDone={doneTask}
-            onEvent={(event) => setSheet({ event })}
-            onTask={(task) => setSheet({ task })}
-            onAll={() => setSheet('tasks')}
-            onWeek={() => setView('week')}
-          />
-          {memoWrap}
-        </main>
-      ) : (
-        <main className="dash">
-          <TasksCard tasks={openTasks.slice(0, 3)} warning={rank.warning} now={now} onDone={doneTask} onEdit={(task) => setSheet({ task })} />
-          {memoWrap}
-          <WeekCalendar
-            start={start}
-            events={events}
-            tasks={openTasks.filter((t) => dayIndex(start, t.due) >= 0)}
-            now={now}
-            page={page}
-            onPage={goPage}
-            onEvent={(event) => setSheet({ event })}
-            onTask={(task) => setSheet({ task })}
-            legs={legs}
-          />
-        </main>
-      )}
-      <Composer onSend={sendMemo} />
 
       {sheet === 'menu' && (
         <Sheet title="메뉴" onClose={() => setSheet(null)}>
           <div className="menu-list">
-            <button type="button" onClick={() => setSheet('tasks')}>
-              할 일 전체 <span className="tag num">{openTasks.length}</span>
-            </button>
             <button type="button" onClick={() => setSheet('done')}>
               끝낸 일
             </button>
@@ -316,16 +461,6 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
           </div>
         </Sheet>
       )}
-      {sheet === 'tasks' && (
-        <Sheet title="할 일 전체" onClose={() => setSheet(null)}>
-          <div>
-            {openTasks.length === 0 && <p className="hint">남은 할 일이 없어요</p>}
-            {openTasks.map((task) => (
-              <TaskRow key={task.id} task={task} now={now} onDone={doneTask} onEdit={(t) => setSheet({ task: t })} />
-            ))}
-          </div>
-        </Sheet>
-      )}
       {sheet === 'done' && (
         <DoneSheet
           now={now}
@@ -336,7 +471,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
           }}
         />
       )}
-      {sheet === 'feedback' && <FeedbackSheet screen="대시보드" onClose={() => setSheet(null)} onSent={(text) => setSnack({ text })} />}
+      {sheet === 'feedback' && <FeedbackSheet screen={`대시보드 · ${PAGES.find(([k]) => k === page)[1]}`} onClose={() => setSheet(null)} onSent={(text) => setSnack({ text })} />}
       {sheet === 'install' && <InstallSheet prompt={installPrompt} onClose={() => setSheet(null)} />}
       {sheet === 'calendar' && <CalendarSheet onClose={() => setSheet(null)} />}
       {sheet === 'ttw' && (
@@ -345,7 +480,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
           onClose={() => setSheet(null)}
           onSaved={(r) => {
             setSheet(null);
-            loadWeek();
+            loadEvents();
             setSnack({ text: `TT Wizard 시간표에서 수업 ${r.classes}개를 넣었어요(일정 ${r.saved}칸)` });
           }}
         />
@@ -360,7 +495,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
         <EtlSheet
           onClose={() => setSheet(null)}
           onChanged={() => {
-            loadWeek();
+            loadEvents();
             loadRank();
           }}
         />
@@ -370,7 +505,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
           event={sheet.event}
           leg={legs.get(sheet.event.id)}
           campus={campus}
-          events={events}
+          events={allEvents}
           onClose={() => setSheet(null)}
           onSave={(fields) => saveEvent(sheet.event.id, fields)}
           onDelete={() => deleteEvent(sheet.event)}
@@ -378,6 +513,6 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
       )}
       {sheet?.task && <TaskEditSheet task={sheet.task} onClose={() => setSheet(null)} onSave={(fields) => saveTask(sheet.task.id, fields)} onDelete={() => deleteTask(sheet.task)} />}
       {snack && <Snackbar {...snack} layer={sheetKey(sheet)} onDone={closeSnack} />}
-    </>
+    </div>
   );
 }

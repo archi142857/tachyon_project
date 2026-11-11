@@ -122,3 +122,58 @@ export function dayLabel(dateOrIso, now = new Date()) {
   if (a.y === y.y && a.m === y.m && a.d === y.d) return '어제';
   return `${a.m}월 ${a.d}일 (${WEEKDAYS[a.wd]})`;
 }
+
+// ── 마감 글(11-11 사람 "마감 시간 같은 게 안 보이니까 불편함") ──
+// 날짜·시각을 늘 함께 보인다: '마감 오늘 23:59 · 3시간 남음', '마감 내일 11/12(목) 23:59', '마감 11/14(토) 18:00 · D-3',
+// 지났으면 '마감 지남 · 11/9(월) 23:59', 모르면 '마감 ?'
+export function daysUntil(dateOrIso, now = new Date()) {
+  return Math.round((dayStart(dateOrIso) - dayStart(now)) / DAY);
+}
+
+export function shortDate(dateOrIso) {
+  const p = kst(dateOrIso);
+  return `${p.m}/${p.d}(${WEEKDAYS[p.wd]})`;
+}
+
+export function deadlineLabel(dueIso, now = new Date()) {
+  if (!dueIso) return '마감 ?';
+  const due = new Date(dueIso);
+  const at = `${shortDate(due)} ${hhmm(due)}`;
+  if (due < new Date(now)) return `마감 지남 · ${at}`;
+  const d = daysUntil(due, now);
+  if (d === 0) {
+    const left = Math.max(0, Math.round((due - new Date(now)) / 60000));
+    const h = Math.floor(left / 60);
+    const rest = h ? `${h}시간${left % 60 ? ` ${left % 60}분` : ''}` : `${left}분`;
+    return `마감 오늘 ${hhmm(due)} · ${rest} 남음`;
+  }
+  if (d === 1) return `마감 내일 ${at}`;
+  return `마감 ${at} · D-${d}`;
+}
+
+// 좁은 칩에 넣는 짧은 마감 글: 오늘 '23:59', 일주일 안 '목 23:59', 더 멀면 '11/20 23:59', 지났으면 '지남'
+export function deadlineShort(dueIso, now = new Date()) {
+  if (!dueIso) return '?';
+  const due = new Date(dueIso);
+  if (due < new Date(now)) return '지남';
+  const d = daysUntil(due, now);
+  const p = kst(due);
+  if (d === 0) return hhmm(due);
+  if (d < 7) return `${WEEKDAYS[p.wd]} ${hhmm(due)}`;
+  return `${p.m}/${p.d} ${hhmm(due)}`;
+}
+
+// ── 월 달력 ──
+// 그 달 1일이 든 주의 월요일부터 6주(42칸). 칸마다 그날 0시(한국 시간)
+export function monthGrid(y, m) {
+  const first = weekStart(fromKst(y, m, 1));
+  return Array.from({ length: 42 }, (_, i) => addDays(first, i));
+}
+
+// 달을 n개 옮긴다: ({y: 2026, m: 12}, 1) → {y: 2027, m: 1}
+export function shiftMonth({ y, m }, n) {
+  const k = y * 12 + (m - 1) + n;
+  return { y: Math.floor(k / 12), m: (k % 12) + 1 };
+}
+
+export const sameDay = (a, b) => dayStart(a).getTime() === dayStart(b).getTime();

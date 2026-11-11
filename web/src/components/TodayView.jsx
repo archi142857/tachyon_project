@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { layoutDay } from '../layout.js';
 import { dayEvents, daySlots, freeMinutes, hm } from '../slots.js';
-import { minuteOfDay } from '../time.js';
+import { deadlineLabel, deadlineShort, minuteOfDay } from '../time.js';
 import DayRing from './DayRing.jsx';
 import { TaskRow } from './TasksCard.jsx';
 
@@ -30,7 +30,7 @@ export default function TodayView({ today, events, tasks, total, now, onDone, on
   // 고를 수 있는 것 모두: 일정 + 넣어 본 자리
   const items = [
     ...busy.map(({ ev, from, to }) => ({ key: `e${ev.id}`, from, to, kind: kindOf(ev), title: ev.title, sub: ev.place, edit: () => onEvent(ev) })),
-    ...placed.map(({ task, slot, key }) => ({ key, from: slot[0], to: slot[1], kind: 'slot', title: task.title, sub: '넣어 본 자리', edit: () => onTask(task) })),
+    ...placed.map(({ task, slot, key }) => ({ key, from: slot[0], to: slot[1], kind: 'slot', title: task.title, sub: `넣어 본 자리 · ${deadlineLabel(task.due, now)}`, edit: () => onTask(task) })),
   ];
   const picked = items.find((x) => x.key === sel);
   const pick = (key) => setSel((s) => (s === key ? null : key));
@@ -88,7 +88,7 @@ export default function TodayView({ today, events, tasks, total, now, onDone, on
                   {hm(slot[0])}–{hm(slot[1])},{' '}
                 </span>
                 {task.title}
-                <span className="place">넣어 본 자리</span>
+                <span className="place">넣어 본 자리 · 마감 {deadlineShort(task.due, now)}</span>
               </div>
             ))}
             <div className="now-line" role="img" style={{ top: top(nowMin) }} aria-label={`지금 ${hm(nowMin)}`} />
