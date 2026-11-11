@@ -9,6 +9,7 @@ import Setup from './screens/Setup.jsx';
 export default function App() {
   const [screen, setScreen] = useState('loading'); // loading | login | setup | dashboard
   const screenRef = useRef(screen);
+  const ttwRef = useRef(undefined); // TT Wizard에서 보낸 시간표 링크(대시보드에 한 번만)
   screenRef.current = screen;
   const [user, setUser] = useState(null);
   const [again, setAgain] = useState(false);
@@ -35,6 +36,7 @@ export default function App() {
 
   useEffect(() => {
     if (new URLSearchParams(window.location.search).has('example') && !api.isExample()) api.startExample();
+    api.catchTtwLink(); // TT Wizard 'Tachyon으로 보내기'(…/#ttw=…)를 로그인 전에 받아 둔다(11-11 컨셉)
     if (inApp()) {
       listenAppLogin();
       listenAppResume(() => screenRef.current === 'dashboard' && !api.isExample());
@@ -69,6 +71,9 @@ export default function App() {
     setScreen('login');
   };
 
+  // TT Wizard에서 보낸 시간표(#ttw=…)는 대시보드를 처음 열 때 한 번만 넘긴다
+  if (screen === 'dashboard' && ttwRef.current === undefined) ttwRef.current = api.takeTtwLink();
+
   if (screen === 'loading') return null;
   if (screen === 'login')
     return (
@@ -99,6 +104,7 @@ export default function App() {
     <Dashboard
       example={api.isExample()}
       installPrompt={installPrompt}
+      ttwLink={ttwRef.current}
       onOpenSetup={() => {
         setAgain(true);
         setScreen('setup');

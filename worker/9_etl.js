@@ -35,7 +35,8 @@ import { seal, unseal } from './lib/secret.js';
 import { fail, json, readJson } from './lib/http.js';
 import { DAY_MS, KST_MS, kstDate, kstIso, kstMidnight } from './lib/time.js';
 import { logStatement } from './lib/log.js';
-import { semesterEnd } from './5_timetable_photo.js';
+import { expandWeekly, semesterEnd } from './5_timetable_photo.js';
+import { PROBLEM, codeOf, linkClasses, linkOf, readCode, toLinkItems, weeklyRows } from './ttwizard.js';
 
 export const ORIGIN = 'https://myetl.snu.ac.kr';
 const API = `${ORIGIN}/api/v1`;
@@ -53,6 +54,10 @@ const NEED_PER_USER = 20; // 한 사람을 시작하려면 남아 있어야 하�
 // 처음 쓸 때만 읽는다(350KB JSON — 상태 조회 같은 요청에는 읽지 않게).
 const OFFERINGS = {
   '2026년 2학기': () => import('../data/offerings/2026-2.json', { with: { type: 'json' } }),
+};
+// TT Wizard 시간표 링크의 학기 이름('2026-2') → 같은 편람(11-11 컨셉, worker/ttwizard.js)
+const OFFERINGS_BY_SEM = {
+  '2026-2': OFFERINGS['2026년 2학기'],
 };
 
 const MSG = {
@@ -76,7 +81,10 @@ export async function handle(request, env, ctx, user) {
       return json({ ok: true, result, ...(await status(env, user.id)) });
     }
     if (pathname === '/api/etl/items' && method === 'GET') return json({ ok: true, ...(await listItems(env, user.id)) });
-    if (['/api/etl', '/api/etl/collect', '/api/etl/items'].includes(pathname)) return fail(405, '그 방법으로는 안 받아요');
+    // TT Wizard 시간표 링크(11-11 사람 "TT Wizard랑 연동", 컨셉): POST = 살펴보기(save면 넣기), GET = Tachyon 수업 → TT Wizard 링크
+    if (pathname === '/api/etl/ttwizard' && method === 'POST') return ttwizardImport(request, env, user.id);
+    if (pathname === '/api/etl/ttwizard' && method === 'GET') return ttwizardExport(env, user.id);
+    if (['/api/etl', '/api/etl/collect', '/api/etl/items', '/api/etl/ttwizard'].includes(pathname)) return fail(405, '그 방법으로는 안 받아요');
     return fail(404, '없는 주소예요');
   } catch (err) {
     if (missingTable(err)) return fail(503, MSG.notReady); // 원격 D1에 표가 아직 없을 때(schema.sql 반영 전)
@@ -639,4 +647,85 @@ export function noticeEvents(notice, items, now = Date.now()) {
     out.push({ extId: `${notice.ext_id}-${i}`, title, start: when.start, end: when.end, place: it.place && it.place !== '?' ? String(it.place).trim() : null });
   });
   return out;
+}
+
+// ── TT Wizard 시간표 링크(11-11 컨셉) ─────────────────────────────
+// 넣기는 시간표 사진(5_timetable_photo.js saveClasses)과 같은 줄을 쓴다: source 'timetable', 오늘부터 학기 끝까지 매주,
+// 오늘부터의 시간표 일정을 지우고 새로 넣는다(다시 넣은 시간표가 이긴다). eTL API로 넣었던 앞으로의 수업(api-class-)도 지운다 —
+// 시간표가 생기면 eTL 동기화가 수업을 더 넣지 않아서, 남겨 두면 같은 수업이 두 번 보인다.
+const TTW_MAX_DAYS = 140;
+
+async function ttwizardImport(request, env, userId, now = Date.now()) {
+  const body = await readJson(request);
+  const code = codeOf(body && body.link);
+  if (!code) return fail(400, PROBLEM.broken);
+  const read = await readCode(code);
+  if (read.problem) return fail(400, PROBLEM[read.problem]);
+  const { link } = read;
+  const load = OFFERINGS_BY_SEM[link.sem];
+  if (!load) return fail(400, `지금은 ${Object.keys(OFFERINGS_BY_SEM).join('·')} 학기 시간표만 넣을 수 있어요(이 링크는 ${link.sem})`);
+  const book = (await load()).default;
+  const classes = linkClasses(link, book);
+  const rows = weeklyRows(classes);
+  if (!rows.length) return fail(400, PROBLEM.empty);
+  const from = kstDate(now);
+  const until = semesterEnd(from);
+  const existing = await env.DB.prepare(
+    "SELECT COUNT(*) AS n FROM events WHERE user_id = ? AND start >= ? AND (source = 'timetable' OR (source = 'etl' AND ext_id LIKE 'api-class-%'))",
+  )
+    .bind(userId, from)
+    .first();
+  const summary = classes.map((c) => ({ title: c.title, found: c.found, custom: c.custom, times: c.meetings.map(([d, s, e, b, r]) => ({ day: '월화수목금토일'[d], start: s, end: e, place: b ? (r ? `${b}동 ${r}` : `${b}동`) : null })) }));
+  if (!(body && body.save)) {
+    return json({ ok: true, sem: link.sem, title: link.title, classes: summary, from, until, replaces: existing ? existing.n : 0 });
+  }
+  const events = expandWeekly(rows, from, until > from ? until : from).slice(0, TTW_MAX_DAYS * 12);
+  const statements = [
+    env.DB.prepare("DELETE FROM events WHERE user_id = ? AND source = 'timetable' AND start >= ?").bind(userId, from),
+    env.DB.prepare("DELETE FROM events WHERE user_id = ? AND source = 'etl' AND ext_id LIKE 'api-class-%' AND start >= ?").bind(userId, from),
+  ];
+  for (let i = 0; i < events.length; i += 12) {
+    const chunk = events.slice(i, i + 12);
+    statements.push(
+      env.DB.prepare(
+        `INSERT INTO events (user_id, title, start, "end", place, source, ext_id) VALUES ${chunk.map(() => "(?, ?, ?, ?, ?, 'timetable', ?)").join(', ')}
+         ON CONFLICT (user_id, source, ext_id) DO UPDATE SET title = excluded.title, start = excluded.start, "end" = excluded."end", place = excluded.place`,
+      ).bind(...chunk.flatMap((e) => [userId, e.title, e.start, e.end, e.place, e.ext_id])),
+    );
+  }
+  statements.push(logStatement(env, userId, 'ttwizard_import', { classes: classes.length, events: events.length, missing: classes.filter((c) => !c.meetings.length).length }));
+  await env.DB.batch(statements);
+  return json({ ok: true, saved: events.length, classes: classes.length, from, until });
+}
+
+// 앞으로 2주의 매주 수업(시간표·eTL 수업) → TT Wizard 링크. 편람에서 이름·시각이 다 맞으면 강좌로, 아니면 직접 넣은 일정으로
+async function ttwizardExport(env, userId, now = Date.now()) {
+  const from = kstDate(now);
+  const to = kstDate(now + 14 * DAY_MS);
+  const { results } = await env.DB.prepare(
+    `SELECT title, start, "end", place FROM events
+      WHERE user_id = ? AND moved_to IS NULL AND start >= ? AND start < ? AND "end" IS NOT NULL
+        AND (source = 'timetable' OR (source = 'etl' AND ext_id LIKE 'api-class-%'))
+      ORDER BY start`,
+  )
+    .bind(userId, from, to)
+    .all();
+  const byTitle = new Map();
+  for (const r of results) {
+    const wd = (new Date(`${r.start.slice(0, 10)}T00:00:00Z`).getUTCDay() + 6) % 7;
+    const min = (iso) => Number(iso.slice(11, 13)) * 60 + Number(iso.slice(14, 16));
+    const m = /^(\S+)동(?:\s+(.+?))?(?:호)?$/.exec(r.place || '');
+    const slot = [wd, min(r.start), min(r.end) || 1440, m ? m[1] : '', m && m[2] ? m[2] : ''];
+    const list = byTitle.get(r.title) || [];
+    if (!list.some((x) => x[0] === slot[0] && x[1] === slot[1] && x[2] === slot[2])) list.push(slot);
+    byTitle.set(r.title, list);
+  }
+  if (!byTitle.size) return fail(404, '앞으로 2주 안에 TT Wizard로 넘길 수업이 없어요. eTL 연결이나 시간표 사진·TT Wizard 링크로 수업을 먼저 넣어 주세요');
+  const sem = Object.keys(OFFERINGS_BY_SEM)[0];
+  const book = (await OFFERINGS_BY_SEM[sem]()).default;
+  const items = toLinkItems(
+    [...byTitle].map(([title, meetings]) => ({ title, meetings })),
+    book,
+  );
+  return json({ ok: true, link: linkOf(sem, 'Tachyon에서', items), count: items.length, matched: items.filter(Array.isArray).length });
 }

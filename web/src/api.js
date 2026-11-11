@@ -371,3 +371,42 @@ export function getEtlItems() {
   if (ex) return reply({ ok: true, notices: ex.etl.notices, files: ex.etl.files });
   return call('GET', '/api/etl/items');
 }
+
+// TT Wizard 시간표 링크(11-11 컨셉, worker/ttwizard.js). 살펴보기 → { sem, title, classes: [{ title, found, custom, times: [{ day, start, end, place }] }], from, until, replaces }
+// 넣기 → { saved, classes }. 내보내기 → { link, count, matched }(TT Wizard에서 여는 주소)
+export function ttwizardPreview(link) {
+  if (ex) return Promise.reject(new Error('예시에서는 시간표를 넣지 않아요. 로그인해서 해 주세요'));
+  return call('POST', '/api/etl/ttwizard', { link });
+}
+
+export function ttwizardSave(link) {
+  if (ex) return Promise.reject(new Error('예시에서는 시간표를 넣지 않아요. 로그인해서 해 주세요'));
+  return call('POST', '/api/etl/ttwizard', { link, save: true });
+}
+
+export function ttwizardExport() {
+  if (ex) return Promise.reject(new Error('예시에서는 TT Wizard로 보내지 않아요. 로그인해서 해 주세요'));
+  return call('GET', '/api/etl/ttwizard');
+}
+
+// TT Wizard의 'Tachyon으로 보내기'가 여는 주소(…/#ttw=<글>)를 처음 열 때 받아 둔다(로그인으로 나갔다 와도 남게 sessionStorage)
+const TTW_KEY = 'tachyon_ttw';
+export function catchTtwLink(loc = window.location) {
+  const m = /#ttw=([zj][A-Za-z0-9_-]+)/.exec(loc.hash || '');
+  if (!m) return;
+  try {
+    sessionStorage.setItem(TTW_KEY, m[1]);
+  } catch {
+    /* 저장이 막힌 브라우저면 이번에만 */
+  }
+  window.history.replaceState(null, '', loc.pathname + loc.search); // 주소창에서 지운다
+}
+export function takeTtwLink() {
+  try {
+    const code = sessionStorage.getItem(TTW_KEY);
+    sessionStorage.removeItem(TTW_KEY);
+    return code ? `#ttw=${code}` : null;
+  } catch {
+    return null;
+  }
+}

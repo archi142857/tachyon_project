@@ -19,6 +19,7 @@ import TasksCard, { TaskRow } from '../components/TasksCard.jsx';
 import ThemeSheet from '../components/ThemeSheet.jsx';
 import TodayView from '../components/TodayView.jsx';
 import TopBar from '../components/TopBar.jsx';
+import TtwSheet from '../components/TtwSheet.jsx';
 import WeekCalendar, { PAGES } from '../components/WeekCalendar.jsx';
 import { WEEKDAYS, addDays, dayIndex, dayStart, kst } from '../time.js';
 
@@ -37,7 +38,7 @@ const sheetKey = (sheet) => (!sheet ? '' : typeof sheet === 'string' ? sheet : s
 // 이미 홈 화면 앱이거나 Capacitor 앱이면 '홈 화면에 추가'를 숨긴다
 const standalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true || !!window.Capacitor?.isNativePlatform?.();
 
-export default function Dashboard({ example, installPrompt, onOpenSetup, onLogout, onDeleted }) {
+export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup, onLogout, onDeleted }) {
   const now = useNow();
   // 주간 달력은 오늘부터 7일(오늘이 늘 맨 앞). 다음 장은 그다음 7일. 자정이 지나면 저절로 하루 밀린다.
   const today = dayStart(now).toISOString();
@@ -53,6 +54,12 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
   const [busy, setBusy] = useState(false);
   const [sheet, setSheet] = useState(null); // 'menu' | 'tasks' | 'done' | 'feedback' | 'install' | 'calendar' | 'etl' | 'theme' | { event } | { task }
   const [snack, setSnack] = useState(null);
+  // TT Wizard의 'Tachyon으로 보내기'로 들어왔으면(App.jsx가 받아 둔 #ttw=…) 그 시간표 창을 바로 연다(11-11 컨셉)
+  const [ttwFrom] = useState(ttwLink || null);
+  useEffect(() => {
+    if (ttwLink) setSheet('ttw');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadWeek = useCallback(
     () =>
@@ -283,6 +290,9 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
             <button type="button" onClick={() => setSheet('etl')}>
               eTL 연결·강의자료
             </button>
+            <button type="button" onClick={() => setSheet('ttw')}>
+              TT Wizard 시간표
+            </button>
             <button type="button" onClick={() => setSheet('calendar')}>
               폰 달력에서 보기
             </button>
@@ -329,6 +339,17 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
       {sheet === 'feedback' && <FeedbackSheet screen="대시보드" onClose={() => setSheet(null)} onSent={(text) => setSnack({ text })} />}
       {sheet === 'install' && <InstallSheet prompt={installPrompt} onClose={() => setSheet(null)} />}
       {sheet === 'calendar' && <CalendarSheet onClose={() => setSheet(null)} />}
+      {sheet === 'ttw' && (
+        <TtwSheet
+          initialLink={ttwFrom}
+          onClose={() => setSheet(null)}
+          onSaved={(r) => {
+            setSheet(null);
+            loadWeek();
+            setSnack({ text: `TT Wizard 시간표에서 수업 ${r.classes}개를 넣었어요(일정 ${r.saved}칸)` });
+          }}
+        />
+      )}
       {sheet === 'theme' && <ThemeSheet onClose={() => setSheet(null)} />}
       {sheet === 'delete' && (
         <Sheet title="계정 지우기" onClose={() => setSheet(null)}>

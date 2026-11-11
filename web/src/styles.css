@@ -418,3 +418,11 @@ select.input { padding-right: 36px; }
 .swatch i:nth-child(2) { background: var(--accent); border-color: var(--accent); }
 .swatch i:nth-child(3) { background: var(--ev-class); border-color: var(--ev-class); }
 .theme-text { height: 112px; padding: 10px 14px; font: 13px/18px ui-monospace, Menlo, Consolas, monospace; resize: vertical; }
+
+/* TT Wizard 시간표 창(TtwSheet, 11-11 컨셉) */
+.ttw-list { list-style: none; margin: 0; padding: 0; max-height: 40vh; overflow-y: auto; }
+.ttw-list li { display: grid; gap: 2px; padding: 8px 2px; border-top: 1px solid var(--line); }
+.ttw-list li:first-child { border-top: 0; }
+.ttw-list li.none .ttw-title { color: var(--text3); }
+.ttw-title { font-size: 15px; line-height: 22px; font-weight: 500; color: var(--text); }
+.ttw-out { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }

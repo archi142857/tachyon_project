@@ -114,7 +114,7 @@
 - 모든 요청 공통(`api.js`): 5xx는 서버가 스스로 보고하므로 화면은 '잠깐 문제가 생겼어요. 잠시 뒤에 다시 해 주세요'만, 4xx는 서버 문장(`error`) 그대로.
 - 화면 오류는 `main.jsx`가 `error`·`unhandledrejection`을 받아 보낸다. 한 번 열었을 때 같은 메시지는 한 번만, 다 합쳐 5개까지, 실패해도 다시 보내지 않는다.
 
-## 9_etl (컨셉 세션, 11-10) — `worker/9_etl.js`, 화면은 메뉴 'eTL 연결·강의자료'(`EtlSheet.jsx`)
+## 9_etl (컨셉 세션, 11-10) — `worker/9_etl.js`, 화면은 메뉴 'eTL 연결·강의자료'(`EtlSheet.jsx`)·'TT Wizard 시간표'(`TtwSheet.jsx`, 11-11)
 
 | 요청 | 보냄 | 받음 |
 | --- | --- | --- |
@@ -123,6 +123,8 @@
 | `DELETE /api/etl` | | `{ ok, connected: false }` — 토큰·목록·과목 일정 지움(eTL ICS 주소가 없으면 과제도) |
 | `POST /api/etl/collect` | | 위 상태 + `result`(1분 안에 받았으면 `{ ok, recent: true }`) |
 | `GET /api/etl/items` | | `{ notices: [{ id, course, title, url, posted_at, tag }], files: [...] }` 새 것 먼저, 100개까지. tag = exam·cancel·makeup·none |
+| `POST /api/etl/ttwizard` | `{ link, save? }` | TT Wizard 시간표 링크(`…#t=<글>`, `#ttw=`, 글만도 됨 — `worker/ttwizard.js`, 11-11 컨셉). `save` 없으면 살펴보기 `{ ok, sem, title, classes: [{ title, found, custom, times: [{ day: '월', start, end(분), place }] }], from, until, replaces }`, `save: true`면 오늘부터 학기 끝까지 매주 넣기 `{ ok, saved, classes, from, until }` — 시간표 사진과 같은 `source 'timetable'`(오늘부터의 시간표 줄과 앞으로의 eTL 수업 `api-class-`를 지우고 새로). 지금은 `2026-2` 학기만. 깨진 링크·다른 학기는 400 |
+| `GET /api/etl/ttwizard` | | 앞으로 2주의 매주 수업(시간표·eTL 수업) → `{ ok, link, count, matched }` — TT Wizard에서 여는 주소(수강편람에서 이름·시각이 맞으면 강좌, 아니면 직접 넣은 일정). 수업이 없으면 404 |
 
 - 원격 D1에 `etl`·`etl_items` 표가 아직 없으면 모두 503(화면: 'eTL 연결은 준비 중이에요').
 - 수업 시간표는 events(source `etl`, ext_id `api-class-…`, 잠김, 이름 = 과목 이름, 장소 = '39동 409호') — 수업 사이 동선이 바로 쓴다. 과제는 tasks(source `etl`, ICS와 같은 줄), 공지에서 찾은 시험·휴강·보강은 events(source `notice` — 잠기지 않아 고치기·지우기 됨), 교수가 넣은 과목 일정은 events(source `etl`, ext_id `api-calendar-…`, 잠김).
