@@ -42,3 +42,8 @@
   - 컨셉 몫: TT Wizard 시간표 링크 가져오기·내보내기(Tachyon 쪽).
 - 패치를 갈래로 올리지 않은 까닭: 갈래 커밋에도 Cloudflare Workers Builds가 돌고(11-11 `today-ring` 실패) 갈래 쪽 명령을 아직 확인하지 못해서, 실서비스에 나갈 위험을 피했다.
 - 고침: 드라이브 쪽지·패치 이름의 시각(2226~2246)은 `date`로 재지 않고 어림했다(실제 22:24~22:27). 서로 이름으로 가리켜서 이름은 그대로 두고 소통판에 적었다.
+
+## 결과 (컨셉 몫, 22:36)
+
+- **TT Wizard 연동 끝(98468f2):** `worker/ttwizard.js`(링크 읽기·만들기, 편람으로 수업 채우기), `9_etl.js` `POST/GET /api/etl/ttwizard`, 화면 `TtwSheet.jsx`(메뉴 'TT Wizard 시간표', `#ttw=`로 들어오면 바로), `api.js`·`App.jsx`·`Dashboard.jsx` 몇 줄, `web/API.md`. 넣기는 시간표 사진과 같은 `source 'timetable'`, 앞으로의 eTL 수업은 지워 두 번 안 보이게. 시험 5개, worker 157·web 111 통과, Workers Builds 성공. 예시 화면에서 `#ttw=` → 창이 바로 열리고 주소창에서 지워지는 것을 캡처로 확인(예시는 넣지 않음). 실제 계정으로 넣어 보기는 사람 확인 목록에.
+- 화면 패치를 셋째 판(`261111-2235_컨셉_feedback-ui-wip.patch`, main `98468f2` 위)으로 다시 만들어 TT Wizard 줄까지 합쳤다. 앞 판은 휴지통, 둘째 쪽지 이름을 실제 시각(2227)으로 고쳤다.
