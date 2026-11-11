@@ -86,6 +86,7 @@
 | Tachyon-디자인-02 | 2026-11-10 | Claude (claude.ai 채팅, Claude Opus 5.5), Artifact 도구(Design·Design System), GitHub 연결, 작업 공간 Python·크롬 | Tachyon-디자인-02. 시안 3개, ② 차분한 종이 고르기, 'Tachyon 디자인 시스템'과 토큰 | [Tachyon-디자인-02-시안-고르기와-디자인-시스템.md](Tachyon-디자인-02-시안-고르기와-디자인-시스템.md) | 사용자 직접 지시 | 사용자(archi142857) → Tachyon / Design |
 | Tachyon-디자인-03 | 2026-11-10 | Claude (claude.ai 채팅, Claude Opus 5.5), git(읽기), Google Drive 연결, 작업 공간 Python, Artifact 도구(Design), npm pretendard·fonttools | Tachyon-디자인-03. 팀원 종이 플래너 원본 확인, ② 차분한 종이 2판 | [Tachyon-디자인-03-원본-확인과-2판.md](Tachyon-디자인-03-원본-확인과-2판.md) | 사용자 직접 지시 | 사용자(archi142857) → Tachyon / Design |
 | Tachyon-디자인-04 | 2026-11-11 | Claude (claude.ai 채팅, Claude Opus 5.5), git(읽기), Google Drive 연결, 작업 공간 Python, Artifact 도구(Design), Pretendard·Jost | Tachyon-디자인-04. 바우하우스·몬드리안·칸딘스키 방향, 시안 3개(③ 칸딘스키 점·선·면을 기본 옷으로) | [Tachyon-디자인-04-바우하우스-방향.md](Tachyon-디자인-04-바우하우스-방향.md) | 사용자 직접 지시 | 사용자(archi142857) → Tachyon / Design |
+| Tachyon-디자인-05 | 2026-11-11 | Claude (claude.ai 채팅, Claude Opus 5.5), 작업 공간 Python(SVG·fontTools·uharfbuzz), npm `@fontsource/jost`, Python Playwright·헤드리스 Chrome, Artifact 도구(Design) | Tachyon-디자인-05. 로고·앱 아이콘 시안(입자가 오른쪽으로 가며 자취를 남김), 사람이 로고 A18-1·아이콘 I1을 고름(11-12 00:15), 밝은 바탕 점 색 고침(00:21) | [Tachyon-디자인-05-로고.md](Tachyon-디자인-05-로고.md) | 사용자 직접 지시 | 사용자(archi142857) → Tachyon / Design |
 
 ## AI 세션 간 작업 지시·수정 요청·결과 보고
 
