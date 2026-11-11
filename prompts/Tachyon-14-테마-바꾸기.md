@@ -34,4 +34,4 @@
 - [docs/tachyon/디자인/테마_만드는_법.md](../docs/tachyon/디자인/테마_만드는_법.md)
 - `web/src/themes.css` · `web/src/themes.js` · `web/src/themes.test.js` · `web/src/components/ThemeSheet.jsx`
 - `web/src/components/TodayView.jsx` · `web/src/screens/Dashboard.jsx` · `web/src/styles.css` · `web/src/main.jsx`
-- [docs/tachyon/소통.md](../docs/tachyon/소통.md) 11-11 22:20 글
+- [docs/tachyon/소통.md](../docs/tachyon/소통.md) 11-11 22:17 글
