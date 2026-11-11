@@ -4,6 +4,16 @@ dhsrua555 쪽에서 만든 눌러 보는 시안입니다. 실제 앱이 아니�
 
 제안이며 확정이 아닙니다. 실제 앱에 들어간 것은 아래 "실제 앱에 들어간 것"에만 적습니다.
 
+## 보는 법
+
+GitHub에서 HTML 파일을 누르면 코드만 보입니다. 화면으로 보려면 셋 가운데 하나로 엽니다.
+
+1. **바로 열기(지금 판):** [PC](https://htmlpreview.github.io/?https://github.com/archi142857/tachyon_project/blob/main/docs/tachyon/%EB%94%94%EC%9E%90%EC%9D%B8/%EC%B0%B8%EA%B3%A0/%ED%8C%80%EC%9B%90_%EC%8B%9C%EC%97%B0/%EC%8B%9C%EC%97%B0-PC.html) · [모바일](https://htmlpreview.github.io/?https://github.com/archi142857/tachyon_project/blob/main/docs/tachyon/%EB%94%94%EC%9E%90%EC%9D%B8/%EC%B0%B8%EA%B3%A0/%ED%8C%80%EC%9B%90_%EC%8B%9C%EC%97%B0/%EC%8B%9C%EC%97%B0-%EB%AA%A8%EB%B0%94%EC%9D%BC.html) — 저장소의 파일을 그대로 화면으로 띄워 주는 바깥 서비스(htmlpreview) 주소입니다. 11-11에 열어서 눌러지는 것을 확인했습니다.
+2. **아티팩트(지금 판, 같은 내용):** [시연 PC](https://claude.ai/artifact/4L5yiZApTkgA9sF6qNdbm2) · [시연 모바일](https://claude.ai/artifact/DMVAEmt319R8Pe4xVGndX7)
+3. **내려받아 열기:** 파일 화면 오른쪽 위 내려받기 → 브라우저로 엽니다. 인터넷이 없어도 됩니다(글꼴만 기본 글꼴로 바뀝니다).
+
+옛 판 바로 열기: [7판 PC](https://htmlpreview.github.io/?https://github.com/archi142857/tachyon_project/blob/main/docs/tachyon/%EB%94%94%EC%9E%90%EC%9D%B8/%EC%B0%B8%EA%B3%A0/%ED%8C%80%EC%9B%90_%EC%8B%9C%EC%97%B0/%EC%98%9B%ED%8C%90/%EC%8B%9C%EC%97%B0-PC-7%ED%8C%90.html) · [7판 모바일](https://htmlpreview.github.io/?https://github.com/archi142857/tachyon_project/blob/main/docs/tachyon/%EB%94%94%EC%9E%90%EC%9D%B8/%EC%B0%B8%EA%B3%A0/%ED%8C%80%EC%9B%90_%EC%8B%9C%EC%97%B0/%EC%98%9B%ED%8C%90/%EC%8B%9C%EC%97%B0-%EB%AA%A8%EB%B0%94%EC%9D%BC-7%ED%8C%90.html) · [6판 PC](https://htmlpreview.github.io/?https://github.com/archi142857/tachyon_project/blob/main/docs/tachyon/%EB%94%94%EC%9E%90%EC%9D%B8/%EC%B0%B8%EA%B3%A0/%ED%8C%80%EC%9B%90_%EC%8B%9C%EC%97%B0/%EC%98%9B%ED%8C%90/%EC%8B%9C%EC%97%B0-PC-6%ED%8C%90.html) · [6판 모바일](https://htmlpreview.github.io/?https://github.com/archi142857/tachyon_project/blob/main/docs/tachyon/%EB%94%94%EC%9E%90%EC%9D%B8/%EC%B0%B8%EA%B3%A0/%ED%8C%80%EC%9B%90_%EC%8B%9C%EC%97%B0/%EC%98%9B%ED%8C%90/%EC%8B%9C%EC%97%B0-%EB%AA%A8%EB%B0%94%EC%9D%BC-6%ED%8C%90.html) · [첫 입자 고리](https://htmlpreview.github.io/?https://github.com/archi142857/tachyon_project/blob/main/docs/tachyon/%EB%94%94%EC%9E%90%EC%9D%B8/%EC%B0%B8%EA%B3%A0/%ED%8C%80%EC%9B%90_%EC%8B%9C%EC%97%B0/%EC%98%9B%ED%8C%90/%EC%9E%85%EC%9E%90-%EA%B3%A0%EB%A6%AC.html)
+
 ## 지금 판 (9판, 11-11)
 
 | 파일 | 무엇 |
