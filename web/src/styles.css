@@ -386,20 +386,9 @@ select.input { padding-right: 36px; }
 /* 하루 고리 */
 .ring-wrap { position: relative; width: min(340px, 100%); }
 .ring { display: block; width: 100%; height: auto; overflow: visible; } /* 지금 시각 글자가 테두리를 조금 넘는다 */
-.ring .band { fill: none; stroke-width: 44; }
-.ring .band.timetable { stroke: var(--ev-class); }
-.ring .band.ics { stroke: var(--ev-ics); }
-.ring .band.memo { stroke: var(--ev-memo); }
-.ring .band.slot.on { stroke: var(--fill); }
-.ring circle { fill: var(--dot-off); }
-.ring circle.sleep { opacity: 0.5; }
-.ring circle.ev { fill: var(--accent-text); }
-.ring circle.slot { fill: var(--card); stroke: var(--accent-text); stroke-width: 0.9; }
-.ring circle.past { opacity: 0.45; }
-.ring.has-sel .band:not(.on), .ring.has-sel circle:not(.on) { opacity: 0.3; }
+/* 하루 고리의 입자·지금 입자 모양은 particles.css(팀원 시연 9판 모양) */
 .ring line { stroke: var(--line-strong); stroke-width: 0.8; }
 .ring text { font-size: 12px; fill: var(--text3); text-anchor: middle; dominant-baseline: central; font-variant-numeric: tabular-nums; }
-.ring line.now { stroke: var(--now); stroke-width: 1.6; }
 .ring text.now { fill: var(--now); font-weight: 700; }
 .ring .hit { fill: none; stroke: transparent; stroke-width: 48; pointer-events: stroke; cursor: pointer; }
 .ring-mid { position: absolute; inset: 0; padding: 0 30%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }

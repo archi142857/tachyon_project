@@ -85,18 +85,6 @@ html.locked, html.locked body { height: 100%; overflow: hidden; overscroll-behav
 .dring.past { opacity: 0.45; }
 .dring-empty { display: inline-block; flex: none; }
 
-/* 주 머리의 '고르게' 줄: 날마다 막대(일정 남색 + 할 일 노랑) · 평균선 · 마감 날 몰아서 할 때의 옅은 테 */
-.cal-bal .axis-label { writing-mode: vertical-rl; justify-self: center; font-size: 10px; line-height: 12px; letter-spacing: 0.05em; }
-.cal-bal { position: relative; display: grid; grid-template-columns: 24px repeat(7, minmax(0, 1fr)); height: 40px; margin: 2px 0 2px; }
-.bal-cell { position: relative; margin: 0 22%; }
-.bal-cell i { position: absolute; left: 0; right: 0; bottom: 0; display: block; border-radius: 2px 2px 0 0; }
-.bal-naive { border: 1px dashed var(--line-strong); background: transparent; }
-.bal-ev { background: var(--accent); }
-.bal-task { background: var(--highlight); }
-.bal-avg { position: absolute; left: 24px; right: 0; height: 0; border-top: 1.5px dashed var(--stamp); pointer-events: none; }
-.bal-note { margin: 0 0 4px; padding-left: 26px; font-size: 12px; line-height: 16px; color: var(--text2); }
-.bal-note .soft { color: var(--text3); }
-
 /* 월 달력: 6주 칸이 쪽을 꽉 채운다. 칸 = 날짜 · 고리 · 마감(시각 먼저) · 일정, 넘치면 +N */
 .month-wd { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: 2px 0 4px; text-align: center; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--text3); }
 .month-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: repeat(6, minmax(0, 1fr)); gap: 1px; background: var(--grid); border: 1px solid var(--grid); border-radius: var(--r-chip); overflow: hidden; }

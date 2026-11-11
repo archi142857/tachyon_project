@@ -50,6 +50,7 @@ npm run build      # dist/
 | `src/components/TogetherPage.jsx` · `MeetGrid.jsx` · `JoinSheet.jsx` · `src/meet.js` · `src/togetherExample.js` | '같이' 쪽: 친구·그룹·모임 시간표(when2meet 모양), 초대 링크 받기, 후보 고르기, 예시 자료 |
 | `src/shell.css` | 앱 틀: 100dvh 꽉 찬 화면, 문서는 안 굴리고 칸 안에서만, 넓은 화면(900px~) 왼쪽 메뉴 · 폰 위 탭, 오늘 쪽 칸 배치, 주·월 달력, 밀도 고리, 할 일 쪽. 색은 모두 `var(--…)`라 테마를 따른다 |
 | `src/shape.css` | ③ 바우하우스 모양 층(디자인 `components.css` 셋째 묶음 그대로): 하루 고리 ● □ ▲·바깥 테, 달력 칸 앞 모양, 월 보기 모양, 밀도 고리 색, '같이' 쪽 흰 점·후보 칩. shell.css 다음에 부른다 |
+| `src/particles.css` | 하루 고리 입자: 팀원 시연(9판) 모양 — 모두 동그라미, 구간마다 뜻 색, 고르면 커지고 빛남, 돋아나는 움직임, 지금 = 바깥 테를 도는 빨간 입자와 꼬리(사람 11-12). shape.css 다음에 부른다 |
 | `public/` | `manifest.webmanifest`, `sw.js`, `_headers`, `icons/` |
 
 ## 정한 것

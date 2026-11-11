@@ -129,10 +129,10 @@ export default function TodayView({ today, events, tasks, total, now, onDone, on
               수업
             </span>
             <span>
-              <i className="key-sq" />내 일정
+              <i className="key-dot mine" />내 일정
             </span>
             <span>
-              <i className="key-tri" />할 일을 넣어 본 자리
+              <i className="key-dot slot" />할 일을 넣어 본 자리
             </span>
             <span>
               <i className="key-now" />지금

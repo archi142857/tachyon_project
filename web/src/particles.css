@@ -1,0 +1,42 @@
+/* 하루 고리 입자 — 팀원 시연(9판)의 입자 고리 모양: 입자는 모두 동그라미, 구간마다 무리와 뜻 색, 고르면 커지고 빛난다
+   (사람 11-12 "입자 디자인은 아티팩트에서 했던 것처럼, 플랫하게 바꾸지 말고 원 스타일을 살려봐").
+   디자인 ③ 모양 층(shape.css)의 하루 고리 ● □ ▲ 규칙 위에 덮는다 — main.jsx에서 shape.css 다음에 부른다. 색은 테마 값만. */
+.ring circle { transform-box: fill-box; transform-origin: center; }
+
+/* 빈 시간 · 잠: 작은 옅은 점. 지난 시간은 더 옅게 */
+.ring .bg circle { fill: var(--text3); opacity: 0.4; }
+.ring .bg .sleep, .ring .bg .p { opacity: 0.16; }
+
+/* 일정 · 넣어 본 자리: 무리 색(--c, DayRing.jsx)으로 조금 크게 */
+.ring .pg circle { fill: var(--c); opacity: 0.9; transform: scale(1.35); transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1), opacity 0.3s; }
+.ring .pg.slot circle { opacity: 0.8; stroke: var(--accent-text); stroke-width: 0.45; } /* 노랑은 밝은 바탕에서 옅어서 가는 먹 테 */
+.ring .pg circle.p { opacity: 0.3; }
+/* 고른 것: 입자가 두 배로 커지고 그 색으로 빛난다. 나머지는 물러난다 */
+.ring .pg.on { filter: drop-shadow(0 0 1.5px color-mix(in srgb, var(--c) 70%, transparent)) drop-shadow(0 0 5px color-mix(in srgb, var(--c) 40%, transparent)); } /* 밝은 바탕에서 먹색 번짐이 얼룩지지 않게 옅게 */
+.ring .pg.on circle { opacity: 1; transform: scale(2); }
+.ring .pg.on circle.p { opacity: 0.5; }
+.ring.has-sel .pg:not(.on) circle { opacity: 0.2; }
+.ring.has-sel .bg circle { opacity: 0.1; }
+
+/* 처음 그릴 때 입자가 시각 순서로 돋아난다(--d) */
+.ring .bg circle, .ring .pg circle { animation: ring-pop 0.5s var(--d, 0ms) backwards; }
+@keyframes ring-pop { from { opacity: 0; transform: scale(0); } }
+
+/* 지금: 바깥 테를 도는 빨간 입자 + 지나온 쪽으로 옅어지는 꼬리. 머리는 숨 쉬듯 */
+.ring .comet circle { fill: var(--now); }
+.ring .comet .head { filter: drop-shadow(0 0 3px var(--now)); animation: ring-breathe 1.6s ease-in-out infinite alternate; }
+@keyframes ring-breathe { to { transform: scale(1.3); } }
+
+/* 범례: ● 수업 · ● 내 일정 · ● 넣어 본 자리 · 지금(꼬리 달린 빨간 점) */
+.key-dot.mine { background: var(--text); }
+.key-dot.slot { background: var(--mark-task); border: 0; box-shadow: inset 0 0 0 1px var(--accent-text); }
+.key-now { width: 16px; height: 6px; border-radius: 3px; vertical-align: 1px; background: radial-gradient(circle at calc(100% - 3px) 50%, var(--now) 2.6px, transparent 3.2px), linear-gradient(90deg, transparent, color-mix(in srgb, var(--now) 45%, transparent) 70%, transparent 70%); }
+
+/* 달력 칸 · 월 칸 앞 모양도 동그라미(내 일정 = 글자색 점, 수업 = 파란 점은 shape.css 그대로) */
+.ev.ics::before, .ev.memo::before { border-radius: 50%; background: var(--text); box-shadow: none; }
+.month-grid .mline.ics::before, .month-grid .mline.memo::before { border-radius: 50%; background: var(--text); box-shadow: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ring .bg circle, .ring .pg circle, .ring .comet .head { animation: none; }
+  .ring .pg circle { transition: none; }
+}
