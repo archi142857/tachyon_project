@@ -4,6 +4,8 @@
 
 export const DEFAULT = '바우하우스'; // 11-11 22:42 사람이 ③을 기본으로. 그 전 기본 '차분한 종이'는 테마로 남는다
 export const BUILT_IN = [DEFAULT, '차분한 종이', '입자 밤', '입자 낮', '벤토 위젯', '조용한 갤러리', '호박색 터미널'];
+// 화면까지 바뀌는 테마(시연 9판의 화면, src/ours/). 이름 → 같이 입힐 색 값 묶음. 고르면 <html data-skin>에 이름이 적힌다.
+export const SKINS = { 입자: '입자 밤', 종이: '입자 낮' };
 
 // 테마가 바꿀 수 있는 값의 이름. 가져온 테마에서 이 밖의 이름은 버린다.
 export const KEYS = `--bg --card --inset --raised --heading --text --text2 --text3 --line --grid --line-strong --fill --bubble
@@ -36,7 +38,7 @@ export function parseTheme(text) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('테마 글이 아니에요');
   const name = typeof raw.name === 'string' ? raw.name.trim() : '';
   if (!name || name.length > 20) throw new Error('이름(name)을 1~20자로 적어 주세요');
-  if (BUILT_IN.includes(name)) throw new Error(`'${name}'은 이미 있는 테마 이름이에요. 다른 이름을 적어 주세요`);
+  if (BUILT_IN.includes(name) || Object.hasOwn(SKINS, name)) throw new Error(`'${name}'은 이미 있는 테마 이름이에요. 다른 이름을 적어 주세요`);
   if (!raw.vars || typeof raw.vars !== 'object' || Array.isArray(raw.vars)) throw new Error('값 묶음(vars)이 없어요');
   const vars = {};
   let dropped = 0;
@@ -85,7 +87,8 @@ export function currentTheme() {
 export function applyTheme(name, mine = loadThemes(), { save = true } = {}) {
   const root = document.documentElement;
   const own = mine.find((t) => t.name === name);
-  if (!own && !BUILT_IN.includes(name)) name = DEFAULT;
+  const skin = !own && Object.hasOwn(SKINS, name) ? name : '';
+  if (!own && !skin && !BUILT_IN.includes(name)) name = DEFAULT;
   for (const key of KEYS) root.style.removeProperty(key);
   root.style.colorScheme = '';
   if (own) {
@@ -94,7 +97,10 @@ export function applyTheme(name, mine = loadThemes(), { save = true } = {}) {
     for (const key of KEYS) if (typeof own.vars[key] === 'string') root.style.setProperty(key, own.vars[key]);
     root.style.colorScheme = own.dark ? 'dark' : 'light';
   } else if (name === DEFAULT) delete root.dataset.theme;
-  else root.dataset.theme = name;
+  else root.dataset.theme = skin ? SKINS[name] : name;
+  if (skin) root.dataset.skin = skin;
+  else delete root.dataset.skin;
+  window.dispatchEvent(new Event('tachyon-skin')); // 화면 쪽(ours/skin.jsx)이 듣는다
   // 폰 주소창 색도 바탕색에 맞춘다(기본 테마는 index.html에 적힌 값 그대로)
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {

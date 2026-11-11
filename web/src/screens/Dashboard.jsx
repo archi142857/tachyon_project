@@ -24,6 +24,8 @@ import Snackbar from '../components/Snackbar.jsx';
 import TaskList from '../components/TaskList.jsx';
 import ThemeSheet from '../components/ThemeSheet.jsx';
 import TogetherPage from '../components/TogetherPage.jsx';
+import OursMain from '../ours/OursMain.jsx';
+import { useSkin } from '../ours/skin.jsx';
 import TodayView from '../components/TodayView.jsx';
 import TtwSheet from '../components/TtwSheet.jsx';
 import WeekCalendar from '../components/WeekCalendar.jsx';
@@ -80,6 +82,7 @@ function Segmented({ label, items, value, onChange }) {
 export default function Dashboard({ example, installPrompt, ttwLink, joinCode, onOpenSetup, onLogout, onDeleted }) {
   const now = useNow();
   const today = dayStart(now).toISOString(); // 자정이 지나면 저절로 하루 밀린다
+  const skin = useSkin();
   const [page, setPage] = useState('today');
   const [pane, setPane] = useState('ring'); // 폰의 오늘 쪽에서 보이는 한 칸
   const [join, setJoin] = useState(() => (joinCode && !example ? joinCode : null)); // 초대 링크(?join=)로 들어왔으면 받기 창
@@ -339,8 +342,12 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
       />
     ) : null;
 
+  // '입자' · '종이' 테마: 같은 자료와 함수로 시연 9판의 화면(ours/)을 그린다. 아래 창들은 같이 쓴다.
+  const ours = { page, setPage, calMode, setCalMode, today, now, date, example, planEvents, calEvents, openTasks, memos, waiting, popup, busy, weekFrom, setWeekFrom, month, setMonth, densityOf, togetherKey, doneTask, sendMemo, savePopup, cancelPopup, showWeekOf, setSheet, setSnack };
+
   return (
     <div className="shell">
+      {skin ? <OursMain app={ours} /> : (<>
       <aside className="side">
         <div className="side-brand">
           <h1 className="wordmark">
@@ -448,6 +455,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
         {popup && <MemoPopup key={popup.memoId} popup={popup.popup} busy={busy} onSave={savePopup} onCancel={cancelPopup} />}
         <Composer onSend={sendMemo} />
       </div>
+      </>)}
 
       {join && (
         <JoinSheet
