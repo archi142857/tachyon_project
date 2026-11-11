@@ -1,43 +1,87 @@
 /* Tachyon 화면 스타일.
-   색은 아래 :root 한 곳에서만 정한다. 지금 값은 Dropbox 브랜드 스타일을 참고한 '코코넛(밝게)' 안이다
-   (11/09 시안 캔버스의 참고 1~3 가운데 사용자가 고르면 이 블록만 바꾼다). 로고·전용 글꼴은 쓰지 않는다. */
+   색·크기는 아래 :root 한 곳에서만 정한다. 지금 값은 디자인 가이드 '② 차분한 종이'의 밝게 블록이다
+   (docs/tachyon/디자인/tokens.css 1·2단계를 그대로 옮김. 어둡게 블록과 글꼴 패키지는 아직 안 넣었다). */
 :root {
-  --bg: #f7f5f2;
-  --card: #ffffff;
-  --heading: #1e1919;
-  --text: #1e1919;
-  --text2: #5b5650;
-  --text3: #67615a;
-  --muted: #8c8279;
-  --line: #dfdcd8;
-  --grid: #efedea;
-  --line-strong: #8c8279;
-  --fill: #ebe9e6;
-  --accent: #0061fe;
-  --accent-press: #0050d4;
-  --accent-text: #0061fe;
-  --on-accent: #ffffff;
-  --bubble: #efedea;
-  --warn: #be4b0a;
-  --warn-bg: #fff4ec;
+  /* 바탕·면 */
+  --bg: #efebe2;
+  --card: #fbf9f4;
+  --inset: #fffdf8; /* [새] */
+  --raised: #fbf9f4; /* [새] */
+  /* 글자 */
+  --heading: #23305e;
+  --text: #23305e;
+  --text2: #574e3f;
+  --text3: #655d4e;
+  /* 선 */
+  --line: #e6dfcf;
+  --grid: #ece6d8;
+  --line-strong: #8c8169;
+  /* 면 채움 */
+  --fill: #e9e3d6;
+  --bubble: #efe8d8;
+  /* 남색 잉크(강조) */
+  --accent: #23305e;
+  --accent-press: #18213f;
+  --accent-text: #23305e;
+  --on-accent: #fdf8e6;
+  --focus: #23305e; /* [새] */
+  /* 알림 */
+  --warn: #8f3807;
+  --warn-bg: #fbe7d6;
   --danger: #9b0032;
-  --now: #fa551e;
-  --dot-off: #d3cec9;
-  --ev-class: #b4c8e1; /* 수업(시간표) */
-  --ev-ics: #c8aff0; /* 내 캘린더(구글·애플) */
-  --ev-memo: #ffafa5; /* 메모에서 저장한 일정 */
-  --ev-deadline: #fad24b; /* 과제 마감 */
-  --ev-text: #1e1919;
-  --ev-important: #1e1919;
-  --shadow: 0 6px 20px #1e191926;
-  --scrim: #1e191966;
+  /* 종이 표시 */
+  --stamp: #c62f2f; /* [새] */
+  --highlight: #f3d65f; /* [새] */
+  --postit: #fdf1bf; /* [새] */
+  --postit-text2: #574d2a; /* [새] */
+  --postit-unknown: #6a5f33; /* [새] */
+  /* 달력 */
+  --now: #b8452a;
+  --dot-off: #b3aa98;
+  --today-wash: #faf5e2; /* [새] */
+  --ev-class: #cbddee;
+  --ev-ics: #cdb4eb;
+  --ev-memo: #eda9a8;
+  --ev-deadline: var(--highlight);
+  --ev-text: var(--text);
+  --ev-important: var(--text);
+  /* 스낵바·막 */
+  --snack-bg: #23305e; /* [새] */
+  --snack-text: #fdf8e6; /* [새] */
+  --snack-action: #c9d4f6; /* [새] */
+  --scrim: #23305e66;
 
-  --r-card: 8px;
-  --r-btn: 8px;
-  --r-chip: 4px;
-  --hour: 30px; /* 달력 한 시간 높이(폰) */
-  --font: Pretendard, 'Pretendard Variable', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  /* 크기 */
+  --r-chip: 3px;
+  --r-postit: 4px; /* [새] */
+  --r-card: 6px;
+  --r-btn: 6px;
+  --r-bubble: 8px; /* [새] */
+  --r-sheet: 10px; /* [새] */
+  --hour: 30px; /* 달력 한 시간 높이(폰). 1024px 이상 40px */
+  --tap: 48px; /* [새] 누르는 영역의 가장 작은 크기 */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; /* [새] 간격 눈금 */
+
+  /* 그림자: 떠 있는 것(포스트잇, 시트, 스낵바)에만 */
+  --shadow: 0 6px 16px #23305e29;
+
+  /* 글꼴: 본문 Pretendard, 제목 고운바탕 */
+  --font: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  --font-head: 'Gowun Batang', 'Noto Serif KR', AppleMyungjo, Batang, serif; /* [새] 제목에만 */
+
+  /* 움직임 [새] */
+  --dur-in: 200ms;
+  --dur-out: 150ms;
+  --dur-stamp: 250ms;
+  --dur-week: 150ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+
   color-scheme: light;
+}
+/* ── 동작 줄이기: 모든 움직임이 바로 바뀐다 ── */
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-in: 0ms; --dur-out: 0ms; --dur-stamp: 0ms; --dur-week: 0ms; }
 }
 
 * { box-sizing: border-box; }
@@ -302,3 +346,62 @@ dialog .snackbar { top: calc(12px + env(safe-area-inset-top)); bottom: auto; }
 .dept-list li.empty { color: var(--text3); cursor: default; }
 @media (hover: hover) { .dept-list li:hover { background: var(--fill); } }
 select.input { padding-right: 36px; }
+
+/* ── 오늘 머리: 날짜 + 오늘|주간 (가이드 '오늘 머리') ── */
+.today-head { display: flex; align-items: center; gap: 10px; min-height: 32px; max-width: 1440px; margin: 0 auto; padding: 0 16px 4px 20px; }
+.today-head .date { font-family: var(--font-head); font-size: 16px; line-height: 22px; font-weight: 700; color: var(--heading); }
+.today-head .grow { flex: 1; }
+.today-head .segmented button { padding: 0 14px; font-size: 14px; }
+
+/* ── 오늘 화면: 폰 = 고리 → 타임라인 → 할 일 → 메모 / PC = 왼쪽 타임라인(좁게), 오른쪽 고리 · 할 일 · 메모 ── */
+.dash.today { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'ring' 'day' 'tasks' 'memo'; max-width: 1120px; }
+.dash > .day { grid-area: day; min-width: 0; padding: 10px 12px 12px; --hour: 44px; }
+.dash > .ring-card { grid-area: ring; min-width: 0; padding: 12px 12px 0; display: flex; flex-direction: column; align-items: center; }
+.day .cal-scroll { max-height: calc(var(--hour) * 6); }
+.cal-grid.one { grid-template-columns: 24px minmax(0, 1fr); }
+.day .ev { padding: 3px 6px; font-size: 13px; line-height: 17px; }
+.day .ev .place { display: block; font-size: 12px; line-height: 16px; }
+.ev.slot { background: var(--inset); border: 1px dashed var(--line-strong); color: var(--text2); }
+.ev.sel { outline: 2px solid var(--focus); outline-offset: 1px; z-index: 1; }
+
+/* 하루 고리 */
+.ring-wrap { position: relative; width: min(340px, 100%); }
+.ring { display: block; width: 100%; height: auto; overflow: visible; } /* 지금 시각 글자가 테두리를 조금 넘는다 */
+.ring .band { fill: none; stroke-width: 44; }
+.ring .band.timetable { stroke: var(--ev-class); }
+.ring .band.ics { stroke: var(--ev-ics); }
+.ring .band.memo { stroke: var(--ev-memo); }
+.ring .band.slot.on { stroke: var(--fill); }
+.ring circle { fill: var(--dot-off); }
+.ring circle.sleep { opacity: 0.5; }
+.ring circle.ev { fill: var(--accent-text); }
+.ring circle.slot { fill: var(--card); stroke: var(--accent-text); stroke-width: 0.9; }
+.ring circle.past { opacity: 0.45; }
+.ring.has-sel .band:not(.on), .ring.has-sel circle:not(.on) { opacity: 0.3; }
+.ring line { stroke: var(--line-strong); stroke-width: 0.8; }
+.ring text { font-size: 12px; fill: var(--text3); text-anchor: middle; dominant-baseline: central; font-variant-numeric: tabular-nums; }
+.ring line.now { stroke: var(--now); stroke-width: 1.6; }
+.ring text.now { fill: var(--now); font-weight: 700; }
+.ring .hit { fill: none; stroke: transparent; stroke-width: 48; pointer-events: stroke; cursor: pointer; }
+.ring-mid { position: absolute; inset: 0; padding: 0 30%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
+.mid-title { font-family: var(--font-head); font-size: 15px; line-height: 20px; color: var(--heading); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; word-break: keep-all; }
+.mid-big { font-family: var(--font-head); font-size: 22px; line-height: 30px; color: var(--heading); }
+.mid-sub { font-size: 12px; line-height: 16px; color: var(--text2); }
+.ring-key { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 48px; margin: 0; font-size: 12px; line-height: 16px; color: var(--text2); }
+.key-dot { display: inline-block; width: 8px; height: 8px; margin-right: 4px; border-radius: 9999px; background: var(--accent-text); }
+.key-dot.slot { background: transparent; border: 1.5px solid var(--accent-text); }
+
+/* 오늘 화면의 할 일: 줄 아래에 넣어 본 자리 */
+.pick { border-radius: var(--r-chip); }
+.pick.on { background: var(--fill); }
+.slot-note { margin: -6px 0 8px 32px; font-size: 12px; line-height: 16px; color: var(--text3); }
+
+@media (min-width: 1024px) {
+  .today-head { padding: 0 24px 4px; }
+  .dash.today { grid-template-columns: clamp(300px, 36%, 420px) minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: 'day ring' 'day tasks' 'day memo'; }
+  .dash > .day { align-self: start; }
+  .day .cal-scroll { max-height: none; }
+  .cal-grid.one { grid-template-columns: 44px minmax(0, 1fr); }
+  .day .card-title { font-size: 20px; line-height: 28px; }
+  .slot-note { margin: -8px 0 12px 36px; }
+}

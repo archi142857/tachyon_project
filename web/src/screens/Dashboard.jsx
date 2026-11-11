@@ -16,9 +16,10 @@ import MemoPopup from '../components/MemoPopup.jsx';
 import Sheet from '../components/Sheet.jsx';
 import Snackbar from '../components/Snackbar.jsx';
 import TasksCard, { TaskRow } from '../components/TasksCard.jsx';
+import TodayView from '../components/TodayView.jsx';
 import TopBar from '../components/TopBar.jsx';
 import WeekCalendar, { PAGES } from '../components/WeekCalendar.jsx';
-import { addDays, dayIndex, dayStart } from '../time.js';
+import { WEEKDAYS, addDays, dayIndex, dayStart, kst } from '../time.js';
 
 function useNow() {
   const [now, setNow] = useState(() => new Date());
@@ -40,6 +41,7 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
   // 주간 달력은 오늘부터 7일(오늘이 늘 맨 앞). 다음 장은 그다음 7일. 자정이 지나면 저절로 하루 밀린다.
   const today = dayStart(now).toISOString();
   const [page, setPage] = useState(0);
+  const [view, setView] = useState('today'); // 'today' = 오늘 화면(하루 고리), 'week' = 주간 달력
   const start = addDays(today, page * 7).toISOString();
 
   const [events, setEvents] = useState([]);
@@ -127,8 +129,10 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
       const shown = api.normalizeEvent(event);
       const weeksAhead = Math.floor((Date.parse(shown.start) - Date.parse(today)) / (7 * 24 * 3600 * 1000));
       if (changeId) setEvents((list) => list.filter((e) => e.id !== changeId)); // 옮긴 옛 일정은 바로 빠진다
-      if (weeksAhead >= 0 && weeksAhead < PAGES && weeksAhead !== page) setPage(weeksAhead);
-      else {
+      if (weeksAhead >= 0 && weeksAhead < PAGES && weeksAhead !== page) {
+        setPage(weeksAhead);
+        setView('week'); // 다른 주에 넣은 일정은 주간 달력에서 보여 준다
+      } else {
         if (weeksAhead === page) setEvents((list) => [...list.filter((e) => e.id !== shown.id), shown]); // 바로 보이고, 서버 목록으로 다시 맞춘다
         loadWeek();
       }
@@ -203,28 +207,63 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
 
   const openTasks = rank.tasks.filter((t) => !t.done);
   const activeMemo = popup?.memoId;
+  const date = kst(now);
+  const memoWrap = (
+    <div className="memo-wrap">
+      <MemoCard memos={memos} now={now} activeId={activeMemo} waiting={waiting} />
+      {popup && <MemoPopup key={popup.memoId} popup={popup.popup} busy={busy} onSave={savePopup} onCancel={cancelPopup} />}
+    </div>
+  );
 
   return (
     <>
       <TopBar example={example} onFeedback={() => setSheet('feedback')} onMenu={() => setSheet('menu')} />
-      <main className="dash">
-        <TasksCard tasks={openTasks.slice(0, 3)} warning={rank.warning} now={now} onDone={doneTask} onEdit={(task) => setSheet({ task })} />
-        <div className="memo-wrap">
-          <MemoCard memos={memos} now={now} activeId={activeMemo} waiting={waiting} />
-          {popup && <MemoPopup key={popup.memoId} popup={popup.popup} busy={busy} onSave={savePopup} onCancel={cancelPopup} />}
+      <div className="today-head">
+        <span className="date num">
+          {date.m}월 {date.d}일 {WEEKDAYS[date.wd]}요일
+        </span>
+        <span className="grow" />
+        <div className="segmented" role="group" aria-label="보기">
+          <button type="button" aria-pressed={view === 'today'} onClick={() => (setView('today'), setPage(0))}>
+            오늘
+          </button>
+          <button type="button" aria-pressed={view === 'week'} onClick={() => setView('week')}>
+            주간
+          </button>
         </div>
-        <WeekCalendar
-          start={start}
-          events={events}
-          tasks={openTasks.filter((t) => dayIndex(start, t.due) >= 0)}
-          now={now}
-          page={page}
-          onPage={goPage}
-          onEvent={(event) => setSheet({ event })}
-          onTask={(task) => setSheet({ task })}
-          legs={legs}
-        />
-      </main>
+      </div>
+      {view === 'today' ? (
+        <main className="dash today">
+          <TodayView
+            today={today}
+            events={events}
+            tasks={openTasks.slice(0, 5)}
+            total={openTasks.length}
+            now={now}
+            onDone={doneTask}
+            onEvent={(event) => setSheet({ event })}
+            onTask={(task) => setSheet({ task })}
+            onAll={() => setSheet('tasks')}
+          />
+          {memoWrap}
+        </main>
+      ) : (
+        <main className="dash">
+          <TasksCard tasks={openTasks.slice(0, 3)} warning={rank.warning} now={now} onDone={doneTask} onEdit={(task) => setSheet({ task })} />
+          {memoWrap}
+          <WeekCalendar
+            start={start}
+            events={events}
+            tasks={openTasks.filter((t) => dayIndex(start, t.due) >= 0)}
+            now={now}
+            page={page}
+            onPage={goPage}
+            onEvent={(event) => setSheet({ event })}
+            onTask={(task) => setSheet({ task })}
+            legs={legs}
+          />
+        </main>
+      )}
       <Composer onSend={sendMemo} />
 
       {sheet === 'menu' && (
