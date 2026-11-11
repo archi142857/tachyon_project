@@ -144,6 +144,37 @@
 - 원격 D1에 `etl`·`etl_items` 표가 아직 없으면 모두 503(화면: 'eTL 연결은 준비 중이에요').
 - 수업 시간표는 events(source `etl`, ext_id `api-class-…`, 잠김, 이름 = 과목 이름, 장소 = '39동 409호') — 수업 사이 동선이 바로 쓴다. 과제는 tasks(source `etl`, ICS와 같은 줄), 공지에서 찾은 시험·휴강·보강은 events(source `notice` — 잠기지 않아 고치기·지우기 됨), 교수가 넣은 과목 일정은 events(source `etl`, ext_id `api-calendar-…`, 잠김).
 
+## 10_together (서버 세션, 11-11) — 있음, 원격 D1에 표가 생기기 전에는 503 (`worker/10_together.js`)
+
+친구 · 그룹 · 그룹별 모임 시간표(when2meet 모양). 모두 로그인 필요. **남에게는 빈/바쁨만** 간다(일정 이름·장소·출처·이메일은 안 보냄). 친구·그룹은 **초대 링크로만** 맺는다(이메일로 사람 찾기 없음). 표가 아직 없으면 모든 요청이 503 `'같이 쓰기를 준비 중이에요…'`.
+
+| 요청 | 보냄 | 받음 |
+| --- | --- | --- |
+| `GET /api/together` | — | `{ ok, friends: [{ id, name }], groups: [{ id, name, owner, members }] }` (owner = 내가 방장, members = 인원) |
+| `POST /api/together/invite` | — | 친구 초대 `{ ok, code, url, expiresAt }`. `url` = `<사이트>/?join=<code>`(7일, 여러 사람이 써도 됨). 카톡 등으로 보낸다. 한 사람이 살아 있는 링크 20개까지(429) |
+| `GET /api/together/join/:code` | — | 미리 보기 `{ ok, kind: 'friend'\|'group', from: { name }, mine, group?: { name, members } }` · 없는 링크 404, 지난 링크 410 |
+| `POST /api/together/join` | `{ code }` | `{ ok, kind: 'friend', friend: { id, name } }` 또는 `{ ok, kind: 'group', group: { id, name }, already? }` · 내 친구 링크 400, 그룹 30명·내 그룹 20개 넘으면 409 |
+| `DELETE /api/together/friends/:id` | — | `{ ok }` 둘 다에서 끊김 · 친구 아니면 404 |
+| `POST /api/together/groups` | `{ name }` (40자) | `{ ok, group: { id, name, owner: true, members: 1 } }` |
+| `GET /api/together/groups/:id` | — | `{ ok, group: { id, name, owner }, members: [{ id, name, owner, me }], meets: [{ id, title, from, to, length, mine }] }` · 멤버가 아니면 404 |
+| `PATCH /api/together/groups/:id` | `{ name }` | 방장만(403) |
+| `POST /api/together/groups/:id/invite` | — | 그룹 초대 링크(멤버 누구나), 모양은 친구 초대와 같다 |
+| `POST /api/together/groups/:id/members` | `{ friendId }` | 내 친구를 바로 넣기 `{ ok, member }` · 친구가 아니면 404(그 사람은 링크로) |
+| `DELETE /api/together/groups/:id/members/me` | — | 나가기. 방장이 나가면 가장 먼저 들어온 멤버가 방장, 마지막 사람이면 그룹을 지움 |
+| `DELETE /api/together/groups/:id/members/:userId` | — | 내보내기(방장만) |
+| `POST /api/together/groups/:id/meets` | `{ title, from, to, dayStart, dayEnd, slot, length }` | 모임 시간표 만들기 `{ ok, meet }`. 날짜 `YYYY-MM-DD`(끝 날 포함, 14일까지, 다 지난 날짜는 안 됨), 하루 `'09:00'`~`'22:00'`(기본), `slot` 15·30·60분(기본 30), `length` 모임 길이(분, slot 단위, 기본 60) · 틀리면 400 + 알아듣는 문장 |
+| `GET /api/together/meets/:id` | — | 아래 '모임 시간표 응답' |
+| `PUT /api/together/meets/:id/marks` | `{ marks: [{ start, state }] }` | 내 칸 칠하기. `state` `'free'`(된다)·`'busy'`(안 된다)·`null`(달력대로 되돌림), `start`는 응답 `slots[].start` 그대로 · 응답은 GET과 같음(바로 다시 그리면 됨) |
+| `DELETE /api/together/meets/:id` | — | 만든 사람이나 방장만(`meet.canDelete`) |
+
+**모임 시간표 응답:** `{ ok, meet: { id, groupId, group, title, from, to, dayStart, dayEnd, slot, length, canDelete }, members: [{ id, name, me, known }], known, unknown, slots: [{ start, free, who, me, mark }], best: [{ start, end, free, who }] }`
+
+- `slots`는 시간 순(날짜마다 dayStart~dayEnd를 slot분씩). `free` = 그 칸에 되는 사람 수, `who` = 그 사람들 `id`(이름은 `members`에서), `me` = 내 칸 `'free'|'busy'`, `mark` = 내가 칠한 칸이면 `'free'|'busy'`, 아니면 `null`(달력대로).
+- 빈/바쁨 정하기: 칠한 칸이 먼저. 안 칠한 칸은 그 사람 달력에 **시각이 있는** 일정이 겹치면 바쁨(종일 일정·마감은 바쁨 아님, 옮긴 일정은 뺌). 달력이 없는 사람(시각 있는 일정이 하나도 없음)은 when2meet처럼 **칠한 '된다' 칸만** 된다.
+- `known: false` = 달력도 칠한 칸도 없는 사람(아직 모름). 셈에 안 들어간다 → 화면은 '아직 안 칠한 사람 N명'.
+- `best` = 모임 길이만큼 같은 날 이어진 칸 가운데 처음부터 끝까지 되는 사람이 많은 순, 겹치지 않게 3개까지(시간 순으로 줌). 되는 사람이 0이면 없음.
+- 칸 진하기는 `free / known`으로 그리면 된다(디자인 '같이' 쪽, 컨셉 11-11 22:27).
+
 ## 아직 화면이 없는 것 (2단계)
 
 - 아침 브리핑 카드: `GET /api/briefing` (AI, 있음). 시안 3개는 캔버스에 있고, 고르는 것은 디자인 결정과 같이 미뤄짐(컨셉 11-09 23:56).

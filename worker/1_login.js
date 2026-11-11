@@ -28,6 +28,7 @@ import { makeSessionCookie, clearSessionCookie, getCookie, cookie } from './lib/
 import { deriveKey, b64url, fromB64url, utf8 } from './lib/secret.js';
 import { json, fail, readJson } from './lib/http.js';
 import { logAction, logStatement } from './lib/log.js';
+import { deleteAccountStatements as togetherCleanup, TOGETHER_TABLES } from './10_together.js';
 import { kstIso } from './lib/time.js';
 
 const GOOGLE_AUTH = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -238,6 +239,8 @@ async function deleteAccount(request, env, user) {
   const { results } = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all();
   const present = new Set(results.map((r) => r.name));
   await env.DB.batch([
+    // 같이 쓰기(10_together.js): 방장 넘기기·그룹 나가기·친구 끊기·초대 링크를 먼저(표가 다 있을 때만)
+    ...(TOGETHER_TABLES.every((table) => present.has(table)) ? togetherCleanup(env, user.id) : []),
     ...USER_TABLES.filter((table) => present.has(table)).map((table) => env.DB.prepare(`DELETE FROM ${table} WHERE user_id = ?`).bind(user.id)),
     env.DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id),
     logStatement(env, null, 'account_delete', null),
