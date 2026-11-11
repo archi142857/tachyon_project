@@ -118,7 +118,7 @@ test("사진 읽기를 막는 경우: 사진 아님 415, 5MB 넘음 413, 키 없
   assert.deepEqual([ok.status, ok.body.photo, ok.body.classes.length], [200, null, 2]);
 });
 
-test("저장: 학기 끝까지 펼쳐 넣고 사진을 지운다. 다시 저장하면 그날부터의 시간표를 바꾼다", async () => {
+test("저장: 학기 끝까지 펼쳐 넣고 사진을 지운다. 다시 저장하면 그날부터의 시간표를 바꾼다. 그날부터의 eTL 수업은 지운다", async () => {
   const DB = fakeD1();
   const PHOTOS = fakeR2();
   const user = addUser(DB);
@@ -126,6 +126,11 @@ test("저장: 학기 끝까지 펼쳐 넣고 사진을 지운다. 다시 저장�
   const photo = `timetable/${user.id}/1-abcdef01.png`;
   PHOTOS.files.set(photo, {});
   DB.sqlite.prepare("INSERT INTO events (user_id, title, start, source, ext_id) VALUES (?, '지난 수업', '2026-11-03T09:30:00+09:00', 'timetable', 'old')").run(user.id);
+  // eTL API로 들어온 수업: 저장 날짜부터의 것은 지우고(두 번 보이지 않게), 지난 것과 eTL 일정은 그대로
+  const etl = (title, start, ext) => DB.sqlite.prepare("INSERT INTO events (user_id, title, start, source, ext_id) VALUES (?, ?, ?, 'etl', ?)").run(user.id, title, start, ext);
+  etl("[예시] eTL 지난 수업", "2026-11-05T09:30:00+09:00", "api-class-1-20261105-0930");
+  etl("[예시] eTL 앞 수업", "2026-11-10T09:30:00+09:00", "api-class-1-20261110-0930");
+  etl("[예시] eTL 공지 일정", "2026-11-11T10:00:00+09:00", "api-calendar-7");
 
   const r = await post(env, user, "/api/timetable/save", { body: JSON.stringify({ photo, classes: CLASSES, from: "2026-11-09", until: "2026-11-22" }) });
   await r.ctx.settle();
@@ -134,7 +139,9 @@ test("저장: 학기 끝까지 펼쳐 넣고 사진을 지운다. 다시 저장�
   const titles = () => DB.sqlite.prepare("SELECT title, start FROM events ORDER BY start").all().map((e) => `${e.start.slice(0, 10)} ${e.title}`);
   assert.deepEqual(titles(), [
     "2026-11-03 지난 수업",
+    "2026-11-05 [예시] eTL 지난 수업",
     "2026-11-10 [예시] 유기화학",
+    "2026-11-11 [예시] eTL 공지 일정",
     "2026-11-12 [예시] 생명과학실험",
     "2026-11-17 [예시] 유기화학",
     "2026-11-19 [예시] 생명과학실험",
@@ -145,7 +152,9 @@ test("저장: 학기 끝까지 펼쳐 넣고 사진을 지운다. 다시 저장�
   await post(env, user, "/api/timetable/save", { body: JSON.stringify({ classes: changed, from: "2026-11-09", until: "2026-11-22" }) });
   assert.deepEqual(titles(), [
     "2026-11-03 지난 수업",
+    "2026-11-05 [예시] eTL 지난 수업",
     "2026-11-10 [예시] 유기화학",
+    "2026-11-11 [예시] eTL 공지 일정",
     "2026-11-13 [예시] 생명과학실험",
     "2026-11-17 [예시] 유기화학",
     "2026-11-20 [예시] 생명과학실험",

@@ -82,6 +82,21 @@
 ## 4_night (AI 세션) — 있음, 화면은 아직 안 씀
 
 - `GET /api/briefing` → 아침 브리핑 카드(2단계 화면), `GET /api/briefing/rank` → 할 일 여유 순(대시보드는 위 `/api/tasks`로 같은 순서를 받는다), `POST /api/briefing/run`.
+- 카드 모양: `{ date, made_at, by, events, top3, postpone, warning, today: { event_min, task_min, extra_min, over_min }, new_tasks }`. `today`는 아래 날마다 몫의 오늘 칸과 같은 셈이다(11-11).
+
+### 날마다 몫 — 밀도 고리·주 '고르게' 줄 (11-11, 사람 요청 "날마다 밀도 고리 + 주간 밀도가 고르게")
+
+| 요청 | 보냄 | 받음 |
+| --- | --- | --- |
+| `GET /api/briefing/plan?days=42` | — | `{ ok, awake: { from: '07:00', minutes: 1020 }, daily_min, guessed, warning, days: [{ date, event_min, room_min, task_min, extra_min, over_min, cram_min, items: [{ task_id, min }] }] }` 오늘부터 `days`일(1~42, 기본 42) |
+
+- **규칙 하나(`4_night.js` `planDays`)**: 할 일 여유 순(`/api/tasks`·`/api/briefing/rank`), 몰린 주 `warning`, 브리핑의 할 일 3개·미룰 것·`today`가 모두 이 셈을 쓴다. 화면은 이 값을 그리기만 한다(화면 셈 `density.js`는 없어도 된다).
+  - 하루 = 깨어 있는 7시~24시(`awake.minutes` 1020분). 오늘은 지금부터. `room_min` = 그 시간 − 시각 일정(겹침은 한 번만, 하루 종일 일정은 안 셈). `event_min` = 그날 7시~24시의 시각 일정.
+  - 할 일은 마감이 이른 것부터 오늘 ~ 마지막 날에 15분씩, **가장 덜 찬 날(일정 + 나눈 할 일)부터** 나눈다. 마지막 날 = 정오 이후 마감이면 마감 날, 정오 전이면 전날. 날짜만 있는 마감은 그날 23:59, 지난 할 일은 오늘, 마감 없는 일은 2주 안. 걸리는 시간을 모르면 1시간(`guessed` = 그렇게 센 수).
+  - `task_min` = 하루 편한 몫(`daily_min`, 기본 180분 — 빈 시간이 더 적으면 빈 시간) 안에서 나눈 할 일. `extra_min` = 편한 몫이 모자라 빈 시간까지 더 넣은 몫(빠듯). `over_min` = 빈 시간도 모자라 마지막 날에 넘친 몫. `cram_min` = 견주기용, 마지막 날에 몰아서 할 때의 할 일.
+  - `items` = 그날 나뉜 할 일과 분(`task_id`는 `/api/tasks`의 `id`).
+- **그리는 법(제안)**: 고리 한 바퀴 = `awake.minutes`. 일정 `event_min`, 할 일 `task_min`, 빠듯 `extra_min`(다른 색), 넘치면(`over_min > 0`) 붉은 테. 주 '고르게' 줄 = 날마다 `event_min + task_min + extra_min + over_min` 막대와 평균선, 옅은 테두리 = `event_min + cram_min`(몰아서 할 때).
+- 여유(`slack_days`) = 마지막 날까지 편한 몫의 합 − 그 마감까지 할 양(앞 마감 것 포함), 하루 편한 몫 단위. 0보다 작으면 그 마감 앞의 날들에 `extra_min`·`over_min`이 생기고 `warning`이 '… 하루 3시간으로는 약 N시간 모자라요'가 된다.
 
 ## 3_memo_popup (AI 세션) — 있음
 

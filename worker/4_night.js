@@ -7,13 +7,14 @@
 //     → tasks(source='memo', ext_id='memo:<메모 id>'). 할 일이 아닌 메모도 handled = 1(다음 밤에 다시 읽지 않게).
 //     마감 날짜는 정규식(3_memo_popup.js의 findWhen)이 '메모를 쓴 시각' 기준으로 먼저 계산한다.
 //  3) 할 일마다 걸리는 시간(분)과 '지금 가능 / 수업·자료 뒤'(ready) 어림 → 사용자가 고칠 수 있다.
-//  4) 밀도(코드, AI 없음): 여유 = 마감까지 쓸 수 있는 날 − (걸리는 시간 ÷ 하루 할 일 시간). 여유 적은 순 3개,
-//     마감까지 하루 양을 고르게 펴서('서랍장') 이번 주·다음 주가 넘치면 경고.
-//  5) 아침 브리핑 카드(JSON: 오늘 일정 · 할 일 3개 · 미룰 것 1개 · 경고 · 새로 생긴 할 일) → briefings.text
+//  4) 밀도(코드, AI 없음) = '고르게 나누기' 한 규칙(planDays, 아래 '고르게 나누기' 머리글): 할 일을 마감 전 날들에
+//     가장 덜 찬 날부터 나눈다. 날마다 몫(화면의 밀도 고리)·여유 순(할 일 3개)·몰린 주 경고·미룰 것이 모두 이 셈에서 나온다.
+//  5) 아침 브리핑 카드(JSON: 오늘 일정 · 할 일 3개 · 미룰 것 1개 · 경고 · 오늘 몫 · 새로 생긴 할 일) → briefings.text
 //
 // 주소 (worker/index.js가 /api/briefing* 를 여기로 보낸다. 응답은 JSON)
 //   GET  /api/briefing        → { briefing }  오늘 카드. 밤 정리 전이면 지금 할 일로 바로 만든다(AI 없음). log: briefing_open
 //   GET  /api/briefing/rank   → { tasks, warning }  지금 할 일 전체를 여유 적은 순으로(대시보드 '할 일 3개'용)
+//   GET  /api/briefing/plan?days=42 → { days: [...] }  오늘부터 날마다 몫(밀도 고리·주 '고르게' 줄). 모양은 web/API.md
 //   POST /api/briefing/run    → { briefing }  이 사용자 밤 정리를 지금 돌린다(시험용, 10분에 3번까지)
 // Cron: scheduled() — wrangler.toml crons "30 16 * * *"(UTC) = 한국 01:30
 // 설정(선택, wrangler.toml [vars]): DAILY_TASK_MIN = 하루에 할 일에 쓰는 시간(분), 기본 180
@@ -43,6 +44,7 @@ export async function handle(request, env, ctx, user) {
   const [, , action] = new URL(request.url).pathname.split("/").filter(Boolean); // api / briefing / :action
   if (!action && request.method === "GET") return getBriefing(env, ctx, user);
   if (action === "rank" && request.method === "GET") return getRank(env, user);
+  if (action === "plan" && request.method === "GET") return getPlan(env, user, new URL(request.url));
   if (action === "run" && request.method === "POST") return runNow(env, user);
   return json({ error: "없는 주소" }, 404);
 }
@@ -60,8 +62,24 @@ async function getBriefing(env, ctx, user) {
 
 async function getRank(env, user) {
   const now = new Date();
-  const ranked = rankTasks(await openTasks(env, user.id), now, dailyMin(env));
+  const [tasks, events] = await Promise.all([openTasks(env, user.id), planEvents(env, user.id, now)]);
+  const ranked = rankTasks(tasks, now, dailyMin(env), events);
   return json({ tasks: ranked, warning: crowdedWarning(ranked, now, dailyMin(env)) });
+}
+
+async function getPlan(env, user, url) {
+  const now = new Date();
+  const days = Math.min(Math.max(Math.round(Number(url.searchParams.get("days")) || PLAN_DAYS), 1), PLAN_DAYS);
+  const [tasks, events] = await Promise.all([openTasks(env, user.id), planEvents(env, user.id, now, days)]);
+  const plan = planDays(tasks, events, now, { days, dailyMinutes: dailyMin(env) });
+  return json({
+    ok: true,
+    awake: { from: "07:00", minutes: AWAKE_MIN }, // 고리 한 바퀴
+    daily_min: dailyMin(env), // 하루 편한 할 일 시간(이보다 많이 나눈 몫이 extra_min)
+    guessed: plan.guessed, // 걸리는 시간을 몰라 1시간으로 센 할 일 수(밤 정리 전)
+    warning: crowdedWarning(plan.ranked, now, dailyMin(env)),
+    days: plan.days,
+  });
 }
 
 async function runNow(env, user) {
@@ -191,7 +209,7 @@ function minutesOf(v) {
 
 async function buildBriefing(env, userId, now, { by, newTasks = [] }) {
   const date = kstDate(now);
-  const [events, tasks] = await Promise.all([
+  const [events, tasks, spans] = await Promise.all([
     // 오늘 시작하는 일정 + 전에 시작해 오늘도 이어지는 하루 종일 일정(여행·시험 기간 같은 여러 날 일정)
     env.DB.prepare(
       `SELECT id, title, start, "end", place, important FROM events
@@ -201,19 +219,33 @@ async function buildBriefing(env, userId, now, { by, newTasks = [] }) {
       .all()
       .then((r) => r.results),
     openTasks(env, userId),
+    planEvents(env, userId, now),
   ]);
-  const ranked = rankTasks(tasks, now, dailyMin(env));
-  const rest = ranked.slice(3);
+  const plan = planDays(tasks, spans, now, { dailyMinutes: dailyMin(env) });
+  const ranked = plan.ranked;
+  const top3 = ranked.slice(0, 3);
+  const today = plan.days[0];
   return {
     date,
     made_at: isoKst(now),
     by, // night = 01:30 밤 정리, now = 밤 정리 전에 바로 만든 것
     events,
-    top3: ranked.slice(0, 3).map(short),
-    postpone: rest.length ? short(rest[rest.length - 1]) : null, // 여유가 가장 많은 것(또는 마감 없는 것)
+    top3: top3.map(short),
+    postpone: postponeOf(ranked, top3, today),
     warning: crowdedWarning(ranked, now, dailyMin(env)),
+    // 오늘 몫(화면 밀도 고리의 오늘 칸과 같은 셈): 일정 · 할 일(편한 몫) · 빠듯 · 넘침, 분
+    today: { event_min: today.event_min, task_min: today.task_min, extra_min: today.extra_min, over_min: today.over_min },
     new_tasks: newTasks.map((t) => ({ id: t.id, title: t.title, memo: t.memo ?? null })), // memo = 근거로 보여 줄 원문 메모
   };
+}
+
+/** 미룰 것 1개: 오늘 몫이 나뉜 할 일 가운데 할 일 3개가 아닌 것 중 여유가 가장 많은 것(마감 없는 것 포함). 없으면 남은 것 중 맨 뒤 */
+function postponeOf(ranked, top3, today) {
+  const inTop = new Set(top3.map((t) => t.id));
+  const planned = new Set(today.items.map((x) => x.task_id));
+  const rest = ranked.filter((t) => !inTop.has(t.id));
+  const pick = rest.filter((t) => planned.has(t.id)).at(-1) ?? rest.at(-1);
+  return pick ? short(pick) : null;
 }
 
 // source = 어디서 왔나(etl · ics · memo …). 화면에서 근거로 보여 준다.
@@ -236,38 +268,151 @@ function openTasks(env, userId) {
     .then((r) => r.results);
 }
 
+// ── 고르게 나누기 (코드만, AI 없음) ─────────────────────────
+// 날마다 몫(화면의 밀도 고리·주 '고르게' 줄), 할 일 여유 순, 몰린 주 경고, 미룰 것이 모두 이 한 규칙을 쓴다
+// (11-11 사람 요청 "날마다 밀도 고리 + 주간 밀도가 고르게 유지되는 것이 보이게", 화면 셈과 하나로 — 컨셉 쪽지 261111-2228).
+// - 하루 = 깨어 있는 7시~24시(1020분). 오늘은 지금부터. 빈 시간(room) = 그 시간 − 시각 일정(겹침은 한 번만, 하루 종일 일정은 안 셈).
+// - 편한 몫(cap) = min(빈 시간, 하루 할 일 시간 DAILY_TASK_MIN — 기본 3시간).
+// - 할 일은 마감이 이른 것부터, 오늘 ~ 마지막 날에 15분씩 '가장 덜 찬 날(일정 + 나눈 할 일)'부터 나눈다(물 채우기).
+//   ① 편한 몫 안에서(task_min) → ② 모자라면 빈 시간까지(빠듯, extra_min) → ③ 그래도 남으면 마지막 날에 넘침(over_min).
+// - 마지막 날: 정오(12시) 이후 마감이면 마감 날, 정오 전이면 전날. 날짜만 있는 마감은 그날 23:59. 지난 할 일은 오늘. 마감 없는 일은 2주 안.
+// - 걸리는 시간을 모르면(밤 정리 전) 1시간. 견주려고 '마지막 날에 몰아서 할 때'(cram_min)도 센다.
+// - 여유(slack_days) = 마지막 날까지 편한 몫의 합 − 그 마감까지 해야 할 양(앞 마감 것 포함), 하루 할 일 시간 단위.
+//   0보다 작으면 편한 몫으로는 모자라 ②·③이 생긴다 = 경고 '하루 3시간으로는 약 N시간 모자라요'. (마감이 이른 것부터 나누면
+//   편한 몫 안에 다 들어갈 수 있을 때는 늘 다 들어가서, 여유 < 0 ⟺ 그 마감 앞에 빠듯·넘침이 생김.)
+
+export const AWAKE_FROM = 7 * 60; // 일어나는 시각(분). 화면 slots.js WAKE = 7과 같게
+export const AWAKE_MIN = 24 * 60 - AWAKE_FROM; // 1020
+export const PLAN_DAYS = 42; // 오늘부터 6주
+const STEP = 15;
+const GUESS_MIN = 60;
+const NO_DUE_DAYS = 14;
+const DAY_MS = 86400000;
+
 /**
- * 여유 적은 순으로 줄 세우기 ('서랍장').
- * 하루를 칸 하나(하루 할 일 시간, 기본 3시간)로 보고, 마감이 이른 할 일부터 오늘부터의 칸에 채워 넣는다.
- * 여유(slack_days) = 그 마감까지의 칸 − 그 마감까지 채워야 할 양(앞 마감 것 포함), 날 단위. 0이면 빠듯, 음수면 모자람.
- * → 마감이 몰려 있으면 뒤쪽 할 일의 여유가 줄어서 위로 올라온다. 걸리는 시간을 모르면 60분, 마감 없는 일은 맨 뒤(null).
+ * 오늘부터 days일의 날마다 몫과 여유 순.
+ * tasks = 끝나지 않은 할 일({id, title, due, minutes, ready, source}), events = 그 기간 일정({start, end}).
+ * → { days: [{ date, event_min, room_min, task_min, extra_min, over_min, cram_min, items: [{ task_id, min }] }], ranked, guessed }
  */
-export function rankTasks(tasks, now = new Date(), dailyMinutes = DAILY_MIN_DEFAULT) {
+export function planDays(tasks, events = [], now = new Date(), { days = PLAN_DAYS, dailyMinutes = DAILY_MIN_DEFAULT } = {}) {
   const today = kstDate(now);
-  const open = tasks.filter((t) => !t.done).map((t) => ({ ...t, days_left: daysLeft(t.due, today), slack_days: null }));
-  const byDue = open.filter((t) => t.days_left != null).sort((a, b) => a.days_left - b.days_left);
+  const k = kst(now);
+  const spans = timedSpans(events);
+  const list = Array.from({ length: days }, (_, i) => {
+    const date = addDays(today, i);
+    const from = i === 0 ? Math.max(AWAKE_FROM, k.hh * 60 + k.mi) : AWAKE_FROM;
+    const room = Math.max(0, 24 * 60 - from - busyMinutes(spans, date, from));
+    return { date, event_min: busyMinutes(spans, date, AWAKE_FROM), room_min: room, cap: Math.min(room, dailyMinutes), task_min: 0, extra_min: 0, over_min: 0, cram_min: 0, items: new Map() };
+  });
+  const open = tasks
+    .filter((t) => !t.done)
+    .map((t) => ({ ...t, need: t.minutes > 0 ? t.minutes : GUESS_MIN, last: lastDay(t.due, today, now), slack_days: null }));
+
+  // 여유: 마지막 날 순으로, 같은 날은 함께 센다
+  const withDue = open.filter((t) => t.last != null).sort((a, b) => a.last - b.last || dueMs(a.due) - dueMs(b.due) || a.id - b.id);
   let filled = 0;
-  for (let i = 0; i < byDue.length; ) {
-    let j = i; // 같은 날 마감은 함께 센다
-    while (j < byDue.length && byDue[j].days_left === byDue[i].days_left) filled += byDue[j++].minutes ?? 60;
-    const slack = Math.round(((Math.max(byDue[i].days_left, 0) * dailyMinutes - filled) / dailyMinutes) * 10) / 10;
-    for (let k = i; k < j; k++) byDue[k].slack_days = slack;
+  let capSum = 0;
+  let upto = -1;
+  for (let i = 0; i < withDue.length; ) {
+    let j = i;
+    while (j < withDue.length && withDue[j].last === withDue[i].last) filled += withDue[j++].need;
+    while (upto < withDue[i].last) capSum += ++upto < days ? list[upto].cap : dailyMinutes;
+    const slack = Math.round(((capSum - filled) / dailyMinutes) * 10) / 10;
+    for (let x = i; x < j; x++) {
+      withDue[x].slack_days = slack;
+      withDue[x].days_left = withDue[x].last + 1; // 쓸 수 있는 날 수(오늘 포함, 지났으면 0 이하)
+    }
     i = j;
   }
-  return open.sort(
-    (a, b) =>
-      (a.slack_days ?? Infinity) - (b.slack_days ?? Infinity) ||
-      String(a.due ?? "~").localeCompare(String(b.due ?? "~")) ||
-      a.id - b.id,
-  );
+
+  // 날마다 몫: 마감이 이른 것부터 물 채우기
+  const load = (d) => d.event_min + d.task_min + d.extra_min;
+  const pour = (task, left, hi, space, put) => {
+    while (left > 0) {
+      let best = null;
+      for (let i = 0; i <= hi; i++) if (space(list[i]) > 0 && (!best || load(list[i]) < load(best))) best = list[i];
+      if (!best) break;
+      const add = Math.min(STEP, left, space(best));
+      put(best, add);
+      best.items.set(task.id, (best.items.get(task.id) ?? 0) + add);
+      left -= add;
+    }
+    return left;
+  };
+  const order = [...withDue, ...open.filter((t) => t.last == null).sort((a, b) => a.id - b.id)];
+  for (const t of order) {
+    const hi = Math.min(days - 1, t.last == null ? NO_DUE_DAYS - 1 : Math.max(0, t.last));
+    list[hi].cram_min += t.need;
+    let left = pour(t, t.need, hi, (d) => Math.min(d.cap, d.room_min - d.extra_min) - d.task_min, (d, m) => (d.task_min += m));
+    left = pour(t, left, hi, (d) => d.room_min - d.task_min - d.extra_min, (d, m) => (d.extra_min += m));
+    if (left > 0) list[hi].over_min += left;
+  }
+
+  const ranked = open
+    .sort((a, b) => (a.slack_days ?? Infinity) - (b.slack_days ?? Infinity) || String(a.due ?? "~").localeCompare(String(b.due ?? "~")) || a.id - b.id)
+    .map(({ need, last, ...t }) => t);
+  return {
+    days: list.map(({ cap, items, ...d }) => ({ ...d, items: [...items].map(([task_id, min]) => ({ task_id, min })) })),
+    ranked,
+    guessed: open.filter((t) => !(t.minutes > 0)).length,
+  };
 }
 
-/** 마감까지 쓸 수 있는 날 수 (오늘 포함). 날짜만 있거나 저녁(18시~) 마감이면 그날도 센다. */
-function daysLeft(due, today) {
+/** 여유 적은 순(위 planDays와 같은 셈). events를 주면 일정이 많은 날의 빈 시간까지 본다(안 주면 깨어 있는 시간 전부) */
+export function rankTasks(tasks, now = new Date(), dailyMinutes = DAILY_MIN_DEFAULT, events = []) {
+  return planDays(tasks, events, now, { dailyMinutes }).ranked;
+}
+
+/** 할 일을 할 수 있는 마지막 날(오늘 = 0). 정오 전 마감이면 전날, 지났으면 -1, 마감 없으면 null */
+function lastDay(due, today, now) {
   if (!due || !/^\d{4}-\d{2}-\d{2}/.test(due)) return null;
-  const days = Math.round((Date.parse(`${due.slice(0, 10)}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86400000);
+  if (!(dueMs(due) > now.getTime())) return -1;
+  const i = Math.round((Date.parse(`${due.slice(0, 10)}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / DAY_MS);
   const hour = due.length > 10 ? Number(due.slice(11, 13)) : 24;
-  return hour >= 18 ? days + 1 : days;
+  return hour < 12 ? i - 1 : i;
+}
+
+const dueMs = (due) => (!due ? Infinity : Date.parse(due.length > 10 ? due : `${due}T23:59:00+09:00`));
+
+/** 시각 일정만 [시작, 끝] ms로(끝이 없으면 1시간). 하루 종일 일정(날짜만)은 시간을 차지하지 않는 것으로 본다 */
+function timedSpans(events) {
+  return events
+    .filter((e) => e.start && e.start.length > 10)
+    .map((e) => {
+      const s = Date.parse(e.start);
+      return [s, e.end && e.end.length > 10 ? Date.parse(e.end) : s + 3600000];
+    })
+    .filter(([s, e]) => e > s)
+    .sort((a, b) => a[0] - b[0]);
+}
+
+/** 그날 fromMin부터 자정까지 일정이 차지하는 분(겹친 것은 한 번만) */
+function busyMinutes(spans, date, fromMin) {
+  const d0 = Date.parse(`${date}T00:00:00+09:00`);
+  const a = d0 + fromMin * 60000;
+  const b = d0 + DAY_MS;
+  let total = 0;
+  let cur = null;
+  for (const [s0, e0] of spans) {
+    const s = Math.max(a, s0);
+    const e = Math.min(b, e0);
+    if (e <= s) continue;
+    if (!cur || s > cur[1]) {
+      if (cur) total += cur[1] - cur[0];
+      cur = [s, e];
+    } else cur[1] = Math.max(cur[1], e);
+  }
+  if (cur) total += cur[1] - cur[0];
+  return Math.round(total / 60000);
+}
+
+/** 계획에 쓰는 일정: 어제(밤을 넘는 일정)부터 days일 */
+function planEvents(env, userId, now, days = PLAN_DAYS) {
+  const today = kstDate(now);
+  return env.DB.prepare(`SELECT start, "end" FROM events WHERE user_id = ? AND moved_to IS NULL AND start >= ? AND start < ?`)
+    .bind(userId, addDays(today, -1), addDays(today, days))
+    .all()
+    .then((r) => r.results);
 }
 
 /**

@@ -3,7 +3,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { handle, scheduled, runNight, rankTasks, crowdedWarning } from "../4_night.js";
+import { handle, scheduled, runNight, rankTasks, crowdedWarning, planDays, AWAKE_MIN } from "../4_night.js";
 import { fakeD1, addUser, fakeCtx } from "./helpers/d1.js";
 
 const NIGHT = new Date("2026-11-10T01:30:00+09:00"); // 화요일 01:30
@@ -75,6 +75,109 @@ test("걸리는 시간 채우기는 마감이 다가오는 것부터(지난 것�
   const order = [...sent.matchAll(/^- (\d+) · /gm)].map((m) => Number(m[1]));
   assert.deepEqual(order, [sooner, soon, none, old]);
   assert.deepEqual(card.events.map((e) => e.title), ["[예시] 학회 여행"]); // 끝난 여러 날 일정·어젯밤 일정은 빼고
+});
+
+// ── 고르게 나누기 (planDays) ──
+
+const T = (id, title, due, minutes) => ({ id, title, due, minutes, ready: 1, source: "memo" }); // 지어낸 예시
+const sumOf = (days, key) => days.reduce((n, d) => n + d[key], 0);
+const minOf = (days, id) => days.reduce((n, d) => n + (d.items.find((x) => x.task_id === id)?.min ?? 0), 0);
+
+test("고르게 나누기: 가장 덜 찬 날부터 15분씩, 일정이 많은 날은 덜, 몰아서 할 때와 견줌", () => {
+  // 화 01:30. 목요일 23:59 마감 360분 → 화·수·목 사흘에 120분씩. 몰아서 하면 목요일에 360분
+  const even = planDays([T(1, "[예시] 레포트", "2026-11-12T23:59:00+09:00", 360)], [], NIGHT, { days: 7 });
+  assert.equal(even.days.length, 7);
+  assert.deepEqual(even.days.slice(0, 3).map((d) => d.task_min), [120, 120, 120]);
+  assert.deepEqual(even.days.slice(0, 3).map((d) => d.cram_min), [0, 0, 360]);
+  assert.equal(sumOf(even.days.slice(3), "task_min"), 0);
+  assert.deepEqual(even.days[0].items, [{ task_id: 1, min: 120 }]);
+  assert.equal(even.days[0].event_min, 0);
+  assert.equal(even.days[0].room_min, AWAKE_MIN); // 01:30이면 오늘도 7시부터 하루 전부
+
+  // 수요일에 6시간 일정(겹친 1시간은 한 번만) → 수요일엔 덜 넣는다(일정 + 할 일이 고르게)
+  const events = [
+    { start: "2026-11-11T09:00:00+09:00", end: "2026-11-11T13:00:00+09:00" },
+    { start: "2026-11-11T12:00:00+09:00", end: "2026-11-11T15:00:00+09:00" },
+    { start: "2026-11-11", end: "2026-11-12" }, // 하루 종일 일정은 시간을 차지하지 않는다
+  ];
+  const busy = planDays([T(1, "[예시] 레포트", "2026-11-12T23:59:00+09:00", 360)], events, NIGHT, { days: 7 });
+  assert.equal(busy.days[1].event_min, 360);
+  assert.equal(busy.days[1].task_min, 0);
+  assert.deepEqual([busy.days[0].task_min, busy.days[2].task_min], [180, 180]);
+});
+
+test("고르게 나누기: 편한 몫(하루 3시간) → 빠듯(빈 시간까지) → 넘침, 여유 < 0 이면 빠듯이 생긴다", () => {
+  // 수요일 23:59 마감 600분: 편한 몫 화·수 180씩 = 360, 나머지 240은 빠듯(빈 시간), 여유 = (360 − 600) / 180
+  const tight = planDays([T(1, "[예시] 발표 준비", "2026-11-11T23:59:00+09:00", 600)], [], NIGHT, { days: 7 });
+  assert.deepEqual(tight.days.slice(0, 2).map((d) => [d.task_min, d.extra_min]), [[180, 120], [180, 120]]);
+  assert.equal(tight.ranked[0].slack_days, -1.3);
+  assert.equal(crowdedWarning(tight.ranked, NIGHT), "이번 주 마감까지 하루 3시간으로는 약 4시간 모자라요");
+  // 빈 시간보다 많으면 마지막 날에 넘침
+  const over = planDays([T(1, "[예시] 밤샘 과제", "2026-11-10T23:59:00+09:00", AWAKE_MIN + 60)], [], NIGHT, { days: 3 });
+  assert.deepEqual([over.days[0].task_min, over.days[0].extra_min, over.days[0].over_min], [180, AWAKE_MIN - 180, 60]);
+  // 여유가 0 이상이면 빠듯·넘침은 없다(마감 이른 것부터 나누면 편한 몫에 다 들어갈 때는 늘 다 들어간다)
+  const fits = planDays(
+    [T(1, "[예시] 퀴즈", "2026-11-10T23:59:00+09:00", 120), T(2, "[예시] 레포트", "2026-11-12T23:59:00+09:00", 380), T(3, "[예시] 실험 보고서", "2026-11-11T23:59:00+09:00", 30)],
+    [],
+    NIGHT,
+    { days: 7 },
+  );
+  assert.ok(fits.ranked.every((t) => t.slack_days >= 0));
+  assert.equal(sumOf(fits.days, "extra_min") + sumOf(fits.days, "over_min"), 0);
+  assert.deepEqual([1, 2, 3].map((id) => minOf(fits.days, id)), [120, 380, 30]); // 120 + 30 + 380 = 530 ≤ 사흘 540
+});
+
+test("고르게 나누기: 정오 전 마감은 전날까지, 지난 할 일은 오늘, 마감 없는 일은 2주 안, 시간 모르면 1시간, 오늘은 지금부터", () => {
+  const plan = planDays(
+    [
+      T(1, "[예시] 아침 제출", "2026-11-11T10:00:00+09:00", 60), // 수 10시 → 화요일까지
+      T(2, "[예시] 오후 제출", "2026-11-11T15:00:00+09:00", 60), // 수 15시 → 수요일도
+      T(3, "[예시] 지난 과제", "2026-11-08T23:59:00+09:00", 30),
+      T(4, "[예시] 언젠가 정리", null, 600),
+      T(5, "[예시] 시간 모름", "2026-11-12", null),
+    ],
+    [],
+    NIGHT,
+    { days: 21 },
+  );
+  const lastDayOf = (id) => plan.days.findLastIndex((d) => d.items.some((x) => x.task_id === id));
+  assert.equal(lastDayOf(1), 0);
+  assert.equal(lastDayOf(2), 1);
+  assert.equal(lastDayOf(3), 0);
+  assert.ok(lastDayOf(4) <= 13 && minOf(plan.days, 4) === 600);
+  assert.equal(minOf(plan.days, 5), 60);
+  assert.equal(plan.guessed, 1);
+  assert.deepEqual(plan.ranked.map((t) => t.id), [3, 1, 2, 5, 4]); // 지난 것 → 여유 적은 순 → 마감 없는 일
+  assert.equal(plan.ranked.find((t) => t.id === 3).slack_days, -0.2);
+
+  const late = planDays([T(1, "[예시] 오늘 밤 과제", "2026-11-10T23:59:00+09:00", 180)], [], new Date("2026-11-10T22:00:00+09:00"), { days: 2 });
+  assert.equal(late.days[0].room_min, 120); // 22시부터 자정까지
+  assert.deepEqual([late.days[0].task_min, late.days[0].over_min], [120, 60]);
+  assert.equal(late.ranked[0].slack_days, -0.3);
+});
+
+test("rankTasks·경고는 같은 셈, 브리핑의 미룰 것은 오늘 몫이 있는 것 가운데 여유가 가장 많은 것", async () => {
+  const tasks = [
+    T(1, "[예시] 퀴즈", "2026-11-10T23:59:00+09:00", 60),
+    T(2, "[예시] 레포트", "2026-11-12T23:59:00+09:00", 120),
+    T(3, "[예시] 발표", "2026-11-13T23:59:00+09:00", 120),
+    T(4, "[예시] 기말 정리", "2026-11-30T23:59:00+09:00", 2000), // 커서 3주 동안 날마다 나뉜다(오늘 몫 있음)
+    T(5, "[예시] 다음 달 일", "2026-12-20T23:59:00+09:00", 60),
+  ];
+  assert.deepEqual(rankTasks(tasks, NIGHT).map((t) => t.id), planDays(tasks, [], NIGHT).ranked.map((t) => t.id));
+  const DB = fakeD1();
+  const user = addUser(DB);
+  for (const t of tasks) DB.sqlite.prepare("INSERT INTO tasks (user_id, title, due, minutes, source, ext_id) VALUES (?, ?, ?, ?, 'memo', ?)").run(user.id, t.title, t.due, t.minutes, `m${t.id}`);
+  const card = await runNight({ DB }, user.id, NIGHT);
+  assert.deepEqual(card.top3.map((t) => t.title), ["[예시] 퀴즈", "[예시] 레포트", "[예시] 발표"]);
+  // 할 일 3개가 아닌 것 중 오늘 몫이 나뉜 것은 '기말 정리'뿐(다음 달 일은 뒤쪽 빈 날에 나뉨) → 여유가 더 많은 '다음 달 일'이 아니라 이것
+  assert.ok(card.top3.every((t) => t.title !== "[예시] 기말 정리"));
+  assert.equal(card.postpone.title, "[예시] 기말 정리");
+  const plan = planDays(tasks, [], NIGHT);
+  assert.equal(minOf(plan.days.slice(0, 1), 5), 0);
+  assert.ok(minOf(plan.days.slice(0, 1), 4) > 0);
+  assert.equal(card.today.event_min, 0);
+  assert.ok(card.today.task_min > 0 && card.today.extra_min === 0 && card.today.over_min === 0);
 });
 
 // ── 밤 정리 ──
@@ -200,6 +303,13 @@ test("주소: 브리핑 열기(밤 정리 전이면 바로 만듦) · 순서 · 
   const rank = await call(env, user, "GET", "/api/briefing/rank");
   assert.deepEqual(rank.body.tasks.map((t) => t.title).sort(), ["[예시] 3주차 퀴즈", "[예시] 출석 확인"]);
   assert.ok("warning" in rank.body);
+
+  const plan = await call(env, user, "GET", "/api/briefing/plan");
+  assert.equal(plan.body.days.length, 42);
+  assert.deepEqual(Object.keys(plan.body.days[0]).sort(), ["cram_min", "date", "event_min", "extra_min", "items", "over_min", "room_min", "task_min"]);
+  assert.deepEqual([plan.body.awake.minutes, plan.body.daily_min, plan.body.guessed], [1020, 180, 1]);
+  assert.equal((await call(env, user, "GET", "/api/briefing/plan?days=7")).body.days.length, 7);
+  assert.equal((await call(env, user, "GET", "/api/briefing/plan?days=999")).body.days.length, 42);
 
   for (let i = 0; i < 3; i++) assert.equal((await call(env, user, "POST", "/api/briefing/run")).status, 200);
   assert.equal((await call(env, user, "POST", "/api/briefing/run")).status, 429);

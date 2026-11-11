@@ -85,7 +85,12 @@ async function saveClasses(request, env, ctx, user) {
 
   const rows = expandWeekly(classes, from, until);
   // 그날부터의 시간표 일정을 지우고 새로 넣는다(다시 올린 시간표가 이긴다). 한 문장에 12줄씩.
-  const statements = [env.DB.prepare("DELETE FROM events WHERE user_id = ? AND source = 'timetable' AND start >= ?").bind(user.id, from)];
+  // eTL API로 넣었던 그날부터의 수업(api-class-)도 지운다 — 시간표가 생기면 eTL 동기화는 수업을 더 넣지 않을 뿐 있던 것은 안 지워서,
+  // 남겨 두면 같은 수업이 두 번 보인다(TT Wizard 넣기 9_etl.js와 같게, 11-11).
+  const statements = [
+    env.DB.prepare("DELETE FROM events WHERE user_id = ? AND source = 'timetable' AND start >= ?").bind(user.id, from),
+    env.DB.prepare("DELETE FROM events WHERE user_id = ? AND source = 'etl' AND ext_id LIKE 'api-class-%' AND start >= ?").bind(user.id, from),
+  ];
   for (let i = 0; i < rows.length; i += 12) {
     const chunk = rows.slice(i, i + 12);
     statements.push(
