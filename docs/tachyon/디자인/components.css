@@ -1,4 +1,6 @@
-/* Tachyon 화면 부품 — ② 차분한 종이 (참고용 사본. 원본은 Tachyon 디자인 시스템의 components/bundle.css).
+/* Tachyon 화면 부품. 묶음 셋이 차례로 있다.
+   첫째(11-10) = ② 차분한 종이 때 다듬은 기존 부품, 둘째(11-10) = 그때 새로 생긴 기능 부품, 셋째(11-11) = 새 틀과 새 부품(③ 바우하우스).
+   셋 다 색·모서리를 토큰으로만 써서, 기본 옷이 ③ 바우하우스로 바뀌어도 그대로 맞는다(값은 tokens.css).
    본문 글꼴은 앱 이름대로 var(--font)로 적었다(시스템에서는 --font-body).
    색·간격·모서리·그림자·움직임은 모두 토큰(var)으로만 쓴다. 클래스 이름은 web/src/styles.css와 같다.
    [새]는 지금 앱에 없는 클래스, [바뀜]은 지금 앱과 값이 달라진 곳이다. */
@@ -214,3 +216,147 @@ dialog .snackbar { top: calc(12px + env(safe-area-inset-top)); bottom: auto; }
   :root { --dur-in: 0ms; --dur-out: 0ms; --dur-stamp: 0ms; --dur-week: 0ms; }
   .stamp, .popup, dialog.sheet[open], .snackbar, .cal-body.swap { animation: none; }
 }
+
+/* ════ 11-10 둘째 묶음: 새 기능 클래스(컨셉 16:26 알림)와 원본 '종이 플래너'에서 가져온 것 ════
+   원본을 읽은 기록: 참고/종이플래너_원본_읽기.md. [새] = 지금 앱에 없는 클래스, [바뀜] = 지금 앱과 값이 다른 곳. */
+
+/* ── 시트 아래 버튼 줄 ── */
+.sheet-actions { display: flex; gap: 8px; align-items: center; }
+.sheet-actions .btn { flex: 1; }
+
+/* ── 수업 사이 지각(달력 칸·일정 창) ── */
+.ev.late-ev { box-shadow: inset 0 3px 0 var(--danger); }
+.ev.important.late-ev { box-shadow: inset 0 0 0 2px var(--ev-important), inset 0 3px 0 var(--danger); }
+.ev .late-pill { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } /* 폰: 글은 화면 읽기만, 보이는 것은 위 빨간 줄 */
+@media (min-width: 1024px) {
+  .ev .late-pill { width: auto; height: auto; overflow: visible; clip: auto; top: 4px; right: 3px; padding: 0 4px; border-radius: var(--r-chip); background: var(--danger); color: var(--card); font-size: 12px; line-height: 16px; font-weight: 700; } /* [바뀜] 11px → 12px, #fff → 토큰 */
+}
+.late { color: var(--danger); font-weight: 700; }
+
+/* ── 일정 창 '장소 · 동선' ── */
+.route-info { display: grid; gap: 0; margin: 4px 0 8px; }
+.route-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--tap); border-top: 1px solid var(--line); font-size: 15px; line-height: 22px; color: var(--text); }
+.route-row:first-child { border-top: 0; }
+.route-row .map-link { flex: none; display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 8px; text-decoration: none; font-size: 15px; } /* [바뀜] 44 → 48 */
+.day-map { margin: 4px 0 0; }
+.day-map canvas { display: block; width: 100%; border: 1px solid var(--line); border-radius: var(--r-card); } /* 색은 tokens.css의 --map-* */
+.day-map figcaption { margin-top: 4px; }
+
+/* ── eTL 연결 시트 ── */
+/* [바뀜] 경고: 빨간 글 + 빨간 테두리 → 기본 글자 + 주황 동그라미 + 연한 주황 면(오류 모양과 같은 결). 크게·굵게는 그대로 */
+.warn-box { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 14px; border: 1.5px solid var(--warn); border-radius: var(--r-card); background: var(--warn-bg); color: var(--text); font-size: 16px; line-height: 24px; font-weight: 700; }
+.warn-box::before { content: '!'; content: '!' / ''; flex: none; width: 20px; height: 20px; margin-top: 2px; border-radius: 50%; background: var(--warn); color: var(--warn-bg); font-size: 13px; line-height: 20px; font-weight: 700; text-align: center; }
+.etl-steps { margin: 0; padding-left: 20px; font-size: 14px; line-height: 22px; color: var(--text2); }
+.etl-steps a { color: var(--accent-text); font-weight: 500; }
+/* [바뀜] 탭 두 칸은 .segmented와 같은 모양(높이 48, 고른 칸은 면 + 테두리) */
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; padding: 3px; background: var(--fill); border-radius: var(--r-btn); }
+.seg button { min-height: var(--tap); border: 1px solid transparent; border-radius: 5px; background: transparent; font-size: 15px; font-weight: 500; color: var(--text2); }
+.seg button.on { background: var(--raised); color: var(--text); border-color: var(--line-strong); font-weight: 700; }
+.etl-list { margin: 0; padding: 0; list-style: none; max-height: 50vh; overflow: auto; }
+.etl-list li + li { border-top: 1px solid var(--line); }
+.etl-list a { display: grid; gap: 2px; min-height: var(--tap); padding: 10px 2px; color: var(--text); text-decoration: none; } /* [바뀜] 44 → 48 */
+.etl-title { font-size: 15px; line-height: 22px; font-weight: 500; }
+/* [바뀜] 시험·휴강·보강: 채운 빨강 → 테두리 글자(도장 결). 시험만 빨강, 휴강·보강은 흐린 잉크 */
+.etl-tag { display: inline-block; margin-right: 6px; padding: 0 5px; border: 1.5px solid var(--danger); border-radius: var(--r-chip); background: transparent; color: var(--danger); font-size: 12px; line-height: 16px; font-weight: 700; vertical-align: 1px; }
+.etl-tag.cancel, .etl-tag.makeup { border-color: var(--line-strong); color: var(--text2); }
+
+/* ── [새] 방금 넣은 일정: 포스트잇에서 저장하면 달력의 그 칸에 점선 테두리. 되돌리기 스낵바가 닫히면 뺀다 ──
+   원본의 '잉크 번짐'(1.6초)은 길어서 움직이지 않는 표시로 바꿨다. 중요(안쪽 실선)·초점(바깥 실선)과 겹치지 않게 점선 */
+.ev.fresh { outline: 2px dashed var(--accent-text); outline-offset: 1px; z-index: 1; }
+
+/* ── [새] 빈 메모: 예시 두 개. 누르면 아래 메모 칸에 채운다(보내지는 않는다). 메모가 하나라도 생기면 없어진다 ── */
+.try-chips { display: flex; flex-direction: column; align-items: flex-end; gap: 16px; margin: 12px 0 8px; }
+.try { position: relative; display: inline-flex; align-items: center; min-height: 32px; max-width: 100%; padding: 0 10px; border: 1px dashed var(--line-strong); border-radius: var(--r-bubble) var(--r-bubble) 2px var(--r-bubble); background: transparent; font-size: 13px; line-height: 18px; color: var(--text2); text-align: left; }
+.try::after { content: ''; position: absolute; left: 0; right: 0; top: -8px; bottom: -8px; } /* 누르는 높이 48, 사이 16이라 이웃과 겹치지 않는다 */
+
+/* ── [새] 아침 브리핑 '오늘의 한 쪽': 원본 브리핑 짜임을 차분한 종이로. Sheet 안에 그린다(제목 '오늘의 한 쪽') ──
+   바쁜 정도는 동그라미 대신 수치로, 손글씨 없이. 채운 버튼은 '오늘 시작' 하나 */
+.brief { display: grid; gap: 16px; }
+.brief-lead { font-family: var(--font-head); font-size: 20px; line-height: 28px; font-weight: 700; color: var(--heading); text-wrap: balance; }
+.brief-why { margin-top: 4px; font-size: 15px; line-height: 22px; color: var(--text2); }
+.brief-facts { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; line-height: 18px; color: var(--text2); font-variant-numeric: tabular-nums; }
+.brief-facts b { color: var(--text); font-weight: 700; }
+.brief-sec h3 { font-size: 13px; line-height: 18px; font-weight: 700; color: var(--text2); padding-bottom: 4px; }
+.brief-list { margin: 0; padding: 0; list-style: none; }
+.brief-list li { display: flex; gap: 10px; align-items: baseline; min-height: 36px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 15px; line-height: 22px; color: var(--text); }
+.brief-list .t { flex: none; min-width: 42px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.brief-list .sub { margin-left: auto; flex: none; font-size: 13px; color: var(--text3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.brief-later { font-size: 15px; line-height: 22px; color: var(--text); }
+.brief-later .why { display: block; font-size: 13px; line-height: 18px; color: var(--text3); }
+.brief-night { font-size: 13px; line-height: 18px; color: var(--text3); }
+
+/* ════ 11-11 셋째 묶음: ③ 바우하우스 모양 층 — 새 틀(web/src/shell.css, 화면 d906872) 위에 얹는다 ════
+   틀(넓이·높이·굴림·칸 나누기)은 화면 세션의 shell.css가 맡는다(390×844~1920×1080 확인, axe 위반 0). 여기는 그 위의 모양만이다.
+   shell.css 다음에 부른다(shell.css 끝에 붙이거나 따로 shape.css). 색은 var(--…)만 써서 테마 일곱 개가 같이 바뀐다.
+   모양 규칙(모든 테마): ● 수업 = --mark-class, □ 내 일정 = --card 면 + 테두리, ▲ 할 일 = --mark-task 면 + 테두리,
+   빨강(--now, --danger, --stamp) = 지금과 시간 경고(지남·지각·넘침)에만. 버튼·고른 것은 --accent. */
+
+/* ── 보내기 단추: 칸 모서리를 따라간다(③ 동그라미, ② 5px 그대로) ── */
+.composer .send { border-radius: calc(var(--r-btn) - 1px); }
+
+/* ── 하루 고리 모양(DayRing.jsx를 조금 고친다 — 가이드 '넘길 것'): ● 수업 <circle>, □ 내 일정 <rect>, ▲ 넣어 본 자리 <polygon> ── */
+.ring circle.ev.timetable { fill: var(--mark-class); }
+.ring rect.ev { fill: var(--card); stroke: var(--accent-text); stroke-width: 0.9; }
+.ring polygon.slot { fill: var(--mark-task); stroke: var(--accent-text); stroke-width: 0.7; stroke-linejoin: round; }
+.ring rect.past, .ring polygon.past { opacity: 0.45; }
+.ring.has-sel rect:not(.on), .ring.has-sel polygon:not(.on) { opacity: 0.3; }
+.ring line.now-halo { stroke: var(--card); stroke-width: 6; stroke-linecap: round; } /* 지금 선 밑에 먼저 긋는다 — 어떤 띠·입자 위에서도 보이게 */
+.ring line.now { stroke: var(--now); stroke-width: 2.4; stroke-linecap: round; }
+.ring text.now { fill: var(--now); paint-order: stroke; stroke: var(--card); stroke-width: 3px; stroke-linejoin: round; }
+.ring circle.frame { fill: none; stroke: var(--line-strong); stroke-width: 1; } /* 넣기로 하면: 입자 바깥 r=114 테 하나(칸딘스키 시안) */
+/* 범례: ● 수업 □ 내 일정 ▲ 할 일을 넣어 본 자리 ― 지금 */
+.ring-key { flex-wrap: wrap; row-gap: 4px; }
+.key-dot { width: 9px; height: 9px; background: var(--mark-class); }
+.key-sq { display: inline-block; width: 9px; height: 9px; margin-right: 4px; background: var(--card); box-shadow: inset 0 0 0 1.5px var(--accent-text); }
+.key-tri { position: relative; display: inline-block; width: 11px; height: 10px; margin-right: 4px; background: var(--accent-text); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.key-tri::after { content: ''; position: absolute; inset: 2.6px 2.2px 1px; background: var(--mark-task); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.key-now { display: inline-block; width: 14px; height: 3px; margin-right: 4px; border-radius: 2px; background: var(--now); vertical-align: 3px; }
+
+/* ── 달력 칸 앞의 같은 모양(글 앞 7px, CSS만) ── */
+.ev.timetable::before, .ev.ics::before, .ev.memo::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 4px; vertical-align: 1px; }
+.ev.timetable::before { border-radius: 50%; background: var(--mark-class); }
+.ev.ics::before, .ev.memo::before { background: var(--card); box-shadow: inset 0 0 0 1.5px var(--accent-text); }
+/* 내 일정 칸 테두리는 border로(box-shadow는 '중요'·'지각' 표시가 쓰고 있어 겹치지 않게). 칸에 색이 있는 테마는 --ev-mine-line이 transparent */
+.ev.ics, .ev.memo { border: 1px solid var(--ev-mine-line); }
+.chip.allday { box-shadow: inset 0 0 0 1px var(--ev-mine-line); }
+
+/* ── 날마다 밀도 고리: 일정 = --accent(shell.css), 할 일 몫 = 짙은 노랑, 빠듯 = 주황, 넘침 = 빨간 테(shell.css의 --stamp) ──
+   노랑을 조금 짙게 섞는 것은 테두리를 두를 수 없는 가는 고리라서(③ 흰 바탕 3.5:1, 빠듯 3.3:1) */
+.dring .task { stroke: color-mix(in srgb, var(--mark-task) 70%, var(--text)); }
+.dring .extra { stroke: color-mix(in srgb, var(--mark-task) 50%, var(--danger)); }
+/* 주 '고르게' 줄: 할 일 막대는 노랑 면 + 테두리, 평균선은 빨강이 아니라 보조 글자색(빨강 = 시간 경고만) */
+.bal-task { background: var(--mark-task); box-shadow: inset 0 0 0 1px var(--accent-text); }
+.bal-avg { border-top-color: var(--text2); }
+
+/* ── 월 보기: 줄 앞에 모양(▲ 마감 · ● 수업 · □ 내 일정 · ― 하루 종일) ── */
+.month-grid .mline { position: relative; padding-left: 14px; }
+.month-grid .mline::before { content: ''; position: absolute; left: 3px; top: calc(50% - 4px); width: 8px; height: 8px; }
+.month-grid .mline.timetable::before { border-radius: 50%; background: var(--mark-class); }
+.month-grid .mline.ics::before, .month-grid .mline.memo::before { background: var(--card); box-shadow: inset 0 0 0 1.5px var(--accent-text); }
+.month-grid .mline.allday::before { top: calc(50% - 1.5px); height: 3px; background: var(--text2); }
+.month-grid .mline.deadline::before { left: 2px; top: calc(50% - 5px); width: 10px; height: 9px; background: var(--accent-text); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.month-grid .mline.deadline::after { content: ''; position: absolute; left: 4.4px; top: calc(50% - 2px); width: 5.2px; height: 5px; background: var(--mark-task); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+/* 폰(600px 아래): 글을 숨기고 모양만 줄지어(사람: "모바일에서 너무 많은 정보가 보여서 난잡하면 안 됨"). 글은 칸 aria-label에, 누르면 그 주로 간다.
+   10px 글(shell.css)은 가장 작은 글 12px 원칙 아래라서 이렇게 바꾼다 */
+@media (max-width: 599.98px) {
+  .month-grid .mcell { flex-direction: row; flex-wrap: wrap; align-content: flex-start; gap: 3px 2px; }
+  .month-grid .mtop { flex-basis: 100%; }
+  .month-grid .mline, .month-grid .mline.deadline, .month-grid .mline.timetable, .month-grid .mline.memo, .month-grid .mline.ics, .month-grid .mline.allday {
+    display: inline-block; width: 10px; height: 10px; min-height: 0; padding: 0; font-size: 0; line-height: 0; background: none; overflow: hidden;
+  }
+  .month-grid .mline::before { left: 1px; top: 1px; }
+  .month-grid .mline.allday::before { top: 3.5px; }
+  .month-grid .mline.deadline::before { left: 0; top: 0; }
+  .month-grid .mline.deadline::after { left: 2.4px; top: 3px; }
+  .month-grid .mmore { font-size: 12px; line-height: 10px; padding-left: 1px; }
+}
+
+/* ── 할 일 쪽 ── */
+.share-item { box-shadow: inset 0 0 0 1px var(--line); } /* ③은 --postit이 흰 면이라 몫 칸이 보이게 */
+.group-title { padding-bottom: 3px; border-bottom: 1px solid var(--line-strong); } /* 무리마다 먹 선 한 줄 */
+.task-group.late .group-title { border-bottom-color: var(--danger); }
+
+/* ── ⑤ '같이' 쪽(화면 8996c9e의 TogetherPage·MeetGrid) 위 ── */
+.mg-cell.mine::after { background: var(--card); box-shadow: 0 0 0 1.5px var(--text); } /* 내가 되는 칸 = 흰 점 + 먹 테. 노랑은 할 일 색이라(범례 글 '노란 점' → '흰 점') */
+.best { background: var(--card); box-shadow: inset 0 0 0 1.5px var(--text); } /* 후보 시각 = 테두리 칩. 형광펜 면은 마감에만 */
+.t-row.on { box-shadow: inset 3px 0 0 var(--accent); } /* 고른 그룹 = 왼쪽 먹 막대(왼쪽 메뉴와 같은 말) */
