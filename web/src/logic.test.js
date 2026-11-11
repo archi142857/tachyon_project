@@ -183,3 +183,18 @@ describe('달력 칸 배치', () => {
     expect(hourRange(start, [ev('a', 7, 8), ev('b', 21, 23)])).toEqual({ first: 7, last: 23 });
   });
 });
+
+describe('모임 시간표 후보(meet.js bestTimes)', () => {
+  it('지난 칸은 빼고, 되는 사람 많은 순으로 겹치지 않게 3개, 시간 순', async () => {
+    const { bestTimes } = await import('./meet.js');
+    const at = (h) => `2026-11-12T${String(h).padStart(2, '0')}:00:00+09:00`;
+    const slots = [9, 10, 11, 12, 13, 14].map((h) => ({ start: at(h), who: h === 9 ? [1, 2, 3] : h < 12 ? [1, 2] : [1] }));
+    const now = Date.parse(at(10)); // 9시는 지남
+    const best = bestTimes(slots, { length: 60, slot: 60 }, now);
+    expect(best.map((b) => [b.start.slice(11, 16), b.free])).toEqual([
+      ['10:00', 2],
+      ['11:00', 2],
+      ['12:00', 1],
+    ]);
+  });
+});

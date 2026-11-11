@@ -2,6 +2,7 @@
 // '예시로 둘러보기'(또는 주소 끝 ?example)일 때는 서버 대신 example.js의 지어낸 자료를 쓴다.
 // 시각은 schema.sql 머리말대로 '…T15:00:00+09:00', 종일 일정은 날짜만('2026-11-13').
 import { examplePopup, makeExample } from './example.js';
+import { groupDetail, makeTogether, meetView, summary } from './togetherExample.js';
 import { CROWDED, dueThisWeek, topThree } from './tasks.js';
 import { addDays, dayStartKst, isDateOnly, toKstIso, weekStart } from './time.js';
 
@@ -425,6 +426,105 @@ export function takeTtwLink() {
     const code = sessionStorage.getItem(TTW_KEY);
     sessionStorage.removeItem(TTW_KEY);
     return code ? `#ttw=${code}` : null;
+  } catch {
+    return null;
+  }
+}
+
+/* ── 10_together (서버 세션, worker/10_together.js): 친구 · 그룹 · 모임 시간표(when2meet 모양) ──
+   남에게는 빈/바쁨만 온다(일정 이름 없음). 친구·그룹은 초대 링크로만 맺는다. 원격에 표가 없으면 503 '같이 쓰기를 준비 중이에요…' */
+const exT = (fn, ms = 200) => {
+  if (!ex.together) ex.together = makeTogether(new Date());
+  try {
+    return reply(fn(ex.together), ms);
+  } catch (err) {
+    return Promise.reject(err);
+  }
+};
+const exLink = () => ({ ok: true, code: 'example', url: `${window.location.origin}/?join=example`, expiresAt: toKstIso(addDays(new Date(), 7)), example: true });
+
+export const getTogether = () => (ex ? exT(summary) : call('GET', '/api/together'));
+export const inviteFriend = () => (ex ? exT(exLink) : call('POST', '/api/together/invite'));
+export const previewJoin = (code) =>
+  ex ? Promise.reject(Object.assign(new Error('예시에서는 초대 링크를 받을 수 없어요'), { status: 400 })) : call('GET', `/api/together/join/${encodeURIComponent(code)}`);
+export const acceptJoin = (code) => call('POST', '/api/together/join', { code });
+export const removeFriend = (id) =>
+  ex ? exT((t) => ((t.friends = t.friends.filter((f) => f.id !== id)), { ok: true })) : call('DELETE', `/api/together/friends/${encodeURIComponent(id)}`);
+export const createGroup = (name) =>
+  ex
+    ? exT((t) => {
+        const group = { id: t.nextId++, name, owner: true, members: [1] };
+        t.groups.push(group);
+        return { ok: true, group: { id: group.id, name, owner: true, members: 1 } };
+      })
+    : call('POST', '/api/together/groups', { name });
+export const getGroup = (id) => (ex ? exT((t) => groupDetail(t, id)) : call('GET', `/api/together/groups/${encodeURIComponent(id)}`));
+export const renameGroup = (id, name) =>
+  ex ? exT((t) => ((t.groups.find((g) => g.id === id).name = name), { ok: true })) : call('PATCH', `/api/together/groups/${encodeURIComponent(id)}`, { name });
+export const inviteToGroup = (id) => (ex ? exT(exLink) : call('POST', `/api/together/groups/${encodeURIComponent(id)}/invite`));
+export const addFriendToGroup = (id, friendId) =>
+  ex
+    ? exT((t) => {
+        const g = t.groups.find((x) => x.id === id);
+        if (!g.members.includes(friendId)) g.members.push(friendId);
+        return { ok: true };
+      })
+    : call('POST', `/api/together/groups/${encodeURIComponent(id)}/members`, { friendId });
+export const leaveGroup = (id) =>
+  ex ? exT((t) => ((t.groups = t.groups.filter((g) => g.id !== id)), { ok: true })) : call('DELETE', `/api/together/groups/${encodeURIComponent(id)}/members/me`);
+export const removeMember = (id, userId) =>
+  ex
+    ? exT((t) => {
+        const g = t.groups.find((x) => x.id === id);
+        g.members = g.members.filter((m) => m !== userId);
+        return { ok: true };
+      })
+    : call('DELETE', `/api/together/groups/${encodeURIComponent(id)}/members/${encodeURIComponent(userId)}`);
+// body = { title, from, to, dayStart, dayEnd, slot, length }
+export const createMeet = (groupId, body) =>
+  ex
+    ? exT((t) => {
+        const meet = { id: t.nextId++, groupId, createdBy: 1, ...body };
+        t.meets.push(meet);
+        return { ok: true, meet: { id: meet.id } };
+      })
+    : call('POST', `/api/together/groups/${encodeURIComponent(groupId)}/meets`, body);
+export const getMeet = (id) => (ex ? exT((t) => meetView(t, id)) : call('GET', `/api/together/meets/${encodeURIComponent(id)}`));
+// marks = [{ start, state: 'free' | 'busy' | null }] → 새 표 전체
+export const markMeet = (id, marks) =>
+  ex
+    ? exT((t) => {
+        for (const m of marks) {
+          const key = `${id}|${m.start}`;
+          if (m.state) t.marks.set(key, m.state);
+          else t.marks.delete(key);
+        }
+        return meetView(t, id);
+      }, 60)
+    : call('PUT', `/api/together/meets/${encodeURIComponent(id)}/marks`, { marks });
+export const deleteMeet = (id) =>
+  ex ? exT((t) => ((t.meets = t.meets.filter((m) => m.id !== id)), { ok: true })) : call('DELETE', `/api/together/meets/${encodeURIComponent(id)}`);
+
+// 초대 링크(…/?join=<code>)는 로그인 전에 받아 두었다가 대시보드에서 연다(TT Wizard 링크와 같은 방식)
+const JOIN_KEY = 'tachyon.join';
+export function catchJoinLink(loc = window.location) {
+  const params = new URLSearchParams(loc.search);
+  const code = params.get('join');
+  if (!code || !/^[A-Za-z0-9_-]{4,64}$/.test(code)) return;
+  try {
+    sessionStorage.setItem(JOIN_KEY, code);
+  } catch {
+    /* 저장이 막힌 브라우저면 이번에만 */
+  }
+  params.delete('join');
+  const rest = params.toString();
+  window.history.replaceState(null, '', loc.pathname + (rest ? `?${rest}` : '') + loc.hash);
+}
+export function takeJoinLink() {
+  try {
+    const code = sessionStorage.getItem(JOIN_KEY);
+    sessionStorage.removeItem(JOIN_KEY);
+    return code;
   } catch {
     return null;
   }

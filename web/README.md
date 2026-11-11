@@ -47,6 +47,7 @@ npm run build      # dist/
 | `src/components/` | 위 막대, 할 일, 메모, 팝업, 주간 달력, 메모 칸, 시트들 |
 | `src/styles.css` | 색(맨 위 `:root` 한 곳)과 모양 |
 | `src/themes.css` | 테마마다 값 묶음(메뉴 → 테마) |
+| `src/components/TogetherPage.jsx` · `MeetGrid.jsx` · `JoinSheet.jsx` · `src/meet.js` · `src/togetherExample.js` | '같이' 쪽: 친구·그룹·모임 시간표(when2meet 모양), 초대 링크 받기, 후보 고르기, 예시 자료 |
 | `src/shell.css` | 앱 틀: 100dvh 꽉 찬 화면, 문서는 안 굴리고 칸 안에서만, 넓은 화면(900px~) 왼쪽 메뉴 · 폰 위 탭, 오늘 쪽 칸 배치, 주·월 달력, 밀도 고리, 할 일 쪽. 색은 모두 `var(--…)`라 테마를 따른다 |
 | `public/` | `manifest.webmanifest`, `sw.js`, `_headers`, `icons/` |
 

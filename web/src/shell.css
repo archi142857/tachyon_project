@@ -169,3 +169,57 @@ html.locked, html.locked body { height: 100%; overflow: hidden; overscroll-behav
   .shell .topbar { height: calc(52px + env(safe-area-inset-top)); }
   .shell .composer { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
 }
+
+
+/* ── 같이 쪽(친구·그룹·모임 시간표): 넓은 화면 = 왼쪽 목록 · 오른쪽 그룹이나 모임, 폰 = 차례로 한 칸 ── */
+.together { height: 100%; min-height: 0; display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+.together-side { min-height: 0; display: grid; gap: 12px; grid-template-rows: minmax(0, 1fr) minmax(0, 1.2fr); }
+.together-main { min-height: 0; display: flex; flex-direction: column; }
+.together-main > .card { flex: 1; min-height: 0; }
+@media (max-width: 899.98px) {
+  .together.view-home .together-main { display: none; }
+  .together:not(.view-home) .together-side { display: none; }
+}
+@media (min-width: 900px) {
+  .together { grid-template-columns: minmax(280px, 0.75fr) minmax(0, 1.5fr); }
+  .t-back.home { display: none; }
+}
+.t-card { display: flex; flex-direction: column; min-height: 0; padding: 10px 12px 8px; overflow: hidden; }
+.t-card > .t-list, .t-card > .list-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.t-list { list-style: none; margin: 0; padding: 0; display: grid; align-content: start; }
+.t-list li, .t-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 48px; padding: 0 4px; border: 0; border-top: 1px solid var(--line); }
+.t-row { width: 100%; background: transparent; font: inherit; color: var(--text); text-align: left; cursor: pointer; }
+.t-row:hover { background: var(--grid); }
+.t-row.on { background: var(--fill); }
+.t-name { display: inline-flex; align-items: center; gap: 6px; min-width: 0; font-size: 15px; line-height: 22px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t-form { display: flex; gap: 8px; align-items: center; margin: 4px 0 8px; }
+.t-form .input { flex: 1; min-width: 0; }
+.t-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 6px 0; }
+.t-pick { display: inline-flex; gap: 4px; align-items: center; }
+.t-pick select { height: 40px; width: auto; max-width: 180px; }
+.t-back { flex: none; height: 36px; padding: 0 8px; margin-left: -6px; font-size: 14px; }
+.invite { display: grid; gap: 4px; margin: 4px 0 8px; }
+.invite-actions { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.together-wait { padding: 16px; display: grid; gap: 8px; align-content: start; }
+.together-empty { justify-content: center; text-align: center; padding: 24px; }
+.t-meet-form { display: grid; gap: 8px; padding: 8px 0; }
+/* 모임 시간표: 진하기 = 되는 사람 / 아는 사람, 노란 점 = 내가 되는 칸 */
+.meet-best { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0 8px; }
+.meet-best .group-title { margin: 0 4px 0 0; }
+.best { padding: 3px 8px; border-radius: var(--r-chip); background: var(--highlight); color: var(--text); font-size: 13px; line-height: 18px; font-weight: 700; }
+.meet-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-bottom: 8px; }
+.meet-scroll { flex: 1; min-height: 0; overflow: auto; container-type: size; }
+.meet-grid { display: grid; gap: 2px; min-width: max-content; padding-top: 2px; user-select: none; -webkit-user-select: none; }
+.meet-grid.painting { touch-action: none; }
+.mg-row { display: contents; }
+.mg-date { position: sticky; top: 0; z-index: 2; background: var(--card); text-align: center; font-size: 12px; line-height: 16px; font-weight: 700; color: var(--heading); padding: 0 0 4px; }
+.mg-corner { position: sticky; top: 0; z-index: 2; background: var(--card); }
+.mg-time { font-size: 11px; line-height: 12px; color: var(--text3); text-align: right; padding-right: 4px; transform: translateY(-6px); }
+.mg-cell { position: relative; height: max(22px, min(44px, calc((100cqh - 24px) / var(--rows, 10) - 2px))); padding: 0; border: 1px solid var(--line); border-radius: 2px; background: var(--card); cursor: pointer; overflow: hidden; }
+.mg-cell.off { border: 0; background: transparent; cursor: default; }
+.mg-cell.past { opacity: 0.35; cursor: default; }
+.mg-fill { position: absolute; inset: 0; background: var(--accent); opacity: var(--a); pointer-events: none; }
+.mg-cell.mine::after { content: ''; position: absolute; right: 3px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 9999px; background: var(--highlight); box-shadow: 0 0 0 1.5px var(--card); }
+.mg-cell.picked { outline: 2px solid var(--focus); outline-offset: 1px; z-index: 1; }
+.meet-who { margin: 6px 0 0; font-size: 13px; line-height: 18px; color: var(--text); }
+.meet-key { margin: 6px 0 0; }

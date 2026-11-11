@@ -14,6 +14,7 @@ import EtlSheet from '../components/EtlSheet.jsx';
 import FeedbackSheet from '../components/FeedbackSheet.jsx';
 import Icon from '../components/Icon.jsx';
 import InstallSheet from '../components/InstallSheet.jsx';
+import JoinSheet from '../components/JoinSheet.jsx';
 import MemoCard from '../components/MemoCard.jsx';
 import MemoPopup from '../components/MemoPopup.jsx';
 import MonthCalendar from '../components/MonthCalendar.jsx';
@@ -21,6 +22,7 @@ import Sheet from '../components/Sheet.jsx';
 import Snackbar from '../components/Snackbar.jsx';
 import TaskList from '../components/TaskList.jsx';
 import ThemeSheet from '../components/ThemeSheet.jsx';
+import TogetherPage from '../components/TogetherPage.jsx';
 import TodayView from '../components/TodayView.jsx';
 import TtwSheet from '../components/TtwSheet.jsx';
 import WeekCalendar from '../components/WeekCalendar.jsx';
@@ -47,6 +49,7 @@ const PAGES = [
   ['cal', '달력'],
   ['tasks', '할 일'],
   ['memo', '메모'],
+  ['together', '같이'],
 ];
 const PANES = [
   ['ring', '하루'],
@@ -73,11 +76,13 @@ function Segmented({ label, items, value, onChange }) {
   );
 }
 
-export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup, onLogout, onDeleted }) {
+export default function Dashboard({ example, installPrompt, ttwLink, joinCode, onOpenSetup, onLogout, onDeleted }) {
   const now = useNow();
   const today = dayStart(now).toISOString(); // 자정이 지나면 저절로 하루 밀린다
   const [page, setPage] = useState('today');
   const [pane, setPane] = useState('ring'); // 폰의 오늘 쪽에서 보이는 한 칸
+  const [join, setJoin] = useState(() => (joinCode && !example ? joinCode : null)); // 초대 링크(?join=)로 들어왔으면 받기 창
+  const [togetherKey, setTogetherKey] = useState(0); // 받은 뒤 '같이' 쪽을 새로 불러오게
   const [calMode, setCalMode] = useState('week');
   const [weekFrom, setWeekFrom] = useState(today); // 주간 달력 첫 칸(처음엔 오늘)
   const [month, setMonth] = useState(() => ({ y: kst(now).y, m: kst(now).m }));
@@ -432,12 +437,25 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
             </div>
           )}
           {page === 'memo' && <div className="memo-page">{memoCard}</div>}
+          {page === 'together' && <TogetherPage key={togetherKey} example={example} now={now} onSnack={(text) => setSnack({ text })} />}
         </main>
 
         {popup && <MemoPopup key={popup.memoId} popup={popup.popup} busy={busy} onSave={savePopup} onCancel={cancelPopup} />}
         <Composer onSend={sendMemo} />
       </div>
 
+      {join && (
+        <JoinSheet
+          code={join}
+          onClose={() => setJoin(null)}
+          onJoined={(text) => {
+            setJoin(null);
+            setTogetherKey((k) => k + 1);
+            setPage('together');
+            setSnack({ text });
+          }}
+        />
+      )}
       {sheet === 'menu' && (
         <Sheet title="메뉴" onClose={() => setSheet(null)}>
           <div className="menu-list">
