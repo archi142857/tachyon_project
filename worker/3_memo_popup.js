@@ -7,27 +7,31 @@
 //   날짜·시각 말이 없는 메모도 AI가 일정·할 일·그냥 메모를 가린다(지난 일은 AI를 부르지 않음). AI가 없거나 실패하면 규칙(looksLikeTodo).
 // 그냥 메모(생각·지난 일)와 팝업을 '취소'한 일정 메모는 메모로 남고, 밤 정리(4_night.js)가 읽는다. 할 일 팝업을 취소하면 밤 정리도 할 일로 만들지 않는다.
 // 아는 일정으로 채우기(lib/known.js, AI 없이): '공수2 휴강 16일' → 내 '공학수학 2' 수업 시각·장소(popup.from),
-//       '12일 늦은 밤에 회의'처럼 시간대만 쓰면 그 시간대의 비어 있는 1시간(popup.free),
+//       '12일 늦은 밤에 회의'처럼 시간대만 쓰면 그 시간대의 비어 있는 시간(popup.free), '운동 2시간'처럼 길이를 쓰면 그 길이로(안 쓰면 1시간),
 //       '… 16일로 변경' → 옮길 일정(popup.change). 저장 때 change_id를 주면 새 일정을 넣고 옛 일정은 가린다(events.moved_to).
+// 매주 되풀이(11-11 사람 "매주 목요일마다 하는 걸로 메모했는데"): '매주 …'·'목요일마다' → popup.repeat = { until: 학기 끝 }.
+//       저장 때 repeat: true를 주면 그날부터 학기 끝까지 같은 요일·시각으로 주마다 한 줄씩 넣는다(ext_id 'memo:<id>', 'memo:<id>:w1' …).
 //
 // 주소 (worker/index.js가 /api/memo* 를 여기로 보낸다. 응답은 모두 JSON)
 //   POST   /api/memo              { text }                    → { memo, popup }   popup은 일정·할 일이 아니면 null
 //   GET    /api/memo?before=&limit=                           → { memos }         오래된 것부터, event_id·task_id = 이 메모로 만든 일정·할 일
-//   POST   /api/memo/:id/save     { title, date, time, end_time, place, suggested, change_id } → { event }
+//   POST   /api/memo/:id/save     { title, date, time, end_time, place, suggested, change_id, repeat } → { event, repeat? }
 //                                 suggested = 받았던 popup 그대로(고쳤는지 재려고). 모르는 칸은 '?'
 //                                 change_id = 옮길 일정(popup.change.id). 주면 그 일정은 달력에서 가려진다
+//                                 repeat = true면 매주 넣는다(학기 끝까지). 응답의 repeat = 넣은 횟수, event = 첫 주 일정
 //                                 할 일: { kind: 'task', title, date, time, suggested } → { task }  (마감 날짜만 있으면 그날 23:59, 없으면 마감 없음)
 //   POST   /api/memo/:id/cancel   { kind? }                   → { ok }            일정 팝업 취소: 메모는 남아서 밤 정리가 읽는다. 할 일 팝업 취소: 메모로만(handled = 1)
 //   DELETE /api/memo/:id                                      → { ok }
 //
 // 할 일 popup 모양: { kind: "task", title, date: 마감 날짜 또는 "?", time: 마감 시각 또는 "?", by }
 // 일정 popup 모양: { title, date: "2026-11-10", time: "15:00", end_time: "?", place: "301동", by: "ai" | "rule",
-//               from: "공학수학 2"(시각·장소를 가져온 내 일정, 없으면 없음), free: "늦은 밤"(이 시간대의 빈 시간을 골랐음, 없으면 없음), change: { id, title, start }(옮길 일정, 없으면 없음) }
+//               from: "공학수학 2"(시각·장소를 가져온 내 일정, 없으면 없음), free: "늦은 밤"(이 시간대의 빈 시간을 골랐음, 없으면 없음), change: { id, title, start }(옮길 일정, 없으면 없음),
+//               repeat: { until: "2026-12-14" }(매주 되풀이 메모, 없으면 없음) }
 // 표: memos(쓰기·읽기), events·tasks(source='memo', ext_id='memo:<메모 id>' — 밤 정리와 같은 이름), log(popup_save·popup_edit·popup_cancel·llm·llm_fail)
 
 import { askJson, usageDetail } from "./llm.js";
 import { SYSTEM, SCHEMA, userMessage } from "./prompts/memo_popup.js";
-import { useKnown, suggestFree } from "./lib/known.js";
+import { useKnown, suggestFree, lengthOf, useLength } from "./lib/known.js";
 
 export async function handle(request, env, ctx, user) {
   if (!user) return json({ error: "로그인이 필요하다" }, 401);
@@ -88,15 +92,22 @@ async function savePopup(request, env, ctx, user, memoId) {
   const memo = await env.DB.prepare("SELECT id FROM memos WHERE id = ? AND user_id = ?").bind(memoId, user.id).first();
   if (!memo) return json({ error: "없는 메모" }, 404);
 
-  const { start, end } = toStartEnd(f);
   const changeId = Number.isInteger(body.change_id) ? body.change_id : null;
-  const [saved] = await env.DB.batch([
-    env.DB.prepare(
+  // 매주 되풀이(body.repeat): 첫 주는 'memo:<id>'(메모 목록·밤 정리가 찾는 줄), 다음 주부터 'memo:<id>:w1', ':w2' … 학기 끝까지
+  // ponytail: 줄을 주마다 따로 만든다(되풀이 규칙 칸 없음) → 묶음 지우기·고치기는 하나씩. 빈 시간 확인은 첫 주만. 불편해지면 events에 묶음 칸을 둔다
+  const weeks = body.repeat === true ? weeksAfter(f.date) : [];
+  const insert = (date, extId) => {
+    const { start, end } = toStartEnd({ ...f, date });
+    return env.DB.prepare(
       `INSERT INTO events (user_id, title, start, "end", place, source, ext_id) VALUES (?, ?, ?, ?, ?, 'memo', ?)
        ON CONFLICT (user_id, source, ext_id) DO UPDATE
          SET title = excluded.title, start = excluded.start, "end" = excluded."end", place = excluded.place
        RETURNING id, title, start, "end", place, source`,
-    ).bind(user.id, f.title, start, end, f.place, `memo:${memoId}`),
+    ).bind(user.id, f.title, start, end, f.place, extId);
+  };
+  const [saved] = await env.DB.batch([
+    insert(f.date, `memo:${memoId}`),
+    ...weeks.map((date, i) => insert(date, `memo:${memoId}:w${i + 1}`)),
     env.DB.prepare("UPDATE memos SET handled = 1 WHERE id = ? AND user_id = ?").bind(memoId, user.id),
     // 일정 변경: 옛 일정은 지우지 않고 가린다(캘린더에서 온 것은 못 고친다). 새 일정을 지우면 다시 보인다(7_items.js)
     ...(changeId
@@ -113,7 +124,7 @@ async function savePopup(request, env, ctx, user, memoId) {
   const edited = body.suggested ? !sameFields(f, popupFields(body.suggested)) : Boolean(body.edited);
   const detail = JSON.stringify({ memo_id: memoId, by: body.suggested?.by ?? null, known: Boolean(body.suggested?.from), moved: Boolean(changeId) });
   background(ctx, writeLog(env, user.id, edited ? "popup_edit" : "popup_save", detail));
-  return json({ event: saved.results[0] });
+  return json({ event: saved.results[0], ...(weeks.length ? { repeat: weeks.length + 1 } : {}) }); // repeat = 넣은 횟수
 }
 
 /** 할 일 팝업 저장 → tasks(source 'memo', ext_id 'memo:<id>' — 밤 정리가 만드는 것과 같은 줄이라 두 번 생기지 않는다). 걸리는 시간은 밤 정리가 채운다 */
@@ -181,7 +192,23 @@ export async function suggestEvent(env, text, now = new Date(), { ctx, userId, f
   ]);
   const popup = mergePopup(text, when, ai, now);
   if (!popup || popup.kind === "task") return popup;
-  return suggestFree(useKnown(popup, text, known, isoKst(now).slice(0, 10)), text, busy, isoKst(now));
+  const len = lengthOf(text); // '2시간'이라고 썼으면 그 길이로
+  const filled = useLength(suggestFree(useKnown(popup, text, known, isoKst(now).slice(0, 10)), text, busy, isoKst(now), len?.minutes), len);
+  if (!WEEKLY.test(text) || NOT_WEEKLY.test(text)) return filled;
+  // 매주 되풀이: 저장할 때 { repeat: true }를 보내면 학기 끝까지 같은 요일·시각으로 넣는다(savePopup). 화면에서 끌 수 있다
+  const title = filled.title.replace(/매주|(?<![가-힣])마다(?![가-힣])/g, " ").replace(/\s+/g, " ").trim() || filled.title;
+  return { ...filled, title, repeat: { until: semesterEnd(filled.date) } };
+}
+
+// ponytail: 매주만 읽는다('매주', '목요일마다'). 격주·'2주마다'·매일·매달은 한 번짜리로 남는다 → 필요해지면 되풀이 종류를 늘린다
+const WEEKLY = /매주|[월화수목금토일]\s*(?:요일|욜)\s*마다/;
+const NOT_WEEKLY = /격주|\d\s*주/;
+
+/** 매주 되풀이: 첫 날 다음 주부터 학기 끝까지의 같은 요일 날짜들 */
+function weeksAfter(date) {
+  const out = [];
+  for (let d = addDays(date, 7), until = semesterEnd(date); d <= until; d = addDays(d, 7)) out.push(d);
+  return out;
 }
 
 /** 날짜·시각 말이 없는 메모를 AI에게 물을 만한가: 글자가 있고(2자 이상), 지난 일(~했다·~었음)이 아니면 */
@@ -586,6 +613,17 @@ export function ymd(y, m, d) {
 export function addDays(dateStr, n) {
   const [y, m, d] = dateStr.split("-").map(Number);
   return ymd(y, m, d + n);
+}
+/**
+ * 학기 끝 기본값: 정규 수업 마지막 날(종강)까지 매주 펼친다(시간표 5번 파일, 매주 메모). 보강기간은 매주 수업이 아니라 넣지 않는다.
+ * 서울대 2026학년도 학사일정: 2학기 종강 12/14(월, 보강 12/15~21), 1학기 종강 6/15(월).
+ * 다른 해도 같은 날을 기본값으로 둔다(시간표는 화면에서 고칠 수 있다). 그 밖(계절학기·방학)은 6주 뒤.
+ */
+export function semesterEnd(from) {
+  const [y, m] = from.split("-").map(Number);
+  if (m >= 8 && m <= 12) return `${y}-12-14`;
+  if (m >= 2 && m <= 6) return `${y}-06-15`;
+  return addDays(from, 42);
 }
 /** Date → "2026-11-09T17:02:33+09:00" (schema.sql의 시각 모양) */
 export function isoKst(date) {

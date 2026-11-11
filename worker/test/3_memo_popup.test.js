@@ -347,7 +347,7 @@ test("시각 글자 모양", () => {
 
 // ── 아는 일정으로 채우기 (lib/known.js): AI에게는 일정을 안 보낸다 ──
 
-import { abbreviates, likeness, useKnown, suggestFree } from "../lib/known.js";
+import { abbreviates, likeness, useKnown, suggestFree, lengthOf, useLength } from "../lib/known.js";
 
 // 지어낸 일정: 월·수 09:30 수업, 수요일 시험, 금요일 기말
 const weekly = (title, firstDate, n, time, end, place = null) =>
@@ -478,4 +478,79 @@ test("메모 → 팝업: 시간대만 쓰면 DB의 그날 내 일정을 피해 �
   const fetch = async () => aiReply({ is_schedule: true, title: "조 모임", date: "2026-11-12", time: "?", end_time: "?", place: "?" });
   const popup = await suggestEvent({ ANTHROPIC_API_KEY: "k", DB }, "11월 12일 늦은 밤에 조 모임", new Date("2026-11-11T09:17:00+09:00"), { userId: user.id, fetch });
   assert.deepEqual(popup, { title: "조 모임", date: "2026-11-12", time: "22:30", end_time: "23:30", place: "?", by: "ai", free: "늦은 밤" });
+});
+
+test("길이를 쓴 메모: '2시간'을 읽어 빈 시간도 그 길이로 고르고, 시작만 알면 끝을 채운다", () => {
+  const minutes = (text) => lengthOf(text)?.minutes ?? null;
+  assert.equal(minutes("산책 2시간"), 120);
+  assert.equal(minutes("산책 1시간 반"), 90);
+  assert.equal(minutes("산책 1.5시간"), 90);
+  assert.equal(minutes("산책 1시간 30분"), 90);
+  assert.equal(minutes("40분 산책"), 40);
+  assert.equal(minutes("2시간 뒤 회의"), null); // 지금부터 2시간 뒤 = 길이가 아님
+  assert.equal(minutes("10분 전 도착"), null);
+  assert.equal(minutes("3시 30분 회의"), null); // 시각
+  assert.equal(minutes("24시간 카페"), null);
+  assert.equal(minutes("조 모임"), null);
+
+  const at = (a, b) => ({ start: `2026-11-12T${a}:00+09:00`, end: `2026-11-12T${b}:00+09:00` });
+  const p = base({ title: "산책 2시간", date: "2026-11-12" });
+  const NOW = "2026-11-11T09:00:00+09:00";
+  const pick = (text, busy, m) => {
+    const r = suggestFree(p, text, busy, NOW, m);
+    return r.free ? `${r.time}~${r.end_time}` : r.time;
+  };
+  assert.equal(pick("12일 아침에 산책 2시간", [at("08:00", "08:30")], 120), "08:30~10:30"); // 시작 뒤 1시간만 시간대(8~10시) 안이면 된다
+  assert.equal(pick("12일 아침에 산책 2시간", [at("08:00", "08:30"), at("10:00", "11:00")], 120), "?"); // 2시간이 통째로 비어야 한다
+  assert.equal(pick("12일 아침에 산책", [at("08:00", "08:30")]), "08:30~09:30"); // 길이를 안 쓰면 1시간
+  assert.equal(pick("12일 늦은 밤에 산책 2시간", [], 120), "22:00~23:59");
+  assert.equal(pick("12일 늦은 밤에 산책 2시간", [at("22:00", "22:30")], 120), "?"); // 자정은 넘지 않는다
+  assert.equal(pick("12일 점심에 산책 40분", [at("12:00", "12:30")], 40), "12:30~13:10");
+
+  const len = lengthOf("12일 7시 산책 2시간");
+  assert.deepEqual(useLength({ ...p, time: "19:00" }, len), { ...p, title: "산책", time: "19:00", end_time: "21:00" });
+  assert.equal(useLength({ ...p, time: "19:00", end_time: "20:00" }, len).end_time, "20:00"); // 끝을 썼으면 그대로
+  assert.equal(useLength({ ...p, time: "23:00" }, len).end_time, "23:59");
+  assert.equal(useLength(p, len).end_time, "?"); // 시작을 모르면 종일 그대로
+  assert.equal(useLength(p, null), p);
+});
+
+test("매주 메모 → 팝업에 repeat, 저장하면 학기 끝까지 주마다 한 줄 (끄고 저장하면 하루만)", async () => {
+  const DB = fakeD1();
+  const user = addUser(DB);
+  DB.sqlite
+    .prepare(`INSERT INTO events (user_id, title, start, "end", source, ext_id) VALUES (?, '동아리', '2026-11-12T08:00:00+09:00', '2026-11-12T08:30:00+09:00', 'google', 'a')`)
+    .run(user.id);
+  const fetch = async () => aiReply({ is_schedule: true, title: "산책 2시간", date: "2026-11-12", time: "?", end_time: "?", place: "?" });
+  const now = new Date("2026-11-11T09:27:00+09:00"); // 수요일
+  const popup = await suggestEvent({ ANTHROPIC_API_KEY: "k", DB }, "매주 목요일마다 아침에 산책 2시간", now, { userId: user.id, fetch });
+  assert.deepEqual(popup, { title: "산책", date: "2026-11-12", time: "08:30", end_time: "10:30", place: "?", by: "ai", free: "아침", repeat: { until: "2026-12-14" } });
+
+  // AI 없이(규칙): 이름에서 '매주'·'마다'·'2시간'이 빠지고 끝 = 시작 + 2시간
+  const rule = await suggestEvent({}, "매주 목요일마다 저녁 7시 산책 2시간", now);
+  assert.deepEqual(rule, { title: "산책", date: "2026-11-12", time: "19:00", end_time: "21:00", place: "?", by: "rule", repeat: { until: "2026-12-14" } });
+  assert.equal((await suggestEvent({}, "격주 목요일마다 저녁 7시 산책", now)).repeat, undefined);
+  assert.equal((await suggestEvent({}, "목요일 저녁 7시 산책", now)).repeat, undefined);
+
+  const env = { DB };
+  const memo = (await call(env, user, "POST", "/api/memo", { text: "매주 목요일마다 저녁 7시 산책 2시간" })).body.memo;
+  const saved = await call(env, user, "POST", `/api/memo/${memo.id}/save`, { ...rule, suggested: rule, repeat: true });
+  assert.equal(saved.status, 200);
+  assert.equal(saved.body.repeat, 5);
+  assert.equal(saved.body.event.start, "2026-11-12T19:00:00+09:00");
+  const rows = DB.sqlite.prepare(`SELECT start, "end", ext_id FROM events WHERE source = 'memo' ORDER BY start`).all();
+  assert.deepEqual(rows.map((r) => r.start.slice(0, 16)), ["2026-11-12T19:00", "2026-11-19T19:00", "2026-11-26T19:00", "2026-12-03T19:00", "2026-12-10T19:00"]);
+  assert.ok(rows.every((r) => r.end.slice(11, 16) === "21:00"));
+  assert.deepEqual(rows.map((r) => r.ext_id), [`memo:${memo.id}`, ...[1, 2, 3, 4].map((n) => `memo:${memo.id}:w${n}`)]);
+  // 메모 목록에는 한 줄, 첫 주 일정에 이어진다. 같은 저장을 다시 보내도 줄이 늘지 않는다
+  const list = await call(env, user, "GET", "/api/memo");
+  assert.deepEqual(list.body.memos.map((m) => m.event_id), [saved.body.event.id]);
+  await call(env, user, "POST", `/api/memo/${memo.id}/save`, { ...rule, suggested: rule, repeat: true });
+  assert.equal(DB.sqlite.prepare("SELECT count(*) AS n FROM events WHERE source = 'memo'").get().n, 5);
+
+  // 체크를 끄고 저장(repeat 없음) → 하루만. popup을 그대로 펼쳐 보내도(repeat가 객체) 매주로 넣지 않는다
+  const once = (await call(env, user, "POST", "/api/memo", { text: "매주 금요일마다 저녁 7시 독서" })).body;
+  const one = await call(env, user, "POST", `/api/memo/${once.memo.id}/save`, { ...once.popup, suggested: once.popup });
+  assert.equal(one.body.repeat, undefined);
+  assert.equal(DB.sqlite.prepare("SELECT count(*) AS n FROM events WHERE title = '독서'").get().n, 1);
 });

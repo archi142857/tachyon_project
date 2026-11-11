@@ -3,6 +3,7 @@
 // 서버가 준 popup { title, date, time, end_time, place }의 모르는 칸('?')은 그대로 '?'로 보인다(앱 프롬프트 규칙).
 // 이름이나 날짜를 모르면 '저장' 대신 고치기 칸부터 연다(서버는 이름·날짜가 없으면 받지 않는다).
 // popup.from = 시각·장소를 가져온 내 일정 이름(알려 준다), popup.free = 빈 시간을 고른 시간대 말(알려 준다), popup.change = 옮길 일정(저장하면 그 일정은 달력에서 빠진다. 끌 수 있다).
+// popup.repeat = 매주 되풀이 메모({ until: 학기 끝 }). 켜 둔 채 저장하면 그날까지 주마다 넣는다. 끌 수 있다.
 import { useState } from 'react';
 import { WEEKDAYS, dayStartKst, isDateOnly, kst, timeInput } from '../time.js';
 import EventForm, { formToPopup, popupToForm } from './EventForm.jsx';
@@ -100,6 +101,7 @@ function EventPopup({ popup, busy, onSave, onCancel }) {
   const [form, setForm] = useState(() => popupToForm(popup));
   const [move, setMove] = useState(Boolean(popup.change));
   const changeId = move ? popup.change.id : undefined;
+  const [weekly, setWeekly] = useState(Boolean(popup.repeat));
   const canSaveAsIs = popup.title !== '?' && popup.date !== '?';
   const formReady = form.title.trim() && form.date;
   const fields = ({ title, date, time, end_time, place }) => ({ title, date, time, end_time, place });
@@ -132,14 +134,22 @@ function EventPopup({ popup, busy, onSave, onCancel }) {
           </span>
         </label>
       )}
+      {popup.repeat && (
+        <label className="hint popup-move">
+          <input type="checkbox" checked={weekly} onChange={(e) => setWeekly(e.target.checked)} />
+          <span>
+            매주 같은 요일·시간으로 {Number(popup.repeat.until.slice(5, 7))}월 {Number(popup.repeat.until.slice(8))}일(학기 끝)까지 넣어요. 끄면 이날 하루만 넣어요.
+          </span>
+        </label>
+      )}
       <div className="popup-actions">
         <button
           type="button"
           className="btn"
           disabled={busy || (editing && !formReady)}
           onClick={() => {
-            if (editing) onSave(formToPopup(form), changeId);
-            else if (canSaveAsIs) onSave(fields(popup), changeId);
+            if (editing) onSave(formToPopup(form), changeId, weekly);
+            else if (canSaveAsIs) onSave(fields(popup), changeId, weekly);
             else setEditing(true);
           }}
         >

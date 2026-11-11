@@ -3,7 +3,8 @@
 // 흐름: 팝업 이름에서 내 일정 이름을 찾는다(줄임말도: '공수2' = '공학수학 2')
 //   1. 시각을 모르면: 그 이름의 되풀이 일정(수업 등)이 그날이나 같은 요일에 있을 때 그 시각·장소로 채운다 → popup.from
 //   2. 메모에 '변경·옮김·미룸' 말이 있으면: 앞으로 올 한 번짜리 일정 가운데 옮길 것을 찾는다 → popup.change
-//   3. 시각 없이 '늦은 밤'·'저녁' 같은 시간대만 썼으면: 그날 그 시간대에서 비어 있는 1시간을 고른다 → popup.free (suggestFree)
+//   3. 시각 없이 '늦은 밤'·'저녁' 같은 시간대만 썼으면: 그날 그 시간대에서 비어 있는 시간을 고른다 → popup.free (suggestFree)
+//   4. '2시간'처럼 길이를 썼으면: 3에서 그 길이만큼 고르고, 시작만 아는 일정은 끝 = 시작 + 길이 (lengthOf, useLength)
 // 1·2는 가장 닮은 것이 하나로 정해질 때만 쓴다(비기면 건드리지 않는다). 사용자는 팝업에서 보고 고칠 수 있다.
 
 export const CHANGE = /변경|바뀜|바뀌|바꿔|바꿈|옮김|옮기|옮겨|미룸|미뤄|미루|연기됨|연기됐|연기되|당김|당겨/;
@@ -110,7 +111,7 @@ export function useKnown(popup, text, events, today) {
 }
 
 // 시간대 말 → [시작 분, 끝 분]. 앞의 것이 먼저다('늦은 밤'이 '밤'보다 먼저). 낱말로 떨어져 있을 때만('밤샘'·'낮잠'은 아님)
-// ponytail: '새벽'은 사람마다 0시도 5시도 되어서 뺐다(종일로 남는다). 길이는 늘 1시간, 30분 칸.
+// ponytail: '새벽'은 사람마다 0시도 5시도 되어서 뺐다(종일로 남는다). 길이는 메모에 쓴 만큼(안 썼으면 1시간), 30분 칸.
 const word = (w) => new RegExp(`(?<![가-힣])(?:${w})(?=에|쯤|\\s|$)`);
 const PARTS = [
   [word("늦은\\s*밤|밤\\s*늦게|심야|한밤중?"), 22 * 60, 24 * 60],
@@ -123,14 +124,17 @@ const PARTS = [
   [word("밤"), 20 * 60, 24 * 60],
 ];
 const SLOT = 60;
+const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
 const hhmm = (min) => (min >= 1440 ? "23:59" : `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`);
 
 /**
- * 시각을 모르는 팝업 + 메모의 시간대 말 → 그 시간대에서 내 일정과 안 겹치는 가장 이른 1시간. 없으면 그대로(종일).
+ * 시각을 모르는 팝업 + 메모의 시간대 말 → 그 시간대에서 내 일정과 안 겹치는 가장 이른 시간. 없으면 그대로(종일).
+ * 1시간보다 길면 시작 뒤 1시간까지만 시간대 안이면 된다(아침 8~10시에 2시간 → 08:30~10:30도 됨). 자정은 넘지 않는다.
  * @param busy   그날 걸친 내 일정 [{ start, end }] (종일 일정은 막지 않는다, 끝을 모르면 1시간으로 본다)
  * @param nowIso "2026-11-10T21:40:00+09:00" — 오늘이면 지금 뒤에서만 고른다
+ * @param minutes 길이(분). 메모에 길이를 썼으면 그 값(lengthOf)
  */
-export function suggestFree(popup, text, busy, nowIso) {
+export function suggestFree(popup, text, busy, nowIso, minutes = SLOT) {
   if (popup.time !== "?") return popup;
   const hit = PARTS.map(([re, from, to]) => [re.exec(text), from, to]).find(([m]) => m);
   if (!hit) return popup;
@@ -140,10 +144,30 @@ export function suggestFree(popup, text, busy, nowIso) {
     .filter((e) => e.start.length > 10)
     .map((e) => [(Date.parse(e.start) - day0) / 60000, e.end ? (Date.parse(e.end) - day0) / 60000 : (Date.parse(e.start) - day0) / 60000 + SLOT]);
   const nowMin = popup.date === nowIso.slice(0, 10) ? Number(nowIso.slice(11, 13)) * 60 + Number(nowIso.slice(14, 16)) : 0;
-  for (let t = Math.max(from, Math.ceil(nowMin / 30) * 30); t + SLOT <= to; t += 30) {
-    if (spans.some(([s, e]) => s < t + SLOT && e > t)) continue;
+  for (let t = Math.max(from, Math.ceil(nowMin / 30) * 30); t + Math.min(minutes, SLOT) <= to && t + minutes <= 1440; t += 30) {
+    if (spans.some(([s, e]) => s < t + minutes && e > t)) continue;
     const title = popup.title.replace(new RegExp(`${said}(?:에|쯤에?)?\\s*`), "").trim() || popup.title; // AI 없이 뽑은 이름에 남은 '늦은 밤에'
-    return { ...popup, title, time: hhmm(t), end_time: hhmm(t + SLOT), free: said };
+    return { ...popup, title, time: hhmm(t), end_time: hhmm(t + minutes), free: said };
   }
   return popup;
+}
+
+// 메모에 쓴 길이: '2시간' · '1시간 반' · '1.5시간' · '1시간 30분' · '40분'. '2시간 뒤'·'10분 전'·'3시 30분'(시각)은 길이가 아니다
+const LENGTH =
+  /(?<![\d.])(?:(\d{1,2})(\.5)?\s*시간(?:\s*(반|\d{1,2}\s*분))?|(?<!시\s*)(\d{2,3})\s*분)(?:\s*(?:동안|정도|짜리))?(?!\s*(?:뒤|후|전|마다|씩|안에|이내|간격))/;
+
+/** 메모에서 길이를 읽는다 → { minutes, said } 또는 null. 10분~12시간만('24시간 카페'는 아님) */
+export function lengthOf(text) {
+  const m = LENGTH.exec(text);
+  if (!m) return null;
+  const minutes = m[4] ? Number(m[4]) : Number(m[1]) * 60 + (m[2] ? 30 : 0) + (m[3] === "반" ? 30 : parseInt(m[3] ?? "0"));
+  return minutes >= 10 && minutes <= 720 ? { minutes, said: m[0] } : null;
+}
+
+/** 길이를 쓴 메모: 이름에서 그 말을 빼고, 시작은 아는데 끝을 모르면 끝 = 시작 + 길이(자정을 넘으면 23:59) */
+export function useLength(popup, len) {
+  if (!len) return popup;
+  const title = popup.title.replace(len.said, "").replace(/\s+/g, " ").trim() || popup.title;
+  const end_time = popup.time !== "?" && popup.end_time === "?" ? hhmm(toMin(popup.time) + len.minutes) : popup.end_time;
+  return { ...popup, title, end_time };
 }

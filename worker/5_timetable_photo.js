@@ -16,7 +16,8 @@
 
 import { askJson, imageBlock, usageDetail } from "./llm.js";
 import { SYSTEM, SCHEMA, USER_TEXT } from "./prompts/timetable_photo.js";
-import { kst, ymd, addDays } from "./3_memo_popup.js"; // 한국 날짜 계산은 3번 파일에 한 번만 둔다
+import { kst, ymd, addDays, semesterEnd } from "./3_memo_popup.js"; // 한국 날짜 계산·학기 끝은 3번 파일에 한 번만 둔다
+export { semesterEnd };
 
 const TYPES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" };
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -142,18 +143,6 @@ function hhmm(v) {
   const m = /^(\d{1,2}):(\d{2})$/.exec(String(v ?? "").trim());
   if (!m || Number(m[1]) > 23 || Number(m[2]) > 59) return null;
   return `${m[1].padStart(2, "0")}:${m[2]}`;
-}
-
-/**
- * 학기 끝 기본값: 정규 수업 마지막 날(종강)까지 매주 펼친다. 보강기간은 매주 수업이 아니라 넣지 않는다.
- * 서울대 2026학년도 학사일정: 2학기 종강 12/14(월, 보강 12/15~21), 1학기 종강 6/15(월).
- * 다른 해도 같은 날을 기본값으로 두고, 화면에서 고칠 수 있게 한다. 그 밖(계절학기·방학)은 6주 뒤.
- */
-export function semesterEnd(from) {
-  const [y, m] = from.split("-").map(Number);
-  if (m >= 8 && m <= 12) return `${y}-12-14`;
-  if (m >= 2 && m <= 6) return `${y}-06-15`;
-  return addDays(from, 42);
 }
 
 async function removePhoto(env, user, key) {

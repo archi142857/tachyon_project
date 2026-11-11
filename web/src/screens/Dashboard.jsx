@@ -108,7 +108,7 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
     }
   }
 
-  async function savePopup(fields, changeId) {
+  async function savePopup(fields, changeId, weekly) {
     setBusy(true);
     try {
       if (fields.kind === 'task') {
@@ -120,7 +120,8 @@ export default function Dashboard({ example, installPrompt, onOpenSetup, onLogou
         setSnack({ text: `‘${task.title}’ 할 일에 넣었어요` });
         return;
       }
-      const { event } = await api.savePopup(popup.memoId, fields, popup.popup, changeId);
+      const { event, repeat } = await api.savePopup(popup.memoId, fields, popup.popup, changeId, weekly);
+      if (repeat) setSnack({ text: `매주 같은 요일로 ${repeat}번 넣었어요` });
       setMemos((m) => m.map((x) => (x.id === popup.memoId ? { ...x, handled: 1, event_id: event.id } : x)));
       setPopup(null);
       const shown = api.normalizeEvent(event);
