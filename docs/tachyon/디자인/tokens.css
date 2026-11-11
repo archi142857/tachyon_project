@@ -8,8 +8,8 @@
    1. web/src/styles.css 맨 위 `:root, [data-theme='차분한 종이'] { … }`를 아래 'A. 기본' 블록으로 통째로 바꾼다(첫 줄의 이름까지).
       그 밑의 '동작 줄이기'와 @media (min-width: 1024px) { :root { --hour: 40px; } }는 그대로 둔다.
    2. 거기 있던 차분한 종이 값은 아래 'B' 블록으로 themes.css 맨 앞(입자 밤 앞)에 붙인다.
-      값은 지금과 같고, 새 이름 셋과 지도 값(DayRouteMap.jsx의 기본값 그대로)만 더했다.
-   3. themes.css의 나머지 다섯 블록에는 'C'의 줄을 하나씩 더한다.
+      값은 지금과 같고, 새 이름 셋과 지도 값(DayRouteMap.jsx의 기본값 그대로)을 더하고 --now만 빨강으로 바꿨다.
+   3. themes.css의 나머지 다섯 블록에는 'C'의 줄을 하나씩 더하고, 그 블록의 --now를 C에 적힌 빨강으로 고친다.
    4. themes.js: DEFAULT = '바우하우스';
                  BUILT_IN = [DEFAULT, '차분한 종이', '입자 밤', '입자 낮', '벤토 위젯', '조용한 갤러리', '호박색 터미널'];
                  KEYS에 --mark-class --mark-task --ev-mine-line 을 더한다.
@@ -128,7 +128,7 @@ html[data-theme='차분한 종이'], [data-theme='차분한 종이'] {
   --accent: #23305e; --accent-press: #18213f; --accent-text: #23305e; --on-accent: #fdf8e6; --focus: #23305e;
   --warn: #8f3807; --warn-bg: #fbe7d6; --danger: #9b0032;
   --stamp: #c62f2f; --highlight: #f3d65f; --postit: #fdf1bf; --postit-text2: #574d2a; --postit-unknown: #6a5f33;
-  --now: #b8452a; --dot-off: #b3aa98; --today-wash: #faf5e2;
+  --now: #c62f2f; --dot-off: #b3aa98; --today-wash: #faf5e2;
   --ev-class: #cbddee; --ev-ics: #cdb4eb; --ev-memo: #eda9a8;
   --mark-class: #3d6fa5; --mark-task: #f3d65f; --ev-mine-line: transparent;
   --snack-bg: #23305e; --snack-text: #fdf8e6; --snack-action: #c9d4f6;
@@ -139,10 +139,12 @@ html[data-theme='차분한 종이'], [data-theme='차분한 종이'] {
   color-scheme: light;
 }
 
-/* ── C. themes.css 나머지 다섯 블록에 한 줄씩(블록 안 맨 끝, color-scheme 앞) ──
-   입자 밤:        --mark-class: #8f7bff; --mark-task: #f5c84c; --ev-mine-line: transparent;
-   입자 낮:        --mark-class: #5f49dc; --mark-task: #f2c94c; --ev-mine-line: transparent;
-   벤토 위젯:      --mark-class: #2f6bff; --mark-task: #d7f36a; --ev-mine-line: transparent;
-   조용한 갤러리:  --mark-class: #0c0c0c; --mark-task: #ffd6ea; --ev-mine-line: transparent;
-   호박색 터미널:  --mark-class: #ffd27a; --mark-task: #cf9020; --ev-mine-line: transparent;
-   (각 테마의 수업 칸·형광펜 색에서 골랐다. --mark-class는 그 테마 --card 위 3:1 넘김) */
+/* ── C. themes.css 나머지 다섯 블록 ──
+   '|' 앞 = 블록 안 맨 끝(color-scheme 앞)에 더할 줄, '|' 뒤 = 그 블록에 이미 있는 --now를 고칠 값.
+   지금(--now)은 모든 테마에서 빨강 계열(사람 11-11 23:25 "빨강같이 강조할 수 있는 색으로 맞춰"). 지금 시각 글자도 이 색이라 --card 위 4.5:1을 넘김.
+   입자 밤:        --mark-class: #8f7bff; --mark-task: #f5c84c; --ev-mine-line: transparent; | --now: #ff5a5a; (전 #35e0c0)
+   입자 낮:        --mark-class: #5f49dc; --mark-task: #f2c94c; --ev-mine-line: transparent; | --now: #d42a3c; (전 #0a8a74)
+   벤토 위젯:      --mark-class: #2f6bff; --mark-task: #d7f36a; --ev-mine-line: transparent; | --now: #dc2f2a; (전 #e2531a)
+   조용한 갤러리:  --mark-class: #0c0c0c; --mark-task: #ffd6ea; --ev-mine-line: transparent; | --now: #d9003a; (전 #e6007a)
+   호박색 터미널:  --mark-class: #ffd27a; --mark-task: #cf9020; --ev-mine-line: transparent; | --now: #ff4d3d; (전 #ff6a3d)
+   (모양 색은 각 테마의 수업 칸·형광펜 색에서 골랐다. --mark-class는 그 테마 --card 위 3:1 넘김) */
