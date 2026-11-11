@@ -41,8 +41,8 @@ export default function DayRing({ arcs, nowMin, sel, onPick, children }) {
         )}
         {Array.from({ length: 24 }, (_, h) => {
           const [x1, y1] = point(109, h / 24);
-          const [x2, y2] = point(h % 3 ? 111 : 113.5, h / 24);
-          const [tx, ty] = point(123, h / 24);
+          const [x2, y2] = point(111, h / 24);
+          const [tx, ty] = point(127, h / 24); // 눈금 끝(111)에서 글자가 떨어지게
           const nearNow = Math.abs(((h / 24 - now + 1.5) % 1) - 0.5) * 24 < 1.2; // 지금 시각 글자와 겹치는 숫자는 뺀다
           return (
             <g key={h}>
