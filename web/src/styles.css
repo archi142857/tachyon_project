@@ -289,3 +289,14 @@ dialog .snackbar { top: calc(12px + env(safe-area-inset-top)); bottom: auto; }
 .years { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 .years button { height: 44px; border: 1px solid var(--line-strong); border-radius: var(--r-btn); background: var(--card); font-size: 14px; font-weight: 500; color: var(--text); padding: 0 2px; }
 .years button[aria-pressed='true'] { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+.setup-intro { font-size: 15px; line-height: 22px; color: var(--text2); }
+/* 첫 설정 학과 고르기(DeptPicker, 11-11 컨셉): 칸 밑에 목록, 쓰는 대로 좁혀짐 */
+.dept-picker { display: grid; gap: 6px; }
+.dept-list { list-style: none; margin: 0; padding: 4px 0; max-height: 264px; overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--line-strong); border-radius: var(--r-btn); background: var(--card); }
+.dept-list li { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-height: 44px; padding: 11px 14px; font-size: 15px; line-height: 22px; color: var(--text); cursor: pointer; }
+.dept-list li.on, .dept-list li[aria-selected='true'] { background: var(--fill); }
+.dept-list li .name { min-width: 0; }
+.dept-list li .college { flex: none; font-size: 13px; line-height: 20px; color: var(--text3); }
+.dept-list li.empty { color: var(--text3); cursor: default; }
+@media (hover: hover) { .dept-list li:hover { background: var(--fill); } }
+select.input { padding-right: 36px; }

@@ -1,5 +1,7 @@
-// 첫 설정: 학과·학년 + 캘린더(ICS) 주소 칸 3개(eTL·구글·애플, 찾는 법 한 줄씩과 '자세히'). 모두 건너뛸 수 있다.
-// 메뉴에서 다시 열면(again) '건너뛰기' 대신 '닫기'. 넣어 둔 학과·학년은 그대로 채워져 있고,
+// 첫 설정: 학과·학번 + 캘린더(ICS) 주소 칸 3개(eTL·구글·애플, 찾는 법 한 줄씩과 '자세히'). 모두 건너뛸 수 있다.
+// 처음에는 두 장이다(11-11 사람 요청): ① 학과·학번만 있는 화면(학과는 칸 밑 목록에서 찾아 고르기, 학번은 목록) → ② 캘린더 연결.
+// 학번은 서버 칸(users.year = 학년)에 맞춰 학년으로 셈해 보낸다(setup.js gradeOf).
+// 메뉴에서 다시 열면(again) 한 장에 둘 다, '건너뛰기' 대신 '닫기'. 넣어 둔 학과·학번은 그대로 채워져 있고,
 // 이미 연결한 캘린더는 빈칸 대신 '연결됨 · 주소 끝 4자'로 보인다(다시 넣을 필요 없음, '주소 바꾸기'를 눌러야 칸이 열린다).
 // '복사한 주소 붙여넣기' 한 번이면 어느 캘린더 주소인지 알아서 맞춰 바로 연결한다(클립보드를 못 읽는 브라우저는 칸에 직접 붙인다).
 // 저장하면 서버가 주소를 바로 한 번 받아 보고 칸마다 결과를 준다('과제 3개를 찾았어요').
@@ -9,13 +11,16 @@ import { collectFeeds, getFeeds, markSetupSkipped, saveFeeds, saveProfile } from
 import { inApp, syncDevice } from '../native.js';
 import DeleteAccount from '../components/DeleteAccount.jsx';
 import TopBar from '../components/TopBar.jsx';
-import { FEEDS, YEARS, detectFeed, feedResult, normalizeIcs, resultLine, unsavedErrors } from '../setup.js';
+import DeptPicker from '../components/DeptPicker.jsx';
+import { FEEDS, detectFeed, entryOf, entryYears, feedResult, gradeOf, normalizeIcs, resultLine, unsavedErrors } from '../setup.js';
 
 const EMPTY = { etl: '', google: '', apple: '' };
 
 export default function Setup({ user, example, again, onDone, onDeleted }) {
   const [dept, setDept] = useState(user.dept || '');
-  const [year, setYear] = useState(user.year || null);
+  const [entry, setEntry] = useState(entryOf(user.year)); // 학번(입학 연도)
+  const [step, setStep] = useState(again ? 'all' : 'me'); // 처음: 'me'(학과·학번) → 'feeds'(캘린더). 다시 열면 'all'
+  const [profileSaved, setProfileSaved] = useState(false);
   const [urls, setUrls] = useState(EMPTY);
   const [feeds, setFeeds] = useState([]);
   const [errors, setErrors] = useState({});
@@ -86,15 +91,15 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
       if (r.error) errs[feed.key] = r.error;
       else if (r.url) clean[feed.key] = r.url;
     }
-    const wantsProfile = dept.trim() || year;
-    if (wantsProfile && !(dept.trim() && year)) errs.profile = '학과와 학년을 둘 다 넣어 주세요';
+    const profile = step === 'all' ? checkProfile() : { wants: false };
+    if (profile.error) errs.profile = profile.error;
     setErrors(errs);
     if (Object.keys(errs).length) return;
 
     setBusy(true);
     try {
-      if (wantsProfile) await saveProfile({ dept: dept.trim(), year });
-      else if (!again) markSetupSkipped(user.id);
+      if (profile.wants) await saveProfile({ dept: dept.trim(), year: gradeOf(entry) });
+      else if (!again && !profileSaved) markSetupSkipped(user.id);
       if (!Object.keys(clean).length) {
         onDone();
         return;
@@ -102,6 +107,37 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
       const { results, feeds: next } = await saveFeeds(clean);
       setFeeds(next);
       showResults(results, urls);
+    } catch (err) {
+      setErrors({ form: err.message || '저장하지 못했어요. 잠시 뒤에 다시 해 주세요' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // 학과·학번: 둘 다 비우면 건너뜀, 하나만 있으면 다시 묻는다
+  function checkProfile() {
+    const wants = Boolean(dept.trim() || entry);
+    if (wants && !(dept.trim() && entry)) return { wants, error: '학과와 학번을 둘 다 골라 주세요' };
+    return { wants };
+  }
+
+  // 첫 화면(학과·학번)의 [다음]: 고른 것이 있으면 저장하고 캘린더 화면으로
+  async function next() {
+    const profile = checkProfile();
+    if (profile.error) {
+      setErrors({ profile: profile.error });
+      return;
+    }
+    setErrors({});
+    if (!profile.wants) {
+      setStep('feeds');
+      return;
+    }
+    setBusy(true);
+    try {
+      await saveProfile({ dept: dept.trim(), year: gradeOf(entry) });
+      setProfileSaved(true);
+      setStep('feeds');
     } catch (err) {
       setErrors({ form: err.message || '저장하지 못했어요. 잠시 뒤에 다시 해 주세요' });
     } finally {
@@ -135,7 +171,7 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
   }
 
   function skip() {
-    if (!again) markSetupSkipped(user.id);
+    if (!again && !profileSaved) markSetupSkipped(user.id);
     onDone();
   }
 
@@ -146,28 +182,66 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
   const secondary = again ? { label: '닫기', onClick: onDone } : !checked ? { label: '건너뛰기', onClick: skip } : failed ? { label: '그대로 두고 넘어가기', onClick: onDone } : null;
   const anySaved = feeds.some((f) => f.set);
 
+  const profileCard = (
+    <section className="card" aria-labelledby="setup-me">
+      <h2 id="setup-me">학과·학번</h2>
+      {step === 'me' && <p className="setup-intro">어느 학과, 몇 학번인지 골라 주세요. 나중에 메뉴의 ‘캘린더 연결·학과’에서 바꿀 수 있어요.</p>}
+      <div className="field">
+        <span>학과</span>
+        <DeptPicker value={dept} onChange={setDept} invalid={Boolean(errors.profile) && !dept.trim()} />
+      </div>
+      <label className="field">
+        <span>학번</span>
+        <select
+          className="input"
+          value={entry ?? ''}
+          aria-invalid={errors.profile && !entry ? 'true' : undefined}
+          onChange={(e) => setEntry(e.target.value ? Number(e.target.value) : null)}
+        >
+          <option value="">학번 고르기</option>
+          {entryYears().map((y) => (
+            <option key={y.value} value={y.value}>
+              {y.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      {errors.profile && <p className="error">{errors.profile}</p>}
+    </section>
+  );
+
+  // 처음 첫 장: 학과·학번만
+  if (step === 'me')
+    return (
+      <>
+        <TopBar example={example} />
+        <main className="setup">
+          {profileCard}
+          {errors.form && <p className="error">{errors.form}</p>}
+          <div className="actions">
+            <button
+              type="button"
+              className="btn-text quiet"
+              onClick={() => {
+                setErrors({});
+                setStep('feeds');
+              }}
+            >
+              건너뛰기
+            </button>
+            <button type="button" className="btn" disabled={busy} onClick={next}>
+              {busy ? '저장하는 중…' : '다음'}
+            </button>
+          </div>
+        </main>
+      </>
+    );
+
   return (
     <>
       <TopBar example={example} />
       <main className="setup">
-        <section className="card" aria-labelledby="setup-me">
-          <h2 id="setup-me">학과·학년</h2>
-          <label className="field">
-            <span>학과</span>
-            <input className="input" value={dept} maxLength={60} placeholder="예: 경제학부" autoComplete="off" onChange={(e) => setDept(e.target.value)} />
-          </label>
-          <div className="field">
-            <span>학년</span>
-            <div className="years" role="group" aria-label="학년">
-              {YEARS.map((y) => (
-                <button key={y.value} type="button" aria-pressed={year === y.value} onClick={() => setYear(year === y.value ? null : y.value)}>
-                  {y.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          {errors.profile && <p className="error">{errors.profile}</p>}
-        </section>
+        {step === 'all' && profileCard}
 
         <section className="card" aria-labelledby="setup-feeds">
           <h2 id="setup-feeds">캘린더 연결 (고를 것만)</h2>
@@ -267,6 +341,11 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
 
         {errors.form && <p className="error">{errors.form}</p>}
         <div className="actions">
+          {step === 'feeds' && (
+            <button type="button" className="btn-text quiet" style={{ marginRight: 'auto' }} onClick={() => setStep('me')}>
+              이전
+            </button>
+          )}
           {secondary && (
             <button type="button" className="btn-text quiet" onClick={secondary.onClick}>
               {secondary.label}

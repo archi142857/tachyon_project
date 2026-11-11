@@ -52,6 +52,57 @@ export const YEARS = [
   { value: 5, label: '5학년 이상' },
 ];
 
+// ── 학번(11-11 사람 요청 "학번도 목록형 선택으로") ─────────────────────
+// 서버 칸(users.year)은 지금 학년(1~8)이라, 고른 학번(입학 연도)을 이번 학년도 기준 학년으로 셈해 보낸다(26학번 = 1학년).
+// 학년도는 3월에 바뀐다(1~2월은 앞 해). 학번 그대로 저장할지는 팀원과 정하는 중(소통판 11-11).
+const MAX_GRADE = 8;
+
+/** 이번 학년도(한국 시간, 3월부터 새 학년도) */
+export function schoolYear(now = new Date()) {
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  return kst.getUTCMonth() < 2 ? kst.getUTCFullYear() - 1 : kst.getUTCFullYear();
+}
+
+/** 학번 목록: 올해 학번부터 8개, 마지막은 '…학번 이전'(학년 8) → [{ value: 입학 연도, label: '26학번' }] */
+export function entryYears(now = new Date()) {
+  const y = schoolYear(now);
+  return Array.from({ length: MAX_GRADE }, (_, i) => {
+    const entry = y - i;
+    const short = String(entry).slice(2);
+    return { value: entry, label: i === MAX_GRADE - 1 ? `${short}학번 이전` : `${short}학번` };
+  });
+}
+
+/** 학번(입학 연도) → 서버에 보낼 학년(1~8) */
+export const gradeOf = (entry, now = new Date()) => Math.min(MAX_GRADE, Math.max(1, schoolYear(now) - entry + 1));
+
+/** 서버의 학년 → 화면에 보일 학번(입학 연도). 없으면 null */
+export const entryOf = (grade, now = new Date()) => (Number.isInteger(grade) && grade >= 1 ? schoolYear(now) - Math.min(grade, MAX_GRADE) + 1 : null);
+
+// ── 학과 찾기 ────────────────────────────────────────────
+
+/** 찾기용으로 줄인 글: 띄어쓰기·가운뎃점·줄표를 빼고 영어는 소문자 */
+export const searchKey = (s) => (s || '').toLowerCase().replace(/[\s·⋅∙•\-－–—.,()]/g, '');
+
+/**
+ * 학과 목록([[이름, 단과대], …])에서 쓴 글에 맞는 것: 이름이 그 글로 시작하는 것 → 이름에 든 것 → 단과대 이름에 든 것.
+ * 빈 글이면 목록 그대로.
+ */
+export function matchDepartments(list, query) {
+  const q = searchKey(query);
+  if (!q) return list;
+  const starts = [];
+  const inName = [];
+  const inCollege = [];
+  for (const row of list) {
+    const name = searchKey(row[0]);
+    if (name.startsWith(q)) starts.push(row);
+    else if (name.includes(q)) inName.push(row);
+    else if (searchKey(row[1]).includes(q)) inCollege.push(row);
+  }
+  return [...starts, ...inName, ...inCollege];
+}
+
 // 빈칸이면 { url: null }, 고칠 점이 있으면 { error }, 좋으면 { url } (webcal:// 은 https:// 로 바꾼다)
 export function normalizeIcs(key, raw) {
   const s = (raw || '').trim();
