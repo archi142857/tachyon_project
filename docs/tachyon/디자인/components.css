@@ -303,7 +303,8 @@ dialog .snackbar { top: calc(12px + env(safe-area-inset-top)); bottom: auto; }
 .ring line.now-halo { stroke: var(--card); stroke-width: 6; stroke-linecap: round; } /* 지금 선 밑에 먼저 긋는다 — 어떤 띠·입자 위에서도 보이게 */
 .ring line.now { stroke: var(--now); stroke-width: 2.4; stroke-linecap: round; }
 .ring text.now { fill: var(--now); paint-order: stroke; stroke: var(--card); stroke-width: 3px; stroke-linejoin: round; }
-.ring circle.frame { fill: none; stroke: var(--line-strong); stroke-width: 1; } /* 넣기로 하면: 입자 바깥 r=114 테 하나(칸딘스키 시안) */
+.ring circle.frame { fill: none; stroke: var(--line-strong); stroke-width: 1; } /* 바깥 테: 눈금 바깥 r=114(사람 11-11 23:34 'B'). 입자보다 먼저 그린다 */
+.ring text { paint-order: stroke; stroke: var(--card); stroke-width: 3px; stroke-linejoin: round; } /* 시각 글자(6시·18시)가 테에 닿는 곳을 바탕색 테두리로 끊는다 */
 /* 범례: ● 수업 □ 내 일정 ▲ 할 일을 넣어 본 자리 ― 지금 */
 .ring-key { flex-wrap: wrap; row-gap: 4px; }
 .key-dot { width: 9px; height: 9px; background: var(--mark-class); }
