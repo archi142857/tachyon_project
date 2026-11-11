@@ -1,5 +1,5 @@
 // Tachyon 로고(디자인 A18-1, 11-12 사람이 고름): 점이 왼쪽 벽에서 나와 오른쪽으로 가며 점 지름만큼 굵은 띠를 남긴다.
-// 색은 테마 값: 띠 = --text(벽 쪽으로 옅어짐), 점 = --now(지금 색), 글자 = --heading. 그래서 테마를 바꾸면 로고도 같이 바뀐다.
+// 색: 띠 = --text(벽 쪽으로 옅어짐), 글자 = --heading(테마를 따름). 점 = 로고 빨강 하나(밝은 테마 #ec4227, 어두운 테마 #ff5545 — 테마의 color-scheme으로 light-dark()가 고른다).
 // 띠는 담긴 칸의 왼쪽 끝(벽)에 닿아야 한다: 로고를 감싼 칸의 왼쪽 안쪽 여백을 0으로(디자인_가이드 '로고·아이콘').
 // 글자는 Jost 600(SIL OFL 1.1)을 선으로 바꾼 것이라 글꼴 파일이 없어도 같다. 원본: docs/tachyon/디자인/로고/logo.svg
 import { useId } from 'react';
@@ -13,12 +13,12 @@ export default function Logo({ height = 24 }) {
       <defs>
         <linearGradient id={id} x1="0" y1="0" x2="66" y2="0" gradientUnits="userSpaceOnUse">
           <stop offset="0" style={{ stopColor: 'var(--text)', stopOpacity: 0.14 }} />
-          <stop offset="0.6" style={{ stopColor: 'var(--text)', stopOpacity: 0.5 }} />
-          <stop offset="1" style={{ stopColor: 'var(--text)', stopOpacity: 0.92 }} />
+          <stop offset="0.6" style={{ stopColor: 'var(--text)', stopOpacity: 0.41 }} />
+          <stop offset="1" style={{ stopColor: 'var(--text)', stopOpacity: 0.75 }} />
         </linearGradient>
       </defs>
       <rect x="0" y="18" width="66" height="28" fill={`url(#${id})`} />
-      <circle cx="66" cy="32" r="14" style={{ fill: 'var(--now)' }} />
+      <circle cx="66" cy="32" r="14" style={{ fill: 'light-dark(#ec4227, #ff5545)' }} />
       <path d={WORD} style={{ fill: 'var(--heading)' }} />
     </svg>
   );

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 241.36 64">
   <title>Tachyon</title>
   <defs>
-    <linearGradient id="band" x1="0" y1="0" x2="66" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffffff" stop-opacity="0.14"/><stop offset="0.6" stop-color="#ffffff" stop-opacity="0.5"/><stop offset="1" stop-color="#ffffff" stop-opacity="0.92"/></linearGradient>
+    <linearGradient id="band" x1="0" y1="0" x2="66" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffffff" stop-opacity="0.14"/><stop offset="0.6" stop-color="#ffffff" stop-opacity="0.41"/><stop offset="1" stop-color="#ffffff" stop-opacity="0.75"/></linearGradient>
   </defs>
   <rect x="0" y="18" width="66" height="28" fill="url(#band)"/>
   <circle cx="66" cy="32" r="14" fill="#ff5545"/>
