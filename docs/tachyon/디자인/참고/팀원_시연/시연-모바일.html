@@ -1,0 +1,1519 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#040406">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Tachyon 시연 · 모바일</title>
+<script>window.TY_DEMO='mobile'</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&display=swap">
+<style>
+/* 입자 고리: 은행 앱 시안의 짜임(점 고리 + 가운데 큰 숫자 + 옆으로 넘기는 카드 + 아래 어두운 줄)은 그대로 두고 겉모습만 바꾼 시안.
+   Synaptrix(신경 인터페이스 사이트)에서: 가는 글씨, 여러 색 입자, 가는 섬유, 왼쪽 가는 막대가 붙은 작은 이름표, 네모에 가까운 단추.
+   Tachyon만의 것: ① 고리의 점 = 수업 색 입자, 고리 바깥을 흰 타키온 하나가 거꾸로 돈다(시간을 거슬러 오는 입자)
+   ② 고른 몫에서 안쪽 마디로 모이는 섬유(시냅스)와 그 위를 흐르는 신호, 메모가 달력에 이어질 때도 같은 표시(점┄점)
+   ③ 카드 속 궤적: 마감은 미래(오른쪽)에서 지금으로 날아오는 입자.
+   움직임은 전부 CSS/SMIL이고, 캡처(-shot)와 '동작 줄이기' 설정에서는 멈춘다. */
+@property --sc { syntax: '<color>'; inherits: true; initial-value: #8f7bff; }
+@property --t { syntax: '<number>'; inherits: true; initial-value: 0; }
+:root { --t: 0; transition: --t .9s cubic-bezier(.45, 0, .2, 1); /* 밝기: 0 어두움 → 1 밝음. 아래 색은 모두 이 값에서 나와서 함께 이어져 바뀐다 */
+  --bg: color-mix(in srgb, #040406, #f3efe6 calc(var(--t) * 100%)); --s1: color-mix(in srgb, #0b0b0e, #fcf9f3 calc(var(--t) * 100%)); --row: color-mix(in srgb, #0c0c10, #faf6ee calc(var(--t) * 100%)); --ink: color-mix(in srgb, #fff, #1d1b22 clamp(0%, calc((var(--t) - .38) * 420%), 100%)); /* 글자는 바탕과 밝기가 엇갈리는 가운데에서 빨리 넘어간다(흐려 보이는 때를 짧게) */
+  --vi: color-mix(in srgb, #8f7bff, #5f49dc calc(var(--t) * 100%)); --te: color-mix(in srgb, #35e0c0, #0a8a74 calc(var(--t) * 100%)); --sh: color-mix(in srgb, #000, rgb(90 74 44 / .22) calc(var(--t) * 100%)); --dim: color-mix(in srgb, rgb(0 0 0 / .7), rgb(52 46 36 / .42) calc(var(--t) * 100%));
+  --mu: color-mix(in srgb, var(--ink) calc(58% + 10% * var(--t)), transparent); --fa: color-mix(in srgb, var(--ink) calc(34% + 16% * var(--t)), transparent); --ln: color-mix(in srgb, var(--ink) calc(12% + 4% * var(--t)), transparent); }
+:root.lt { --t: 1; } @media (prefers-reduced-motion: reduce) { :root { transition: none; } }
+* { box-sizing: border-box; margin: 0; }
+body { background: #17171b; font: 14px/1.4 Inter, 'Noto Sans KR', ui-sans-serif, system-ui, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+html.ty-mode-web body { background: var(--bg); }
+button, input { font: inherit; color: inherit; } button { background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.app { position: relative; height: 100%; overflow: hidden; background: var(--bg); display: grid; grid-template-columns: 196px minmax(0, 1fr); color-scheme: dark; }
+.web .app { height: 100vh; height: 100dvh; }
+small { display: block; font-size: 12px; color: var(--mu); } sup { color: var(--te); font-size: 11px; margin-left: 5px; line-height: 0; }
+.num { font-size: 46px; line-height: 1; font-weight: 300; letter-spacing: -.04em; font-variant-numeric: tabular-nums; white-space: nowrap; } .num i { font-style: normal; font-size: .46em; letter-spacing: 0; margin-left: 2px; color: var(--mu); }
+/* 왼쪽 메뉴(데스크톱) */
+.side { display: flex; flex-direction: column; padding: 26px 22px; }
+.logo { display: flex; align-items: center; gap: 10px; font-size: 16px; letter-spacing: -.02em; margin-bottom: 36px; } .logo::before { content: ''; width: 22px; height: 5px; border-radius: 5px; background: linear-gradient(90deg, var(--ink) 22%, var(--vi) 40%, transparent); }
+.side nav { display: grid; gap: 2px; } .side nav button { height: 36px; display: flex; align-items: center; gap: 12px; font-size: 15px; color: var(--fa); transition: color .25s; } .side nav button:hover { color: var(--mu); } .side nav .on { color: var(--ink); }
+.side nav button::before { content: ''; width: 1.5px; height: 12px; background: var(--ln); transition: background .25s, box-shadow .25s; } .side nav .on::before { background: var(--ink); box-shadow: 0 0 8px 1px var(--vi); }
+.wb { height: 40px; padding: 0 16px; border-radius: 10px; background: var(--ink); color: var(--bg); font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; } .wb::after { content: '→'; transition: transform .25s; } .wb:hover::after { transform: translateX(3px); } .wb:disabled { opacity: .4; }
+.gb { height: 40px; padding: 0 14px; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--ln); color: var(--mu); white-space: nowrap; transition: color .2s, box-shadow .2s; } .gb:hover { color: var(--ink); box-shadow: inset 0 0 0 1px var(--fa); }
+.lb { display: flex; align-items: center; gap: 8px; color: var(--mu); font-size: 12px; padding: 12px 4px 2px; } .lb::before { content: ''; flex: none; width: 1.5px; height: 11px; background: var(--vi); }
+/* 가운데 */
+.main { display: flex; flex-direction: column; min-height: 0; overflow: hidden auto; scrollbar-width: none; }
+.top { flex: none; display: flex; align-items: center; gap: 14px; height: 52px; padding: 0 24px; margin-top: 10px; color: var(--mu); } .bk { font-size: 15px; color: color-mix(in srgb, var(--ink) 86%, transparent); } .top h1 { font-size: 22px; font-weight: 300; letter-spacing: -.03em; color: var(--ink); } .sp { flex: 1; }
+.seg { display: flex; padding: 3px; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--ln); } .seg button { height: 30px; padding: 0 14px; border-radius: 7px; color: var(--mu); transition: background .25s, color .25s; } .seg .on { background: color-mix(in srgb, var(--ink) 13%, transparent); color: var(--ink); }
+/* 고리 화면 */
+.rs { flex: 1; display: grid; grid-template-columns: 400px minmax(0, 1fr); align-items: center; padding-bottom: 30px; }
+.rw { position: relative; width: 310px; aspect-ratio: 1; margin: 0 auto; transition: --sc .6s; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ring { display: block; width: 100%; height: 100%; overflow: visible; animation: spin 300s linear infinite; }
+.ring circle { fill: color-mix(in srgb, var(--c, var(--ink)) 62%, var(--ink)); opacity: .5; transform-box: fill-box; transform-origin: center; transition: transform .45s cubic-bezier(.3, 1.5, .5, 1), opacity .3s; }
+.ring g.on { filter: drop-shadow(0 0 2px var(--c)) drop-shadow(0 0 7px var(--c)); } .ring g.on circle { opacity: 1; transform: scale(2); }
+.intro .ring circle { animation: pop .5s var(--d) backwards; } @keyframes pop { from { opacity: 0; transform: scale(0); } }
+.fb { fill: none; stroke: var(--c); stroke-width: .6; opacity: 0; transition: opacity .5s; } g.on .fb { opacity: .85; }
+/* 하루 고리: 한 바퀴 = 오늘 0–24시(24시가 위, 시계 방향)라서 돌지 않는다. 빈 시간은 옅게, 잠 · 지난 시간은 더 옅게, 수업 · 일정은 제 색으로 또렷하게, 넣어 본 할 일 자리는 고르기 전까지 옅게. 흰 입자는 지금 시각에 서고 꼬리는 지나온 쪽 */
+.ring.day { animation: none; } .ring.day .bg circle { opacity: .22; } .ring.day .bg .z, .ring.day .bg .p { opacity: .09; } .ring.day .eg circle { opacity: .95; transform: scale(1.35); } .ring.day .eg .p { opacity: .3; } .ring.day .eg.on circle { opacity: 1; transform: scale(1.9); } .ring.day g:not(.bg, .eg, .on, .fl) circle:not(.nd, .pl) { opacity: .34; }
+.ring.day ~ .mid .num { font-size: 30px; } .ph .ring.day ~ .mid .num { font-size: 22px; }
+.ring line { stroke: var(--fa); stroke-width: .7; stroke-linecap: round; } .ring text { fill: var(--mu); font-size: 8.5px; text-anchor: middle; dominant-baseline: central; font-variant-numeric: tabular-nums; } .ring .nw { fill: var(--ink); font-weight: 600; } .ph .ring text { font-size: 10.5px; }
+.ty.day { animation: none; } .ty.day::after { background: conic-gradient(transparent 310deg, var(--ink)); } .ty.day::before { animation: breathe 1.6s ease-in-out infinite alternate; }
+.ring .nd, .ring .pl { opacity: 0; } .ring g.on .nd { fill: var(--ink); } .ring .pl, .ring g.on .pl { fill: var(--ink); transform: none; transition: none; animation: none; } .ring g.on .pl { opacity: 1; }
+/* 타키온: 고리 바깥을 거꾸로(시계 반대 방향) 도는 흰 입자 하나와 꼬리 */
+.ty { position: absolute; inset: 0; pointer-events: none; animation: spin 18s linear infinite reverse; }
+.ty::after { content: ''; position: absolute; inset: 0; border-radius: 50%; opacity: .8; background: conic-gradient(var(--ink), transparent 60deg, transparent); mask: radial-gradient(farthest-side, transparent calc(93% - 1.2px), #000 calc(93% - .5px), #000 calc(93% + .5px), transparent calc(93% + 1.2px)); }
+.ty::before { content: ''; position: absolute; left: 50%; top: 3.5%; width: 5px; height: 5px; margin: -2.5px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 8px 2px var(--sc); }
+.mid { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 6px; text-align: center; pointer-events: none; } .mid > * { position: relative; } .mid .num { font-size: 36px; } .mid span { font-size: 12px; color: var(--mu); }
+.mid::before { content: ''; position: absolute; left: 22%; top: 22%; width: 56%; height: 56%; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--sc) 42%, transparent), transparent 68%); animation: breathe 4.5s ease-in-out infinite alternate; } @keyframes breathe { from { transform: scale(.88); opacity: .65; } to { transform: scale(1.12); opacity: 1; } }
+.cap { margin: 16px auto 0; max-width: 330px; text-align: center; font-size: 12px; color: var(--fa); word-break: keep-all; }
+.cw { min-width: 0; }
+.car { position: relative; display: flex; gap: 12px; padding: 4px 0; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; } .car::-webkit-scrollbar { display: none; }
+.car::before, .car::after { content: ''; flex: none; width: calc(50% - 144px); }
+.card { flex: none; position: relative; overflow: hidden; width: 264px; height: 232px; border-radius: 26px; padding: 20px 22px 22px; display: flex; flex-direction: column; justify-content: space-between; background: var(--s1); box-shadow: inset 0 0 0 1px var(--ln); scroll-snap-align: center; transition: box-shadow .4s; }
+.card::before { content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity .5s; background: radial-gradient(95% 75% at var(--x) 46%, color-mix(in srgb, var(--c) 36%, transparent), transparent 72%); }
+.card.on::before { opacity: 1; } .card.on { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 45%, transparent); } .card > * { position: relative; transition: opacity .3s; } .card:not(.on) > * { opacity: .5; } .card.dn .num { text-decoration: line-through; text-decoration-thickness: 1px; }
+.ch { display: flex; align-items: center; gap: 9px; font-size: 15px; } .ch em { margin-left: auto; font-style: normal; font-size: 12px; color: var(--mu); }
+/* 카드 속 궤적: 오른쪽(미래)에서 지금으로 날아오는 입자 */
+.tk { position: relative; height: 40px; } .tk::before { content: ''; position: absolute; left: 0; right: 0; top: 12px; height: 2px; background: radial-gradient(circle, color-mix(in srgb, var(--ink) 34%, transparent) 1px, transparent 1.2px) 0 0 / 6px 2px repeat-x; }
+.tk u { position: absolute; top: 24px; transform: translateX(-50%); font-size: 10px; color: var(--fa); text-decoration: none; white-space: nowrap; }
+.fp { position: absolute; top: 8px; left: var(--x); width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: color-mix(in srgb, var(--c) 40%, var(--ink)); box-shadow: 0 0 10px 2px var(--c); }
+.fp::after { content: ''; position: absolute; left: 8px; top: 3.5px; width: 44px; height: 3px; border-radius: 3px; background: linear-gradient(90deg, var(--c), transparent); }
+.card.on .fp { animation: fly 1s cubic-bezier(.2, .8, .2, 1); } @keyframes fly { from { left: 100%; opacity: 0; } }
+.card.dn .fp { background: var(--fa); box-shadow: none; } .card.dn .fp::after { display: none; }
+.bar { position: absolute; top: 9px; height: 8px; min-width: 4px; border-radius: 4px; background: var(--c); opacity: .9; }
+.cb { display: grid; gap: 8px; } .cb small { font-size: 13px; color: color-mix(in srgb, var(--ink) 80%, transparent); }
+.pg { display: flex; justify-content: center; align-items: center; gap: 8px; height: 30px; } .pg i { width: 4px; height: 4px; border-radius: 50%; background: var(--fa); transition: transform .3s, background .3s, box-shadow .3s; } .pg i.on { background: var(--c); box-shadow: 0 0 8px var(--c); transform: scale(1.6); }
+/* 달력: 일 · 주 · 월. 주는 오늘부터(앱 4일, 웹 7일). 지금 시각 = 흰 입자와 선 */
+.cal { flex: 1 0 auto; display: flex; flex-direction: column; padding: 0 24px 22px; }
+.cal.in > :not(.cn) { animation: calin .4s cubic-bezier(.2, .8, .2, 1); } @keyframes calin { from { opacity: 0; transform: translate(var(--dx), var(--dy)); } }
+.cn { display: flex; align-items: center; gap: 8px; height: 48px; } .cn h2 { font-size: 22px; font-weight: 300; letter-spacing: -.03em; white-space: nowrap; } .cn em { font-style: normal; font-size: 12px; color: var(--te); margin-left: 4px; white-space: nowrap; } .cn .gb { height: 32px; padding: 0 12px; } .gb:disabled { opacity: .35; cursor: default; }
+.wh, .tg { display: grid; grid-template-columns: 40px repeat(var(--n), minmax(0, 1fr)); }
+.dh { display: grid; justify-items: center; gap: 3px; padding: 4px 0 12px; } .dh small { transition: color .2s; } .dh:hover small { color: var(--ink); } .dh b { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; font-size: 19px; font-weight: 300; letter-spacing: -.03em; } .dh.td b { background: var(--ink); color: var(--bg); font-weight: 400; box-shadow: 0 0 18px -2px var(--vi); }
+.tg { position: relative; flex: 1; min-height: 544px; margin-top: 8px; border-bottom: 1px solid color-mix(in srgb, var(--ink) 7%, transparent); background: linear-gradient(color-mix(in srgb, var(--ink) 7%, transparent) 1px, transparent 1px) 0 0 / 100% 12.5%; }
+.ax { position: relative; } .ax u, .nl span { position: absolute; left: 0; width: 32px; text-align: right; font-size: 10px; line-height: 14px; text-decoration: none; color: var(--fa); background: var(--bg); font-variant-numeric: tabular-nums; } .ax u { transform: translateY(-50%); }
+.dc { position: relative; min-width: 0; box-shadow: inset 1px 0 0 color-mix(in srgb, var(--ink) 6%, transparent); } .dc.td { background: linear-gradient(color-mix(in srgb, var(--vi) 13%, transparent), transparent 70%); }
+.eb { position: absolute; left: 3px; right: 3px; min-height: 18px; overflow: hidden; border-radius: 9px; padding: 4px 8px 4px 10px; background: color-mix(in srgb, var(--c) 22%, var(--s1)); box-shadow: inset 2px 0 0 var(--c); font-size: 12px; line-height: 1.25; } .eb b { display: block; font-weight: 500; overflow-wrap: anywhere; } .eb small { font-size: 10px; line-height: 1.3; white-space: nowrap; } .eb.dn { opacity: .45; } .eb.im { box-shadow: inset 2px 0 0 var(--c), 0 0 16px -4px var(--c); }
+.eb.fr { animation: glow 1.1s ease-in-out 2; } @keyframes glow { 50% { box-shadow: inset 2px 0 0 var(--c), 0 0 0 1px var(--c), 0 0 24px var(--c); } }
+.dl { position: absolute; left: 3px; right: 3px; height: 0; z-index: 1; border-top: 1px dashed var(--c); } .dl::before { content: ''; position: absolute; left: -1px; top: -4px; width: 7px; height: 7px; border-radius: 50%; background: color-mix(in srgb, var(--c) 40%, var(--ink)); box-shadow: 0 0 8px 1px var(--c); }
+.dl span { position: absolute; left: 10px; right: 0; bottom: 3px; font-size: 10px; line-height: 1.2; color: color-mix(in srgb, var(--c) 55%, var(--ink)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .dl.dn { opacity: .4; } .dl.dn span { text-decoration: line-through; }
+.nw { position: absolute; left: 0; right: 0; height: 1px; z-index: 3; pointer-events: none; background: linear-gradient(90deg, var(--ink), color-mix(in srgb, var(--ink) 20%, transparent)); }
+.nw::before, .nw::after { content: ''; position: absolute; left: -4px; top: -3.5px; width: 8px; height: 8px; border-radius: 50%; } .nw::before { background: var(--ink); box-shadow: 0 0 10px 2px var(--vi); } .nw::after { box-shadow: 0 0 0 1px var(--ink); animation: ping 2.4s ease-out infinite; } @keyframes ping { from { opacity: .9; } to { transform: scale(3.4); opacity: 0; } }
+.nl { position: absolute; left: 0; right: 0; height: 0; z-index: 2; pointer-events: none; border-top: 1px dashed color-mix(in srgb, var(--ink) 20%, transparent); } .nl span { top: -7px; color: var(--ink); }
+.dv { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 400px); gap: 28px; } .dv .rows { width: 100%; margin: 0; align-content: start; } .dv .tg { min-height: 720px; } .dv .eb { padding: 4px 12px 4px 14px; font-size: 14px; } .dv .eb small { font-size: 12px; } .dv .dl span { font-size: 12px; }
+.mg { flex: 1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: auto; grid-auto-rows: minmax(88px, 1fr); gap: 6px; } .mw { font-size: 12px; color: var(--fa); text-align: center; padding: 2px 0 4px; }
+.mc { position: relative; min-width: 0; display: flex; flex-direction: column; gap: 5px; padding: 8px 9px 12px; border-radius: 14px; background: var(--row); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 6%, transparent); transition: box-shadow .2s; } .mc:hover { box-shadow: inset 0 0 0 1px var(--fa); }
+.mc > b { font-size: 13px; font-weight: 400; color: var(--mu); } .mc.out { opacity: .3; } .mc.past:not(.out) { opacity: .55; }
+.mc.td { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vi) 75%, transparent); background: radial-gradient(120% 90% at 50% 100%, color-mix(in srgb, var(--vi) 26%, transparent), transparent 70%) var(--row); } .mc.td > b { color: var(--ink); }
+.ml { display: flex; flex-direction: column; gap: 3px; min-width: 0; } .mi { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 11px; color: color-mix(in srgb, var(--ink) 80%, transparent); } .mi em { font-style: normal; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .mi .dot { width: 5px; height: 5px; } .mi.due .dot { background: none; box-shadow: 0 0 0 1.5px var(--c); }
+.mi:nth-child(n+4) { display: none; } .mo { position: absolute; top: 9px; right: 10px; font-size: 10px; color: var(--fa); }
+.dp { position: absolute; left: 9px; right: 9px; bottom: 6px; height: 1px; background: color-mix(in srgb, var(--ink) 16%, transparent); } .dp::before { content: ''; position: absolute; left: 0; top: 0; width: var(--p); height: 1px; background: linear-gradient(90deg, transparent, var(--ink)); } .dp::after { content: ''; position: absolute; left: var(--p); top: -2.5px; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 8px 2px var(--vi); }
+/* 어두운 줄 */
+.rows { display: grid; gap: 8px; width: min(100% - 32px, 520px); margin: 0 auto; }
+.row { display: flex; align-items: center; gap: 12px; min-height: 62px; padding: 11px 12px 11px 18px; border-radius: 18px; background: var(--row); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 6%, transparent); }
+.row > div:not(.r) { flex: 1; min-width: 0; } .row b { font-weight: 500; overflow-wrap: anywhere; } .row .r { text-align: right; white-space: nowrap; padding-right: 6px; } .row.dn { opacity: .45; }
+.dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); } .no { flex: none; width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--fa); display: grid; place-items: center; font-size: 12px; font-style: normal; }
+.ck { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; box-shadow: inset 0 0 0 1px var(--fa); color: transparent; transition: background .2s, color .2s; } .ck:hover { color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); } .ck[aria-pressed=true] { background: var(--ink); color: var(--bg); box-shadow: none; }
+.dm { display: flex; flex-wrap: wrap; gap: 4px; } .dm i { width: 4px; height: 4px; border-radius: 50%; background: var(--fa); } .dm i.on { background: var(--ink); box-shadow: 0 0 6px var(--vi); }
+/* 시냅스 표시: 점 ┄ 점 (메모 → 달력) */
+.syn { display: inline-flex; align-items: center; vertical-align: middle; margin: 0 8px; } .syn i { width: 5px; height: 5px; border-radius: 50%; background: var(--fa); }
+.syn em { position: relative; width: 22px; height: 1px; background: repeating-linear-gradient(90deg, var(--fa) 0 2px, transparent 2px 5px); }
+.syn.link i { background: var(--te); box-shadow: 0 0 8px var(--te); } .syn.link em { background: var(--te); }
+.syn.read em::after { content: ''; position: absolute; top: -2px; left: -2px; width: 5px; height: 5px; border-radius: 50%; background: var(--ink); animation: run 1.1s ease-in-out infinite; } @keyframes run { from { transform: none; opacity: 0; } 30%, 70% { opacity: 1; } to { transform: translateX(22px); opacity: 0; } }
+/* 메모 · 브리핑 */
+.col { width: min(100% - 32px, 560px); margin: 8px auto 30px; display: grid; gap: 12px; } .col .rows { width: 100%; } .row .syn { margin: 0 8px 0 0; }
+.mf { display: flex; gap: 8px; } .mf input { flex: 1; min-width: 0; height: 48px; padding: 0 18px; border: 0; border-radius: 12px; background: var(--row); box-shadow: inset 0 0 0 1px var(--ln); outline: 0; transition: box-shadow .2s; } .mf input:focus { box-shadow: inset 0 0 0 1px var(--ink); } .mf .wb { height: 48px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; } .chips .gb { height: 32px; padding: 0 12px; font-size: 13px; border-radius: 8px; }
+.bf { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 36px; align-items: center; padding: 0 36px 30px; }
+.hero { position: relative; overflow: hidden; min-height: 400px; border-radius: 26px; padding: 26px 28px 28px; display: flex; flex-direction: column; justify-content: space-between; gap: 18px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--ln); }
+.wave { display: block; width: calc(100% + 56px); margin: 0 -28px; overflow: visible; } .wave circle { animation: bob 2.6s ease-in-out infinite alternate; } @keyframes bob { from { transform: translateY(-5px); } to { transform: translateY(5px); } }
+.hero .lb { padding: 0 0 12px; } .hl { font-size: 34px; line-height: 1.2; font-weight: 300; letter-spacing: -.04em; word-break: keep-all; margin-bottom: 12px; } .why { font-size: 15px; line-height: 1.55; color: var(--mu); word-break: keep-all; }
+.bm { display: grid; gap: 8px; font-size: 13px; } .bf .rows { width: 100%; } .night { color: var(--mu); padding: 14px 4px 0; }
+/* 메모 확인 */
+.dim { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; padding: 16px; background: var(--dim); backdrop-filter: blur(10px); animation: fd .25s; } @keyframes fd { from { opacity: 0; } }
+.sheet { width: min(380px, 100%); border-radius: 26px; padding: 24px 24px 22px; background: var(--s1); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent), 0 0 80px -20px var(--vi); animation: up .35s cubic-bezier(.2, .9, .3, 1); } @keyframes up { from { transform: translateY(20px); opacity: 0; } }
+.lk { font-size: 12px; color: var(--mu); margin-bottom: 14px; } .sheet h2 { font-size: 24px; font-weight: 300; letter-spacing: -.03em; } .sheet .q { color: var(--mu); margin: 6px 0 14px; overflow-wrap: anywhere; }
+.sheet dl { display: grid; grid-template-columns: 78px minmax(0, 1fr); margin-bottom: 20px; } .sheet dt, .sheet dd { min-height: 36px; display: flex; align-items: center; } .sheet dt { color: var(--mu); } .sheet dd button { text-decoration: underline; text-underline-offset: 3px; }
+.sheet dd input { width: 100%; height: 30px; padding: 0 10px; border: 0; border-radius: 8px; background: color-mix(in srgb, var(--ink) 10%, transparent); outline: 0; } .sheet dd input:focus { box-shadow: inset 0 0 0 1px var(--ink); }
+.ac { display: flex; justify-content: flex-end; gap: 8px; }
+.toast { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 9; display: flex; align-items: center; gap: 14px; height: 42px; padding: 0 16px; border-radius: 12px; background: var(--ink); color: var(--bg); white-space: nowrap; max-width: calc(100% - 24px); animation: up .25s; } .toast span { overflow: hidden; text-overflow: ellipsis; } .toast button { flex: none; font-weight: 600; color: color-mix(in srgb, #5a45e0, #b3a6ff calc(var(--t) * 100%)); }
+/* 폰 */
+.ph { grid-template-columns: minmax(0, 1fr); } .ph .top { height: 44px; margin-top: 0; padding: 0 20px; } .ph .main { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+.ph .rs { display: block; padding: 0; } .ph .rw { width: 226px; } .ph .mid .num { font-size: 30px; } .ph .cap { margin: 8px auto 12px; max-width: 300px; } .ph .card { height: 204px; } .ph .num { font-size: 40px; }
+.ph .cal { padding: 0 12px 10px; } .ph .cn h2 { font-size: 19px; } .ph .wh, .ph .tg { grid-template-columns: 36px repeat(var(--n), minmax(0, 1fr)); } .ph .ax u, .ph .nl span { width: 29px; }
+.ph .eb { left: 2px; right: 2px; padding: 3px 5px 3px 8px; font-size: 11px; } .ph .v-week .eb small span { display: none; } .ph .dv { display: block; } .ph .dv .rows { margin-top: 18px; } .ph .dv .eb { padding: 4px 10px 4px 12px; font-size: 13px; }
+.ph .mg { gap: 4px; grid-auto-rows: minmax(66px, 1fr); } .ph .mc { padding: 7px 6px 11px; border-radius: 10px; } .ph .ml { flex-direction: row; flex-wrap: wrap; gap: 4px; } .ph .mi em, .ph .mo { display: none; } .ph .mi:nth-child(n+4) { display: flex; } .ph .dp { left: 6px; right: 6px; }
+.ph .bf { display: block; padding: 6px 16px 0; } .ph .hero { min-height: 330px; margin-bottom: 6px; } .ph .hl { font-size: 28px; }
+.pnav { position: sticky; top: 0; z-index: 4; flex: none; display: flex; justify-content: center; padding-top: 44px; background: color-mix(in srgb, var(--bg) 84%, transparent); backdrop-filter: blur(12px); } .web .pnav { padding-top: 2px; } .pnav button { height: 32px; padding: 0 10px; font-size: 12px; color: var(--mu); white-space: nowrap; transition: color .25s; } .pnav .on { color: var(--ink); font-weight: 500; } .pnav .bd { min-width: 14px; height: 14px; margin-left: 4px; font-size: 9px; }
+.ph .dim { place-items: end center; padding: 10px; } .toast { bottom: 92px; } .ph .toast { bottom: 84px; }
+.md { position: sticky; bottom: 14px; z-index: 3; flex: none; margin: auto auto 0; width: min(100% - 32px, 560px); padding: 8px; border-radius: 20px; background: color-mix(in srgb, var(--row) 86%, transparent); backdrop-filter: blur(16px); box-shadow: inset 0 0 0 1px var(--ln), 0 10px 30px var(--sh); }
+.md .mf input, .md .mf .wb, .mt { height: 44px; } .mt { flex: none; padding: 0 12px; } .mdl { max-height: min(42vh, 360px); overflow: auto; padding: 0 2px 8px; scrollbar-width: none; } .mdl .rows { width: 100%; }
+.code { color: var(--ink); font-weight: 500; letter-spacing: .04em; user-select: all; } .pl .on { color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); } .pl .row .gb { flex: none; }
+.gh { display: flex; align-items: center; gap: 8px; padding: 10px 4px 0; font-size: 13px; } .gh span { margin-left: auto; color: var(--mu); font-size: 12px; }
+.ph .md { bottom: calc(10px + env(safe-area-inset-bottom)); } .ph .md .mf input { padding: 0 12px; } .ph .md .wb { padding: 0 12px; } .ph .md .wb::after { display: none; }
+/* 시연(?demo=pc|mobile): 로그인 직후 첫 실행. 화면 가득, 튕김 · 글자 선택 · 탭 강조 없이 앱처럼 */
+html.demo, html.demo body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; } html.demo body { position: fixed; inset: 0; background: var(--bg); }
+html.demo button, html.demo nav, html.demo .top { -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+html.demo .app { padding-top: env(safe-area-inset-top); } html.demo-mobile .app { max-width: 480px; margin: 0 auto; }
+.ob { grid-column: 1 / -1; min-height: 0; overflow: hidden auto; scrollbar-width: none; display: grid; place-items: center; padding: 28px 22px; }
+.ob > div { width: min(100%, 400px); display: grid; gap: 14px; animation: up .5s cubic-bezier(.2, .9, .3, 1); } .ob .logo { margin: 0; } .ob .rows { width: 100%; } .ob .lb { padding: 8px 0 0; }
+.ob h1 { font-size: 34px; line-height: 1.2; font-weight: 300; letter-spacing: -.04em; word-break: keep-all; } .ob small { word-break: keep-all; line-height: 1.5; }
+.obk { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--te); } .ob .wb, .ob .gb { height: 48px; justify-content: center; text-align: center; }
+.ob input { height: 48px; padding: 0 18px; border: 0; border-radius: 12px; background: var(--row); box-shadow: inset 0 0 0 1px var(--ln); outline: 0; } .ob input:focus { box-shadow: inset 0 0 0 1px var(--ink); }
+.yr { display: flex; flex-wrap: wrap; gap: 6px; } .ob .yr .gb { height: 36px; padding: 0 12px; } .yr .on { color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); } .ob .ac { margin-top: 10px; } .ob .ac .wb { flex: 1; }
+.tip { flex: none; display: flex; align-items: center; gap: 12px; width: min(100% - 32px, 560px); margin: 2px auto 8px; padding: 10px 14px 10px 16px; border-radius: 14px; font-size: 13px; line-height: 1.5; word-break: keep-all; color: color-mix(in srgb, var(--ink) 86%, transparent); background: color-mix(in srgb, var(--vi) 13%, var(--s1)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vi) 45%, transparent); animation: up .4s; }
+.cd .chips { margin-top: 9px; } .sortb { display: flex; align-items: center; gap: 12px; padding: 4px 4px 0; font-size: 13px; line-height: 1.5; color: var(--mu); word-break: keep-all; } .sortb span { flex: 1; }
+.tip span { flex: 1; } .tip button { flex: none; font-weight: 500; color: var(--ink); }
+.emp { flex: 1; display: grid; place-content: center; justify-items: center; gap: 12px; padding: 10px 16px 30px; text-align: center; } .emp h2 { font-size: 24px; font-weight: 300; letter-spacing: -.03em; margin-top: 8px; } .emp .ac { margin-top: 6px; } .emp .rows { margin-top: 14px; text-align: left; }
+html.ty-shot *, html.ty-shot *::before, html.ty-shot *::after { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .ring .pl { display: none !important; } }
+/* 고리 구간 누르기: 보이지 않는 굵은 호가 누르는 자리, 가운데 글자가 그 할 일 · 일정으로 바뀐다 */
+.hit { fill: none; stroke: transparent; stroke-width: 46; pointer-events: stroke; cursor: pointer; }
+.mid .nm { font-size: 14px; font-weight: 500; line-height: 1.35; max-width: 104px; word-break: keep-all; overflow-wrap: anywhere; } .mid span { max-width: 104px; line-height: 1.4; word-break: keep-all; }
+.ph .mid .nm { font-size: 12px; max-width: 80px; } .ph .mid span { max-width: 80px; font-size: 11px; }
+/* 달력 둘째 줄: 직접 넣기 · 다 같이 빈 시간 */
+.cx { margin: 0 0 10px; } .cx .on { color: var(--te); box-shadow: inset 0 0 0 1px var(--te); }
+.mn { margin: -2px 0 10px; font-size: 12px; line-height: 1.5; color: var(--mu); word-break: keep-all; }
+.fa { position: absolute; left: 3px; right: 3px; overflow: hidden; border-radius: 9px; padding: 3px 6px; text-align: left; font-size: 10px; line-height: 1.25; color: var(--te); background: color-mix(in srgb, var(--te) 11%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--te) 50%, transparent); cursor: pointer; } .fa:hover { background: color-mix(in srgb, var(--te) 22%, transparent); }
+.fh { font-size: 15px; color: var(--te); } .fh i { font-style: normal; font-size: 10px; margin-left: 1px; } .row > .gb { flex: none; height: 32px; padding: 0 12px; font-size: 13px; }
+.qs { display: grid; gap: 8px; margin-top: 6px; }
+button.eb { display: flex; flex-direction: column; justify-content: flex-start; } .ge { align-items: center; padding: 0 6px 4px; }
+.sheet .lk .dot { margin-right: 8px; } .sheet dd span { padding: 8px 0; line-height: 1.5; }
+.cd .on, .sheet .gb.on { color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); } .cd small + b { display: block; margin: 2px 0; }
+.bd { display: inline-grid; place-items: center; min-width: 16px; height: 16px; margin-left: 6px; padding: 0 4px; border-radius: 8px; background: var(--vi); color: var(--ink); font-size: 10px; font-style: normal; font-weight: 500; }
+.av { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: color-mix(in srgb, var(--vi) 34%, var(--s1)); font-style: normal; font-size: 13px; }
+.ul { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; } .lv { margin-top: 10px; color: var(--te); } .bf > section { min-width: 0; }
+
+.ring.day g.sg.on { filter: none; } .ring.day g.sg.on circle:not(.nd, .pl) { opacity: .5; transform: scale(1.45); } .ring.day g.pd:not(.on) circle:not(.nd, .pl) { opacity: .9; transform: scale(1.35); }
+.ring .fl { cursor: pointer; animation: orbit 160s linear infinite; } @keyframes orbit { to { transform: rotate(360deg); } }
+.ring .fl circle { fill: var(--ink); opacity: .92; } .ring .fl .fh { opacity: 0; pointer-events: all; } .ring .fl .fo { fill: none; stroke: var(--ink); stroke-width: .6; opacity: .4; animation: breathe 2.2s ease-in-out infinite alternate; } .ring .fl.sel { filter: drop-shadow(0 0 4px var(--ink)); } .ring .fl.sel .fd { transform: scale(1.7); }
+.fm { justify-content: center; align-items: center; margin: 16px auto 0; max-width: 330px; } .fm small { flex-basis: 100%; text-align: center; }
+.row.pr { min-height: 48px; padding-block: 8px; background: none; box-shadow: none; outline: 1px dashed var(--ln); outline-offset: -1px; } .pr .chips { flex-wrap: nowrap; gap: 6px; }
+.eb.pb { background: color-mix(in srgb, var(--c) 9%, var(--s1)); box-shadow: none; border: 1px dashed color-mix(in srgb, var(--c) 80%, transparent); }
+/* 오늘 한 화면: 고리 · 오늘 일정(하루 타임라인) · 해야 할 일을 한 번에. 칸마다 따로 굴러간다 */
+.hx { flex: 1; min-height: 0; display: grid; grid-template-columns: clamp(300px, 40%, 520px) minmax(0, 640px); justify-content: center; grid-template-rows: auto minmax(0, 1fr); gap: 14px 26px; padding: 0 24px 16px; } .hx .hc:nth-child(1) { grid-area: 1 / 2; } .hx .hc:nth-child(2) { grid-area: 1 / 1 / 3 / 2; } .hx .hc:nth-child(3) { grid-area: 2 / 2; }
+.hc { min-width: 0; min-height: 0; display: flex; flex-direction: column; } .hc > .lb { flex: none; padding-top: 0; }
+.hx .rw { flex: none; width: min(280px, 32vh); margin-top: 6px; } .hx .cap { margin-top: 12px; }
+.tw, .hr { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; } .tw .tg { margin-top: 8px; min-height: 840px; } .tw .eb { padding: 4px 12px 4px 14px; font-size: 13px; }
+.rows.hr { width: 100%; margin: 6px 0 0; align-content: start; } .ti { display: grid; gap: 8px; } .ti > [data-act] { cursor: pointer; } .ti .dt { display: none; } .ti.on .dt { display: grid; gap: 8px; padding-bottom: 8px; }
+.ti.on > [data-act] .row { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 75%, transparent), 0 0 18px -8px var(--c); }
+.eb.ab { background: color-mix(in srgb, var(--c) 7%, var(--s1)); box-shadow: none; border: 1px dotted color-mix(in srgb, var(--c) 60%, transparent); }
+.eb.sel { z-index: 1; border-style: solid; background: color-mix(in srgb, var(--c) 34%, var(--s1)); box-shadow: inset 2px 0 0 var(--c), 0 0 0 1.5px var(--c), 0 0 22px -4px var(--c); }
+@media (max-width: 1180px), (max-height: 900px) { .hx .cap { display: none; } }
+.ph .hx { display: block; padding: 0 14px 12px; } .ph .hx .rw { width: 196px; margin: 0 auto 10px; } .ph .hx .cap { display: none; } .ph .hc + .hc { margin-top: 14px; }
+.ph .tw { flex: none; height: 216px; } .ph .tw .tg { min-height: 720px; } .ph .hr { overflow: visible; }
+.dw { position: relative; display: grid; place-items: center; width: 48px; height: 48px; } .dz { position: absolute; inset: 0; width: 100%; height: 100%; } .dz circle { fill: var(--mu); opacity: .3; } .dz .l { fill: var(--vi); opacity: 1; } .dz.hot .l { fill: #ff9d5c; filter: drop-shadow(0 0 2px #ff9d5c); }
+.sheet { max-height: 100%; overflow: hidden auto; } .sheet .lb { padding: 10px 0 6px; } .sheet .hs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; } .sheet .hs .gb { flex: none; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sheet .st { align-items: center; } .sheet .st b { min-width: 52px; text-align: center; font-variant-numeric: tabular-nums; } .sheet .sm { margin: 14px 0 16px; font-size: 13px; line-height: 1.5; color: var(--mu); word-break: keep-all; } .sheet .sm b { color: var(--ink); font-weight: 500; }
+.gc { display: inline-flex; align-items: center; gap: 5px; } .gc small { display: inline; } .gc.s2 { color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, transparent); } .gc.s1 { color: var(--te); box-shadow: inset 0 0 0 1px var(--te); }
+.cd .dm { margin-top: 9px; } .cnum { flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--ln); font-style: normal; font-size: 12px; color: var(--mu); }
+.tb { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.45; } .tb th, .tb td { padding: 9px 8px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--ln); word-break: keep-all; } .tb th { color: var(--mu); font-weight: 400; font-size: 12px; }
+.qs.p3 { grid-template-columns: repeat(3, 1fr); } .ob .gb.pv { height: auto; padding: 12px 6px; display: grid; gap: 5px; justify-items: center; align-content: start; white-space: normal; word-break: keep-all; line-height: 1.35; } .pv svg { width: 100%; max-width: 110px; color: var(--ink); } .pv b { font-weight: 500; font-size: 13px; color: var(--ink); } .ob .pv small { font-size: 11px; line-height: 1.35; }
+.tu { display: grid; gap: 8px; } .tu svg { flex: none; width: 72px; height: 72px; color: var(--ink); } .tu .tyw { display: inline-block; white-space: nowrap; animation: tu1 8s steps(10) infinite; } .tu .t2 { animation: tu2 8s infinite; } .tu .t3 { animation: tu3 8s infinite; } .tu .tnw { animation: tu4 8s infinite; }
+@keyframes tu1 { 0% { clip-path: inset(0 100% 0 0); } 22%, 100% { clip-path: inset(0 0 0 0); } } @keyframes tu2 { 0%, 26% { opacity: .25; transform: translateY(4px); } 34%, 100% { opacity: 1; transform: none; } }
+@keyframes tu3 { 0%, 52% { opacity: .25; transform: translateY(4px); } 60%, 100% { opacity: 1; transform: none; } } @keyframes tu4 { 0%, 60% { stroke-dasharray: 0 100; } 74%, 100% { stroke-dasharray: 18 82; } }
+.ld { letter-spacing: 2px; font-size: 8px; color: var(--te); vertical-align: 2px; }
+.top .bk, .seg button { white-space: nowrap; } .seg { flex: none; }
+.ph .top { gap: 8px; } .ph .top .th, .ph .top .sw { margin-left: 0; } .ph .seg button { padding: 0 10px; }
+/* ── 일곱 번째 시안의 꾸밈은 이 위에 ── */
+.fx { margin: 2px 0 4px; } .fx .on { color: var(--te); box-shadow: inset 0 0 0 1px var(--te); }
+/* ponytail: 밝은 화면은 색을 통째로 뒤집어 만든다(임시). 제대로 하려면 색을 변수로 빼서 밝은 값 한 벌을 따로 둔다 */
+.app.lt { color-scheme: light; } .app [style^="color:"] { filter: brightness(calc(1 - .3 * var(--t))) saturate(calc(1 + .6 * var(--t))); } /* 과목 색 글자는 밝은 바탕에서 조금 짙게 */
+/* 밝기 스위치: 달(파인 원)이 오른쪽으로 미끄러지며 해(작은 원 + 빛살 여덟 점)가 된다. 전부 --t에서 나와 화면 색과 같이 움직인다 */
+.sw { flex: none; position: relative; width: 52px; height: 28px; margin-left: 8px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 9%, var(--bg)); box-shadow: inset 0 0 0 1px var(--ln); }
+.sw i { position: absolute; left: 4px; top: 4px; width: 20px; height: 20px; border-radius: 50%; overflow: hidden; background: var(--ink); translate: calc(24px * var(--t)) 0; scale: calc(1 - .32 * var(--t)); }
+.sw i::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: color-mix(in srgb, var(--ink) 9%, var(--bg)); translate: calc(7px + 15px * var(--t)) calc(-5px - 11px * var(--t)); }
+.sw::after { content: ''; position: absolute; left: 13px; top: 13px; width: 2px; height: 2px; border-radius: 50%; translate: calc(24px * var(--t)) 0; opacity: var(--t); scale: calc(.4 + .6 * var(--t)); rotate: calc(90deg * var(--t));
+  box-shadow: 0 -10.5px 0 .6px var(--ink), 7.4px -7.4px 0 .6px var(--ink), 10.5px 0 0 .6px var(--ink), 7.4px 7.4px 0 .6px var(--ink), 0 10.5px 0 .6px var(--ink), -7.4px 7.4px 0 .6px var(--ink), -10.5px 0 0 .6px var(--ink), -7.4px -7.4px 0 .6px var(--ink); }
+.th { flex: none; width: 36px; height: 36px; padding: 0; text-align: center; margin-left: 8px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+// 모든 시안이 같이 쓰는 것: 지어낸 예시 자료, 메모 → 일정 해석, 할 일 순서, 아침 브리핑, 화면 모드.
+// 자료는 Tachyon web/src/example.js와 같은 모양을 따른다(실제 사람·수업·일정이 아니다).
+// 시안마다 그리는 방법만 다르고, 누르면 일어나는 일은 여기 하나다.
+(function () {
+  const WD = '월화수목금토일';
+  const MIN = 60000;
+  const HOUR = 60 * MIN;
+  const DAY = 24 * HOUR;
+  const two = (n) => String(n).padStart(2, '0');
+
+  // 시연 시각: 오늘 10:40으로 고정한다(캡처가 늘 같은 모습이 되게).
+  const real = new Date();
+  const now = new Date(real.getFullYear(), real.getMonth(), real.getDate(), 10, 40);
+  const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
+  const at = (day, h, m = 0) => new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + day, h, m);
+  const ago = (minutes) => new Date(now.getTime() - minutes * MIN);
+
+  let n = 0;
+  const id = () => ++n;
+  // source: class = 시간표 수업, ics = 내 캘린더(구글·애플), memo = 메모에서 저장
+  const ev = (day, [h1, m1], [h2, m2], title, place, source, important = 0) => ({
+    id: id(), title, start: at(day, h1, m1), end: at(day, h2, m2), place, source, important,
+  });
+
+  const events = [
+    ev(0, [10, 0], [11, 15], '공학수학 2', '26동', 'class'),
+    ev(0, [13, 0], [14, 15], '일반화학', '500동', 'class'),
+    ev(1, [9, 30], [10, 45], '유기화학', '500동', 'class'),
+    ev(1, [13, 0], [14, 50], '생명과학 실험', '500동', 'class'),
+    ev(1, [18, 30], [19, 30], '튜터링', '중앙도서관', 'ics'),
+    ev(2, [10, 0], [11, 15], '공학수학 2', '26동', 'class'),
+    ev(2, [13, 0], [14, 15], '일반화학', '500동', 'class'),
+    ev(3, [9, 30], [10, 45], '유기화학', '500동', 'class'),
+    ev(3, [19, 0], [20, 0], '조별 과제 회의', '온라인', 'ics'),
+    ev(4, [10, 0], [11, 15], '영어 글쓰기', '2동', 'class'),
+    ev(4, [15, 0], [16, 0], '일반화학 퀴즈', '500동', 'class', 1),
+    ev(5, [11, 0], [15, 0], '알바', null, 'memo'),
+    ev(6, [18, 0], [20, 0], '가족 저녁', null, 'ics'),
+    ev(7, [10, 0], [11, 15], '공학수학 2', '26동', 'class'),
+    ev(8, [9, 30], [10, 45], '유기화학', '500동', 'class'),
+    ev(9, [10, 0], [11, 15], '공학수학 2', '26동', 'class'),
+    ev(11, [14, 0], [16, 0], '동아리 정기 모임', '학생회관', 'ics'),
+    ev(16, [13, 0], [15, 0], '유기화학 중간고사', '500동', 'class', 1),
+  ];
+  const alba = events.find((e) => e.title === '알바');
+
+  // ready: 1 = 지금 바로 할 수 있음, 0 = 수업·자료가 먼저 있어야 함
+  const tasks = [
+    { id: id(), title: '유기화학 문제풀이 3장', course: '유기화학', due: at(2, 23, 59), minutes: 120, ready: 1, done: 0 },
+    { id: id(), title: '생명과학 실험 보고서', course: '생명과학 실험', due: at(3, 18, 0), minutes: 180, ready: 0, done: 0 },
+    { id: id(), title: '영어 에세이 초안', course: '영어 글쓰기', due: at(4, 23, 59), minutes: 120, ready: 1, done: 0 },
+    { id: id(), title: '토론 글 올리기', course: '영어 글쓰기', due: at(6, 23, 59), minutes: 30, ready: 1, done: 0 },
+    { id: id(), title: '공학수학 2 과제 5', course: '공학수학 2', due: at(9, 23, 59), minutes: 90, ready: 1, done: 0 },
+    { id: id(), title: '일반화학 퀴즈 준비', course: '일반화학', due: at(4, 15, 0), minutes: 60, ready: 1, done: 0 },
+  ];
+
+  const memos = [
+    { id: id(), text: '토요일 알바 11시–3시', at: ago(20 * 60), event: alba },
+    { id: id(), text: '과제 3장까지 풀기', at: ago(14 * 60) },
+    { id: id(), text: '동아리 회비 걷기 물어보기', at: ago(13 * 60 + 20) },
+    { id: id(), text: '실험 보고서 그래프 다시 그리기', at: ago(45) },
+  ];
+
+  // ── 글 만들기 ──
+  const hm = (d) => `${two(d.getHours())}:${two(d.getMinutes())}`;
+  const wd = (d) => WD[(d.getDay() + 6) % 7];
+  const md = (d) => `${d.getMonth() + 1}/${d.getDate()}`;
+  const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  const dayDiff = (d) => Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / DAY);
+  function dayWord(d) {
+    const diff = dayDiff(d);
+    if (diff === 0) return '오늘';
+    if (diff === 1) return '내일';
+    if (diff === 2) return '모레';
+    if (diff === -1) return '어제';
+    const thisMon = (now.getDay() + 6) % 7;
+    if (diff + thisMon >= 7) return `다음 주 ${wd(d)}요일`;
+    return `${wd(d)}요일`;
+  }
+  function span(ms) {
+    if (ms <= 0) return '지남';
+    const d = Math.floor(ms / DAY);
+    const h = Math.floor((ms % DAY) / HOUR);
+    const m = Math.round((ms % HOUR) / MIN);
+    if (d) return h ? `${d}일 ${h}시간` : `${d}일`;
+    if (h) return m === 0 ? `${h}시간` : m === 30 ? `${h}시간 반` : `${h}시간 ${m}분`;
+    return `${m}분`;
+  }
+  function ago2(d) {
+    const m = Math.round((now - d) / MIN);
+    if (m < 1) return '방금';
+    if (m < 60) return `${m}분 전`;
+    if (sameDay(d, now)) return hm(d);
+    return `${dayWord(d)} ${hm(d)}`;
+  }
+  const minutesWord = (m) => (m >= 60 ? (m % 60 ? `약 ${Math.floor(m / 60)}시간 반` : `약 ${m / 60}시간`) : `${m}분`);
+  const dueWord = (t) => `${dayWord(t.due)} ${hm(t.due) === '23:59' ? '자정' : hm(t.due)}`;
+
+  // ── 할 일 순서: 여유(마감까지 남은 시간 − 걸리는 시간)가 적은 순 ──
+  function slack(t) {
+    return t.due - now - t.minutes * MIN;
+  }
+  function rankTasks() {
+    const open = tasks.filter((t) => !t.done).sort((a, b) => slack(a) - slack(b));
+    const weekEnd = at(7, 0);
+    const thisWeek = open.filter((t) => t.due < weekEnd).length;
+    return {
+      tasks: open,
+      top: open.slice(0, 3),
+      warning: thisWeek >= 4 ? `이번 주 마감 ${thisWeek}개 몰림` : null,
+    };
+  }
+  const slackWord = (t) => `여유 ${span(slack(t))}`;
+  // 0(급함) ~ 1(넉넉함): 막대·색 진하기에 쓴다
+  const urgency = (t) => Math.max(0, Math.min(1, 1 - slack(t) / (5 * DAY)));
+
+  // ── 달력 ──
+  const weekDays = (week = 0) => Array.from({ length: 7 }, (_, i) => at(week * 7 + i, 0));
+  const eventsOn = (d) => events.filter((e) => sameDay(e.start, d)).sort((a, b) => a.start - b.start);
+  const tasksDueOn = (d) => tasks.filter((t) => sameDay(t.due, d));
+  function load(d) {
+    // 그날 바쁨 정도(0~1): 일정 시간 + 그날 마감 할 일 시간 / 10시간
+    const evMin = eventsOn(d).reduce((s, e) => s + (e.end - e.start) / MIN, 0);
+    const tMin = tasksDueOn(d).filter((t) => !t.done).reduce((s, t) => s + t.minutes, 0);
+    return Math.min(1, (evMin + tMin) / 600);
+  }
+  const nextEvent = () => events.filter((e) => e.end > now).sort((a, b) => a.start - b.start)[0];
+
+  // ── 메모 → '이대로 저장할까요?' (web/src/example.js의 examplePopup와 같은 규칙) ──
+  function parseMemo(text) {
+    let rest = ` ${text} `;
+    let offset = null;
+    let m = rest.match(/\s(오늘|내일|모레)\s?/);
+    if (m) {
+      offset = { 오늘: 0, 내일: 1, 모레: 2 }[m[1]];
+      rest = rest.replace(m[0], ' ');
+    } else if ((m = rest.match(/\s(다음\s?주\s?)?([월화수목금토일])요일\s?/))) {
+      let diff = WD.indexOf(m[2]) - ((now.getDay() + 6) % 7);
+      if (m[1]) diff += 7;
+      else if (diff < 0) diff += 7;
+      offset = diff;
+      rest = rest.replace(m[0], ' ');
+    }
+    let time = '?';
+    if ((m = rest.match(/(오전|오후)?\s?(\d{1,2})\s?시\s?(반|(\d{1,2})\s?분)?/))) {
+      let hour = Number(m[2]);
+      const minute = m[3] === '반' ? 30 : Number(m[4] || 0);
+      if (m[1] === '오후' && hour < 12) hour += 12;
+      else if (!m[1] && hour >= 1 && hour <= 7) hour += 12; // '3시 스터디'는 보통 오후 3시
+      time = `${two(hour)}:${two(minute)}`;
+      rest = rest.replace(m[0], ' ');
+    } else if ((m = rest.match(/(\d{1,2}):(\d{2})/))) {
+      time = `${two(Number(m[1]))}:${m[2]}`;
+      rest = rest.replace(m[0], ' ');
+    }
+    if (offset === null && time === '?') return null;
+    let place = '?';
+    if ((m = rest.match(/\d{1,3}(-\d)?동(\s?\d{2,4}호)?|중앙도서관|학생회관|온라인/))) {
+      place = m[0];
+      rest = rest.replace(m[0], ' ');
+    }
+    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (offset ?? 0));
+    return { title: rest.replace(/\s+/g, ' ').trim() || '?', date, time, place };
+  }
+  const popupDateWord = (p) => `${md(p.date)}(${wd(p.date)}) · ${dayWord(p.date)}`;
+
+  // ── 상태와 동작 ──
+  const listeners = [];
+  const state = { popup: null, checking: null, toast: null, saved: null, screen: 'home', week: 0, editing: false };
+  const emit = () => listeners.forEach((f) => f(state));
+  let toastTimer = 0;
+  function toast(text, undo) {
+    clearTimeout(toastTimer);
+    state.toast = { text, undo };
+    toastTimer = setTimeout(() => {
+      state.toast = null;
+      emit();
+    }, 5000);
+  }
+
+  function addMemo(text, delay = 700) {
+    text = text.trim();
+    if (!text) return null;
+    const memo = { id: id(), text, at: new Date(now.getTime() + 60000 * (memos.length - 3)), checking: true };
+    memos.push(memo);
+    state.checking = memo.id;
+    emit();
+    setTimeout(() => {
+      memo.checking = false;
+      state.checking = null;
+      const p = parseMemo(text);
+      state.popup = p ? { memoId: memo.id, ...p } : null;
+      emit();
+    }, delay);
+    return memo;
+  }
+  function savePopup(fields = {}) {
+    const p = { ...state.popup, ...fields };
+    const [h, m] = p.time === '?' ? [9, 0] : p.time.split(':').map(Number);
+    const start = new Date(p.date.getFullYear(), p.date.getMonth(), p.date.getDate(), h, m);
+    const e = { id: id(), title: p.title, start, end: new Date(start.getTime() + HOUR), place: p.place === '?' ? null : p.place, source: 'memo', important: 0, fresh: true };
+    events.push(e);
+    const memo = memos.find((x) => x.id === p.memoId);
+    if (memo) memo.event = e;
+    state.popup = null;
+    state.editing = false;
+    state.saved = e;
+    setTimeout(() => (e.fresh = false), 2500); // 새로 넣은 일정은 잠깐만 빛난다
+    toast(`${dayWord(start)} ${hm(start)} '${e.title}' 달력에 넣었어요`, () => {
+      events.splice(events.indexOf(e), 1);
+      if (memo) memo.event = null;
+      state.toast = null;
+      emit();
+    });
+    emit();
+    return e;
+  }
+  function cancelPopup() {
+    state.popup = null;
+    toast('메모로만 남겼어요. 밤 정리 때 다시 볼게요');
+    emit();
+  }
+  function toggleTask(tid) {
+    const t = tasks.find((x) => x.id === tid);
+    t.done = t.done ? 0 : 1;
+    if (t.done) {
+      toast(`'${t.title}' 끝`, () => {
+        t.done = 0;
+        state.toast = null;
+        emit();
+      });
+    }
+    emit();
+    return t;
+  }
+  function undoToast() {
+    if (state.toast?.undo) state.toast.undo();
+  }
+
+  // ── 아침 브리핑 (밤 01:30 정리 결과를 흉내 낸 카드 한 장) ──
+  function briefing() {
+    const r = rankTasks();
+    const first = r.top[0];
+    const today = eventsOn(now);
+    const later = r.tasks.slice().sort((a, b) => slack(b) - slack(a)).find((t) => t.minutes <= 60 && t !== first);
+    return {
+      date: `${now.getMonth() + 1}월 ${now.getDate()}일 ${wd(now)}요일`,
+      headline: `오늘은 '${first.title}'부터`,
+      why: `${dueWord(first)} 마감이고 ${minutesWord(first.minutes)} 걸려요. 오후 수업 사이 빈 시간에 끝낼 수 있어요.`,
+      today,
+      first: r.top,
+      later,
+      laterWhy: later ? `${dueWord(later)}까지라 ${dayWord(new Date(now.getTime() + DAY))}로 미뤄도 돼요` : '',
+      night: '어젯밤 메모 2개 → 할 일 1개로 정리했어요',
+      busy: load(now),
+    };
+  }
+
+  // ── 화면 모드: 주소 끝 #app / #desktop / #web, 뒤에 -popup -brief -cal -memo, 캡처는 -shot ──
+  const MODES = ['app', 'desktop', 'web'];
+  const SCREENS = ['home', 'cal', 'memo', 'brief', 'popup'];
+  function readView() {
+    const parts = location.hash.slice(1).split('-').filter(Boolean);
+    return {
+      mode: parts.find((p) => MODES.includes(p)) || (innerWidth < 700 ? 'app' : 'web'),
+      screen: parts.find((p) => SCREENS.includes(p)) || 'home',
+      shot: parts.includes('shot'),
+    };
+  }
+  // 캡처·보고서용 상태를 미리 만든다
+  function prepare(view) {
+    state.screen = view.screen === 'popup' ? 'memo' : view.screen;
+    if (view.screen === 'popup') {
+      memos.push({ id: id(), text: '내일 3시 301동 스터디', at: ago(1) });
+      state.popup = { memoId: memos[memos.length - 1].id, ...parseMemo('내일 3시 301동 스터디') };
+    }
+  }
+
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+  // 다시 그려도 입력 중인 글·포커스·스크롤이 남게 한다.
+  // data-keep-scroll="이름": 스크롤 위치 유지(처음엔 data-scroll-to px), data-scroll-end: 늘 맨 아래로
+  function mount(root, html) {
+    const active = document.activeElement && document.activeElement.id;
+    const vals = {};
+    root.querySelectorAll('input[id],textarea[id]').forEach((el) => (vals[el.id] = el.value));
+    const scrolls = {};
+    root.querySelectorAll('[data-keep-scroll]').forEach((el) => (scrolls[el.dataset.keepScroll] = el.scrollTop));
+    root.innerHTML = html;
+    for (const [k, v] of Object.entries(vals)) {
+      const el = document.getElementById(k);
+      if (el && !('fresh' in el.dataset)) el.value = v;
+    }
+    root.querySelectorAll('[data-keep-scroll]').forEach((el) => {
+      const k = el.dataset.keepScroll;
+      el.scrollTop = k in scrolls ? scrolls[k] : Number(el.dataset.scrollTo || 0);
+    });
+    root.querySelectorAll('[data-scroll-end]').forEach((el) => (el.scrollTop = el.scrollHeight));
+    if (active) document.getElementById(active)?.focus();
+  }
+
+  // 누르는 것 공통 처리: data-act="task|save|cancel|edit|undo|screen|week|try|brief", 메모 칸 = form 안 [data-memo-input]
+  function readPopupForm() {
+    const val = (k) => document.getElementById(`pf-${k}`)?.value.trim() || '?';
+    return { title: val('title'), time: val('time'), place: val('place') };
+  }
+  function bind(root, extra = {}) {
+    root.addEventListener('click', (e) => {
+      const el = e.target.closest('[data-act]');
+      if (!el) return;
+      const act = el.dataset.act;
+      const arg = el.dataset.arg;
+      if (extra[act]) return extra[act](arg, el, e);
+      if (act === 'task') toggleTask(Number(arg));
+      else if (act === 'save') savePopup(state.editing ? readPopupForm() : {});
+      else if (act === 'cancel') {
+        state.editing = false;
+        cancelPopup();
+      } else if (act === 'edit') {
+        state.editing = true;
+        emit();
+      } else if (act === 'undo') undoToast();
+      else if (act === 'screen') {
+        state.screen = arg;
+        emit();
+      } else if (act === 'week') {
+        state.week = Math.max(0, Math.min(2, state.week + Number(arg)));
+        emit();
+      } else if (act === 'try') {
+        const input = root.querySelector('[data-memo-input]');
+        if (input) {
+          input.value = arg;
+          input.focus();
+        }
+      }
+    });
+    root.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = e.target.querySelector('[data-memo-input]');
+      if (!input) return;
+      const text = input.value;
+      input.value = '';
+      addMemo(text);
+    });
+  }
+
+  // 시험해 볼 메모 예시(시연 칸 아래 칩으로)
+  const tryMemos = ['내일 3시 301동 스터디', '공수 연습문제 4장', '금요일 7시 학생회관 동아리 회식', '다음 주 월요일 오전 10시 면담', '실험 보고서 그래프 다시 그리기'];
+
+  // 보고서 밖에서 열었을 때만 보이는 작은 모드 전환 막대
+  function devbar(view, name) {
+    if (view.shot || window.self !== window.top) return;
+    document.documentElement.classList.add('ty-has-bar');
+    dispatchEvent(new Event('resize'));
+    const bar = document.createElement('nav');
+    bar.className = 'ty-devbar';
+    bar.innerHTML = `<b>${name}</b>${[['app', '모바일 앱'], ['desktop', '데스크톱 앱'], ['web', '웹']]
+      .map(([m, label]) => `<a href="#${m}" ${m === view.mode ? 'aria-current="page"' : ''}>${label}</a>`)
+      .join('')}`;
+    document.body.append(bar);
+    const css = document.createElement('style');
+    css.textContent = `.ty-devbar{position:fixed;z-index:9999;left:50%;transform:translateX(-50%);top:max(8px,env(safe-area-inset-top));display:flex;gap:2px;align-items:center;padding:4px;border-radius:999px;background:#111c;backdrop-filter:blur(10px);font:500 12px/1 system-ui,sans-serif;color:#fff;box-shadow:0 6px 24px #0004}
+.ty-devbar b{padding:0 10px;font-weight:700;white-space:nowrap}.ty-devbar a{color:#fffc;text-decoration:none;padding:8px 10px;border-radius:999px;white-space:nowrap}.ty-devbar a[aria-current]{background:#fff;color:#111}
+html.ty-has-bar.ty-mode-app body,html.ty-has-bar.ty-mode-desktop body{padding-top:48px;box-sizing:border-box}
+html.ty-has-bar.ty-mode-web body{padding-top:0}html.ty-has-bar.ty-mode-web .ty-devbar{top:auto;bottom:max(12px,env(safe-area-inset-bottom))}
+html.ty-phone-full .ty-devbar{display:none}`;
+    document.head.append(css);
+    addEventListener('hashchange', () => location.reload());
+  }
+
+  // 모드별 겉틀: 앱은 390×844 폰, 데스크톱은 1280×800 창. 화면이 작으면 통째로 줄여(zoom) 보여 준다.
+  let zoom = 1;
+  function frame(view) {
+    const html = document.documentElement;
+    html.classList.add(`ty-mode-${view.mode}`);
+    if (view.shot) html.classList.add('ty-shot');
+    const css = document.createElement('style');
+    css.textContent = `html.ty-mode-app body,html.ty-mode-desktop body{display:grid;place-items:center;min-height:100vh;margin:0;overflow:hidden}
+.ty-phone{position:relative;width:390px;height:844px;overflow:hidden;border-radius:46px;box-shadow:0 0 0 10px #0b0b0d,0 0 0 11px #3a3a40,0 30px 80px #0006;isolation:isolate;zoom:var(--ty-z,1)}
+.ty-window{position:relative;width:1280px;height:800px;overflow:hidden;border-radius:12px;box-shadow:0 0 0 1px #0003,0 30px 90px #0005;isolation:isolate;zoom:var(--ty-z,1)}
+html.ty-phone-full .ty-phone{width:100vw;height:100dvh;border-radius:0;box-shadow:none;zoom:1}
+html.ty-shot .ty-phone{width:100vw;height:100vh;border-radius:0;box-shadow:none;zoom:1}
+html.ty-shot .ty-window{border-radius:0;zoom:1}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:1ms!important;scroll-behavior:auto!important}}`;
+    document.head.append(css);
+    const fit = () => {
+      if (view.shot) return;
+      const small = view.mode === 'app' && innerWidth < 520;
+      html.classList.toggle('ty-phone-full', small);
+      const [w, h] = view.mode === 'app' ? [390 + 40, 844 + 40] : [1280 + 48, 800 + 48];
+      const bar = html.classList.contains('ty-has-bar') ? 48 : 0;
+      zoom = small || view.mode === 'web' ? 1 : Math.min(1, innerWidth / w, (innerHeight - bar) / h);
+      html.style.setProperty('--ty-z', zoom);
+    };
+    fit();
+    addEventListener('resize', fit);
+  }
+
+  window.TY = {
+    now, mon, at, events, tasks, memos, state,
+    hm, wd, md, dayWord, dayDiff, span, ago: ago2, minutesWord, dueWord, sameDay,
+    slack, slackWord, urgency, rankTasks,
+    weekDays, eventsOn, tasksDueOn, load, nextEvent,
+    parseMemo, popupDateWord, addMemo, savePopup, cancelPopup, toggleTask, undoToast, toast,
+    briefing, readView, prepare, devbar, frame, tryMemos, esc, mount, bind,
+    on: (f) => listeners.push(f), emit, zoom: () => zoom,
+    WD, DAY, HOUR, MIN,
+  };
+})();
+
+</script>
+<script>
+const T = TY, S = TY.state, esc = TY.esc;
+const view = T.readView();
+// 시연: 주소 끝 ?demo=pc|mobile (한 파일로 만든 시연 파일은 TY_DEMO). 구글 로그인 직후의 빈 상태에서 시작하고, 틀 없이 화면 가득 앱처럼 돈다
+const DEMO = ['pc', 'mobile'].find((m) => m === (window.TY_DEMO || new URLSearchParams(location.search).get('demo')));
+if (DEMO) { Object.assign(view, { mode: 'web', screen: 'home', shot: false }); document.documentElement.classList.add('demo', `demo-${DEMO}`); T.now.setTime(Date.now()); } // 시계도 진짜 시각
+T.frame(view);
+T.prepare(view);
+const SAMPLE = DEMO ? { events: T.events.splice(0), tasks: T.tasks.splice(0), memos: T.memos.splice(0) } : null; // 예시 자료는 '불러오기'를 눌러야 들어온다
+let OB = DEMO ? 'hi' : ''; // 첫 실행 단계: hi 환영 → setup 첫 설정 → q0 · q1 · q2 질문 → '' 앱
+const ME = { year: '', found: '', err: '' }, seen = {}; // 첫 설정에서 고른 것, 화면마다 이미 본 안내 문장 수
+const TIP = {
+  home: ['고리 한 바퀴가 오늘 하루(0–24시)예요. 흰 입자가 지금이에요.', '고리 · 오늘 일정 · 해야 할 일이 한 화면에 있어요. 고리의 색 구간을 누르면 오늘 일정에서 같은 칸이 골라져요.', "할 일은 빈 시간에 자동으로 들어가요(옅은 칸). '빈 시간에 넣기'로 원하는 때에 직접 옮길 수 있어요.", '고리 바깥에 떠 있는 점은 아직 정리 안 된 메모예요. 눌러 보세요.'],
+  cal: ['오늘부터 4일이 보여요. 흰 선이 지금 시각이에요.', '옆으로 밀거나 일 · 주 · 월로 바꿔 보세요.', "'+ 일정'으로 직접 넣을 수 있고, '다 같이 빈 시간'은 팀원과 함께 비는 때를 보여 줘요.", '날짜를 두른 점 고리는 그날의 빽빽함이에요. 주황이면 마감이 몰린 날이에요.'],
+  memo: ['아래 칸에 생각나는 대로 적어 보세요. 날짜나 시각이 들어 있으면 달력에 넣을지 바로 물어봐요.', "이 칸은 어느 화면에서든 아래에 있어요. 다른 화면에서는 '메모 N'을 누르면 남긴 메모가 펴져요.", '나머지는 밤에 정리해서 할 일 후보로 올려요.'],
+  pals: ['친구 코드를 넣으면 요청이 가요. 친구가 수락하면 서로 바쁜 시간만 보여요.', "그룹의 '빈 시간'을 누르면 달력에 다 같이 비는 때가 나와요. 친구 한 명과 둘이서도 볼 수 있고, '멤버'로 그룹에 친구를 넣거나 빼요."],
+  brief: ['받은함에는 아침 브리핑과, 답해 주면 더 편해지는 질문 · 제안이 모여요.', '매일 밤 메모와 과제를 정리해서, 아침에 먼저 할 일을 골라 드려요.'],
+  me: '연결 · 설정 · 내가 알려 준 것을 여기서 보고 바꿔요.',
+};
+const clockWord = () => `${T.md(T.now)}(${T.wd(T.now)}) ${T.hm(T.now)}`;
+const narrow = () => (DEMO ? DEMO === 'mobile' || innerWidth < 700 : view.mode === 'app' || (view.mode === 'web' && innerWidth < 900));
+const calm = view.shot || matchMedia('(prefers-reduced-motion: reduce)').matches; // 움직임 없이 그릴 때
+let PH = narrow();
+const NAV = [['home', '오늘'], ['cal', '달력'], ['memo', '메모'], ['pals', '친구'], ['brief', '받은함']];
+const VIEWS = [['day', '일'], ['week', '주'], ['month', '월']];
+const PAL = ['#8f7bff', '#35e0c0', '#ff6fb5', '#5aa2ff', '#ffa04a'];
+const COL = { 유기화학: PAL[0], '생명과학 실험': PAL[1], '영어 글쓰기': PAL[2], '공학수학 2': PAL[3], 일반화학: PAL[4] };
+const SRC = { class: '시간표 수업', ics: '내 캘린더', memo: '메모에서 저장', own: '직접 넣음' };
+const CHECK = '<svg viewBox="0 0 12 12" width="13" height="13" aria-hidden="true"><path d="M2.5 6.4l2.4 2.4 4.6-5.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const TICK = [[0, '지금'], [1, '내일'], [3, '3일'], [7, '1주']];
+const far = (d) => Math.min(Math.max(d, 0), 7) / 7; // 남은 날 → 0(지금)~1(1주 이상)
+const RINGS = [[66, 40, 1], [75, 46, 1.2], [84, 52, 1.4], [93, 58, 1.6], [102, 64, 1.8]]; // 반지름, 점 개수, 점 크기
+let ITEMS = [], last = ''; // 지금 화면의 카드들, 직전 화면(점이 차오르는 움직임은 화면이 바뀔 때만)
+const pick = { home: 0 }; // 화면마다 고른 카드
+const HVS = [['day', '하루'], ['task', '할 일'], ['all', '전체']]; // 오늘 화면 보기: 고리 두 가지 + 전체 목록
+let WAKE = 7, FLEN = 25, FOCUS = null, FIRST = null, LIGHT = false; // 하루 고리에서 이 시각 전은 잠, 집중 한 번 길이(분), 집중 중인 할 일 { id, at }, 맨 앞으로 당긴 할 일 id, 밝은 화면
+let TAP = ''; // 고리에서 누른 구간: '' 없음, t3 = 카드 3의 할 일, e1 = 오늘 일정 1
+let HV = 'day'; // day = 하루 고리(한 바퀴 = 오늘 0–24시), task = 할 일 고리(한 바퀴 = 남은 할 일 전부), all = 전체 목록
+
+const courseKey = (name) => Object.keys(COL).find((c) => name.startsWith(c)); // 제목이 어느 과목으로 시작하나
+const colorOf = (name) => COL[courseKey(name)] || '#c9ccff';
+const big = (min) => { const h = Math.floor(min / 60), m = Math.round(min % 60); return `${h ? `${h}<i>시간</i>` : ''}${m || !h ? `${h ? ' ' : ''}${m}<i>분</i>` : ''}`; };
+const meter = (frac, n) => { const k = Math.round(frac * n); return `<span class="dm" role="img" aria-label="${Math.round(frac * 100)}%">${'<i class="on"></i>'.repeat(k)}${'<i></i>'.repeat(n - k)}</span>`; };
+const syn = (cls) => `<span class="syn ${cls}" aria-hidden="true"><i></i><em></em><i></i></span>`;
+
+const taskRow = (t, n) => `<div class="row ${t.done ? 'dn' : ''}">${n ? `<i class="no">${n}</i>` : `<i class="dot" style="--c:${colorOf(t.course)}"></i>`}<div><b>${esc(t.title)}</b><small>${esc(t.course)} · ${esc(T.minutesWord(t.minutes))}</small></div>
+  <div class="r"><b>${t.done ? '끝냄' : esc(T.slackWord(t))}</b><small>${esc(T.dueWord(t))} 마감</small></div><button class="ck" data-act="task" data-arg="${t.id}" aria-pressed="${!!t.done}" aria-label="${t.done ? '끝냄 취소' : '끝냄'}">${CHECK}</button></div>`;
+const eventRow = (e) => `<div class="row ${e.end < T.now ? 'dn' : ''}"><i class="dot" style="--c:${colorOf(e.title)}"></i><div><b>${esc(e.title)}${e.fresh ? '<sup>방금</sup>' : ''}</b><small>${esc(e.place || SRC[e.source])}</small></div>
+  <div class="r"><b>${T.hm(e.start)} – ${T.hm(e.end)}</b><small>${esc(T.span(e.end - e.start))}</small></div></div>`;
+
+// 카드 한 장 = { c 색, name, tag, v 실제 분, w 고리에서 차지할 몫, at 하루 고리에 넣어 본 자리([시작 분, 끝 분], 없으면 null), x 카드 속 입자 위치(%), track 카드 속 띠, big 큰 숫자, sub, rows 아래 줄 }
+function homeItems() {
+  const left = T.eventsOn(T.now).filter((e) => e.end > T.now);
+  const today = left.length ? `<p class="lb">오늘 남은 일정</p>${left.map(eventRow).join('')}` : '';
+  const flight = `${TICK.map(([d, w]) => `<u style="left:${4 + 90 * far(d)}%">${w}</u>`).join('')}<i class="fp"></i>`;
+  const list = [...T.rankTasks().tasks, ...T.tasks.filter((t) => t.done)];
+  const order = [...list].sort((a, b) => (b.id === FIRST) - (a.id === FIRST)), slots = daySlots(order), at = list.map((t) => slots[order.indexOf(t)]); // 당긴 할 일이 자리를 맨 먼저 잡는다
+  return list.map((t, i) => {
+    const mine = PLACED.filter((p) => p.t === t.id).sort((a, b) => a.k - b.k || a.s - b.s), now = mine.filter((p) => !p.k).map((p) => [p.s, p.e]);
+    const slot = t.done ? '' : `${mine.length ? `<p class="lb">내가 넣은 자리 · ${mine.length}번 · 모두 ${T.minutesWord(mine.reduce((s, p) => s + p.e - p.s, 0))}</p>${mine.map(placedRow).join('')}`
+      : HV !== 'day' ? '' : `<p class="lb">${at[i] ? `자동으로 넣은 자리 · 오늘 ${hmAt(at[i][0])} – ${hmAt(at[i][1])} · 바꿀 수 있어요` : t.hold || '오늘은 넣을 빈 시간이 없어요'}</p>`}
+      <div class="chips fx">${at[i] && HV === 'day' ? btn('이 자리로 정하기', 'fix', t.id) : ''}${btn(mine.length ? '한 번 더 넣기' : '빈 시간에 넣기', 'put', 't' + t.id)}${HV === 'day' && !mine.length ? `<button class="gb ${FIRST === t.id ? 'on' : ''}" data-act="pull" data-arg="${t.id}" aria-pressed="${FIRST === t.id}">${FIRST === t.id ? '당긴 것 풀기' : '맨 앞으로 당기기'}</button>` : ''}</div>`;
+    const d = t.done ? 0 : (t.due - T.now) / T.DAY;
+    const acts = t.done ? '' : `<div class="chips fx">${FOCUS?.id === t.id ? '<button class="gb on" data-act="fdone">끝냈어요</button><button class="gb" data-act="fstop">그만하기</button>' : `<button class="gb" data-act="flen" data-arg="-5" aria-label="집중 시간 5분 줄이기">−</button><button class="gb" data-act="focus" data-arg="${t.id}">집중 ${FLEN}분 시작</button><button class="gb" data-act="flen" data-arg="5" aria-label="집중 시간 5분 늘리기">+</button>${laterChips(t)}`}</div>`;
+    return { c: colorOf(t.course), name: t.course, tag: t.done ? '끝냄' : T.slackWord(t), v: t.done ? 0 : t.minutes, w: t.done ? 0 : t.minutes, dn: t.done, x: 4 + 90 * far(d), track: flight,
+      big: big(t.minutes), title: t.title, sub: t.done ? '끝냈어요' : `${T.dueWord(t)} 마감`, at: at[i], id: t.id, ats: now.length ? now : at[i] ? [at[i]] : [], sg: !now.length, row: taskRow(t), more: acts + slot, rows: taskRow(t) + acts + slot + today };
+  });
+}
+// ── 달력: 일 · 주 · 월. 주는 오늘부터 시작하고(앱 4일, 웹 7일), 지금 시각은 흰 입자와 선으로 보인다 ──
+const T0 = new Date(T.now.getFullYear(), T.now.getMonth(), T.now.getDate());
+const D = (k) => new Date(T0.getFullYear(), T0.getMonth(), T0.getDate() + k); // 오늘에서 k일 뒤 0시
+const off = (d) => Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - T0) / T.DAY); // 오늘에서 며칠 뒤인가
+const nDays = () => (view.mode === 'web' && !PH && !DEMO ? 7 : 4); // 웹은 일주일, 앱(폰 · 데스크톱)과 좁은 웹은 4일
+const H0 = () => (DEMO && T.now.getHours() < 8 ? 0 : 8); // 칸의 첫 시각: 8시. 시연에서 8시 전이면 지금 선이 보이게 0시부터
+const Y = (t, d) => Math.min(Math.max(((t - d) / T.HOUR - H0()) / (24 - H0()), 0), 1) * 100; // 첫 시각~24시 칸에서의 높이(%)
+let CV = 'week', CA = 0, calKey = '', calDir = 0; // 보기, 맨 앞 날(오늘에서 며칠 뒤), 직전에 그린 달력, 넘긴 방향
+let NEW = null, MEET = false, MO = false; // 직접 넣기 시트({ k 날, s 시작 분 }), 다 같이 빈 시간 켬, 남긴 메모 목록 펴짐
+
+// 다 같이 빈 시간: 내 일정과 예시 팀원 둘의 바쁜 시간(요일별 [시작 시, 끝 시])을 겹쳐, 9–22시에 셋 다 1시간 넘게 비는 때([시작 분, 끝 분])를 찾는다. 지난 시간은 뺀다
+// ponytail: 팀원 시간표는 지어낸 예시다. 실제 앱은 팀원이 시간표를 공유해야 한다
+const PALS = [ // 친구 = { id, name 별명, busy 요일별 바쁜 시간, wait 수락을 기다리는 중 }
+  { id: 1, name: '하늘', busy: { 1: [[9, 12]], 2: [[13, 16]], 3: [[9, 12], [15, 17]], 4: [[13, 16]], 5: [[10, 12]] } },
+  { id: 2, name: '바다', busy: { 1: [[10.5, 12], [14, 15.5]], 2: [[9, 10.5]], 3: [[14, 15.5]], 4: [[9, 10.5], [16, 18]], 6: [[12, 18]] } },
+];
+const BUSY = [{ 1: [[13, 15]], 3: [[10, 12]], 5: [[13, 17]] }, { 2: [[9, 12]], 4: [[9, 12]], 5: [[15, 18]] }, { 1: [[16, 18]], 2: [[16, 18]], 3: [[18, 20]] }]; // 새 친구에게 줄 지어낸 시간표
+const REQ = [{ id: 3, name: '노을', busy: BUSY[0] }]; // 받은 친구 요청
+const GROUPS = [{ id: 1, name: '생명과학 실험 조', ids: [1, 2] }]; // 그룹 = 다 같이 빈 시간을 볼 묶음
+let MG = 1; // 다 같이 빈 시간을 볼 그룹(지워졌으면 친구 전부), 음수 = 친구 한 명(-id)
+const meetPals = () => { const g = GROUPS.find((x) => x.id === MG); return PALS.filter((p) => !p.wait && (MG < 0 ? p.id === -MG : !g || g.ids.includes(p.id))); }; // MG가 음수면 그 친구 한 명과 둘이
+function freeAll(d) {
+  const k = off(d), END = 22 * 60, busy = [...T.eventsOn(d).map((e) => [(e.start - d) / T.MIN, (e.end - d) / T.MIN]), ...meetPals().flatMap((p) => (p.busy[d.getDay()] || []).map(([a, b]) => [a * 60, b * 60])), [END, END]].sort((a, b) => a[0] - b[0]);
+  let t = k < 0 ? END : k ? 9 * 60 : Math.max(9 * 60, Math.ceil((T.now - d) / T.MIN / 30) * 30);
+  const out = [];
+  for (const [a, b] of busy) { if (Math.min(a, END) - t >= 60) out.push([t, Math.min(a, END)]); t = Math.max(t, b); }
+  return out;
+}
+// 하루 한 칸: 일정 = 수업 색 토막, 마감 = 점선 위 입자, 오늘이면 지금 시각 선
+function dayCol(d, full, home) {
+  const td = T.sameDay(d, T.now), K = TAP[0] === 'e' ? TAP : 't' + pick.home; // 오늘 화면에서 골라진 칸: 누른 일정, 아니면 고른 할 일
+  const ev = T.eventsOn(d).map((e, k) => `<button ${home ? `data-act="tap" data-arg="e${k}" data-k="e${k}" aria-label="${esc(e.title)} 고르기"` : `data-act="info" data-arg="${e.id}" aria-label="${esc(e.title)} 정보 보기"`} class="eb ${home && K === 'e' + k ? 'sel' : ''} ${e.end < T.now ? 'dn' : ''} ${e.fresh ? 'fr' : ''} ${e.important ? 'im' : ''}" style="--c:${colorOf(e.title)};top:${Y(e.start, d)}%;height:${Y(e.end, d) - Y(e.start, d)}%"><b>${esc(e.title)}${e.fresh ? '<sup>방금</sup>' : ''}</b><small>${full && e.place ? `${esc(e.place)} · ` : ''}${T.hm(e.start)}<span> – ${T.hm(e.end)}</span></small></button>`).join('');
+  const due = T.tasksDueOn(d).map((t) => `<div class="dl ${t.done ? 'dn' : ''}" style="--c:${colorOf(t.course)};top:${Y(t.due, d)}%"><span>마감 · ${esc(t.title)}</span></div>`).join('');
+  const fa = !MEET ? '' : freeAll(d).map(([a, b]) => `<button class="fa" data-act="new" data-arg="${off(d)}:${a}" style="top:${Y(+d + a * T.MIN, d)}%;height:${Y(+d + b * T.MIN, d) - Y(+d + a * T.MIN, d)}%" aria-label="${T.md(d)} ${hmAt(a)}부터 ${hmAt(b)}까지 다 같이 비어요. 이때로 일정 넣기">${hmAt(a)} – ${hmAt(b)}</button>`).join('');
+  const pl = home ? ITEMS.map((x, i) => x.ats.map(([s, e]) => `<button data-act="tap" data-arg="t${i}" data-k="t${i}" aria-label="${esc(x.title)} 고르기" class="eb ${x.sg ? 'ab' : 'pb'} ${K === 't' + i ? 'sel' : ''}" style="--c:${x.c};top:${Y(+d + s * T.MIN, d)}%;height:${Y(+d + e * T.MIN, d) - Y(+d + s * T.MIN, d)}%"><b>${esc(x.title)}</b><small>${x.sg ? '자동' : '직접'} · ${hmAt(s)}<span> – ${hmAt(e)}</span></small></button>`).join('')).join('') : PLACED.map((p, i) => { const t = p.k === off(d) && T.tasks.find((x) => x.id === p.t); return !t ? '' : `<button data-act="put" data-arg="p${i}" aria-label="${esc(t.title)} 넣은 자리 고치기" class="eb pb ${t.done ? 'dn' : ''}" style="--c:${colorOf(t.course)};top:${Y(+d + p.s * T.MIN, d)}%;height:${Y(+d + p.e * T.MIN, d) - Y(+d + p.s * T.MIN, d)}%"><b>${esc(t.title)}</b><small>할 일 · ${hmAt(p.s)}<span> – ${hmAt(p.e)}</span></small></button>`; }).join('');
+  return `<div class="dc ${td ? 'td' : ''}">${fa}${ev}${pl}${due}${td ? `<i class="nw" style="top:${Y(T.now, d)}%"></i>` : ''}</div>`;
+}
+function timeGrid(days, full, home) {
+  const now = days.some((d) => T.sameDay(d, T.now)) ? `<div class="nl" style="top:${Y(T.now, T0)}%"><span>${T.hm(T.now)}</span></div>` : '';
+  return `<div class="tg" style="--n:${days.length}"><div class="ax">${Array.from({ length: 8 }, (_, i) => `<u style="top:${i * 12.5}%">${H0() + i * (24 - H0()) / 8}</u>`).join('')}</div>${days.map((d) => dayCol(d, full, home)).join('')}${now}</div>`;
+}
+function dayRows(d) {
+  const ev = T.eventsOn(d), due = T.tasksDueOn(d), min = ev.reduce((s, e) => s + (e.end - e.start) / T.MIN, 0);
+  const rows = [...ev.map((e) => [e.start, eventRow(e)]), ...due.map((t) => [t.due, taskRow(t)])].sort((a, b) => a[0] - b[0]).map((x) => x[1]).join('');
+  const fa = !MEET ? '' : `<p class="lb">다 같이 빈 시간</p>${freeAll(d).map(([a, b]) => `<div class="row"><i class="dot" style="--c:var(--te)"></i><div><b>${hmAt(a)} – ${hmAt(b)}</b><small>${esc(T.span((b - a) * T.MIN))}</small></div><button class="gb" data-act="new" data-arg="${off(d)}:${a}">이때로</button></div>`).join('') || '<p class="night">이날은 다 같이 비는 때가 없어요</p>'}`;
+  return `<div class="rows">${fa}<p class="lb">일정 ${ev.length}개 · 마감 ${due.length}개${min ? ` · ${esc(T.span(min * T.MIN))}` : ''}</p>${rows || '<p class="night">이날은 비어 있어요</p>'}</div>`;
+}
+function monthGrid(a) {
+  const first = new Date(a.getFullYear(), a.getMonth(), 1), lead = (first.getDay() + 6) % 7; // 1일 앞의 빈칸 수(월요일 시작)
+  const weeks = Math.ceil((lead + new Date(a.getFullYear(), a.getMonth() + 1, 0).getDate()) / 7);
+  const cell = (k) => {
+    const d = D(k), ev = T.eventsOn(d), due = T.tasksDueOn(d), n = ev.length + due.length;
+    const items = [...ev.map((e) => `<span class="mi" style="--c:${colorOf(e.title)}"><i class="dot"></i><em>${esc(e.title)}</em></span>`), ...due.map((t) => `<span class="mi due" style="--c:${colorOf(t.course)}"><i class="dot"></i><em>${esc(t.title)}</em></span>`)].join('');
+    const fh = MEET && freeAll(d).reduce((s, [x, y]) => s + y - x, 0);
+    return `<button class="mc ${k ? '' : 'td'} ${d.getMonth() === a.getMonth() ? '' : 'out'} ${k < 0 ? 'past' : ''}" data-act="day" data-arg="${k}" aria-label="${T.md(d)} 일정 ${ev.length}개, 마감 ${due.length}개"><b>${d.getDate()}</b><span class="ml">${MEET ? (fh ? `<span class="fh">${Math.round(fh / 30) / 2}<i>시간</i></span>` : '') : `${items}${n > 3 ? `<span class="mo">+${n - 3}</span>` : ''}`}</span>${k ? '' : `<i class="dp" style="--p:${((T.now - T0) / T.DAY * 100).toFixed(1)}%"></i>`}</button>`;
+  };
+  return `<div class="mg">${[...'월화수목금토일'].map((w) => `<span class="mw">${w}</span>`).join('')}${Array.from({ length: weeks * 7 }, (_, i) => cell(off(first) - lead + i)).join('')}</div>`;
+}
+function calendar() {
+  const a = D(CA), n = CV === 'week' ? nDays() : 1, days = Array.from({ length: n }, (_, i) => D(CA + i)), z = days[n - 1];
+  const title = CV === 'month' ? `${a.getFullYear()}년 ${a.getMonth() + 1}월` : CV === 'day' ? `${a.getMonth() + 1}월 ${a.getDate()}일 ${T.wd(a)}요일`
+    : `${a.getMonth() + 1}월 ${a.getDate()}일 – ${z.getMonth() === a.getMonth() ? '' : `${z.getMonth() + 1}월 `}${z.getDate()}일`;
+  const tag = CV === 'week' ? (CA ? '' : '오늘부터') : CV === 'day' && CA >= -1 && CA <= 2 ? T.dayWord(a) : '';
+  const key = CV + CA + n, moved = key !== calKey; calKey = key; // 보기나 날짜가 바뀔 때만 미끄러져 들어온다
+  const body = CV === 'month' ? monthGrid(a) : CV === 'day' ? `<div class="dv">${timeGrid(days, true)}${dayRows(a)}</div>`
+    : `<div class="wh" style="--n:${n}"><span></span>${days.map((d, i) => `<button class="dh ${T.sameDay(d, T.now) ? 'td' : ''}" data-act="day" data-arg="${CA + i}" aria-label="${T.md(d)} 하루 보기${crowdN(d) >= 3 ? ' · 마감이 몰린 날' : ''}"><small>${T.wd(d)}</small><span class="dw">${dens(d)}<b>${d.getDate()}</b></span></button>`).join('')}</div>${timeGrid(days)}`;
+  const note = !MEET ? '' : `<p class="mn">${CV === 'month' ? '칸의 숫자 = 그날 함께 비는 시간이에요. 날을 누르면 언제인지 나와요.' : '청록 띠 = 함께 비는 때예요. 누르면 그때로 일정을 넣어요.'} ${meetPals().length ? `내 일정과 ${GROUPS.some((g) => g.id === MG) ? '이 그룹' : '친구'} ${meetPals().length}명(${esc(meetPals().map((p) => p.name).join(' · '))})의 바쁜 시간을 9–22시에서 겹쳐 본 거예요. 친구 시간표는 지어낸 예시예요.` : '겹쳐 볼 친구가 없어서 내 일정만 봤어요. 친구 탭에서 추가해 보세요.'}</p>`;
+  return `<div class="cal v-${CV} ${moved ? 'in' : ''}" style="--dx:${calDir * 18}px;--dy:${calDir ? 0 : 8}px"><div class="cn"><h2>${title}</h2>${tag ? `<em>${esc(tag)}</em>` : ''}<span class="sp"></span>
+    <button class="gb" data-act="mv" data-arg="-1" aria-label="이전">‹</button><button class="gb" data-act="mv" data-arg="1" aria-label="다음">›</button><button class="gb" data-act="mv" data-arg="0" ${CA ? '' : 'disabled'}>지금</button></div>
+    <div class="chips cx"><button class="gb" data-act="new">+ 일정</button><button class="gb" data-act="put">+ 할 일 넣기</button><button class="gb ${MEET ? 'on' : ''}" data-act="meet" aria-pressed="${MEET}">다 같이 빈 시간</button>${MEET ? `${GROUPS.map((g) => `<button class="gb ${MG === g.id ? 'on' : ''}" data-act="mg" data-arg="${g.id}" aria-pressed="${MG === g.id}">${esc(g.name)}</button>`).join('')}${MG < 0 && meetPals()[0] ? `<button class="gb on" aria-pressed="true">${esc(meetPals()[0].name)} 님과 둘이</button>` : ''}<button class="gb" data-act="screen" data-arg="pals">친구 · 그룹 ›</button>` : ''}</div>${note}${CV === 'week' && !CROWD && crowd() ? `<p class="mn">주황 고리 = 마감이 몰린 날이에요. <button class="ul" data-act="screen" data-arg="brief">받은함의 제안 보기</button></p>` : ''}${body}</div>`;
+}
+// 달력에 직접 넣기: 메모를 거치지 않고 제목 · 날짜 · 시각을 바로 적는다
+function newSheet() {
+  if (!NEW) return '';
+  const d = D(NEW.k), s = NEW.s ?? (NEW.k ? 9 : Math.min(T.now.getHours() + 1, 23)) * 60, p2 = (n) => String(n).padStart(2, '0');
+  const f = (label, k, type, val, more = '') => `<dt>${label}</dt><dd><input id="nw-${k}" type="${type}" value="${val}" aria-label="${label}" ${more}></dd>`;
+  return `<div class="dim"><form class="sheet" data-new role="dialog" aria-label="일정 직접 넣기"><h2>일정 직접 넣기</h2>
+    <dl>${f('제목', 'title', 'text', '', 'required placeholder="무엇" autocomplete="off"')}${f('날짜', 'date', 'date', `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`, 'required')}${f('시작', 'start', 'time', hmAt(s), 'required')}${f('끝', 'end', 'time', hmAt(Math.min(s + 60, 1439)))}${f('장소', 'place', 'text', '', 'placeholder="어디서" autocomplete="off"')}</dl>
+    <div class="ac"><button class="gb" type="button" data-act="newx">닫기</button><button class="wb" type="submit">넣기</button></div></form></div>`;
+}
+// 달력 넘기기: -1 이전, 1 다음, 0 지금으로. 일 = 하루, 주 = 보이는 날 수만큼, 월 = 한 달
+function move(step) {
+  calDir = step;
+  if (!step) CA = 0;
+  else if (CV === 'month') { const a = D(CA), f = new Date(a.getFullYear(), a.getMonth() + step, 1); CA = f.getFullYear() === T0.getFullYear() && f.getMonth() === T0.getMonth() ? 0 : off(f); }
+  else CA += step * (CV === 'week' ? nDays() : 1);
+  render();
+}
+// 하루 고리의 할 일 자리: 급한 순서대로, 지금(잠 깬 뒤)부터 오늘 안의 빈 시간에 통째로 넣어 본다. 일정 앞뒤 10분은 비우고, 안 들어가면 자리 없음(null)
+const dayMin = (d) => Math.round((d - T0) / T.MIN), hmAt = (m) => T.hm(new Date(+T0 + m * T.MIN)); // 오늘 0시부터 몇 분 ↔ 시각 글자
+const KNOW = {}, PLACED = []; // KNOW 받은함에서 알려 준 것(move 이동 분, eve 저녁 시), PLACED 직접 넣은 자리 { t 할 일 id, k 오늘에서 며칠 뒤, s 시작 분, e 끝 분 }
+const dayStart = () => Math.max(Math.ceil(dayMin(T.now) / 10) * 10, WAKE * 60);
+function daySlots(tasks) {
+  const busy = [...T.eventsOn(T.now).map((e) => [dayMin(e.start), dayMin(e.end)]), ...PLACED.filter((p) => !p.k).map((p) => [p.s, p.e])]; // 직접 넣은 자리는 비켜 간다
+  return tasks.map((t) => {
+    if (t.done || t.hold || PLACED.some((p) => p.t === t.id)) return null; // 끝냈거나 · 쉬는 중이거나 · 직접 넣은 할 일에는 제안하지 않는다
+    let s = dayStart(), hit;
+    while ((hit = busy.find(([a, b]) => s < b + 10 && s + t.minutes > a - 10))) s = hit[1] + 10;
+    if (t.done || s + t.minutes > 1440) return null;
+    busy.push([s, s + t.minutes]);
+    return [s, s + t.minutes];
+  });
+}
+const freeToday = () => T.eventsOn(T.now).reduce((s, e) => s - Math.max(dayMin(e.end) - Math.max(dayMin(e.start), dayStart()), 0), Math.max(1440 - dayStart(), 0)) - PLACED.reduce((s, p) => s + (p.k ? 0 : Math.max(p.e - Math.max(p.s, dayStart()), 0)), 0); // 지금부터 자정까지, 일정과 직접 넣은 자리를 뺀 분
+// 입자 고리: 점마다 자기 카드 묶음(g)에 넣는다(은행 앱 시안의 고리 그대로, 색만 수업 색).
+// 할 일 고리는 한 바퀴를 카드들의 몫대로 나누고, 하루 고리는 생활계획표처럼 한 바퀴가 0–24시라서 카드의 넣어 본 자리 · 오늘 일정 · 시각 눈금 · 지금이 제 시각에 놓인다
+function ring(items, sel) {
+  const day = HV === 'day', total = items.reduce((s, x) => s + x.w, 0), g = items.map(() => '');
+  const P = (rad, f) => { const a = f * 2 * Math.PI - Math.PI / 2; return [rad * Math.cos(a), rad * Math.sin(a)].map((v) => v.toFixed(1)); };
+  const now = dayMin(T.now) / 1440, evs = day ? T.eventsOn(T.now) : [], ev = evs.map((e) => [dayMin(e.start) / 1440, dayMin(e.end) / 1440]), eg = ev.map(() => '');
+  let acc = 0, rest = '';
+  const arc = items.map((x) => { if (day) return x.ats.map((r) => r.map((m) => m / 1440)); const a = acc; acc += total ? x.w / total : 0; return [[a, acc]]; }); // 카드마다 차지하는 구간들(0~1)
+  const inArc = (f) => ([a, b]) => f >= a && f < b;
+  for (const [rad, n, r] of RINGS) for (let j = 0; j < n; j++) {
+    const f = (j + (n % 4) / 4) / n, i = arc.findIndex((rs) => rs.some(inArc(f))), [cx, cy] = P(rad, f), k = i < 0 ? ev.findIndex(inArc(f)) : -1, e = k >= 0;
+    const c = `<circle cx="${cx}" cy="${cy}" r="${r}" ${day ? `class="${e ? 'e' : f < WAKE / 24 ? 'z' : ''} ${f < now ? 'p' : ''}" ` : ''}style="--d:${Math.round(f * 500)}ms"/>`;
+    if (i >= 0) g[i] += c; else if (e) eg[k] += c; else rest += c;
+  }
+  // 시냅스: 고른 몫의 점들에서 안쪽 마디 하나로 모이는 가는 섬유 5가닥. 가운데 가닥으로 신호 한 점이 흐른다.
+  arc.forEach((rs, i) => rs.forEach(([a0, a1]) => {
+    const da = a1 - a0, m = a0 + da / 2, [nx, ny] = P(41, m);
+    if (!da) return;
+    const path = (k) => `M${P(62, a0 + da * k)}Q${P(55, m + da * (k - .5) * .5)} ${nx},${ny}`;
+    g[i] += `${[0, .25, .5, .75, 1].map((k) => `<path class="fb" d="${path(k)}"/>`).join('')}<circle class="nd" cx="${nx}" cy="${ny}" r="1.5"/>${calm ? '' : `<circle class="pl" r="1.4"><animateMotion dur="1.6s" repeatCount="indefinite" path="${path(.5)}"/></circle>`}`;
+  }));
+  // 떠 있는 입자: 아직 정리 안 된 메모가 고리 바깥을 천천히 돈다. 누르면 가운데에 그 메모가 나온다
+  const fl = waiting().map((m, j, all) => { const [x, y] = P(127 + (j % 2) * 5, (j + .35) / all.length); return `<g class="fl ${TAP === 'm' + m.id ? 'sel' : ''}" data-act="tap" data-arg="m${m.id}" ${calm ? '' : `style="animation-delay:-${(Date.now() / 1000 % 160).toFixed(1)}s"`}><circle class="fh" cx="${x}" cy="${y}" r="10"/><circle class="fo" cx="${x}" cy="${y}" r="5.5"/><circle class="fd" cx="${x}" cy="${y}" r="2.4"/></g>`; }).join('');
+  // 누르는 자리: 구간마다 보이지 않는 굵은 호. 누르면 가운데에 그 할 일 · 일정이 나온다
+  const hit = ([a, b], arg) => b > a ? `<path class="hit" data-act="tap" data-arg="${arg}" d="M${P(84, a)}A84 84 0 ${b - a > .5 ? 1 : 0} 1 ${P(84, Math.min(b, a + .999))}"/>` : '';
+  arc.forEach((rs, i) => rs.forEach((x) => (g[i] += hit(x, 't' + i))));
+  ev.forEach((x, k) => (eg[k] += hit(x, 'e' + k)));
+  // 시각 눈금: 한 시간마다 짧은 금, 숫자는 3시간마다. 지금 시각 글자와 겹치는 숫자는 뺀다
+  const T1 = (rad, f, w, k = '') => { const [x, y] = P(rad, f); return `<text ${k}x="${x}" y="${y}">${w}</text>`; };
+  const marks = !day ? '' : Array.from({ length: 24 }, (_, h) => {
+    const [x1, y1] = P(108, h / 24), [x2, y2] = P(h % 3 ? 109.5 : 111.5, h / 24), gap = Math.abs((h / 24 - now + 1.5) % 1 - .5) * 24;
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>${h % 3 || gap < .8 ? '' : T1(119, h / 24, `${h || 24}시`)}`;
+  }).join('') + T1(119, now, T.hm(T.now), 'class="nw" data-now ');
+  return `<svg class="ring ${day ? 'day' : ''}" viewBox="-120 -120 240 240" aria-hidden="true"><g class="bg">${rest}</g>${evs.map((e, k) => `<g class="eg ${TAP === 'e' + k ? 'on' : ''}" data-e="${k}" style="--c:${colorOf(e.title)}">${eg[k]}</g>`).join('')}${items.map((x, i) => `<g data-i="${i}" class="${i === sel ? 'on' : ''} ${x.sg ? 'sg' : 'pd'}" style="--c:${x.c}">${g[i]}</g>`).join('')}${marks}${fl}</svg>
+    <i class="ty ${day ? 'day' : ''}" ${day ? `style="transform:rotate(${(now * 360).toFixed(1)}deg)"` : ''}></i>`;
+}
+// 고리 가운데: 구간을 누르면 그 할 일 · 일정, 아니면 숫자. 할 일 고리는 시간 합계 대신 개수를 크게 보인다(합계는 아래 설명 줄로)
+function mid() {
+  const day = HV === 'day', two = (a, b) => `<b class="nm">${esc(a)}</b><span>${esc(b)}</span>`;
+  const e = TAP[0] === 'e' && T.eventsOn(T.now)[+TAP.slice(1)], x = TAP[0] === 't' && ITEMS[+TAP.slice(1)];
+  if (e) return two(e.title, `${T.hm(e.start)} – ${T.hm(e.end)}${e.place ? ` · ${e.place}` : ''}`);
+  const fm = TAP[0] === 'm' && waiting().find((y) => 'm' + y.id === TAP);
+  if (fm) return two(fm.text, '아직 정리 안 된 메모');
+  if (x) return two(x.title, day && x.ats.length ? `${x.sg ? '자동으로 넣음' : '직접 넣음'} ${hmAt(x.ats[0][0])}–${hmAt(x.ats[0][1])}${x.ats.length > 1 ? ` 외 ${x.ats.length - 1}` : ''}` : `${T.minutesWord(x.v)} · ${x.sub}`);
+  if (FOCUS) return `<b class="num" data-timer>${focusMin()}<i>분</i></b><span>집중 중 · ${FLEN}분까지</span>`;
+  return day ? `<b class="num">${big(freeToday())}</b><span>오늘 남은 빈 시간</span>` : `<b class="num">${ITEMS.filter((y) => !y.dn).length}<i>개</i></b><span>남은 할 일</span>`;
+}
+// 집중 타이머. ponytail: 시연에서는 1초를 1분으로 센다(끝까지 기다리지 않게). 실제 앱은 진짜 분으로 센다
+const focusMin = () => Math.min(Math.floor((Date.now() - FOCUS.at) / 1000), FLEN);
+// 집중 끝: 쓴 시간을 그 할 일에 적는다. 끝냈으면 예상보다 얼마나 걸렸는지(0.5~2배)로 같은 과목의 남은 할 일 예상 시간을 고친다
+function stopFocus(done) {
+  const t = T.tasks.find((x) => x.id === FOCUS.id), min = focusMin();
+  FOCUS = null;
+  if (!t) return render();
+  t.spent = (t.spent || 0) + min;
+  if (!done) { T.toast(`${min}분 집중했어요`); return render(); }
+  const r = Math.min(Math.max(t.spent / t.minutes, .5), 2), sib = T.tasks.filter((x) => x !== t && !x.done && x.course === t.course), old = sib.map((x) => x.minutes);
+  T.toggleTask(t.id);
+  if (sib.length && Math.abs(r - 1) >= .1) {
+    sib.forEach((x) => (x.minutes = Math.max(Math.round(x.minutes * r / 5) * 5, 5)));
+    T.toast(`${t.course} 예상 시간을 ${Math.round(Math.abs(r - 1) * 100)}% ${r < 1 ? '줄였어요' : '늘렸어요'}`, () => { sib.forEach((x, i) => (x.minutes = old[i])); S.toast = null; render(); });
+  }
+  render();
+}
+// 오늘 한 화면: 고리 · 오늘 일정(하루 타임라인) · 해야 할 일을 한 번에. 고리 구간이나 타임라인 칸을 누르면 서로 같은 것이 골라진다
+function dayScreen(sel) {
+  const h = PH ? 720 : 840; // 타임라인 높이(CSS .tw .tg와 같게). 처음에는 지금 시각이 위쪽에 오게 굴려 둔다
+  return `<div class="hx"><div class="hc"><div class="rw" style="--sc:${ITEMS[sel].c}">${ring(ITEMS, sel)}<div class="mid">${mid()}</div></div>${floatBar() || '<p class="cap">한 바퀴 = 오늘 0–24시 · 색 = 수업과 일정 · 옅은 구간 = 자동으로 넣은 할 일 · 진한 구간 = 내가 넣은 자리 · 흰 입자 = 지금 · 바깥 점 = 아직 정리 안 된 메모</p>'}</div>
+    <div class="hc"><p class="lb">오늘 일정 · 고리를 누르면 여기서 같은 칸이 골라져요</p><div class="tw" data-keep-scroll="tl" data-scroll-to="${Math.max(Math.round(h * Y(T.now, T0) / 100) - 70, 0)}">${timeGrid([T0], true, true)}</div></div>
+    <div class="hc"><p class="lb">해야 할 일 · 남은 ${ITEMS.filter((y) => !y.dn).length}개</p><div class="rows hr">${ITEMS.map((y, i) => `<div class="ti ${i === sel ? 'on' : ''}" data-i="${i}" style="--c:${y.c}"><div data-act="pick" data-arg="${i}">${y.row}</div><div class="dt">${y.more}</div></div>`).join('')}</div></div></div>`;
+}
+function ringScreen(sel) {
+  const x = ITEMS[sel], cap = `한 바퀴가 남은 할 일 전부(다 하면 ${T.minutesWord(ITEMS.reduce((s, y) => s + y.v, 0))}) · 밝은 구간이 고른 할 일의 몫이에요`;
+  return `<div class="rs"><div><div class="rw" style="--sc:${x.c}">${ring(ITEMS, sel)}<div class="mid">${mid()}</div></div>${floatBar() || `<p class="cap">${cap}</p>`}</div>
+    <div class="cw"><div class="car">${ITEMS.map((y, i) => `<button class="card ${i === sel ? 'on' : ''} ${y.dn ? 'dn' : ''}" style="--c:${y.c};--x:${y.x}%" data-i="${i}" data-act="pick" data-arg="${i}"><span class="ch"><i class="dot"></i>${esc(y.name)}<em>${esc(y.tag)}</em></span><span class="tk">${y.track}</span><span class="cb"><b class="num">${y.big}</b><small>${esc(y.sub)}</small></span></button>`).join('')}</div>
+      <div class="pg" aria-hidden="true">${ITEMS.map((y, i) => `<i data-i="${i}" class="${i === sel ? 'on' : ''}" style="--c:${y.c}"></i>`).join('')}</div><div class="rows">${x.rows}</div></div></div>`;
+}
+// 메모 → 할 일 후보: 날짜 · 시각이 없는 메모는 밤 정리('지금 정리'로 당겨 볼 수 있다) 때 후보가 되고, 기한을 고르면 할 일이 된다. 몰래 넣지 않는다
+for (const m of T.memos) if (T.now - m.at > 6 * T.HOUR) m.cand = 1; // 예시 자료의 어제 메모는 이미 정리된 것으로
+const free = (m) => !m.checking && !m.event && !m.task && !m.skip && m.id !== S.popup?.memoId;
+const waiting = () => T.memos.filter((m) => free(m) && !m.cand), cands = () => T.memos.filter((m) => free(m) && m.cand);
+const candRows = () => (cands().length ? `<p class="lb">메모에서 온 할 일 후보 · 언제까지 할지 고르면 할 일에 들어가요</p><div class="rows">${cands().map((m) => `<div class="row cd"><div><b>${esc(m.text)}</b>${m.course ? `<small>${esc(m.course)} 과목으로 알아들었어요</small>` : ''}<div class="chips">${[['오늘', 0], ['내일', 1], ['일주일 안', 7]].map(([w, n]) => `<button class="gb" data-act="add" data-arg="${m.id}:${n}">${w}</button>`).join('')}<button class="gb" data-act="add" data-arg="${m.id}:x">빼기</button></div></div></div>`).join('')}</div>` : '');
+const memoRow = (m) => `<div class="row"><div><b>${esc(m.text)}</b><small>${m.course ? `<span style="color:${colorOf(m.course)}">${esc(m.course)}</span> · ` : ''}${esc(T.ago(m.at))}</small></div><div class="r">${m.checking ? `<b>${syn('read')}읽는 중</b>` : m.event ? `<b>${syn('link')}달력에 이어짐</b><small>${esc(T.dayWord(m.event.start))} ${T.hm(m.event.start)}</small>` : m.task ? `<b>${syn('link')}할 일에 이어짐</b><small>${esc(T.dueWord(m.task))}까지</small>` : `<small>${m.skip ? '메모로 둠' : m.cand ? '할 일 후보' : '밤 정리 대기'}</small>`}</div></div>`;
+// ── 친구 · 그룹: 친구 코드로 요청 → 수락하면 서로 '바쁜 시간'만 보인다 ──
+const MYCODE = 'TY-4827', NICK = ['새벽', '구름', '파도']; // 지어낸 내 코드, 코드를 넣었을 때 붙일 별명
+let PID = 10, GSEL = [], GE = 0; // 새 친구 · 그룹 번호, 새 그룹에 넣으려고 고른 친구 id, 멤버를 고치는 중인 그룹 id
+// ponytail: 시연이라 서버가 없다. 요청을 보내면 2초 뒤 친구가 수락한 것으로 치고, 시간표는 지어낸 것을 붙인다
+function addPal(name) {
+  const p = { id: ++PID, name, busy: BUSY[PID % BUSY.length], wait: true };
+  PALS.push(p); T.toast(`${name} 님에게 친구 요청을 보냈어요`); render();
+  setTimeout(() => { if (!PALS.includes(p)) return; p.wait = false; T.toast(`${name} 님이 수락했어요`); render(); }, 2000);
+}
+function palsPage() {
+  const who = (ids) => PALS.filter((p) => ids.includes(p.id)).map((p) => p.name), ok = PALS.filter((p) => !p.wait);
+  const req = REQ.map((p) => `<div class="row"><i class="dot" style="--c:var(--vi)"></i><div><b>${esc(p.name)}</b><small>친구 요청을 보냈어요</small></div><button class="gb" data-act="reqno" data-arg="${p.id}">거절</button><button class="gb on" data-act="reqok" data-arg="${p.id}">수락</button></div>`).join('');
+  const pals = PALS.map((p, i) => `<div class="row ${p.wait ? 'dn' : ''}"><i class="dot" style="--c:${PAL[i % PAL.length]}"></i><div><b>${esc(p.name)}</b><small>${p.wait ? '수락을 기다리는 중' : '바쁜 시간을 서로 보는 중'}</small></div>${p.wait ? '' : `<button class="gb" data-act="pmeet" data-arg="${p.id}" aria-label="${esc(p.name)} 님과 둘이 빈 시간 보기">빈 시간</button>`}<button class="gb" data-act="palx" data-arg="${p.id}" aria-label="${esc(p.name)} 친구 끊기">끊기</button></div>`).join('');
+  const groups = GROUPS.map((g) => `<div class="row"><div><b>${esc(g.name)}</b><small>나${who(g.ids).map((n) => ` · ${esc(n)}`).join('')} (${who(g.ids).length + 1}명)</small></div><button class="gb" data-act="gmeet" data-arg="${g.id}">빈 시간</button><button class="gb ${GE === g.id ? 'on' : ''}" data-act="gedit" data-arg="${g.id}" aria-expanded="${GE === g.id}">멤버</button><button class="gb" data-act="gx" data-arg="${g.id}" aria-label="${esc(g.name)} 그룹 지우기">✕</button></div>${GE !== g.id ? '' : `<div class="chips ge">${ok.map((p) => `<button class="gb ${g.ids.includes(p.id) ? 'on' : ''}" data-act="gmem" data-arg="${g.id}:${p.id}" aria-pressed="${g.ids.includes(p.id)}">${esc(p.name)}</button>`).join('') || '<small>수락한 친구가 생기면 넣을 수 있어요</small>'}<small>누르면 넣거나 빼요</small></div>`}`).join('');
+  return `<div class="col pl"><p class="lb">친구 추가 · 내 친구 코드 <b class="code">${MYCODE}</b></p>
+    <form class="mf" data-pal autocomplete="off"><input id="pal-in" placeholder="친구 코드나 별명 (예: TY-2931)" aria-label="친구 코드나 별명" required><button class="wb" type="submit">요청</button></form>
+    <p class="night">친구가 수락하면 서로의 '바쁜 시간'만 보여요. 일정 제목이나 메모는 보이지 않아요.</p>
+    ${req ? `<p class="lb">받은 요청 ${REQ.length}개</p><div class="rows">${req}</div>` : ''}
+    <p class="lb">친구 ${PALS.length}명</p><div class="rows">${pals || '<p class="night">아직 친구가 없어요. 위 칸에 친구 코드를 넣어 보세요</p>'}</div>
+    <p class="lb">그룹 ${GROUPS.length}개 · 그룹마다 다 같이 빈 시간을 볼 수 있어요</p><div class="rows">${groups || '<p class="night">아직 그룹이 없어요</p>'}</div>
+    <p class="lb">새 그룹 · 넣을 친구를 고르고 이름을 적어요</p>
+    <div class="chips">${ok.map((p) => `<button class="gb ${GSEL.includes(p.id) ? 'on' : ''}" data-act="gsel" data-arg="${p.id}" aria-pressed="${GSEL.includes(p.id)}">${esc(p.name)}</button>`).join('') || '<small>친구가 생기면 여기에서 고를 수 있어요</small>'}</div>
+    <form class="mf" data-group autocomplete="off"><input id="g-in" placeholder="그룹 이름 (예: 영어 글쓰기 조)" aria-label="새 그룹 이름" required><button class="wb" type="submit">만들기</button></form></div>`;
+}
+// 메모 칸: 어느 탭에서든 아래에 고정. 남긴 메모는 접어 두었다가 그 자리에서 펴 본다(메모 탭은 목록이 이미 보이니 토글이 없다)
+function memoDock(sc) {
+  const n = T.memos.length, open = MO && sc !== 'memo';
+  return `<div class="md">${open ? `<div class="mdl"><p class="lb">남긴 메모 ${n}개</p><div class="rows">${T.memos.slice().reverse().map(memoRow).join('') || '<p class="night">아직 남긴 메모가 없어요</p>'}</div></div>` : ''}
+    <form class="mf" autocomplete="off">${sc === 'memo' ? '' : `<button class="gb mt" type="button" data-act="mo" aria-expanded="${open}" aria-label="남긴 메모 ${n}개 ${open ? '접기' : '펴기'}">메모 ${n} ${open ? '▾' : '▴'}</button>`}<input id="memo-in" data-memo-input placeholder="예: 내일 3시 301동 스터디" aria-label="메모"><button class="wb" type="submit">남기기</button></form></div>`;
+}
+function memoPage() {
+  const w = waiting().length, c = cands().length;
+  const bar = w ? `<div class="sortb"><span>☾ 메모 ${w}개가 밤 정리를 기다려요. 매일 밤 1시 반에 할 일 후보로 올려요.</span><button class="gb" data-act="sort">지금 정리</button></div>` : c ? `<div class="sortb"><span>할 일 후보 ${c}개가 브리핑에 있어요.</span><button class="gb" data-act="screen" data-arg="brief">보기</button></div>` : '';
+  return `<div class="col"><div class="chips">${T.tryMemos.map((m) => `<button class="gb" data-act="try" data-arg="${esc(m)}">${esc(m)}</button>`).join('')}</div>
+    ${bar}<p class="lb">남긴 메모 · 날짜나 시각이 보이면 달력에 이을지 물어봐요</p><div class="rows">${T.memos.slice().reverse().map(memoRow).join('') || '<p class="night">아래 칸에 적으면 여기에 쌓여요</p>'}</div></div>`;
+}
+// 브리핑 위쪽의 입자 물결: 점마다 같은 움직임을 조금씩 늦춰서 물결이 흐르는 것처럼 보인다
+const wave = () => `<svg class="wave" viewBox="0 0 220 64" aria-hidden="true">${[0, 1].map((k) => Array.from({ length: 40 }, (_, j) => `<circle cx="${3 + j * 5.5}" cy="${(32 + (13 - k * 4) * Math.sin(j / 40 * 9.4 + k * 1.3)).toFixed(1)}" r="${k ? 1 : 1.5}" fill="${PAL[(Math.floor(j / 8) + k * 2) % 5]}" style="animation-delay:${(-j * .13 - k).toFixed(2)}s"/>`).join('')).join('')}</svg>`;
+function brief() {
+  if (!T.rankTasks().tasks.length) { // 남은 할 일이 없으면(첫 실행 · 다 끝냄) 고를 것이 없다
+    const [h, w] = T.tasks.length ? ['오늘 할 일을 다 끝냈어요', '내일 아침 브리핑에서 먼저 할 일을 다시 골라 드려요.'] : ['첫 브리핑은 내일 아침에 와요', '매일 밤 1시 반에 메모와 과제를 정리해서, 아침에 먼저 할 일 3개를 골라 드려요.'];
+    return `<div class="col"><section class="hero" style="min-height:320px">${wave()}<div><p class="lb">${T.now.getMonth() + 1}월 ${T.now.getDate()}일 ${T.wd(T.now)}요일</p><h2 class="hl">${h}</h2><p class="why">${w}</p></div></section>${inbox()}${candRows()}</div>`;
+  }
+  const b = T.briefing(), ev = T.eventsOn(T.now);
+  return `<div class="bf"><section class="hero">${wave()}<div><p class="lb">${esc(b.date)}</p><h2 class="hl">${esc(b.headline)}</h2><p class="why">${esc(DEMO && !ev.length ? b.why.split('. ')[0] + '.' : b.why)}</p>${leave()}</div><div class="bm">${meter(b.busy, 28)}<span>오늘 바쁨 ${Math.round(b.busy * 100)}%</span></div></section>
+    <section>${inbox()}${candRows()}<p class="lb">먼저 할 것 · 여유가 적은 순서</p><div class="rows">${b.first.map((t, i) => taskRow(t, i + 1)).join('')}</div>
+      ${b.later ? `<p class="lb">미뤄도 되는 것 · ${esc(b.laterWhy)}</p><div class="rows">${taskRow(b.later)}</div>` : ''}
+      ${PH && ev.length ? `<p class="lb">오늘 일정</p><div class="rows">${ev.map(eventRow).join('')}</div>` : ''}${DEMO ? '' : `<p class="night">☾ ${esc(b.night)}</p>`}</section></div>`;
+}
+// 메모 확인: "이대로 저장할까요?"
+function popup() {
+  const p = S.popup; if (!p) return '';
+  const ed = S.editing, text = T.memos.find((m) => m.id === p.memoId)?.text ?? '';
+  const f = (label, k, w) => `<dt>${label}</dt><dd>${ed ? `<input id="pf-${k}" ${k === 'time' ? 'type="time"' : ''} value="${esc(p[k] === '?' ? '' : p[k])}" placeholder="${w}" aria-label="${label}">` : p[k] === '?' ? `<button data-act="edit">${w} 입력</button>` : esc(p[k])}</dd>`;
+  return `<div class="dim"><div class="sheet" role="dialog" aria-label="메모 확인"><p class="lk">메모${syn('read')}달력</p><h2>이대로 저장할까요?</h2><p class="q">“${esc(text)}”</p>
+    <dl><dt>날짜</dt><dd>${esc(T.popupDateWord(p))}</dd>${f('시각', 'time', '몇 시')}${f('장소', 'place', '어디서')}${f('제목', 'title', '무엇')}<dt>그날 바쁨</dt><dd>${meter(T.load(p.date), 16)}</dd></dl>
+    <div class="ac">${ed ? '' : '<button class="gb" data-act="edit">고치기</button>'}<button class="gb" data-act="cancel">메모로 두기</button><button class="wb" data-act="save">저장</button></div></div></div>`;
+}
+// ── 시연의 첫 실행: 로그인 직후 환영 → 첫 설정(학과 · 학년, 캘린더 연결은 고를 것만) → 앱 ──
+function loadSample() {
+  if (ME.found) return;
+  const ev = SAMPLE.events.filter((e) => e.source !== 'memo'), tk = SAMPLE.tasks.filter((t) => t.due > T.now);
+  for (const e of ev) if (e.source === 'class' && INFO[courseKey(e.title)]) [e.place, e.prof] = INFO[courseKey(e.title)]; // eTL + 수강편람: 강의실 · 교수님
+  T.events.push(...ev); T.tasks.push(...tk);
+  T.memos.push({ id: 9001, text: '동아리 회비 걷기 물어보기', at: new Date(T.now - 40 * T.MIN) }); // 아직 할 일이 안 된 메모 하나(떠 있는 입자)
+  ME.found = `일정 ${ev.length}개 · 과제 ${tk.length}개를 찾았어요`;
+}
+const obRow = (c, b, s) => `<div class="row"><i class="dot" style="--c:${c}"></i><div><b>${b}</b><small>${s}</small></div></div>`;
+const welcome = () => `<div class="ob"><div><p class="obk">${CHECK}구글 계정으로 로그인했어요</p><div class="logo">Tachyon</div><h1>메모하면 달력과 할 일로 정리해 줘요.</h1>
+  <div class="rows">${obRow(PAL[0], '메모', '생각나는 대로 한 줄만 적어요')}${obRow(PAL[1], '달력', '날짜나 시각이 있으면 달력에 이어 드려요')}${obRow(PAL[4], '아침 브리핑', '매일 아침, 먼저 할 일 3개를 골라 드려요')}</div>
+  <button class="wb" data-act="ob" data-arg="tut">시작하기</button><small>1분이면 끝나요 · 전부 나중에 바꿀 수 있어요</small></div></div>`;
+const setup = () => `<div class="ob"><div><h1>처음 한 번만 알려 주세요.</h1>
+  <p class="lb">학과 · 학년</p><input id="ob-dept" placeholder="예: 경제학부" aria-label="학과" autocomplete="off">
+  <div class="yr">${['1학년', '2학년', '3학년', '4학년', '5학년 이상'].map((y) => `<button class="gb ${ME.year === y ? 'on' : ''}" data-act="year" data-arg="${y}" aria-pressed="${ME.year === y}">${y}</button>`).join('')}</div>
+  <p class="lb">캘린더 연결 · 고를 것만</p>${ME.found ? obRow('var(--te)', ME.found, '강의실 · 교수님까지 붙였어요 · 15분마다 새로 받아요 (시연용 예시)')
+    : `<button class="gb" data-act="sample">${ETL ? syn('read') + ETLW[ETL] : 'eTL 한 번에 연결'}</button><small>단추 한 번이면 시간표 · 과제 · 강의실 · 교수님이 들어와요. 비밀번호와 토큰은 저장하지 않아요. 시연에서는 지어낸 예시 자료가 들어옵니다. 구글 · 애플 캘린더 · 노션은 마이페이지에서 이어요.</small>`}
+  ${ME.err ? `<small style="color:#ff6fb5" role="alert">${ME.err}</small>` : ''}
+  <div class="ac"><button class="gb" data-act="ob" data-arg="">건너뛰기</button><button class="wb" data-act="next">${ME.found ? '다음' : '저장'}</button></div></div></div>`;
+// 시작할 때 묻는 세 가지: 답이 곧 설정이 된다(일어나는 시각 → 하루 고리, 집중 길이 → 집중 타이머, 첫 화면 → 고리 종류)
+const QS = [
+  ['보통 몇 시에 일어나요?', '그 전 시간은 하루 고리에서 잠으로 비워 둬요.', [['6시', 6], ['7시', 7], ['8시', 8], ['9시', 9], ['10시', 10]], (v) => (WAKE = v)],
+  ['한 번에 얼마나 집중해요?', '집중 타이머가 이 길이로 맞춰져요.', [['25분', 25], ['50분', 50], ['90분', 90]], (v) => (FLEN = v)],
+  ['첫 화면에서 무엇을 먼저 볼까요?', '나중에 오른쪽 위에서 언제든 바꿀 수 있어요.', [['오늘 하루의 흐름', 'day'], ['남은 할 일 고리', 'task'], ['할 일 전체 목록', 'all']], (v) => (HV = v)],
+];
+const ask = (n) => `<div class="ob"><div><p class="obk">질문 ${n + 1} / ${QS.length}</p><h1>${QS[n][0]}</h1><small>${QS[n][1]}</small>
+  <div class="qs ${n === 2 ? 'p3' : ''}">${QS[n][2].map(([w, v], i) => `<button class="gb ${n === 2 ? 'pv' : ''}" data-act="ans" data-arg="${n}:${i}">${n === 2 ? `${MINI[v][0]}<b>${w}</b><small>${MINI[v][1]}</small>` : w}</button>`).join('')}</div>
+  <div class="ac"><button class="gb" data-act="ob" data-arg="">건너뛰기</button></div></div></div>`;
+// 전체 목록: 남은 할 일과 끝낸 할 일을 과목별로 한눈에. 묶음 순서 = 가장 급한 할 일이 있는 과목부터
+function allList() {
+  const open = T.rankTasks().tasks, done = T.tasks.filter((t) => t.done), by = new Map();
+  [...open, ...done].forEach((t) => by.set(t.course, [...(by.get(t.course) || []), t]));
+  const sum = (ts) => T.minutesWord(ts.reduce((s, t) => s + t.minutes, 0));
+  const grp = ([c, ts]) => { const l = ts.filter((t) => !t.done); return `<p class="gh"><i class="dot" style="--c:${colorOf(c)}"></i><b>${esc(c)}</b><span>${l.length ? `남은 ${l.length}개 · ${esc(sum(l))}` : '모두 끝냄'}</span></p><div class="rows">${ts.map((t) => taskRow(t)).join('')}</div>`; };
+  return `<div class="col"><p class="lb">남은 할 일 ${open.length}개${open.length ? ` · ${esc(sum(open))}` : ''} · 끝낸 것 ${done.length}개</p>${[...by].map(grp).join('')}<p class="night">할 일은 아래 메모 칸에 적으면 생겨요 (예: 금요일까지 실험 보고서)</p></div>`;
+}
+function emptyHome() {
+  const left = T.eventsOn(T.now).filter((e) => e.end > T.now);
+  return `<div class="emp"><div class="rw" style="--sc:${PAL[0]}">${ring([], -1)}<div class="mid">${mid()}</div></div>
+    <h2>남은 할 일이 없어요</h2><small>메모를 남기면 달력과 할 일이 여기에 모여요</small>
+    <div class="ac">${DEMO && !ME.found ? `<button class="gb" data-act="sample">${ETLW[ETL] || 'eTL 한 번에 연결'}</button>` : ''}<button class="wb" data-act="write">메모 쓰기</button></div>
+    ${left.length ? `<div class="rows"><p class="lb">오늘 남은 일정</p>${left.map(eventRow).join('')}</div>` : ''}</div>`;
+}
+// ── 일곱 번째 시안: 눌러서 여는 시트. SH = { k: 'info' 일정 정보, … } ──
+let SH = null;
+const ACTS = { // 새 기능의 누르기 동작은 기능 옆에 적고 여기로 모은다
+  shx() { SH = null; render(); },
+  info(id) { SH = { k: 'info', id }; render(); },
+  flen(n) { FLEN = Math.min(Math.max(FLEN + +n, 5), 180); render(); },
+  pmeet(id) { MG = -id; MEET = true; S.screen = 'cal'; render(); },
+  gedit(id) { GE = GE === +id ? 0 : +id; render(); },
+  gmem(arg) { const [g, p] = arg.split(':').map(Number), x = GROUPS.find((y) => y.id === g); x.ids = x.ids.includes(p) ? x.ids.filter((y) => y !== p) : [...x.ids, p]; render(); },
+};
+const FROM = { class: 'eTL 시간표에서 왔어요', ics: '내 캘린더에서 왔어요', memo: '내가 적은 메모에서 왔어요', own: '내가 직접 넣었어요' };
+const SHEETS = {
+  info() { // 달력 토막을 누르면: 시간 · 장소 · 교수님 · 출처 · 딸린 할 일
+    const e = T.events.find((x) => String(x.id) === SH.id); if (!e) return '';
+    const rel = T.tasks.filter((t) => !t.done && t.course === courseKey(e.title));
+    return `<div class="dim"><div class="sheet" role="dialog" aria-label="일정 정보"><p class="lk"><i class="dot" style="--c:${colorOf(e.title)}"></i>${SRC[e.source] || '일정'}</p><h2>${esc(e.title)}</h2>
+      <dl><dt>시간</dt><dd>${T.md(e.start)}(${T.wd(e.start)}) ${T.hm(e.start)} – ${T.hm(e.end)}</dd><dt>장소</dt><dd>${esc(e.place || '적어 둔 곳이 없어요')}</dd>${e.prof ? `<dt>교수님</dt><dd>${esc(e.prof)}</dd>` : ''}<dt>출처</dt><dd>${FROM[e.source] || ''}</dd>
+      ${rel.length ? `<dt>딸린 할 일</dt><dd><span>${rel.map((t) => `${esc(t.title)} · ${esc(T.dueWord(t))}`).join('<br>')}</span></dd>` : ''}</dl>
+      <div class="ac"><button class="gb" data-act="shx">닫기</button></div></div></div>`;
+  },
+};
+const sheet = () => (SH ? SHEETS[SH.k]() : '');
+// ── 받은함: 아침 브리핑 위에 '답해 주면 편해지는 것'을 한 장씩 ──
+const say = (text, undo) => { T.toast(text, undo && (() => { undo(); S.toast = null; render(); })); render(); }; // 알림 한 줄(+ 되돌리기)
+const btn = (w, act, arg = '', on) => `<button class="gb ${on ? 'on' : ''}" data-act="${act}" data-arg="${arg}">${w}</button>`;
+const card = (c, k, b, s, acts) => `<div class="row cd"><i class="dot" style="--c:${c}"></i><div><small>${k}</small><b>${b}</b><small>${s}</small><div class="chips">${acts}</div></div></div>`;
+const ASKQ = [ // 편의 질문: 하루에 하나. 답은 KNOW에 남고 마이페이지에서 지울 수 있다
+  { k: 'move', q: '수업 사이 이동은 보통 몇 분 걸려요?', why: "알려 주면 브리핑에 '출발할 시각'이 생겨요", o: [['5분', 5], ['10분', 10], ['15분', 15]] },
+  { k: 'eve', q: '저녁은 보통 몇 시쯤 먹어요?', why: '그 한 시간은 할 일을 넣을 빈 시간에서 빼 둬요', o: [['6시', 18], ['7시', 19], ['8시', 20]] },
+];
+let QDAY = 0; // 지금까지 꺼낸 질문 번호(시연에서는 '내일 질문 미리 보기'로 넘긴다)
+const ALIAS = {}; // 사용자가 맞다고 한 줄임말: { 공수: '공학수학 2' }
+const STOP = ['과제', '풀기', '하기', '준비', '다시', '공부'];
+const words = (s) => s.split(/[\s·,]+/).map((w) => w.replace(/(까지|에서|으로|를|을|은|는)$/, '')).filter((w) => w.length >= 2 && !STOP.includes(w));
+// ponytail: 낱말이 겹치는지만 본다(뜻은 모른다). 실제 앱에서는 밤 정리(AI)가 뜻으로 묶는다
+const partOf = (m) => T.tasks.find((t) => !t.done && words(m.text).some((w) => t.title.includes(w)));
+const INBOX = [ // 받은함 카드들: 보여 줄 것이 없으면 ''
+  () => REQ.slice(0, 1).map((p) => card('var(--vi)', '친구 요청', `${esc(p.name)} 님이 친구 요청을 보냈어요`, '수락하면 서로 바쁜 시간만 보여요', btn('수락', 'reqok', p.id, 1) + btn('거절', 'reqno', p.id))).join(''),
+  () => { // AI 제안: 이유 한 줄 + 되돌리기
+    const m = waiting().find((x) => !x.no && partOf(x)); if (!m) return '';
+    const t = partOf(m), w = words(m.text).find((x) => t.title.includes(x));
+    return card(PAL[1], 'AI 제안', `'${esc(m.text)}' 메모는 '${esc(t.title)}'의 한 부분 같아요`, `이유: 둘 다 '${esc(w)}'라는 말이 있어요 · 맞으면 예상 시간에 30분을 더해요`, btn('맞아요', 'part', m.id, 1) + btn('아니에요', 'partno', m.id));
+  },
+  () => { const q = ASKQ.find((x, i) => i <= QDAY && !(x.k in KNOW)); return q ? card(PAL[4], '질문 · 하루에 하나', q.q, q.why, q.o.map(([w, v]) => btn(w, 'know', `${q.k}:${v}`)).join('') + btn('건너뛰기', 'know', `${q.k}:0`)) : ''; },
+];
+const inboxCards = () => INBOX.map((f) => f()).filter(Boolean);
+function inbox() {
+  const c = inboxCards(), more = !ASKQ.some((x, i) => i <= QDAY && !(x.k in KNOW)) && QDAY < ASKQ.length - 1;
+  return `${c.length ? `<p class="lb">답해 주면 편해져요 · ${c.length}개</p><div class="rows">${c.join('')}</div>` : ''}${more ? '<p class="night">질문은 하루에 하나만 드려요. <button class="ul" data-act="qnext">시연 · 내일 질문 미리 보기</button></p>' : ''}`;
+}
+// 출발할 시각: 이동 시간을 알려 줬으면 다음 수업에 맞춰
+const leave = () => { const e = KNOW.move && T.events.filter((x) => x.source === 'class' && x.start > T.now).sort((a, b) => a.start - b.start)[0]; return e ? `<p class="why lv">${esc(T.dayWord(e.start))} ${T.hm(new Date(e.start - KNOW.move * T.MIN))}에 출발하면 ${esc(e.title)}${e.place ? `(${esc(e.place)})` : ''}에 맞춰 가요.</p>` : ''; };
+Object.assign(ACTS, {
+  know(arg) { const [k, v] = arg.split(':'); KNOW[k] = +v; say(+v ? '기억해 둘게요 · 마이페이지에서 바꿀 수 있어요' : '건너뛰었어요', () => delete KNOW[k]); },
+  unknow(k) { delete KNOW[k]; render(); },
+  unalias(k) { delete ALIAS[k]; render(); },
+  qnext() { QDAY++; render(); },
+  part(id) { const m = T.memos.find((x) => x.id === +id), t = partOf(m); t.minutes += 30; m.task = t; say(`'${t.title}'에 30분을 더했어요`, () => { t.minutes -= 30; m.task = null; }); },
+  partno(id) { T.memos.find((x) => x.id === +id).no = 1; render(); },
+});
+// ── 연결(가상): 누르면 지어낸 자료가 들어오고, 다시 누르면 빠진다 ──
+let ETL = 0; // eTL: 0 안 함 → 1 · 2 · 3 차례로 지나감 → 9 끝
+const ETLW = ['', '학교 로그인을 확인하는 중…', '이번 학기 수강 과목을 읽는 중…', '수강편람에서 강의실 · 교수님을 붙이는 중…'];
+const INFO = { 유기화학: ['500동 L305호', '김○○ 교수님'], '생명과학 실험': ['500동 210호', '최○○ 교수님'], '영어 글쓰기': ['2동 204호', '정○○ 교수님'], '공학수학 2': ['26동 B101호', '박○○ 교수님'], 일반화학: ['500동 L302호', '이○○ 교수님'] }; // 지어낸 강의실 · 교수님
+function connectEtl() { // 단추 한 번: 세 단계가 차례로 지나가고 예시 자료가 들어온다
+  if (ETL) return;
+  const tick = () => { if (++ETL > 3) { ETL = 9; loadSample(); } else setTimeout(tick, 700); render(); };
+  tick();
+}
+const CONN = { gcal: 0, notion: 0, todo: 0 };
+const at = (k, h, m = 0) => new Date(+D(k) + (h * 60 + m) * T.MIN);
+const got = (id, title, course, due, minutes, via) => ({ id, title, course, due, minutes, ready: 1, done: 0, via });
+const LINK = {
+  gcal: ['캘린더에서 일정 2개를 가져왔어요', () => T.events.push({ id: 'g1', title: '점심 약속', start: at(1, 12), end: at(1, 13), place: '학생회관', source: 'ics', via: 'gcal' }, { id: 'g2', title: '영화 보기', start: at(5, 19), end: at(5, 21), place: null, source: 'ics', via: 'gcal' })],
+  notion: ['노션에서 할 일 3개를 받았어요', () => T.tasks.push(got(-901, '장학금 서류 내기', '노션', at(3, 18), 20, 'notion'), got(-902, '독서 모임 발제문', '노션', at(5, 23, 59), 60, 'notion'), got(-903, '동아리 포스터 시안', '노션', at(6, 23, 59), 90, 'notion'))],
+  todo: ['투두메이트에서 할 일 2개를 옮겨 왔어요', () => T.tasks.push(got(-911, '운동 30분', '투두메이트', at(0, 23, 59), 30, 'todo'), got(-912, '방 청소', '투두메이트', at(2, 23, 59), 40, 'todo'))],
+};
+const drop = (arr, via) => { for (let i = arr.length; i--;) if (arr[i].via === via) arr.splice(i, 1); };
+ACTS.link = (k) => { if (CONN[k]) { drop(T.events, k); drop(T.tasks, k); CONN[k] = 0; say('연결을 끊고, 가져온 것을 뺐어요'); } else { LINK[k][1](); CONN[k] = 1; say(LINK[k][0]); } };
+// ── 마이페이지: 연결 · 설정 · 나에 대해 아는 것 ──
+const SUB = { me: '마이페이지', grad: '졸업요건', tutor: '튜터', files: '파일 정리' }, SUBP = {};
+const conn = (c, b, s, attr, w, on) => `<div class="row"><i class="dot" style="--c:${c}"></i><div><b>${b}</b><small>${s}</small></div><button class="gb ${on ? 'on' : ''}" ${attr}>${w}</button></div>`;
+const lk = (k) => `data-act="link" data-arg="${k}"`, to = (k) => `data-act="screen" data-arg="${k}"`;
+SUBP.me = () => {
+  const opt = (n, cur) => QS[n][2].map(([w, v], i) => btn(w, 'set', `${n}:${i}`, cur === v)).join('');
+  const kn = [KNOW.move && ['수업 사이 이동', `${KNOW.move}분`, 'unknow', 'move'], KNOW.eve && ['저녁 먹는 때', `${KNOW.eve - 12}시쯤`, 'unknow', 'eve'], ...Object.entries(ALIAS).map(([a, c]) => [`'${a}'`, `${c}를 줄인 말`, 'unalias', a])].filter(Boolean);
+  return `<div class="col pl"><div class="row"><i class="av">나</i><div><b>${esc(ME.dept || '학과를 아직 안 적었어요')}${ME.year ? ` · ${ME.year}` : ''}</b><small>내 친구 코드 <span class="code">${MYCODE}</span> · 구글 계정으로 로그인했어요</small></div></div>
+    <p class="lb">연결 · 단추 한 번이면 이어져요</p><div class="rows">
+      ${conn('var(--te)', 'eTL', ETL === 9 ? `${ME.found} · 강의실 · 교수님까지 붙였어요` : ETLW[ETL] || '시간표 · 과제 · 강의실 · 교수님을 한 번에 가져와요', 'data-act="sample"', ETL === 9 ? '연결됨' : '연결', ETL === 9)}
+      ${conn(PAL[3], '구글 · 애플 캘린더', CONN.gcal ? '일정 2개를 가져왔어요 · 15분마다 새로 받아요' : '내 캘린더의 약속을 달력에 겹쳐 봐요', lk('gcal'), CONN.gcal ? '끊기' : '가져오기', CONN.gcal)}
+      ${conn(PAL[2], '노션', CONN.notion ? '오늘 07:12에 3개 받음 · 읽어요 · 쓰지 않아요' : '고른 페이지의 할 일만 읽어요 · 쓰지 않아요 · 페이지는 건드리지 않아요', lk('notion'), CONN.notion ? '끊기' : '연결', CONN.notion)}
+      ${conn(PAL[4], '투두메이트', CONN.todo ? '할 일 2개를 옮겨 왔어요' : '쓰던 할 일을 한 번에 옮겨 와요', lk('todo'), CONN.todo ? '끊기' : '가져오기', CONN.todo)}
+      ${conn(PAL[0], '내 파일', '노트북 · 폰에 흩어진 강의 자료를 과목 폴더로 모아요', to('files'), '열기 ›')}</div>
+    <p class="lb">설정</p><div class="rows">
+      <div class="row cd"><div><b>일어나는 시각</b><div class="chips">${opt(0, WAKE)}</div></div></div>
+      <div class="row cd"><div><b>집중 시간 · ${FLEN}분</b><div class="chips">${btn('− 5분', 'flen', -5)}${opt(1, FLEN)}${btn('+ 5분', 'flen', 5)}</div></div></div>
+      <div class="row cd"><div><b>첫 화면</b><div class="chips">${opt(2, HV)}</div></div></div>
+      <div class="row"><div><b>화면 밝기</b><small>${LIGHT ? '밝은 화면' : '어두운 화면'}으로 보는 중</small></div>${btn(LIGHT ? '어둡게' : '밝게', 'theme')}</div></div>
+    <p class="lb">나에 대해 아는 것 · 받은함에서 답한 것</p><div class="rows">${kn.map(([b, s, act, k]) => `<div class="row"><div><b>${esc(b)}</b><small>${esc(s)}</small></div><button class="gb" data-act="${act}" data-arg="${esc(k)}" aria-label="${esc(b)} 잊기">잊기</button></div>`).join('') || '<small style="padding:0 4px">받은함의 질문에 답하면 여기에 쌓여요. 언제든 지울 수 있어요.</small>'}</div>
+    <p class="lb">더 보기</p><div class="rows">
+      ${conn(PAL[1], '졸업요건', '지금까지 들은 과목과 견주어, 남은 과목을 봐요', to('grad'), '열기 ›')}
+      ${conn(PAL[2], '튜터', '과목 범위를 고르면 정리 → 확인 문제 → 틀린 것만 다시', to('tutor'), '열기 ›')}</div>
+    <p class="night">시연이라 진짜로 이어지지는 않아요: eTL · 캘린더 · 노션 · 투두메이트 · 파일 · 친구 · 튜터는 모두 지어낸 예시 자료로 움직입니다.</p></div>`;
+};
+ACTS.set = (arg) => { const [n, i] = arg.split(':').map(Number); QS[n][3](QS[n][2][i][1]); render(); };
+// 파일 정리(가상): 접근 허락 → 옮길 곳 제안 → 정리(되돌릴 수 있음)
+const FILES = [['공학수학2_3주차_필기.pdf', '공학수학 2', '폰 · 내려받기'], ['유기화학_3장_슬라이드.pptx', '유기화학', '노트북 · 바탕화면'], ['실험보고서_양식.docx', '생명과학 실험', '노트북 · 내려받기'], ['에세이_초안_v2.docx', '영어 글쓰기', '노트북 · 문서'], ['일반화학_퀴즈범위.png', '일반화학', '폰 · 사진'], ['IMG_2231.jpg', '', '폰 · 사진']];
+let FILED = 0; // 0 접근 허락 전, 1 찾아서 제안, 2 정리함
+SUBP.files = () => {
+  const row = ([n, c, w]) => `<div class="row"><i class="dot" style="--c:${c ? colorOf(c) : 'var(--fa)'}"></i><div><b>${n}</b><small>${w}${FILED ? ` → ${c ? `내 파일 / ${c}` : '그대로 둬요 · 어느 과목인지 모르겠어요'}` : ''}</small></div></div>`;
+  if (!FILED) return `<div class="col"><p class="why">노트북과 폰에 흩어진 강의 자료를 찾아 과목 폴더로 모아요.<br>파일 이름과 위치만 봐요 · 지우지 않아요 · 옮긴 것은 되돌릴 수 있어요.</p><div class="ac" style="justify-content:flex-start"><button class="wb" data-act="files" data-arg="1">폴더 접근 허락하기 (가상)</button></div></div>`;
+  return `<div class="col"><p class="lb">${FILED === 1 ? `찾은 파일 ${FILES.length}개 · 이렇게 옮길게요` : `과목 폴더로 옮긴 파일 ${FILES.length - 1}개`}</p><div class="rows">${FILES.map(row).join('')}</div>
+    <div class="ac">${FILED === 1 ? '<button class="gb" data-act="files" data-arg="0">취소</button><button class="wb" data-act="files" data-arg="2">이대로 정리하기</button>' : '<button class="gb" data-act="files" data-arg="1">되돌리기</button>'}</div></div>`;
+};
+ACTS.files = (n) => { FILED = +n; if (FILED === 2) say(`파일 ${FILES.length - 1}개를 과목 폴더로 옮겼어요`, () => (FILED = 1)); else render(); };
+// ── 빈 시간에 직접 넣기: 예상 시간과 상관없이, 여러 번. 제안 자리는 '정하기'를 눌러야 내 자리가 된다 ──
+const DAYW = (k) => ['오늘', '내일', '모레'][k] || `${T.wd(D(k))}요일`;
+function gaps(k, skip) { // k일 뒤의 빈 구간들: 일정 · 넣은 자리(고치는 중인 skip은 빼고) · 저녁 먹는 때를 뺀 것
+  const d = D(k), busy = [...T.eventsOn(d).map((e) => [(e.start - d) / T.MIN, (e.end - d) / T.MIN]), ...PLACED.filter((p) => p.k === k && p !== skip).map((p) => [p.s, p.e]), ...(KNOW.eve ? [[KNOW.eve * 60, KNOW.eve * 60 + 60]] : [])].sort((a, b) => a[0] - b[0]);
+  const out = []; let s = k ? WAKE * 60 : dayStart();
+  for (const [a, b] of [...busy, [1440, 1440]]) { if (a - s >= 10) out.push([s, Math.round(a)]); s = Math.max(s, Math.ceil(b / 10) * 10); }
+  return out;
+}
+const placedRow = (p) => `<div class="row pr"><div><b>${DAYW(p.k)} ${hmAt(p.s)} – ${hmAt(p.e)}</b><small>${T.minutesWord(p.e - p.s)}</small></div><div class="chips r">${btn('옮기기', 'put', 'p' + PLACED.indexOf(p))}${btn('빼기', 'unput', PLACED.indexOf(p))}</div></div>`;
+const putGap = () => gaps(SH.d, SH.edit).find(([a, b]) => SH.s >= a && SH.s < b);
+const fit = () => { if (!putGap()) SH.s = (gaps(SH.d, SH.edit)[0] || [-1])[0]; }; // 고른 날에 맞는 빈 구간이 없으면 그날 첫 빈 구간으로
+SHEETS.put = () => {
+  const t = T.tasks.find((x) => x.id === SH.t), gs = gaps(SH.d, SH.edit), g = putGap(), e = g ? Math.min(SH.s + (SH.len || 1440), g[1]) : 0;
+  const lens = [15, 30, 45, 60, t.minutes].filter((v, i, a) => a.indexOf(v) === i);
+  return `<div class="dim"><div class="sheet" role="dialog" aria-label="빈 시간에 할 일 넣기"><p class="lk">${SH.edit ? '넣은 자리 옮기기' : '빈 시간에 넣기'}</p><h2>${esc(t.title)}</h2>
+    <p class="lb">할 일</p><div class="chips hs">${T.tasks.filter((x) => !x.done).map((x) => btn(esc(x.title), 'putt', x.id, x.id === SH.t)).join('')}</div>
+    <p class="lb">날</p><div class="chips">${[0, 1, 2, 3, 4].map((k) => btn(DAYW(k), 'putd', k, k === SH.d)).join('')}</div>
+    <p class="lb">빈 시간</p><div class="chips">${gs.map(([a, b]) => btn(`${hmAt(a)} – ${b === 1440 ? '자정' : hmAt(b)}`, 'putg', a, g && g[0] === a)).join('') || '<small>이 날은 빈 시간이 없어요</small>'}</div>
+    ${g ? `<p class="lb">시작</p><div class="chips st">${btn('−10분', 'putm', -10)}<b>${hmAt(SH.s)}</b>${btn('+10분', 'putm', 10)}</div>
+    <p class="lb">얼마나</p><div class="chips">${lens.map((v) => btn(v === t.minutes ? `예상 시간 ${T.minutesWord(v)}` : T.minutesWord(v), 'putl', v, SH.len === v)).join('')}${btn('빈 시간 전부', 'putl', 0, !SH.len)}</div>
+    <p class="sm"><b>${DAYW(SH.d)} ${hmAt(SH.s)} – ${e === 1440 ? '자정' : hmAt(e)} · ${T.minutesWord(e - SH.s)}</b>${SH.len && e - SH.s < SH.len ? ' (빈 시간이 여기까지예요)' : ''}<br>예상 시간과 상관없이 넣을 수 있고, 여러 번 나눠 넣어도 돼요.</p>` : '<p class="sm">다른 날을 골라 보세요.</p>'}
+    <div class="ac"><button class="gb" data-act="shx">닫기</button>${g ? `<button class="wb" data-act="putok">${SH.edit ? '옮기기' : '넣기'}</button>` : ''}</div></div></div>`;
+};
+Object.assign(ACTS, {
+  put(arg = '') { // 't할일' 새로 넣기, 'p번호' 넣은 자리 옮기기, '' 달력에서(먼저 할 것부터)
+    const p = arg[0] === 'p' ? PLACED[+arg.slice(1)] : null, t = p ? p.t : arg ? +arg.slice(1) : T.rankTasks().tasks[0]?.id;
+    if (t == null) return say('넣을 할 일이 없어요');
+    SH = { k: 'put', t, d: p ? p.k : S.screen === 'cal' && CV === 'day' ? Math.min(Math.max(CA, 0), 4) : 0, s: p ? p.s : -1, len: p ? p.e - p.s : 30, edit: p };
+    fit(); render();
+  },
+  putt(id) { SH.t = +id; render(); },
+  putd(k) { SH.d = +k; fit(); render(); },
+  putg(a) { SH.s = +a; render(); },
+  putm(n) { const g = putGap(); if (g) SH.s = Math.min(Math.max(SH.s + +n, g[0]), g[1] - 10); render(); },
+  putl(n) { SH.len = +n; render(); },
+  putok() {
+    const g = putGap(); if (!g) return;
+    const p = SH.edit || {}, old = SH.edit && { ...p }, t = T.tasks.find((x) => x.id === SH.t);
+    Object.assign(p, { t: SH.t, k: SH.d, s: SH.s, e: Math.min(SH.s + (SH.len || 1440), g[1]) });
+    if (!old) PLACED.push(p);
+    SH = null;
+    say(`'${t.title}' ${DAYW(p.k)} ${hmAt(p.s)}에 ${T.minutesWord(p.e - p.s)} 넣었어요`, () => (old ? Object.assign(p, old) : PLACED.splice(PLACED.indexOf(p), 1)));
+  },
+  unput(i) { const [p] = PLACED.splice(+i, 1); say('자리에서 뺐어요', () => PLACED.push(p)); },
+  fix(id) { // 제안 자리를 그대로 내 자리로
+    const x = homeItems().find((y) => y.id === +id); if (!x?.at) return;
+    const p = { t: +id, k: 0, s: x.at[0], e: x.at[1] }; PLACED.push(p);
+    say(`오늘 ${hmAt(p.s)} – ${hmAt(p.e)}로 정했어요`, () => PLACED.splice(PLACED.indexOf(p), 1));
+  },
+});
+// 떠 있는 메모를 눌렀을 때 고리 아래에 나오는 단추
+const floatBar = () => { const m = TAP[0] === 'm' && waiting().find((y) => 'm' + y.id === TAP); return m ? `<div class="chips fm"><small>떠 있는 메모 · ${T.hm(m.at)}에 적었어요 · 밤 정리 때 할 일 후보로 올라가요</small>${btn('오늘 할 일로', 'add', `${m.id}:0`, 1)}${btn('내일 할 일로', 'add', `${m.id}:1`)}${btn('그대로 두기', 'tap', TAP)}</div>` : ''; };
+// ── 밀도 고리: 날짜를 두른 점 16개, 켜진 점 = 그날의 빽빽함(일정 + 마감). 마감 · 중요한 일정이 3개 넘게 몰리면 주황 ──
+const crowdN = (d) => T.tasksDueOn(d).filter((t) => !t.done).length + T.eventsOn(d).filter((e) => e.important).length;
+const dens = (d) => { const n = 16, lit = Math.round(T.load(d) * n); return `<svg class="dz ${crowdN(d) >= 3 ? 'hot' : ''}" viewBox="-24 -24 48 48" aria-hidden="true">${Array.from({ length: n }, (_, j) => `<circle cx="${(21 * Math.sin(j / n * 2 * Math.PI)).toFixed(1)}" cy="${(-21 * Math.cos(j / n * 2 * Math.PI)).toFixed(1)}" r="1.5" class="${j < lit ? 'l' : ''}"/>`).join('')}</svg>`; };
+let CROWD = 0; // 몰린 날 제안: 0 묻는 중, 1 답함
+function crowd() { // 앞으로 1주에서 처음 몰린 날 k, 그날 마감 중 가장 긴 할 일 t, 그 전에 가장 한가한 날 j의 저녁 자리 s
+  for (let k = 2; k < 7; k++) {
+    if (crowdN(D(k)) < 3) continue;
+    const t = T.tasksDueOn(D(k)).filter((x) => !x.done && !PLACED.some((p) => p.t === x.id)).sort((a, b) => b.minutes - a.minutes)[0]; if (!t) return null;
+    for (const j of Array.from({ length: k - 1 }, (_, i) => i + 1).sort((a, b) => T.load(D(a)) - T.load(D(b)))) {
+      const g = gaps(j).find(([a, b]) => b - Math.max(a, 1080) >= t.minutes);
+      if (g) return { k, t, j, s: Math.max(g[0], 1080) };
+    }
+    return null;
+  }
+  return null;
+}
+INBOX.push(() => { // AI 제안: 이유 한 줄 + 되돌리기
+  const c = !CROWD && crowd(); if (!c) return '';
+  const nd = T.tasksDueOn(D(c.k)).filter((t) => !t.done).length, ni = crowdN(D(c.k)) - nd;
+  return card('#ff9d5c', 'AI 제안 · 몰린 날', `${T.wd(D(c.k))}요일에 마감 ${nd}개${ni ? `와 중요한 일정 ${ni}개` : ''}가 몰렸어요`, `'${esc(c.t.title)}'은 ${DAYW(c.j)} ${hmAt(c.s)}부터 ${T.minutesWord(c.t.minutes)}이 비어 있어요. 하나를 당길까요? · 이유: 그 전 날들 중 가장 한가한 날이에요`, btn('당기기', 'crowd', 'ok', 1) + btn('그대로', 'crowd', 'no'));
+});
+ACTS.crowd = (v) => {
+  const c = crowd(); CROWD = 1;
+  if (v !== 'ok' || !c) return say('그대로 둘게요', () => (CROWD = 0));
+  const p = { t: c.t.id, k: c.j, s: c.s, e: c.s + c.t.minutes }; PLACED.push(p);
+  say(`'${c.t.title}' ${DAYW(c.j)} ${hmAt(c.s)}로 당겨 놨어요`, () => { PLACED.splice(PLACED.indexOf(p), 1); CROWD = 0; });
+};
+// ── 졸업요건(가상): 요건 틀은 조사 초안(확인 필요), 들은 과목은 지어낸 예시. 과목 = [이름, 학점, 0 남음 · 1 이번 학기 · 2 들음] ──
+const GRAD = [
+  ['학문의 토대', 41, '지정 과목 + 글쓰기 · 외국어', [['수학 1 · 연습', 4, 2], ['수학 2 · 연습', 4, 2], ['공학수학 1', 3, 2], ['공학수학 2', 3, 1], ['물리학 1 · 실험', 4, 2], ['물리학 2 · 실험', 4, 0], ['화학 1 · 실험', 4, 2], ['화학 2 · 실험', 4, 1], ['컴퓨터의 개념 및 실습', 3, 2], ['대학 글쓰기 1', 2, 2], ['영어 글쓰기', 2, 1], ['외국어 (아직 안 고름)', 4, 0]]],
+  ['지성의 열쇠', 9, '영역에서 골라 듣는 교양', [['심리학개론', 3, 2], ['아직 안 고름', 3, 0], ['아직 안 고름', 3, 0]]],
+  ['베리타스', 3, '', [['베리타스 강좌', 3, 0]]],
+  ['전공필수', 36, '열두 과목', [['화학생물공학의 이해', 3, 2], ['유기화학 1', 3, 1], ['물리화학 1', 3, 0], ['공학생물', 3, 0], ['화학생물공학기초실험', 3, 0], ['유기화학 2', 3, 0], ['응용생화학 1', 3, 0], ['반응공학 1', 3, 0], ['공정유체역학', 3, 0], ['열 및 물질전달', 3, 0], ['화학생물합성실험', 3, 0], ['화학생물공정실험', 3, 0]]],
+  ['선택필수', 10, '분석화학 · 물리화학 2 · 응용생화학 2 · 공정제어 및 설계 · 전기화학 중 세 과목 + 한 과목', [['세 과목 고르기', 9, 0], ['한 과목 고르기', 1, 0]]],
+  ['전공선택', 16, '공학개론 3학점을 넣어서', [['공학개론 과목', 3, 0], ['아직 안 고름', 13, 0]]],
+  ['일반선택', 15, '무엇이든', [['생명과학 실험', 2, 1], ['아직 안 고름', 13, 0]]],
+];
+let GF = 0; // 1 = 남은 과목만 보기
+SUBP.grad = () => {
+  if (ETL !== 9) return `<div class="col"><p class="why">eTL을 이으면 지금까지 들은 과목을 읽어 와서 졸업요건과 견줘요.<br>남은 과목이 한눈에 보여요.</p><div class="ac" style="justify-content:flex-start"><button class="wb" data-act="sample">${ETLW[ETL] || 'eTL 한 번에 연결 (가상)'}</button></div></div>`;
+  const W = ['남음', '이번 학기', '들음'], sum = (cs, s) => cs.filter((c) => c[2] === s).reduce((a, c) => a + c[1], 0);
+  const all = GRAD.flatMap((g) => g[3]), need = GRAD.reduce((a, g) => a + g[1], 0), done = sum(all, 2), now = sum(all, 1);
+  const next = GRAD[3][3].concat(GRAD[0][3]).filter((c) => !c[2]).slice(0, 3).map((c) => c[0]);
+  const cat = ([n, cr, note, cs], gi) => {
+    const chips = cs.map((c, i) => (GF && c[2] ? '' : `<button class="gb gc s${c[2]}" data-act="gsw" data-arg="${gi}:${i}" aria-label="${c[0]} ${c[1]}학점 · ${W[c[2]]} · 누르면 바꿔요">${c[2] === 2 ? CHECK : ''}${c[0]} <small>${c[1]}</small></button>`)).join('');
+    return chips && `<div class="row cd"><div><small>${n} · ${cr}학점${note ? ` · ${note}` : ''}</small><b>${sum(cs, 2)}학점 들음${sum(cs, 1) ? ` · 이번 학기 ${sum(cs, 1)}학점` : ''} · ${Math.max(cr - sum(cs, 2) - sum(cs, 1), 0)}학점 남음</b>${meter(Math.min(sum(cs, 2) / cr, 1), 20)}<div class="chips">${chips}</div></div></div>`;
+  };
+  return `<div class="col pl"><div class="row cd"><div><small>화학생물공학부 · 2025학번 기준 · 조사 초안이라 확인이 필요해요</small><b>${need}학점 중 ${done}학점을 들었어요</b><small>이번 학기 ${now}학점 듣는 중 · 다 마치면 ${need - done - now}학점 남아요</small>${meter(done / need, 26)}</div></div>
+    ${next.length ? card(PAL[1], '다음 학기 제안', next.join(' · '), '이유: 꼭 들어야 하는 과목 중 아직 안 들은 앞 순서예요', '') : ''}
+    <div class="chips">${btn('전체', 'gf', 0, !GF)}${btn('남은 과목만', 'gf', 1, GF)}<small style="align-self:center">${CHECK} 들음 · <span style="color:var(--te)">초록 테</span> 이번 학기 · 누르면 바꿔요</small></div>
+    <div class="rows">${GRAD.map(cat).join('')}
+      <div class="row"><div><b>그 밖의 요건</b><small>평점 평균 2.0 이상 · 외국어 진행 강좌 3과목 · 졸업 논문 — 학점으로 셀 수 없어 따로 확인해요</small></div></div></div>
+    <p class="night">eTL에서 지난 학기 과목 ${all.filter((c) => c[2] === 2).length}개를 읽었어요(가상 · 지어낸 예시). 빠졌거나 틀린 과목은 눌러서 고쳐요. 요건 숫자는 조사 초안이라 학과 사무실 확인이 필요해요.</p></div>`;
+};
+Object.assign(ACTS, {
+  gf(n) { GF = +n; render(); },
+  gsw(arg) { const [g, i] = arg.split(':').map(Number), c = GRAD[g][3][i]; c[2] = c[2] === 2 ? 0 : 2; render(); },
+});
+// ── 튜터(가상): 과목 · 범위 → 정리 → 확인 문제 → 틀린 문제 표 → 틀린 것만 다시. 정리 글과 문제는 지어낸 예시(유기화학 3장만) ──
+const TUT = { // qs = [문제, 보기, 정답 번호, 다시 볼 정리 번호]
+  pts: [['이중 결합에는 전자가 많아요', '그래서 H⁺처럼 전자가 모자란 쪽이 먼저 다가와 붙어요(친전자성 첨가).'], ['HBr이 붙는 자리 · 마르코브니코프 규칙', 'H는 수소가 더 많은 탄소에, Br은 가지가 더 많은 탄소에 붙어요.'], ['까닭은 탄소 양이온의 안정성', '가지가 많을수록 안정해요: 3차 > 2차 > 1차. 반응은 더 안정한 중간 단계를 거쳐요.'], ['과산화물이 있으면 반대로', 'HBr이 라디칼 길로 가서, Br이 수소가 더 많은 탄소에 붙어요.']],
+  qs: [['프로펜(CH₃–CH=CH₂)에 HBr을 더하면 주로 무엇이 생기나요?', ['1-브로모프로페인', '2-브로모프로페인', '1,2-다이브로모프로페인'], 1, 2], ['가장 안정한 탄소 양이온은?', ['1차', '2차', '3차'], 2, 3], ['과산화물이 있을 때 프로펜에 HBr을 더하면 주로 무엇이 생기나요?', ['1-브로모프로페인', '2-브로모프로페인', '프로페인'], 0, 4]],
+};
+const TU = { st: 0, ans: {}, only: null }; // st: 0 고르기 → 1 정리 → 2 문제 → 3 결과, only = 다시 풀 문제 번호들
+SUBP.tutor = () => {
+  const ask = TUT.qs.map((q, i) => i).filter((i) => !TU.only || TU.only.includes(i)), bad = TUT.qs.map((q, i) => i).filter((i) => TU.ans[i] !== TUT.qs[i][2]);
+  if (!TU.st) return `<div class="col pl"><p class="why">범위를 고르면 올려 둔 강의 자료를 읽고<br>정리 → 확인 문제 → 틀린 것만 다시, 이 순서로 같이 공부해요.</p>
+    <p class="lb">과목</p><div class="chips">${btn('유기화학', 'tno', 1, 1)}${btn('공학수학 2', 'tno')}${btn('일반화학', 'tno')}</div>
+    <p class="lb">범위</p><div class="chips">${btn('1장', 'tno')}${btn('2장', 'tno')}${btn('3장 · 알켄의 첨가 반응', 'tno', 1, 1)}</div>
+    <p class="mn" style="margin:0">할 일 '유기화학 문제풀이 3장'에 맞춰 골라 뒀어요.</p>
+    <div class="ac"><button class="wb" data-act="tgo" data-arg="1">정리 보기</button></div>
+    <p class="night">시연에서는 유기화학 3장만 준비했어요. 정리 글과 문제는 지어낸 예시이고, 실제로는 내가 올린 강의 자료에서 만들어요.</p></div>`;
+  if (TU.st === 1) return `<div class="col"><p class="lb">정리 · 유기화학 3장 · 알켄의 첨가 반응</p><div class="rows">${TUT.pts.map(([b, s], i) => `<div class="row"><i class="cnum">${i + 1}</i><div><b>${b}</b><small>${s}</small></div></div>`).join('')}</div>
+    <p class="mn" style="margin:0">출처: 유기화학_3장_슬라이드.pptx 12–19쪽(가상) · 자료의 글을 그대로 옮기지 않고 풀어 썼어요</p>
+    <div class="ac"><button class="gb" data-act="tgo" data-arg="0">‹ 범위</button><button class="wb" data-act="tgo" data-arg="2">확인 문제 ${ask.length}개 풀기</button></div></div>`;
+  if (TU.st === 2) return `<div class="col"><p class="lb">${TU.only ? `틀린 문제만 다시 · ${ask.length}개` : `확인 문제 · ${ask.length}개`}</p><div class="rows">${ask.map((i) => `<div class="row cd"><div><small>문제 ${i + 1}</small><b>${TUT.qs[i][0]}</b><div class="chips">${TUT.qs[i][1].map((o, k) => btn(o, 'tans', `${i}:${k}`, TU.ans[i] === k)).join('')}</div></div></div>`).join('')}</div>
+    <div class="ac"><button class="gb" data-act="tgo" data-arg="1">정리 다시 보기</button><button class="wb" data-act="tgo" data-arg="3" ${ask.every((i) => i in TU.ans) ? '' : 'disabled'}>채점하기</button></div></div>`;
+  return `<div class="col"><div class="row cd"><div><small>유기화학 3장 · 확인 문제</small><b>${TUT.qs.length}개 중 ${TUT.qs.length - bad.length}개를 맞혔어요</b><small>${bad.length ? '틀린 문제는 정리의 어느 줄을 다시 보면 되는지 적어 뒀어요' : '틀린 문제가 없어요. 이 범위는 넘어가도 돼요'}</small>${meter(1 - bad.length / TUT.qs.length, 12)}</div></div>
+    ${bad.length ? `<p class="lb">틀린 문제</p><table class="tb"><tr><th>문제</th><th>내 답</th><th>정답</th><th>다시 볼 곳</th></tr>${bad.map((i) => `<tr><td>${i + 1}</td><td>${TUT.qs[i][1][TU.ans[i]]}</td><td>${TUT.qs[i][1][TUT.qs[i][2]]}</td><td>정리 ${TUT.qs[i][3]} · ${TUT.pts[TUT.qs[i][3] - 1][0]}</td></tr>`).join('')}</table>` : ''}
+    <div class="ac"><button class="gb" data-act="tgo" data-arg="0">처음으로</button>${bad.length ? '<button class="wb" data-act="tretry">틀린 것만 다시</button>' : ''}</div></div>`;
+};
+Object.assign(ACTS, {
+  tno(ok) { if (ok) return; say('시연에서는 유기화학 3장만 준비했어요'); },
+  tgo(n) { TU.st = +n; if (!TU.st) { TU.ans = {}; TU.only = null; } render(); },
+  tans(arg) { const [q, o] = arg.split(':').map(Number); TU.ans[q] = o; render(); },
+  tretry() { TU.only = TUT.qs.map((q, i) => i).filter((i) => TU.ans[i] !== TUT.qs[i][2]); for (const i of TU.only) delete TU.ans[i]; TU.st = 2; render(); },
+});
+// ── 줄임말 알아듣기: '공수2' · '공수' → 공학수학 2. 낱말(또는 그 앞부분, 두 글자 이상)이 과목 이름과 첫 글자가 같고 글자 순서대로 들어 있으면 그 과목 ──
+// ponytail: 글자 맞추기뿐이라 '오켐' 같은 별명은 모른다. 짐작한 것은 받은함에서 한 번 묻고 ALIAS에 적는다. 실제 앱은 밤 정리(AI)가 뜻으로 맡는다
+const sub = (a, name) => { let i = 0; for (const ch of name) if (ch === a[i]) i++; return i === a.length; };
+const courseOf = (text) => { // → [과목, 알아들은 낱말, 1 = 이름 그대로거나 이미 아는 줄임말] 또는 null
+  for (const w of text.split(/\s+/)) {
+    if (ALIAS[w]) return [ALIAS[w], w, 1];
+    for (let n = w.length; n >= 2; n--) {
+      const a = w.slice(0, n), hit = Object.keys(COL).filter((c) => c[0] === a[0] && sub(a, c.replace(/\s/g, '')));
+      if (hit.length === 1) return [hit[0], a, +(a === hit[0].replace(/\s/g, '') || text.includes(hit[0]))];
+      if (hit.length) break; // 여러 과목에 걸리면 모르는 것으로 둔다
+    }
+  }
+  return null;
+};
+// ── 줄임말 끝 ──
+const NOT = new Set(); // 아니라고 답한 줄임말
+const tagMemos = () => { // 새 메모마다 한 번: 과목을 알아듣고, 줄임말로 짐작한 것은 받은함에서 한 번 확인한다
+  for (const m of T.memos) { if (m.cx) continue; m.cx = 1; const r = courseOf(m.text); if (!r || NOT.has(r[1])) continue; m.course = r[0]; if (!r[2]) m.ask = r[1]; }
+};
+INBOX.push(() => { const m = T.memos.find((x) => x.ask && free(x)); return m ? card(colorOf(m.course), '확인 · 줄임말', `'${esc(m.ask)}' = ${esc(m.course)}, 맞나요?`, `'${esc(m.text)}' 메모에서 그렇게 알아들었어요 · 맞으면 다음부터 묻지 않아요`, btn('맞아요', 'alias', `${m.id}:1`, 1) + btn('아니에요', 'alias', `${m.id}:0`)) : ''; });
+ACTS.alias = (arg) => {
+  const [id, ok] = arg.split(':'), m = T.memos.find((x) => String(x.id) === id), tok = m.ask, c = m.course;
+  for (const x of T.memos) if (x.ask === tok) { x.ask = null; if (!+ok) x.course = null; }
+  if (+ok) ALIAS[tok] = c; else NOT.add(tok);
+  say(+ok ? `기억했어요: '${tok}' = ${c} · 마이페이지에서 지울 수 있어요` : `알겠어요. '${tok}' 메모는 과목 없이 둘게요`);
+};
+// ── 시작 튜토리얼: 메모 한 줄 → 알아듣고 할 일로 → 할 일 고리에 새 칸. 되풀이해 보여 준다(움직임을 줄이면 다 된 모습으로 멈춘다) ──
+const arc = (c, len, at, cls = '') => `<circle class="${cls}" r="38" pathLength="100" stroke="${c}" stroke-dasharray="${len} ${100 - len}" stroke-dashoffset="${-at}"/>`;
+const tut = () => `<div class="ob"><div><p class="obk">이렇게 이어져요</p><h1>메모 한 줄이 할 일 고리의 한 칸이 돼요.</h1>
+  <div class="tu" role="img" aria-label="메모 '공수 연습문제 4장'을 적으면 공학수학 2의 할 일이 되고, 할 일 고리에 새 칸이 생기는 모습">
+    <div class="row"><i class="cnum">1</i><div><small>메모를 적어요</small><b><span class="tyw">공수 연습문제 4장</span></b></div></div>
+    <div class="row t2"><i class="cnum">2</i><div><small>알아듣고 할 일로 정리해요</small><b><span style="color:${PAL[3]}">공학수학 2</span> · 연습문제 4장</b></div></div>
+    <div class="row t3"><i class="cnum">3</i><div><small>할 일 고리에 새 칸이 생겨요</small><b>남은 할 일 3개 → 4개</b></div><svg viewBox="-50 -50 100 100" aria-hidden="true"><g fill="none" stroke-width="9" transform="rotate(-90)"><circle r="38" stroke="currentColor" stroke-opacity=".1"/>${arc(PAL[0], 24, 0)}${arc(PAL[1], 18, 27)}${arc(PAL[4], 14, 48)}${arc(PAL[3], 18, 65, 'tnw')}</g></svg></div></div>
+  <small>'공수'라고만 적어도 공학수학 2로 알아들어요. 날짜나 시각이 있으면 달력에도 이어져요.</small>
+  <div class="ac"><button class="gb" data-act="ob" data-arg="hi">이전</button><button class="wb" data-act="ob" data-arg="setup">다음</button></div></div></div>`;
+// 첫 화면 질문의 예시 그림: [그림, 한 줄 풀이]
+const ms = (body) => `<svg viewBox="0 0 100 70" aria-hidden="true">${body}</svg>`, mr = (sw, body) => `<g fill="none" stroke-width="${sw}" transform="translate(50 35) rotate(-90) scale(.63)">${body}</g>`;
+const MINI = {
+  day: [ms(`${mr(9, `<circle r="38" stroke="currentColor" stroke-opacity=".1"/>${arc(PAL[3], 9, 12)}${arc(PAL[4], 9, 34)}${arc(PAL[0], 14, 50)}`)}<circle cx="73.6" cy="39.5" r="2.8" fill="currentColor"/>`), '수업 · 빈 시간 · 할 일 자리가 하루 고리로'],
+  task: [ms(mr(12, `${arc(PAL[0], 30, 0)}${arc(PAL[1], 22, 32)}${arc(PAL[2], 18, 56)}${arc(PAL[3], 12, 76)}${arc(PAL[4], 8, 90)}`)), '남은 할 일이 걸리는 시간만큼 고리로'],
+  all: [ms([0, 1, 2, 3].map((i) => `<g ${i === 3 ? 'opacity=".4"' : ''}><circle cx="16" cy="${13 + i * 15}" r="3.2" fill="${PAL[i]}"/><path d="M26 ${13 + i * 15}h${[52, 38, 46, 30][i]}" stroke="currentColor" stroke-opacity=".7" stroke-width="3" stroke-linecap="round"/></g>`).join('')), '과목별로 모은 할 일 목록'],
+};
+// ── 미루기: 오늘 제안에서 빠진다. 세 번째에는 넘기지 않고, 안 해도 되는 일인지 먼저 묻는다 ──
+const laterChips = (t) => `<button class="gb" data-act="later" data-arg="${t.id}" aria-label="미루기 · 지금까지 ${t.late || 0}번 미룸">미루기${t.late ? ` <span class="ld">${'●'.repeat(t.late)}</span>` : ''}</button><button class="gb" data-act="skipt" data-arg="${t.id}">안 해도 돼</button>`;
+SHEETS.ask3 = () => {
+  const t = T.tasks.find((x) => String(x.id) === SH.id); if (!t) return '';
+  return `<div class="dim"><div class="sheet" role="dialog" aria-label="세 번 미룬 할 일"><p class="lk">세 번째 미루기</p><h2>세 번 미뤘어요. 안 해도 될까요?</h2>
+    <p class="sm"><b>${esc(t.title)}</b> · ${esc(T.dueWord(t))} 마감<br>안 해도 되는 일이면 목록에서 빼고, 해야 하는 일이면 내일 아침 브리핑에 다시 올릴게요. 뺀 일은 되돌릴 수 있어요.</p>
+    <div class="ac"><button class="gb" data-act="keep3">그래도 할래요</button><button class="wb" data-act="skipt" data-arg="${t.id}">안 해도 돼요</button></div></div></div>`;
+};
+Object.assign(ACTS, {
+  later(id) {
+    const t = T.tasks.find((x) => String(x.id) === id), was = [t.late, t.hold];
+    if (t.late === 2) { SH = { k: 'ask3', id }; return render(); }
+    t.late = (t.late || 0) + 1; t.hold = `${['', '내일', '모레'][t.late]}로 넘겼어요 · ${['', '한', '두'][t.late]} 번 미룸`;
+    if (FIRST === t.id) FIRST = null;
+    say(t.hold, () => ([t.late, t.hold] = was));
+  },
+  keep3() { const t = T.tasks.find((x) => String(x.id) === SH.id); t.late = 0; t.hold = '내일 아침 브리핑에 다시 올릴게요'; SH = null; say('알겠어요. 내일 아침에 다시 올릴게요'); },
+  skipt(id) { const i = T.tasks.findIndex((x) => String(x.id) === id), t = T.tasks[i]; T.tasks.splice(i, 1); SH = null; TAP = ''; say(`'${t.title}' 목록에서 뺐어요`, () => T.tasks.splice(i, 0, t)); },
+});
+// ── (새 기능은 이 위에) ──
+function page() {
+  tagMemos();
+  if (OB) return `<div class="web"><div class="app ${PH ? 'ph' : ''}">${OB === 'hi' ? welcome() : OB === 'tut' ? tut() : OB === 'setup' ? setup() : ask(+OB[1])}</div></div>`;
+  const wrap = view.mode === 'web' ? 'web' : PH ? 'ty-phone' : 'ty-window', sc = NAV.some(([k]) => k === S.screen) || SUB[S.screen] ? S.screen : 'home';
+  const intro = sc !== last; last = sc;
+  ITEMS = sc === 'home' ? homeItems() : [];
+  if (FOCUS && !T.tasks.some((x) => x.id === FOCUS.id && !x.done)) FOCUS = null; // 집중하던 할 일을 끝냈거나 없앴으면 타이머도 끝
+  if (ITEMS.length) pick[sc] = Math.min(pick[sc], ITEMS.length - 1);
+  if (sc !== 'home' || (TAP[0] === 't' && +TAP.slice(1) !== pick.home)) TAP = '';
+  const clock = `<span data-clock>${clockWord()}</span>`;
+  const top = sc === 'home' ? `${PH ? '' : '<button class="bk" data-act="screen" data-arg="cal">‹ 달력</button>'}<span class="sp"></span>${PH ? '' : clock}<div class="seg">${HVS.map(([k, w]) => `<button class="${HV === k ? 'on' : ''}" data-act="hv" data-arg="${k}" aria-pressed="${HV === k}">${w}</button>`).join('')}</div>`
+    : sc === 'cal' ? `${PH ? '' : '<button class="bk" data-act="screen" data-arg="home">‹ 오늘</button>'}<span class="sp"></span>${PH ? '' : clock}<div class="seg">${VIEWS.map(([k, w]) => `<button class="${CV === k ? 'on' : ''}" data-act="cv" data-arg="${k}" aria-pressed="${CV === k}">${w}</button>`).join('')}</div>`
+      : `${SUB[sc] && sc !== 'me' ? '<button class="bk" data-act="screen" data-arg="me">‹ 마이페이지</button>' : ''}<h1>${{ memo: '메모', pals: '친구 · 그룹', brief: '받은함', ...SUB }[sc]}</h1><span class="sp"></span>${PH && SUB[sc] ? '' : clock}`;
+  const tips = sc === 'home' && HV === 'all' ? [] : [].concat(TIP[sc] || []), // 고리 안내는 고리가 보일 때만
+   tn = seen[sc] || 0; // 안내는 한 번에 한 문장씩
+  const tip = DEMO && tn < tips.length ? `<p class="tip"><span>${tips[tn]}</span><button data-act="tip">${tn < tips.length - 1 ? '다음' : '알겠어요'}</button></p>` : '';
+  const body = sc === 'home' ? (!ITEMS.length ? emptyHome() : HV === 'all' ? allList() : HV === 'day' ? dayScreen(pick.home) : ringScreen(pick.home))
+    : sc === 'cal' ? calendar() : sc === 'memo' ? memoPage() : sc === 'pals' ? palsPage() : SUB[sc] ? (SUBP[sc] || SUBP.me)() : brief();
+  const nIn = inboxCards().length;
+  const nav = NAV.map(([k, w]) => `<button class="${sc === k ? 'on' : ''}" ${sc === k ? 'aria-current="page"' : ''} data-act="screen" data-arg="${k}">${w}${k === 'brief' && nIn ? `<i class="bd">${nIn}</i>` : ''}</button>`).join('');
+  const toast = S.toast ? `<div class="toast" role="status"><span>${esc(S.toast.text)}</span>${S.toast.undo ? '<button data-act="undo">되돌리기</button>' : ''}</div>` : '';
+  return `<div class="${wrap}"><div class="app ${PH ? 'ph' : ''} ${intro ? 'intro' : ''} ${LIGHT ? 'lt' : ''}">
+    ${PH ? '' : `<aside class="side"><div class="logo">Tachyon</div><nav>${nav}</nav></aside>`}
+    <main class="main" data-keep-scroll="main-${sc}">${PH ? `<nav class="pnav" aria-label="탭">${nav}</nav>` : ''}<header class="top">${top}<button class="gb th ${sc === 'me' ? 'on' : ''}" data-act="screen" data-arg="me" aria-label="마이페이지">나</button><button class="sw" data-act="theme" role="switch" aria-checked="${LIGHT}" aria-label="밝은 화면"><i></i></button></header>${tip}${body}${memoDock(sc)}</main>
+    ${popup()}${newSheet()}${sheet()}${toast}</div></div>`;
+}
+const root = document.getElementById('root');
+// 카드 i를 가운데로
+function go(i, smooth) {
+  const car = root.querySelector('.car'), c = car && car.children[i];
+  if (c) car.scrollTo({ left: c.offsetLeft + c.offsetWidth / 2 - car.clientWidth / 2, behavior: smooth ? 'smooth' : 'instant' });
+}
+// 고른 카드가 바뀌면 다시 그리지 않고 표시만 옮긴다(넘기는 중에 끊기지 않게)
+function setSel(i) {
+  const x = ITEMS[i];
+  if (pick[S.screen] === i || !x) return;
+  pick[S.screen] = i;
+  if (TAP !== 't' + i) TAP = ''; // 다른 카드로 넘기면 누른 것은 풀린다
+  root.querySelectorAll('[data-i]').forEach((el) => el.classList.toggle('on', +el.dataset.i === i));
+  root.querySelector('.rw').style.setProperty('--sc', x.c);
+  const rows = root.querySelector('.cw .rows');
+  if (rows) rows.innerHTML = x.rows; // 오늘 한 화면에는 카드 줄이 없다: 목록에서 고른 줄만 펼쳐진다
+  if (rows && !calm) rows.animate([{ opacity: 0, transform: 'translateY(6px)' }, {}], { duration: 300, easing: 'ease-out' });
+  showTap();
+}
+// 누른 구간 표시: 다시 그리지 않고 일정 묶음의 밝기 · 고리 빛 · 가운데 글자만 바꾼다
+function showTap() {
+  const rw = root.querySelector('.rw'), e = TAP[0] === 'e' && T.eventsOn(T.now)[+TAP.slice(1)];
+  if (!rw) return;
+  root.querySelectorAll('.eg').forEach((el) => el.classList.toggle('on', TAP === 'e' + el.dataset.e));
+  rw.style.setProperty('--sc', e ? colorOf(e.title) : ITEMS[pick.home]?.c || PAL[0]);
+  rw.querySelector('.mid').innerHTML = mid();
+  const k = TAP[0] === 'e' ? TAP : 't' + pick.home, tw = root.querySelector('.tw');
+  root.querySelectorAll('.tw [data-k]').forEach((el) => el.classList.toggle('sel', el.dataset.k === k));
+  const el = tw && tw.querySelector('.sel'); // 고른 칸이 보이게 타임라인만 굴린다(화면 전체는 그대로 둔다)
+  if (el) tw.scrollTo({ top: tw.scrollTop + el.getBoundingClientRect().top - tw.getBoundingClientRect().top - (tw.clientHeight - el.offsetHeight) / 2, behavior: calm ? 'instant' : 'smooth' });
+  if (!PH) root.querySelector('.ti.on')?.scrollIntoView({ block: 'nearest' });
+}
+function showDay(d) { const k = off(d); CV = 'week'; CA = k >= 0 && k < nDays() ? 0 : k; calDir = 0; S.screen = 'cal'; }
+function render() {
+  if (S.saved) { showDay(S.saved.start); S.saved = null; } // 방금 저장한 일정이 보이는 주로
+  if (DEMO) for (const m of T.memos) m.real ||= (m.at = new Date(T.now), 1); // 메모 시각도 진짜 시각으로(예시는 앞 메모 수만큼 앞당겨 적는다)
+  T.mount(root, page());
+  go(pick[S.screen], false);
+}
+T.on(render);
+T.bind(root, {
+  ...ACTS,
+  pick(i) { go(+i, true); setSel(+i); },
+  cv(v) { CV = v; calDir = 0; render(); },
+  tap(k) { // 고리 구간을 누르면 가운데에 그 할 일 · 일정, 한 번 더 누르면 숫자로
+    TAP = TAP === k ? '' : k;
+    if (k[0] === 'm') return render(); // 떠 있는 메모는 고리 아래에 단추가 나오게 다시 그린다
+    if (TAP[0] === 't') { setSel(+k.slice(1)); go(+k.slice(1), false); } // 카드도 그 할 일로(바로 옮긴다: 넘어가는 동안 사이 카드가 골라져 누른 것이 풀리지 않게)
+    showTap();
+  },
+  hv(v) { HV = v; TAP = ''; last = ''; render(); }, // 고리를 바꾸면 점이 다시 차오른다
+  mv(step) { move(+step); },
+  new(arg) { // 직접 넣기 시트 열기. '3:840' = 3일 뒤 14시부터(다 같이 빈 시간에서 고른 때)
+    const [k, s] = (arg || '').split(':');
+    NEW = { k: arg ? +k : CV === 'day' ? CA : CV === 'week' ? Math.max(CA, 0) : 0, s: s ? +s : undefined };
+    render(); document.getElementById('nw-title')?.focus();
+  },
+  newx() { NEW = null; render(); },
+  focus(id) {
+    if (FOCUS) stopFocus(false);
+    FOCUS = { id: T.tasks.find((x) => String(x.id) === id).id, at: Date.now() }; TAP = '';
+    T.toast('집중 시작 · 시연에서는 1초를 1분으로 세요'); render();
+  },
+  fdone() { stopFocus(true); },
+  fstop() { stopFocus(false); },
+  pull(id) { const t = T.tasks.find((x) => String(x.id) === id); FIRST = FIRST === t.id ? null : t.id; TAP = ''; render(); },
+  theme() { LIGHT = !LIGHT; document.documentElement.classList.toggle('lt', LIGHT); render(); }, // 색은 html의 --t가 이어서 바꾼다(.app은 다시 그려지므로 html에 건다)
+  meet() { MEET = !MEET; render(); },
+  mg(id) { MG = +id; render(); },
+  gmeet(id) { MG = +id; MEET = true; S.screen = 'cal'; render(); },
+  reqok(id) { const [p] = REQ.splice(REQ.findIndex((x) => x.id === +id), 1); PALS.push(p); T.toast(`${p.name} 님과 친구가 됐어요`); render(); },
+  reqno(id) { REQ.splice(REQ.findIndex((x) => x.id === +id), 1); render(); },
+  palx(id) { PALS.splice(PALS.findIndex((x) => x.id === +id), 1); GROUPS.forEach((g) => (g.ids = g.ids.filter((x) => x !== +id))); GSEL = GSEL.filter((x) => x !== +id); render(); },
+  gsel(id) { GSEL = GSEL.includes(+id) ? GSEL.filter((x) => x !== +id) : [...GSEL, +id]; render(); },
+  gx(id) { GROUPS.splice(GROUPS.findIndex((g) => g.id === +id), 1); render(); },
+  day(k) { CA = +k; CV = 'day'; calDir = 0; render(); },
+  write() { document.getElementById('memo-in')?.focus(); },
+  mo() { MO = !MO; render(); },
+  ob(v) { OB = v; render(); },
+  year(y) { ME.year = ME.year === y ? '' : y; render(); },
+  sample() { connectEtl(); },
+  next() { // 실제 앱처럼 학과 · 학년은 둘 다 넣거나 둘 다 비운다
+    if (!document.getElementById('ob-dept').value.trim() !== !ME.year) { ME.err = '학과와 학년을 둘 다 넣어 주세요'; return render(); }
+    ME.dept = document.getElementById('ob-dept').value.trim();
+    OB = 'q0'; render();
+  },
+  ans(arg) { const [n, i] = arg.split(':').map(Number); QS[n][3](QS[n][2][i][1]); OB = n + 1 < QS.length ? `q${n + 1}` : ''; render(); },
+  tip() { seen[S.screen] = (seen[S.screen] || 0) + 1; render(); },
+  sort() { for (const m of waiting()) m.cand = 1; S.screen = 'brief'; render(); },
+  add(arg) { // 후보 → 할 일(기한 = 고른 날 자정) 또는 빼기
+    const [id, n] = arg.split(':'), m = T.memos.find((x) => String(x.id) === id);
+    if (n === 'x') { m.skip = 1; return render(); }
+    const due = new Date(T.now); due.setDate(due.getDate() + +n); due.setHours(23, 59, 0, 0);
+    m.task = { id: -m.id, title: m.text, course: m.course || '메모', due, minutes: 30, ready: 1, done: 0 }; // ponytail: 걸리는 시간은 30분으로 둔다, 실제 앱은 '고치기'에서 바꾼다
+    T.tasks.push(m.task);
+    T.toast(`'${m.text}' 할 일에 넣었어요`, () => { T.tasks.splice(T.tasks.indexOf(m.task), 1); m.task = null; S.toast = null; render(); });
+    render();
+  },
+});
+root.addEventListener('submit', (ev) => { // 목록이 접혀 있으면 남겼다는 걸 알려 준다(저장은 엔진의 submit이 한다)
+  if (ev.target.querySelector('[data-memo-input]')?.value.trim() && !MO && S.screen !== 'memo') T.toast('메모를 남겼어요');
+}, true);
+root.addEventListener('submit', (ev) => { // 친구 요청 · 그룹 만들기
+  const v = ev.target.querySelector('input')?.value.trim();
+  if (!v || !ev.target.matches('[data-pal], [data-group]')) return;
+  if (ev.target.matches('[data-pal]')) { ev.target.querySelector('input').value = ''; return addPal(/^ty-?\d+$/i.test(v) ? NICK[PID % NICK.length] : v); }
+  if (!GSEL.length) { T.toast('넣을 친구를 먼저 골라 주세요'); return render(); }
+  ev.target.querySelector('input').value = ''; GROUPS.push({ id: ++PID, name: v, ids: GSEL }); GSEL = [];
+  T.toast(`'${v}' 그룹을 만들었어요`); render();
+});
+root.addEventListener('submit', (ev) => { // 직접 넣기 시트의 '넣기'(엔진의 submit은 메모 칸만 본다)
+  if (!ev.target.matches('[data-new]')) return;
+  ev.preventDefault();
+  const val = (k) => document.getElementById(`nw-${k}`).value.trim(), at = (hm) => new Date(`${val('date')}T${hm}`);
+  const start = at(val('start')), end = at(val('end'));
+  if (!val('title') || isNaN(start)) return; // 빈 칸은 브라우저가 먼저 막는다
+  const e = { id: Date.now(), title: val('title'), start, end: end > start ? end : new Date(+start + T.HOUR), place: val('place') || null, source: 'own', important: 0, fresh: true };
+  T.events.push(e);
+  if (!(CV === 'day' && off(start) === CA)) S.saved = e; // 보고 있던 날이 아니면 그 주로 옮겨 보여 준다
+  NEW = null;
+  setTimeout(() => (e.fresh = false), 2500);
+  T.toast(`${T.dayWord(start)} ${T.hm(start)} '${e.title}' 달력에 넣었어요`, () => { T.events.splice(T.events.indexOf(e), 1); S.toast = null; render(); });
+  render();
+});
+root.addEventListener('scroll', (e) => { // 손으로 넘겼을 때: 가운데에 가장 가까운 카드를 고른다
+  const car = e.target;
+  if (!car.classList || !car.classList.contains('car')) return;
+  const mid = car.scrollLeft + car.clientWidth / 2, d = [...car.children].map((c) => Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid));
+  setSel(d.indexOf(Math.min(...d)));
+}, true);
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && S.popup) root.querySelector('[data-act=cancel]').click();
+  if (e.key === 'Escape' && NEW) { NEW = null; return render(); }
+  if (e.key === 'Escape' && SH) { SH = null; return render(); }
+  if (e.key === 'Escape' && MO) { MO = false; return render(); }
+  const typing = e.target.matches('input'), idle = !OB && !S.popup && !NEW && !SH && !e.ctrlKey && !e.metaKey && !e.altKey;
+  // M 또는 엔터 = 메모 칸으로(엔터는 단추에 초점이 있으면 그 단추를 누르는 것이니 건드리지 않는다)
+  if (idle && (e.code === 'KeyM' ? !typing : e.key === 'Enter' && !e.target.closest('input, button, a'))) { e.preventDefault(); return document.getElementById('memo-in')?.focus(); }
+  const tab = e.key === 'ArrowDown' ? 1 : e.key === 'ArrowUp' ? -1 : 0; // ↑ ↓ = 탭 옮기기, ← → = 카드 · 달력 넘기기
+  if (tab && idle && !typing) { e.preventDefault(); S.screen = NAV[(Math.max(NAV.findIndex(([k]) => k === S.screen), 0) + tab + NAV.length) % NAV.length][0]; return render(); }
+  const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+  if (!step || typing || !idle) return;
+  if (S.screen === 'cal') move(step); else if (ITEMS.length) { go(pick[S.screen] + step, true); if (root.querySelector('.hx')) setSel(pick[S.screen] + step); }
+});
+let sx = 0, sy = 0, sh = false; // 옆으로 밀기: 달력은 날짜 넘기기, 다른 탭은 옆 탭으로(옆으로 굴러가는 줄 위에서는 그 줄이 먼저)
+const rolls = (el) => { for (; el && el !== root; el = el.parentElement) if (el.scrollWidth > el.clientWidth + 4 && /auto|scroll/.test(getComputedStyle(el).overflowX)) return true; return false; };
+root.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; sh = rolls(e.target); }, { passive: true });
+root.addEventListener('touchend', (e) => {
+  const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+  if (OB || S.popup || NEW || SH || Math.abs(dx) <= 60 || Math.abs(dx) <= 2 * Math.abs(dy)) return;
+  if (S.screen === 'cal') return move(dx < 0 ? 1 : -1);
+  const to = NAV[NAV.findIndex(([k]) => k === S.screen) + (dx < 0 ? 1 : -1)]; // 양 끝에서는 멈춘다. 마이페이지 쪽 화면(탭 밖)은 밀어도 그대로
+  if (PH && !sh && to && NAV.some(([k]) => k === S.screen)) { S.screen = to[0]; render(); }
+});
+// 시연의 시계: 30초마다 맞춘다. 달력만 다시 그리고(지금 선) 다른 화면은 시각 글자만 바꾼다(고리 움직임이 끊기지 않게)
+// ponytail: 자정을 넘겨도 '오늘'(T0)은 그대로다. 하루 넘게 켜 둘 일이 생기면 새로 고침 대신 T0도 다시 잡는다
+if (DEMO) setInterval(() => {
+  T.now.setTime(Date.now());
+  const el = root.querySelector('[data-clock]'), nw = root.querySelector('[data-now]');
+  if (nw) nw.textContent = T.hm(T.now); // ponytail: 글자만 맞춘다. 흰 입자 자리와 넣어 본 자리는 다음에 화면을 그릴 때 맞춰진다
+  if (!OB && S.screen === 'cal' && !S.popup && !NEW && document.activeElement?.id !== 'memo-in') render(); else if (el) el.textContent = clockWord();
+}, 30000);
+setInterval(() => { // 집중 타이머: 가운데 숫자만 바꾸고, 다 차면 스스로 멈춘다
+  if (!FOCUS) return;
+  const el = root.querySelector('[data-timer]');
+  if (el) el.firstChild.data = focusMin();
+  if (focusMin() >= FLEN) stopFocus(false);
+}, 1000);
+addEventListener('resize', () => { if (PH !== narrow()) { PH = narrow(); render(); } else go(pick[S.screen], false); });
+render();
+if (!DEMO) T.devbar(view, '입자 고리');
+</script>
+</body>
+</html>
