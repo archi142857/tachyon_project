@@ -343,7 +343,7 @@ export async function syncFeed(env, feed, { force = false, now = Date.now(), tex
     const allowDelete = pre.blocks > 0;
 
     const statements = [];
-    if (kind === 'etl') statements.push(...taskStatements(env, userId, kind, tasks, range, allowDelete));
+    if (kind === 'etl') statements.push(...taskStatements(env, userId, kind, tasks, range, allowDelete, kstIso(now)));
     statements.push(...eventStatements(env, userId, kind, events, range, allowDelete));
     statements.push(
       env.DB.prepare('UPDATE feeds SET last_hash = ?, last_ok_at = ?, last_error = NULL, item_count = ?, dead_count = 0 WHERE id = ?').bind(
@@ -453,17 +453,21 @@ function eventStatements(env, userId, source, events, [from, to], allowDelete, {
   return list;
 }
 
-function taskStatements(env, userId, source, tasks, [from, to], allowDelete) {
+// 처음 들어오는 과제 가운데 받는 순간 이미 마감이 지난 것은 끝낸 것으로 넣는다(nowIso가 있을 때). ICS에는 제출 여부가 없어서,
+// eTL 주소를 처음 붙인 날 지난 30일 과제가 모두 '마감 지남'으로 할 일 맨 위를 차지했다(AI 세션 11-11 19:44 쪽지).
+// 있는 줄의 done은 건드리지 않는다. eTL 토큰(9_etl)을 연결한 사람은 제출 여부를 API가 넣으니 그대로 0으로 넣는다.
+function taskStatements(env, userId, source, tasks, [from, to], allowDelete, nowIso = null) {
   const list = [];
   if (tasks.length) {
     list.push(
       env.DB.prepare(
-        `INSERT INTO tasks (user_id, title, due, source, ext_id)
-         SELECT ?1, j.value ->> 'title', j.value ->> 'due', ?2, j.value ->> 'extId'
+        `INSERT INTO tasks (user_id, title, due, source, ext_id, done)
+         SELECT ?1, j.value ->> 'title', j.value ->> 'due', ?2, j.value ->> 'extId',
+                CASE WHEN ?4 IS NOT NULL AND j.value ->> 'due' < ?4 AND NOT EXISTS (SELECT 1 FROM etl WHERE etl.user_id = ?1) THEN 1 ELSE 0 END
          FROM json_each(?3) AS j WHERE true
          ON CONFLICT (user_id, source, ext_id) DO UPDATE SET title = excluded.title, due = excluded.due
          WHERE tasks.title IS NOT excluded.title OR tasks.due IS NOT excluded.due`,
-      ).bind(userId, source, JSON.stringify(tasks)),
+      ).bind(userId, source, JSON.stringify(tasks), nowIso),
     );
   }
   if (allowDelete) {

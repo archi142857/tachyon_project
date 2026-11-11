@@ -399,3 +399,37 @@ test('폰 캘린더: 앱이 보낸 일정을 넣고, 빠진 것은 지우고, �
   assert.equal(await count(env, 'events', "source = 'google'"), 1);
   assert.equal((await send('x')).status, 400);
 });
+
+test('eTL 주소를 처음 붙일 때 이미 마감이 지난 과제는 끝낸 것으로 넣는다(eTL 토큰이 없을 때만, 있는 줄은 그대로)', async () => {
+  const pastCal = (extra = []) =>
+    calendar(
+      vevent(['UID:event-assignment-201', 'SUMMARY:예시 지난 과제 [예시 과목]', 'DTSTART;VALUE=DATE:20261108T000000', 'DTEND;VALUE=DATE:20261108T000000']), // 어제 23:59
+      vevent(['UID:event-assignment-202', 'SUMMARY:예시 오늘 아침 과제 [예시 과목]', 'DTSTART:20261109T000000Z', 'DTEND:20261109T000000Z']), // 오늘 09:00(지금 17:00)
+      vevent(['UID:event-assignment-203', 'SUMMARY:예시 다음 주 과제 [예시 과목]', 'DTSTART;VALUE=DATE:20261116T000000', 'DTEND;VALUE=DATE:20261116T000000']),
+      ...extra,
+    );
+  const doneOf = async (env) =>
+    Object.fromEntries((await env.DB.prepare("SELECT ext_id, done FROM tasks WHERE source = 'etl' ORDER BY ext_id").all()).results.map((r) => [r.ext_id.slice(-3), r.done]));
+
+  // 토큰 없음: 지난 둘은 끝냄, 다음 주는 열림 → 할 일 맨 위가 다음 주 과제
+  const { env, user } = await setup();
+  web.set(ETL_URL, pastCal());
+  await handle(req('/api/feeds', { method: 'PUT', body: JSON.stringify({ etl: ETL_URL }) }), env, makeCtx(), user);
+  assert.deepEqual(await doneOf(env), { 201: 1, 202: 1, 203: 0 });
+  const { handle: items } = await import('../7_items.js');
+  const top = await (await items(req('/api/tasks?limit=3'), env, makeCtx(), user)).json();
+  assert.equal(top.tasks[0].title, '예시 다음 주 과제 [예시 과목]');
+
+  // 있는 줄은 건드리지 않는다: 열어 둔 지난 과제는 다음 수집에도 열림, 새로 보인 지난 과제만 끝냄
+  await env.DB.prepare("UPDATE tasks SET done = 0 WHERE ext_id = 'event-assignment-201'").run();
+  web.set(ETL_URL, pastCal(vevent(['UID:event-assignment-204', 'SUMMARY:예시 늦게 올라온 지난 과제', 'DTSTART;VALUE=DATE:20261107T000000', 'DTEND;VALUE=DATE:20261107T000000'])));
+  await collectUser(env, user.id, { force: true });
+  assert.deepEqual(await doneOf(env), { 201: 0, 202: 1, 203: 0, 204: 1 });
+
+  // eTL 토큰을 연결한 사람: 제출 여부는 API가 넣으니 모두 열림으로
+  const other = await setup();
+  web.set(ETL_URL, pastCal());
+  await other.env.DB.prepare("INSERT INTO etl (user_id, token) VALUES (?, 'v1.example.sealed')").bind(other.user.id).run();
+  await handle(req('/api/feeds', { method: 'PUT', body: JSON.stringify({ etl: ETL_URL }) }), other.env, makeCtx(), other.user);
+  assert.deepEqual(await doneOf(other.env), { 201: 0, 202: 0, 203: 0 });
+});
