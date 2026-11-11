@@ -46,11 +46,13 @@ npm run build      # dist/
 | `src/screens/` | Login, Setup, Dashboard |
 | `src/components/` | 위 막대, 할 일, 메모, 팝업, 주간 달력, 메모 칸, 시트들 |
 | `src/styles.css` | 색(맨 위 `:root` 한 곳)과 모양 |
+| `src/themes.css` | 테마마다 값 묶음(메뉴 → 테마) |
+| `src/shell.css` | 앱 틀: 100dvh 꽉 찬 화면, 문서는 안 굴리고 칸 안에서만, 넓은 화면(900px~) 왼쪽 메뉴 · 폰 위 탭, 오늘 쪽 칸 배치, 주·월 달력, 밀도 고리, 할 일 쪽. 색은 모두 `var(--…)`라 테마를 따른다 |
 | `public/` | `manifest.webmanifest`, `sw.js`, `_headers`, `icons/` |
 
 ## 정한 것
 
-- 색은 `styles.css`의 `:root` 한 곳. 지금은 Dropbox 브랜드 스타일을 참고한 '코코넛(밝게)' 안이다(색 3안 가운데 고르는 중). 로고·전용 글꼴은 쓰지 않는다.
+- 색은 `styles.css`의 `:root` 한 곳(기본 테마 '② 차분한 종이'), 다른 테마는 `themes.css`. 새 색 값 이름을 만들면 `themes.css` 각 블록에도 넣는다(`themes.test.js`가 잰다). 로고·전용 글꼴은 쓰지 않는다.
 - 아이콘 원본은 `public/icons/icon.svg`·`icon-maskable.svg`. PNG는 다시 만든다:
   `rsvg-convert -w 512 icon.svg -o icon-512.png` (192, maskable 512, apple-touch 180도 같은 방법).
 - 서비스 워커는 화면 파일만 저장하고 `/api`(개인 자료)는 저장하지 않는다.

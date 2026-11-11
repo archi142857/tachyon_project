@@ -357,11 +357,11 @@ export default function Dashboard({ example, installPrompt, ttwLink, onOpenSetup
           ))}
         </nav>
         {(page === 'today' || page === 'cal') && (
-          <div className="subbar only-narrow">
+          <section className="subbar only-narrow" aria-label="보기 고르기">
             <span className="date num">{page === 'today' ? dateText : ''}</span>
             <span className="grow" />
             {controls}
-          </div>
+          </section>
         )}
 
         <main className={`page page-${page}`} data-pane={pane}>

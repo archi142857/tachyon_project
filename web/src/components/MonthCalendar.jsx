@@ -60,11 +60,14 @@ export default function MonthCalendar({ anchor, events, tasks, now, density, onP
               key={day.toISOString()}
               type="button"
               className={`mcell${out ? ' out' : ''}${today ? ' today' : ''}`}
-              aria-label={`${p.m}월 ${p.d}일 ${WEEKDAYS[p.wd]}요일, ${lines.length ? `${lines.length}개` : '비어 있음'}. 그 주 보기`}
               onClick={() => onDay(day)}
             >
+              {/* 이름 = 화면 읽기용 날짜 한 줄 + 보이는 글자(보이는 글자가 이름 안에 있어야 한다) */}
+              <span className="sr-only">{`${p.m}월 ${p.d}일 ${WEEKDAYS[p.wd]}요일, ${lines.length ? `${lines.length}개` : '비어 있음'}, 그 주 보기. `}</span>
               <span className="mtop">
-                <span className="mdn num">{p.d}</span>
+                <span className="mdn num" aria-hidden="true">
+                  {p.d}
+                </span>
                 <DensityRing day={density(day)} size={18} />
               </span>
               {shown.map((l) => (

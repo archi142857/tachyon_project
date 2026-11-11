@@ -21,7 +21,7 @@ export function TaskRow({ task, now, onDone, onEdit }) {
           <span className={late ? 'due late-due' : soon ? 'due soon' : 'due'}>{deadlineLabel(task.due, now)}</span>
           {minutes && <span className="min"> · {minutes}</span>}
           {slack && <span className={task.slack_days < 0 ? 'min short' : 'min'}> · {slack}</span>}
-          {ready && <span> · {ready}</span>}
+          {ready && <span className="ready"> · {ready}</span>}
         </span>
       </span>
     </div>

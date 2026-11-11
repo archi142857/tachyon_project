@@ -1,0 +1,169 @@
+/* 앱 틀(11-11 사람 피드백): 모든 기기에서 화면을 꽉 채우고, 문서 전체는 굴리지 않고 칸 안에서만 굴린다.
+   넓은 화면(900px부터) = 왼쪽 메뉴 + 오른쪽 내용, 폰 = 위 막대 + 작은 탭 + 한 번에 한 칸. 메모 칸은 늘 맨 아래.
+   모양은 dhsrua555 시연 9판(100dvh 앱 틀)을 차분한 종이로. 색은 모두 테마 값(var(--…))이라 테마를 바꾸면 같이 바뀐다.
+   styles.css 다음에 불러서, 옛 틀의 붙박이(위 막대 sticky, 메모 칸 fixed)를 이 틀 안에서만 풀어 준다. */
+
+/* ── 보이기·숨기기 ── */
+@media (max-width: 899.98px) {
+  .only-wide { display: none !important; }
+}
+@media (min-width: 900px) {
+  .only-narrow { display: none !important; }
+}
+@media not (min-width: 1440px) {
+  .only-xl { display: none !important; }
+}
+
+/* ── 틀 ── */
+.shell { display: grid; grid-template-columns: minmax(0, 1fr); height: 100dvh; overflow: hidden; background: var(--bg); }
+.shell > .main { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; height: 100dvh; }
+.shell .topbar { position: static; flex: none; height: calc(52px + env(safe-area-inset-top)); padding-left: 16px; }
+.shell .topbar .date { font-family: var(--font-head); font-size: 17px; line-height: 24px; font-weight: 700; color: var(--heading); white-space: nowrap; }
+.shell .topbar > .only-wide { display: inline-flex; align-items: center; }
+.shell .page { flex: 1; min-height: 0; overflow: auto; padding: 8px 12px 4px; overscroll-behavior: contain; }
+.shell .composer { position: static; flex: none; padding: 6px 12px calc(10px + env(safe-area-inset-bottom)); }
+.shell .popup { position: absolute; left: 12px; right: 12px; bottom: calc(76px + env(safe-area-inset-bottom)); width: auto; max-width: 480px; margin: 0 auto; } /* 메모 칸 바로 위 가운데(옛 PC 규칙의 width·margin을 되돌림) */
+
+/* 왼쪽 메뉴(넓은 화면) */
+.side { display: none; }
+.side-brand { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 10px; }
+.side-nav { display: grid; gap: 2px; }
+.side-nav button { display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 44px; padding: 0 10px 0 12px; border: 0; border-left: 3px solid transparent; border-radius: 0 var(--r-btn) var(--r-btn) 0; background: transparent; color: var(--text2); font: inherit; font-size: 15px; font-weight: 500; text-align: left; cursor: pointer; }
+.side-nav button:hover { background: var(--grid); }
+.side-nav button[aria-current='page'] { border-left-color: var(--accent); background: var(--fill); color: var(--heading); font-weight: 700; }
+.side-nav .count, .tabs .count { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 9999px; background: var(--fill); color: var(--text2); font-size: 12px; line-height: 20px; font-weight: 700; text-align: center; }
+.side-nav button[aria-current='page'] .count { background: var(--card); }
+
+/* 위 탭(폰) */
+.tabs { flex: none; display: flex; gap: 2px; padding: 0 8px; border-bottom: 1px solid var(--line); }
+.tabs button { flex: 1; height: 40px; margin-bottom: -1px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text3); font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; }
+.tabs button[aria-current='page'] { color: var(--heading); font-weight: 700; border-bottom-color: var(--accent); }
+.subbar { flex: none; display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 6px 12px 0 16px; }
+.subbar .date { font-family: var(--font-head); font-size: 16px; line-height: 22px; font-weight: 700; color: var(--heading); white-space: nowrap; }
+.subbar .grow, .shell .topbar .grow { flex: 1; }
+.shell .segmented { padding: 3px; }
+.shell .segmented button { height: 34px; padding: 0 12px; font-size: 14px; }
+
+/* ── 오늘 쪽: 폰은 하루 | 일정 | 할 일 가운데 한 칸, 넓은 화면은 왼쪽 타임라인 · 오른쪽 고리와 할 일(아주 넓으면 메모까지) ── */
+.today-grid { height: 100%; min-height: 0; display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+.today-grid > .card { min-width: 0; min-height: 0; }
+@media (max-width: 899.98px) {
+  /* 폰 오늘 쪽 할 일 줄은 이름 + 마감 한 줄만(걸리는 시간·여유·지금 가능·넣어 본 자리는 할 일 쪽과 넓은 화면에서) */
+  .today-grid .task .ready, .today-grid .slot-note { display: none; }
+  .page-today[data-pane='ring'] .today-grid > :not(.ring-card),
+  .page-today[data-pane='day'] .today-grid > :not(.day),
+  .page-today[data-pane='tasks'] .today-grid > :not(.tasks) { display: none; }
+}
+/* 타임라인: 칸 높이에 하루를 맞춘다(TodayView는 --day-h를 하루 높이로 쓴다). 100cqh = 이 칸의 높이 */
+.today-grid > .day { container-type: size; padding: 10px 12px 12px; cursor: pointer; --day-h: max(240px, calc(100cqh - 58px)); }
+/* 고리: 칸의 폭과 높이 가운데 작은 쪽에 맞춘다 */
+.today-grid > .ring-card { container-type: size; padding: 8px 12px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+.today-grid > .ring-card .ring-wrap { width: max(160px, min(400px, 100cqw - 24px, 100cqh - 64px)); }
+.today-grid > .tasks { overflow-y: auto; overscroll-behavior: contain; }
+.today-memo { min-width: 0; min-height: 0; flex-direction: column; }
+.today-memo > .memo { flex: 1; }
+.today-memo .memo-log { max-height: none; }
+
+/* ── 달력 쪽: 주·월 모두 쪽을 꽉 채우고, 주간의 시간 칸만 안에서 굴린다 ── */
+.page-cal > .card { height: 100%; min-height: 0; display: flex; flex-direction: column; }
+.page-cal > .cal .cal-scroll { flex: 1; min-height: 0; max-height: none; overscroll-behavior: contain; container-type: size; }
+/* 시간 칸 높이: 남은 높이를 시간 수로 나눠 꽉 채우되, 한 시간이 30px보다 작아지면 그때부터 굴린다(--hours는 WeekCalendar가 준다) */
+.page-cal > .cal .cal-scroll { --hour: max(30px, calc(100cqh / var(--hours, 12))); }
+.axis-label { font-size: 11px; line-height: 14px; font-weight: 500; color: var(--text3); align-self: center; }
+.cal-days .dring, .cal-days .dring-empty { display: block; margin: 2px auto 0; }
+.cal-days .dh { display: block; min-height: 14px; font-size: 11px; line-height: 14px; color: var(--text3); }
+
+/* 날마다 밀도 고리(DensityRing): 남색 = 일정, 노란 형광 = 할 일 몫, 붉은 테 = 빈 시간보다 넘침 */
+.dring { flex: none; overflow: visible; }
+.dring circle { fill: none; stroke-width: 6; }
+.dring .track { stroke: var(--grid); }
+.dring .ev { stroke: var(--accent); }
+.dring .task { stroke: var(--highlight); }
+.dring.over .track { stroke: var(--stamp); stroke-width: 7.5; }
+.dring.past { opacity: 0.45; }
+.dring-empty { display: inline-block; flex: none; }
+
+/* 주 머리의 '고르게' 줄: 날마다 막대(일정 남색 + 할 일 노랑) · 평균선 · 마감 날 몰아서 할 때의 옅은 테 */
+.cal-bal .axis-label { writing-mode: vertical-rl; justify-self: center; font-size: 10px; line-height: 12px; letter-spacing: 0.05em; }
+.cal-bal { position: relative; display: grid; grid-template-columns: 24px repeat(7, minmax(0, 1fr)); height: 40px; margin: 2px 0 2px; }
+.bal-cell { position: relative; margin: 0 22%; }
+.bal-cell i { position: absolute; left: 0; right: 0; bottom: 0; display: block; border-radius: 2px 2px 0 0; }
+.bal-naive { border: 1px dashed var(--line-strong); background: transparent; }
+.bal-ev { background: var(--accent); }
+.bal-task { background: var(--highlight); }
+.bal-avg { position: absolute; left: 24px; right: 0; height: 0; border-top: 1.5px dashed var(--stamp); pointer-events: none; }
+.bal-note { margin: 0 0 4px; padding-left: 26px; font-size: 12px; line-height: 16px; color: var(--text2); }
+.bal-note .soft { color: var(--text3); }
+
+/* 월 달력: 6주 칸이 쪽을 꽉 채운다. 칸 = 날짜 · 고리 · 마감(시각 먼저) · 일정, 넘치면 +N */
+.month-wd { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: 2px 0 4px; text-align: center; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--text3); }
+.month-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: repeat(6, minmax(0, 1fr)); gap: 1px; background: var(--grid); border: 1px solid var(--grid); border-radius: var(--r-chip); overflow: hidden; }
+.mcell { min-width: 0; min-height: 0; display: flex; flex-direction: column; align-items: stretch; gap: 1px; padding: 3px 3px 2px; border: 0; background: var(--card); color: var(--text); font: inherit; text-align: left; overflow: hidden; cursor: pointer; }
+.mcell:hover { background: var(--inset); }
+.mcell.out { background: var(--bg); }
+.mcell.out .mdn { color: var(--text3); }
+.mtop { display: flex; align-items: center; justify-content: space-between; gap: 2px; }
+.mdn { min-width: 22px; height: 22px; padding: 0 4px; border-radius: var(--r-btn); font-size: 13px; line-height: 22px; font-weight: 700; text-align: center; }
+.mcell.today .mdn { background: var(--accent); color: var(--on-accent); }
+.mline { display: block; padding: 0 3px; border-radius: 2px; font-size: 11px; line-height: 15px; color: var(--ev-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mline b { font-weight: 700; }
+.mline.deadline { background: var(--ev-deadline); }
+.mline.timetable { background: var(--ev-class); }
+.mline.memo { background: var(--ev-memo); height: auto; min-height: 0; display: block; padding: 0 3px; } /* 메모 카드(.memo)와 이름이 겹쳐서 되돌림 */
+.mline.ics, .mline.allday { background: var(--ev-ics); }
+.mmore { font-size: 11px; line-height: 14px; color: var(--text3); padding-left: 3px; }
+@media (max-width: 599.98px) {
+  .mline { font-size: 10px; line-height: 14px; padding: 0 2px; }
+  .mline b { display: none; } /* 폰 월 칸은 좁아서 이름만 — 시각은 누르면 나오는 주간에서 */
+  .mtop .dring, .mtop .dring-empty { width: 14px; height: 14px; }
+}
+
+/* ── 할 일 쪽: 전체 목록(무리별) + 날마다 나눠 둔 몫. 넓은 화면은 두 칸 ── */
+.tasks-grid { height: 100%; min-height: 0; display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1.6fr) minmax(0, 1fr); }
+.tasks-grid > .card { min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: 10px 12px 4px; }
+.list-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.task-list .task .min { display: inline; } /* 할 일 쪽에서는 폰도 걸리는 시간·여유까지 */
+.task-list .task .meta { white-space: normal; }
+.group-title { margin: 10px 2px 2px; font-size: 13px; line-height: 18px; font-weight: 700; color: var(--text2); }
+.task-group.late .group-title { color: var(--danger); }
+.share-line { margin: 0 2px 6px; font-size: 12px; line-height: 16px; color: var(--text2); }
+.share-day { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 8px; padding: 6px 2px; border-top: 1px solid var(--line); }
+.share-date { margin: 0; font-size: 13px; line-height: 18px; font-weight: 700; color: var(--heading); }
+.share-body { display: grid; gap: 2px; min-width: 0; }
+.share-item { display: block; width: 100%; padding: 2px 6px; border: 0; border-radius: var(--r-chip); background: var(--postit); color: var(--text); font: inherit; font-size: 13px; line-height: 18px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.due.late-due { color: var(--danger); font-weight: 700; }
+.due.soon { color: var(--heading); font-weight: 700; }
+
+/* ── 메모 쪽: 쌓인 메모가 쪽 전체 높이 ── */
+.memo-page { height: 100%; min-height: 0; display: flex; flex-direction: column; }
+.memo-page > .memo { flex: 1; }
+.memo-page .memo-log { max-height: none; }
+
+/* ── 넓은 화면 ── */
+@media (min-width: 900px) {
+  .shell { grid-template-columns: 200px minmax(0, 1fr); }
+  .side { display: flex; flex-direction: column; gap: 14px; min-height: 0; padding: calc(10px + env(safe-area-inset-top)) 12px 16px 0; border-right: 1px solid var(--line); background: var(--bg); }
+  .side-brand { padding-left: 18px; }
+  .shell .topbar { height: calc(60px + env(safe-area-inset-top)); padding-left: 24px; gap: 12px; }
+  .shell .page { padding: 4px 24px 8px; }
+  .shell .composer { padding: 6px 24px calc(14px + env(safe-area-inset-bottom)); }
+  .shell .composer form { max-width: 760px; }
+  .shell .popup { left: 24px; right: 24px; bottom: calc(82px + env(safe-area-inset-bottom)); }
+  .today-grid { grid-template-columns: minmax(260px, 0.85fr) minmax(0, 1.15fr); grid-template-rows: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-areas: 'day ring' 'day tasks'; }
+  .today-grid > .day { grid-area: day; }
+  .today-grid > .ring-card { grid-area: ring; }
+  .today-grid > .tasks { grid-area: tasks; }
+  .today-grid .task .min { display: inline; }
+  .tasks-grid { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .mline { font-size: 12px; line-height: 16px; }
+}
+@media (min-width: 1440px) {
+  .shell { grid-template-columns: 220px minmax(0, 1fr); }
+  .today-grid { grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.1fr) minmax(300px, 0.9fr); grid-template-areas: 'day ring memo' 'day tasks memo'; }
+  .today-memo { grid-area: memo; }
+}
+/* 키가 낮은 넓은 화면(노트북 가로 768 등): 위아래를 줄인다 */
+@media (min-width: 900px) and (max-height: 820px) {
+  .shell .topbar { height: calc(52px + env(safe-area-inset-top)); }
+  .shell .composer { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+}

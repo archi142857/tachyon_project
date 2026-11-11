@@ -139,7 +139,7 @@ export default function WeekCalendar({ start, events, tasks, now, density, isCur
         </div>
       )}
 
-      <div className="cal-scroll">
+      <div className="cal-scroll" style={{ '--hours': last - first }}>
         <div className="cal-grid" style={{ height: `calc(var(--hour) * ${last - first})` }}>
           {Array.from({ length: last - first - 1 }, (_, i) => (
             <div key={i} className="hline" style={{ top: `calc(var(--hour) * ${i + 1})` }} aria-hidden="true" />

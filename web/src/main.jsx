@@ -4,6 +4,7 @@ import App from './App.jsx';
 import { reportError } from './api.js';
 import './styles.css';
 import './themes.css';
+import './shell.css'; // 앱 틀(꽉 찬 화면, 칸 안에서만 굴림) — styles.css 다음에
 import { applyTheme, currentTheme } from './themes.js';
 
 // 지난번에 고른 테마를 첫 화면이 그려지기 전에 입힌다(메뉴 → 테마).
