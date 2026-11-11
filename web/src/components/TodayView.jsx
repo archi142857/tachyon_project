@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { layoutDay } from '../layout.js';
 import { dayEvents, daySlots, freeMinutes, hm } from '../slots.js';
 import { deadlineLabel, deadlineShort, minuteOfDay } from '../time.js';
+import { useParticles } from '../themeName.js';
 import DayRing from './DayRing.jsx';
 import { TaskRow } from './TasksCard.jsx';
 
@@ -22,6 +23,7 @@ function noSlot(task) {
 // today = 오늘 0시(ISO), tasks = 화면에 보일 할 일(순서대로), total = 안 끝낸 할 일 수
 export default function TodayView({ today, events, tasks, total, now, onDone, onEvent, onTask, onAll, onWeek }) {
   const [sel, setSel] = useState(null);
+  const particles = useParticles(); // 입자 테마면 하루 고리 범례도 입자 모양(DayRing과 같게)
   const nowMin = minuteOfDay(now);
   const busy = dayEvents(events, today);
   const slots = daySlots(tasks, busy, nowMin);
@@ -123,16 +125,16 @@ export default function TodayView({ today, events, tasks, total, now, onDone, on
             </button>
           </div>
         ) : (
-          <p className="ring-key">
+          <p className={particles ? 'ring-key particles' : 'ring-key'}>
             <span>
               <i className="key-dot" />
               수업
             </span>
             <span>
-              <i className="key-dot mine" />내 일정
+              <i className={particles ? 'key-dot mine' : 'key-sq'} />내 일정
             </span>
             <span>
-              <i className="key-dot slot" />할 일을 넣어 본 자리
+              <i className={particles ? 'key-dot slot' : 'key-tri'} />할 일을 넣어 본 자리
             </span>
             <span>
               <i className="key-now" />지금
