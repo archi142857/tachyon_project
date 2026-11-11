@@ -347,7 +347,7 @@ test("시각 글자 모양", () => {
 
 // ── 아는 일정으로 채우기 (lib/known.js): AI에게는 일정을 안 보낸다 ──
 
-import { abbreviates, likeness, useKnown } from "../lib/known.js";
+import { abbreviates, likeness, useKnown, suggestFree } from "../lib/known.js";
 
 // 지어낸 일정: 월·수 09:30 수업, 수요일 시험, 금요일 기말
 const weekly = (title, firstDate, n, time, end, place = null) =>
@@ -443,4 +443,39 @@ test("메모 → 팝업(내 일정 반영) → 옮겨 저장: 옛 일정은 달�
   assert.ok(!(await week()).includes("공학수학 2 중간 2") && (await week()).includes("공학수학 2 중간고사"));
   await items.handle(new Request(`https://x.test/api/events/${saved.body.event.id}`, { method: "DELETE" }), { DB }, fakeCtx(), user);
   assert.ok((await week()).includes("공학수학 2 중간 2") && !(await week()).includes("공학수학 2 중간고사"));
+});
+
+test("시간대만 쓴 메모: 그 시간대에서 비어 있는 1시간을 고른다 (없으면 종일 그대로)", () => {
+  const at = (a, b) => ({ start: `2026-11-12T${a}:00+09:00`, end: b ? `2026-11-12T${b}:00+09:00` : null });
+  const p = base({ title: "조 모임", date: "2026-11-12" });
+  const NOW = "2026-11-11T09:00:00+09:00";
+  const pick = (text, busy = [], now = NOW, popup = p) => {
+    const r = suggestFree(popup, text, busy, now);
+    return r.free ? `${r.time}~${r.end_time}` : r.time;
+  };
+  assert.equal(pick("11월 12일 늦은 밤에 조 모임"), "22:00~23:00");
+  assert.equal(suggestFree(p, "11월 12일 늦은 밤에 조 모임", [], NOW).free, "늦은 밤");
+  assert.equal(pick("11월 12일 늦은 밤에 조 모임", [at("21:00", "22:30")]), "22:30~23:30");
+  assert.equal(pick("11월 12일 늦은 밤에 조 모임", [at("22:00", null)]), "23:00~23:59"); // 끝을 모르는 일정은 1시간으로 본다. 자정은 23:59
+  assert.equal(pick("11월 12일 늦은 밤에 조 모임", [at("21:00", "23:30")]), "?"); // 빈 1시간이 없으면 종일
+  assert.equal(pick("12일 저녁 약속", [{ start: "2026-11-12", end: "2026-11-13" }]), "18:00~19:00"); // 종일 일정은 안 막는다
+  assert.equal(pick("12일 저녁 약속", [{ start: "2026-11-11T23:00:00+09:00", end: "2026-11-12T19:00:00+09:00" }]), "19:00~20:00"); // 전날부터 이어진 일정
+  assert.equal(pick("12일 오후에 면담", [], "2026-11-12T14:10:00+09:00"), "14:30~15:30"); // 오늘이면 지금 뒤
+  assert.equal(pick("12일 조 모임"), "?"); // 시간대 말이 없으면 그대로
+  assert.equal(pick("12일 밤샘 과제"), "?"); // 낱말 속 '밤'은 아님
+  assert.equal(pick("12일 밤에 회의", [], NOW, { ...p, time: "19:00" }), "19:00"); // 시각이 이미 있으면 안 건드린다
+  assert.equal(suggestFree({ ...p, title: "늦은 밤에 조 모임" }, "11월 12일 늦은 밤에 조 모임", [], NOW).title, "조 모임");
+});
+
+test("메모 → 팝업: 시간대만 쓰면 DB의 그날 내 일정을 피해 고른다 (남의 일정·가려진 일정은 안 본다)", async () => {
+  const DB = fakeD1();
+  const user = addUser(DB);
+  const other = addUser(DB, { email: "other@example.com", googleSub: "sub-other" });
+  const add = DB.sqlite.prepare(`INSERT INTO events (user_id, title, start, "end", source, ext_id, moved_to) VALUES (?, '동아리', ?, ?, 'google', ?, ?)`);
+  add.run(user.id, "2026-11-12T22:00:00+09:00", "2026-11-12T22:30:00+09:00", "a", null);
+  add.run(user.id, "2026-11-12T22:30:00+09:00", "2026-11-12T23:30:00+09:00", "b", 1); // 가려진 일정
+  add.run(other.id, "2026-11-12T22:30:00+09:00", "2026-11-12T23:30:00+09:00", "c", null);
+  const fetch = async () => aiReply({ is_schedule: true, title: "조 모임", date: "2026-11-12", time: "?", end_time: "?", place: "?" });
+  const popup = await suggestEvent({ ANTHROPIC_API_KEY: "k", DB }, "11월 12일 늦은 밤에 조 모임", new Date("2026-11-11T09:17:00+09:00"), { userId: user.id, fetch });
+  assert.deepEqual(popup, { title: "조 모임", date: "2026-11-12", time: "22:30", end_time: "23:30", place: "?", by: "ai", free: "늦은 밤" });
 });

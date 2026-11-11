@@ -7,6 +7,7 @@
 //   날짜·시각 말이 없는 메모도 AI가 일정·할 일·그냥 메모를 가린다(지난 일은 AI를 부르지 않음). AI가 없거나 실패하면 규칙(looksLikeTodo).
 // 그냥 메모(생각·지난 일)와 팝업을 '취소'한 일정 메모는 메모로 남고, 밤 정리(4_night.js)가 읽는다. 할 일 팝업을 취소하면 밤 정리도 할 일로 만들지 않는다.
 // 아는 일정으로 채우기(lib/known.js, AI 없이): '공수2 휴강 16일' → 내 '공학수학 2' 수업 시각·장소(popup.from),
+//       '12일 늦은 밤에 회의'처럼 시간대만 쓰면 그 시간대의 비어 있는 1시간(popup.free),
 //       '… 16일로 변경' → 옮길 일정(popup.change). 저장 때 change_id를 주면 새 일정을 넣고 옛 일정은 가린다(events.moved_to).
 //
 // 주소 (worker/index.js가 /api/memo* 를 여기로 보낸다. 응답은 모두 JSON)
@@ -21,12 +22,12 @@
 //
 // 할 일 popup 모양: { kind: "task", title, date: 마감 날짜 또는 "?", time: 마감 시각 또는 "?", by }
 // 일정 popup 모양: { title, date: "2026-11-10", time: "15:00", end_time: "?", place: "301동", by: "ai" | "rule",
-//               from: "공학수학 2"(시각·장소를 가져온 내 일정, 없으면 없음), change: { id, title, start }(옮길 일정, 없으면 없음) }
+//               from: "공학수학 2"(시각·장소를 가져온 내 일정, 없으면 없음), free: "늦은 밤"(이 시간대의 빈 시간을 골랐음, 없으면 없음), change: { id, title, start }(옮길 일정, 없으면 없음) }
 // 표: memos(쓰기·읽기), events·tasks(source='memo', ext_id='memo:<메모 id>' — 밤 정리와 같은 이름), log(popup_save·popup_edit·popup_cancel·llm·llm_fail)
 
 import { askJson, usageDetail } from "./llm.js";
 import { SYSTEM, SCHEMA, userMessage } from "./prompts/memo_popup.js";
-import { useKnown } from "./lib/known.js";
+import { useKnown, suggestFree } from "./lib/known.js";
 
 export async function handle(request, env, ctx, user) {
   if (!user) return json({ error: "로그인이 필요하다" }, 401);
@@ -173,10 +174,14 @@ export async function suggestEvent(env, text, now = new Date(), { ctx, userId, f
     }
   };
   // AI에게 묻는 동안 내 일정을 읽는다(기다리는 시간이 안 늘고, AI에게는 일정을 안 보낸다 = 토큰 그대로)
-  const [ai, known] = await Promise.all([askAi(), when ? loadKnown(env, userId, text, now) : []]);
+  const [ai, known, busy] = await Promise.all([
+    askAi(),
+    when ? loadKnown(env, userId, text, now) : [],
+    when && !when.time ? loadDay(env, userId, when.date) : [], // 시각을 안 썼을 때만: 빈 시간 고르기에 쓴다
+  ]);
   const popup = mergePopup(text, when, ai, now);
   if (!popup || popup.kind === "task") return popup;
-  return useKnown(popup, text, known, isoKst(now).slice(0, 10));
+  return suggestFree(useKnown(popup, text, known, isoKst(now).slice(0, 10)), text, busy, isoKst(now));
 }
 
 /** 날짜·시각 말이 없는 메모를 AI에게 물을 만한가: 글자가 있고(2자 이상), 지난 일(~했다·~었음)이 아니면 */
@@ -200,6 +205,18 @@ async function loadKnown(env, userId, text, now) {
     .all()
     .then((r) => r.results)
     .catch(() => []); // 일정을 못 읽어도 팝업은 뜬다
+}
+
+/** 그날에 걸친 내 일정의 시작·끝(옮긴 것 빼고) */
+async function loadDay(env, userId, date) {
+  if (!env.DB || !userId) return [];
+  return env.DB.prepare(
+    `SELECT start, "end" FROM events WHERE user_id = ?1 AND moved_to IS NULL AND start < ?2 AND (start >= ?3 OR "end" > ?3)`,
+  )
+    .bind(userId, addDays(date, 1), date)
+    .all()
+    .then((r) => r.results)
+    .catch(() => []);
 }
 
 /** 빠른 모델에게 묻기 (위험 확인 스크립트 worker/check/haiku_latency.js도 이걸 쓴다) */

@@ -2,7 +2,7 @@
 // 할 일 메모(popup.kind = 'task', 11-10 사람 "할 일만 딱 적으면 메모가 안 생김")는 '할 일로 넣을까요?' — 이름·마감만(TaskPopup).
 // 서버가 준 popup { title, date, time, end_time, place }의 모르는 칸('?')은 그대로 '?'로 보인다(앱 프롬프트 규칙).
 // 이름이나 날짜를 모르면 '저장' 대신 고치기 칸부터 연다(서버는 이름·날짜가 없으면 받지 않는다).
-// popup.from = 시각·장소를 가져온 내 일정 이름(알려 준다), popup.change = 옮길 일정(저장하면 그 일정은 달력에서 빠진다. 끌 수 있다).
+// popup.from = 시각·장소를 가져온 내 일정 이름(알려 준다), popup.free = 빈 시간을 고른 시간대 말(알려 준다), popup.change = 옮길 일정(저장하면 그 일정은 달력에서 빠진다. 끌 수 있다).
 import { useState } from 'react';
 import { WEEKDAYS, dayStartKst, isDateOnly, kst, timeInput } from '../time.js';
 import EventForm, { formToPopup, popupToForm } from './EventForm.jsx';
@@ -120,6 +120,7 @@ function EventPopup({ popup, busy, onSave, onCancel }) {
             <dd>{show(popup.place)}</dd>
           </dl>
           {popup.time === '?' && popup.date !== '?' && <p className="hint" style={{ marginTop: 6 }}>시각을 모르면 하루 종일 일정으로 넣어요.</p>}
+          {popup.free && <p className="hint" style={{ marginTop: 6 }}>‘{popup.free}’에서 비어 있는 시간으로 골랐어요. 바꾸려면 고치기를 눌러요.</p>}
           {popup.from && <p className="hint" style={{ marginTop: 6 }}>시간은 내 일정 ‘{popup.from}’에서 가져왔어요.</p>}
         </>
       )}

@@ -3,7 +3,8 @@
 // 흐름: 팝업 이름에서 내 일정 이름을 찾는다(줄임말도: '공수2' = '공학수학 2')
 //   1. 시각을 모르면: 그 이름의 되풀이 일정(수업 등)이 그날이나 같은 요일에 있을 때 그 시각·장소로 채운다 → popup.from
 //   2. 메모에 '변경·옮김·미룸' 말이 있으면: 앞으로 올 한 번짜리 일정 가운데 옮길 것을 찾는다 → popup.change
-// 둘 다 가장 닮은 것이 하나로 정해질 때만 쓴다(비기면 건드리지 않는다). 사용자는 팝업에서 보고 고칠 수 있다.
+//   3. 시각 없이 '늦은 밤'·'저녁' 같은 시간대만 썼으면: 그날 그 시간대에서 비어 있는 1시간을 고른다 → popup.free (suggestFree)
+// 1·2는 가장 닮은 것이 하나로 정해질 때만 쓴다(비기면 건드리지 않는다). 사용자는 팝업에서 보고 고칠 수 있다.
 
 export const CHANGE = /변경|바뀜|바뀌|바꿔|바꿈|옮김|옮기|옮겨|미룸|미뤄|미루|연기됨|연기됐|연기되|당김|당겨/;
 const CHANGE_WORDS = new RegExp(`\\s*(?:일정\\s*)?(?:(?:으로|로)\\s+)?\\S*(?:${CHANGE.source})\\S*`, "g");
@@ -106,4 +107,43 @@ export function useKnown(popup, text, events, today) {
     }
   }
   return out;
+}
+
+// 시간대 말 → [시작 분, 끝 분]. 앞의 것이 먼저다('늦은 밤'이 '밤'보다 먼저). 낱말로 떨어져 있을 때만('밤샘'·'낮잠'은 아님)
+// ponytail: '새벽'은 사람마다 0시도 5시도 되어서 뺐다(종일로 남는다). 길이는 늘 1시간, 30분 칸.
+const word = (w) => new RegExp(`(?<![가-힣])(?:${w})(?=에|쯤|\\s|$)`);
+const PARTS = [
+  [word("늦은\\s*밤|밤\\s*늦게|심야|한밤중?"), 22 * 60, 24 * 60],
+  [word("아침"), 8 * 60, 10 * 60],
+  [word("오전"), 9 * 60, 12 * 60],
+  [word("점심"), 12 * 60, 14 * 60],
+  [word("낮"), 13 * 60, 17 * 60],
+  [word("오후"), 13 * 60, 18 * 60],
+  [word("저녁"), 18 * 60, 21 * 60],
+  [word("밤"), 20 * 60, 24 * 60],
+];
+const SLOT = 60;
+const hhmm = (min) => (min >= 1440 ? "23:59" : `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`);
+
+/**
+ * 시각을 모르는 팝업 + 메모의 시간대 말 → 그 시간대에서 내 일정과 안 겹치는 가장 이른 1시간. 없으면 그대로(종일).
+ * @param busy   그날 걸친 내 일정 [{ start, end }] (종일 일정은 막지 않는다, 끝을 모르면 1시간으로 본다)
+ * @param nowIso "2026-11-10T21:40:00+09:00" — 오늘이면 지금 뒤에서만 고른다
+ */
+export function suggestFree(popup, text, busy, nowIso) {
+  if (popup.time !== "?") return popup;
+  const hit = PARTS.map(([re, from, to]) => [re.exec(text), from, to]).find(([m]) => m);
+  if (!hit) return popup;
+  const [[said], from, to] = hit;
+  const day0 = Date.parse(`${popup.date}T00:00:00+09:00`);
+  const spans = busy
+    .filter((e) => e.start.length > 10)
+    .map((e) => [(Date.parse(e.start) - day0) / 60000, e.end ? (Date.parse(e.end) - day0) / 60000 : (Date.parse(e.start) - day0) / 60000 + SLOT]);
+  const nowMin = popup.date === nowIso.slice(0, 10) ? Number(nowIso.slice(11, 13)) * 60 + Number(nowIso.slice(14, 16)) : 0;
+  for (let t = Math.max(from, Math.ceil(nowMin / 30) * 30); t + SLOT <= to; t += 30) {
+    if (spans.some(([s, e]) => s < t + SLOT && e > t)) continue;
+    const title = popup.title.replace(new RegExp(`${said}(?:에|쯤에?)?\\s*`), "").trim() || popup.title; // AI 없이 뽑은 이름에 남은 '늦은 밤에'
+    return { ...popup, title, time: hhmm(t), end_time: hhmm(t + SLOT), free: said };
+  }
+  return popup;
 }
