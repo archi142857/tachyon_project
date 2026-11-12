@@ -473,3 +473,9 @@
 .ty9.y-ph .y-hx { flex: none; }
 /* 폰: 오늘 쪽에는 타임라인을 두지 않는다(빽빽해서). 달력은 달력 탭에서 본다 (사람 11-12 09:47) */
 .ty9.y-ph .y-tc { display: none; }
+/* 폰: 오늘 남은 일정 목록(타임라인 대신). 넓은 화면에서는 타임라인이 있어 숨긴다 (사람 11-12 09:59 "할 일이 없을 때 하단이 너무 비어") */
+.ty9 .y-later { display: none; }
+.ty9.y-ph .y-later { display: block; margin-top: 18px; }
+.ty9 .y-later .y-ti { cursor: pointer; }
+/* 폰: 고리는 화면 너비에 맞춰 키운다(폴드처럼 넓은 폰에서 고리만 작아 보이지 않게), 키가 낮으면 높이에 맞춘다 */
+.ty9.y-ph .y-hx .y-rw { width: clamp(196px, min(56vw, 34vh), 340px); }

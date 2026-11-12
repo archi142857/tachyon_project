@@ -169,7 +169,7 @@ export default function OursMain({ app }) {
         <div className="y-md">
           {popup && (
             <div className="y-host y-pop">
-              <MemoPopup key={popup.memoId} popup={popup.popup} busy={busy} onSave={savePopup} onCancel={cancelPopup} />
+              <MemoPopup key={popup.memoId} popup={popup.popup} plan={{ events: app.planEvents, tasks: app.openTasks, today: app.today, now }} busy={busy} onSave={savePopup} onCancel={cancelPopup} />
             </div>
           )}
           {open && page !== 'memo' && (

@@ -1,11 +1,15 @@
 // 메모 즉시 팝업: '이대로 저장할까요?' → 저장 / 고치기 / 취소.
 // 할 일 메모(popup.kind = 'task', 11-10 사람 "할 일만 딱 적으면 메모가 안 생김")는 '할 일로 넣을까요?' — 이름·마감만(TaskPopup).
+//   11-12 사람: 한 메모의 여러 할 일(popup.also)은 줄마다 따로 넣고, 할 일마다 예상 시간(popup.minutes)과 오늘 추천 시간을 보인다.
+//   추천 시간 = 오늘 할 일 목록 뒤에 이어서 빈 시간에 넣어 본 자리(slots.js, 오늘 화면과 같은 계산). plan이 없으면 안 보인다.
 // 서버가 준 popup { title, date, time, end_time, place }의 모르는 칸('?')은 그대로 '?'로 보인다(앱 프롬프트 규칙).
 // 이름이나 날짜를 모르면 '저장' 대신 고치기 칸부터 연다(서버는 이름·날짜가 없으면 받지 않는다).
 // popup.from = 시각·장소를 가져온 내 일정 이름(알려 준다), popup.free = 빈 시간을 고른 시간대 말(알려 준다), popup.change = 옮길 일정(저장하면 그 일정은 달력에서 빠진다. 끌 수 있다).
 // popup.repeat = 매주 되풀이 메모({ until: 학기 끝 }). 켜 둔 채 저장하면 그날까지 주마다 넣는다. 끌 수 있다.
 import { useState } from 'react';
-import { WEEKDAYS, dayStartKst, isDateOnly, kst, timeInput } from '../time.js';
+import { dayEvents, daySlots, hm } from '../slots.js';
+import { minutesLabel } from '../tasks.js';
+import { WEEKDAYS, dayStartKst, isDateOnly, kst, minuteOfDay, timeInput } from '../time.js';
 import EventForm, { formToPopup, popupToForm } from './EventForm.jsx';
 
 function timeText(p) {
@@ -32,24 +36,44 @@ function dueText(p) {
   return `${m}월 ${d}일 (${wd})${p.time && p.time !== '?' ? ` ${p.time}` : ''}까지`;
 }
 
-function TaskPopup({ popup, busy, onSave, onCancel }) {
+// 할 일마다 '예상 1시간 · 추천 14:00–15:00'. 오늘 화면처럼 열린 할 일 6개 뒤에 이어서 넣어 본다
+function planText(items, plan) {
+  const shown = plan ? plan.tasks.slice(0, 6) : [];
+  const slots = plan ? daySlots([...shown, ...items.map((t) => ({ minutes: t.minutes, ready: 1 }))], dayEvents(plan.events, plan.today), minuteOfDay(plan.now)).slice(shown.length) : [];
+  return items.map((t, i) => {
+    const time = t.minutes ? `예상 ${minutesLabel(t.minutes).replace('약 ', '')}` : '예상 시간 ?';
+    if (!plan || !t.minutes) return time;
+    return `${time} · ${slots[i] ? `추천 ${hm(slots[i][0])}–${hm(slots[i][1])}` : '오늘은 빈 시간이 없어요'}`;
+  });
+}
+
+function TaskPopup({ popup, plan, busy, onSave, onCancel }) {
   const [editing, setEditing] = useState(popup.title === '?');
   const [form, setForm] = useState(() => ({
-    title: popup.title === '?' ? '' : popup.title,
+    titles: [popup.title === '?' ? '' : popup.title, ...(popup.also ?? []).map((t) => t.title)],
     date: popup.date === '?' ? '' : popup.date,
     time: popup.time === '?' ? '' : popup.time,
   }));
+  const items = [{ title: popup.title, minutes: popup.minutes ?? null }, ...(popup.also ?? [])];
+  const notes = planText(items, plan);
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
-  const toFields = (f) => ({ kind: 'task', title: f.title.trim() || '?', date: f.date || '?', time: f.date && f.time ? f.time : '?' });
+  const setTitle = (i) => (e) => setForm((f) => ({ ...f, titles: f.titles.map((t, j) => (j === i ? e.target.value : t)) }));
+  // 고친 이름은 같은 자리의 예상 시간을 그대로 쓴다. 비운 줄은 넣지 않는다
+  const toFields = (f) => {
+    const [first, ...also] = f.titles.map((title, i) => ({ title: title.trim(), minutes: items[i]?.minutes ?? null })).filter((t) => t.title);
+    return { kind: 'task', title: first?.title || '?', minutes: first?.minutes ?? null, also, date: f.date || '?', time: f.date && f.time ? f.time : '?' };
+  };
   return (
     <div className="popup" role="dialog" aria-label="할 일로 넣을까요?">
-      <p className="popup-title">{editing ? '고쳐서 할 일로' : '할 일로 넣을까요?'}</p>
+      <p className="popup-title">{editing ? '고쳐서 할 일로' : items.length > 1 ? `할 일 ${items.length}개로 넣을까요?` : '할 일로 넣을까요?'}</p>
       {editing ? (
         <div className="form-grid">
-          <label className="field">
-            <span>이름</span>
-            <input className="input" value={form.title} onChange={set('title')} autoComplete="off" />
-          </label>
+          {form.titles.map((title, i) => (
+            <label key={i} className="field">
+              <span>{form.titles.length > 1 ? `이름 ${i + 1}` : '이름'}</span>
+              <input className="input" value={title} onChange={setTitle(i)} autoComplete="off" />
+            </label>
+          ))}
           <label className="field">
             <span>마감 날짜(없으면 비워 두기)</span>
             <input className="input" type="date" value={form.date} onChange={set('date')} />
@@ -63,8 +87,15 @@ function TaskPopup({ popup, busy, onSave, onCancel }) {
         </div>
       ) : (
         <dl className="popup-rows">
-          <dt>이름</dt>
-          <dd>{show(popup.title)}</dd>
+          {items.map((t, i) => (
+            <div key={i} className="popup-task">
+              <dt>{items.length > 1 ? `할 일 ${i + 1}` : '이름'}</dt>
+              <dd>
+                {show(t.title)}
+                <small className="popup-plan num">{notes[i]}</small>
+              </dd>
+            </div>
+          ))}
           <dt>마감</dt>
           <dd className="num">{dueText(popup)}</dd>
         </dl>
@@ -73,8 +104,8 @@ function TaskPopup({ popup, busy, onSave, onCancel }) {
         <button
           type="button"
           className="btn"
-          disabled={busy || (editing && !form.title.trim())}
-          onClick={() => onSave(editing ? toFields(form) : { kind: 'task', title: popup.title, date: popup.date, time: popup.time })}
+          disabled={busy || (editing && !form.titles.some((t) => t.trim()))}
+          onClick={() => onSave(editing ? toFields(form) : { kind: 'task', title: popup.title, date: popup.date, time: popup.time, minutes: popup.minutes ?? null, also: popup.also ?? [] })}
         >
           넣기
         </button>
@@ -91,8 +122,8 @@ function TaskPopup({ popup, busy, onSave, onCancel }) {
   );
 }
 
-export default function MemoPopup({ popup, busy, onSave, onCancel }) {
-  if (popup.kind === 'task') return <TaskPopup popup={popup} busy={busy} onSave={onSave} onCancel={onCancel} />;
+export default function MemoPopup({ popup, plan, busy, onSave, onCancel }) {
+  if (popup.kind === 'task') return <TaskPopup popup={popup} plan={plan} busy={busy} onSave={onSave} onCancel={onCancel} />;
   return <EventPopup popup={popup} busy={busy} onSave={onSave} onCancel={onCancel} />;
 }
 

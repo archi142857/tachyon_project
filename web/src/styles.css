@@ -216,9 +216,12 @@ h1, h2, h3, p { margin: 0; }
   .popup { position: absolute; left: calc(100% - 24px); right: auto; bottom: 16px; width: 340px; margin: 0; }
 }
 .popup-title { font-family: var(--font-head); font-size: 17px; line-height: 24px; font-weight: 700; color: var(--heading); margin-bottom: 10px; }
-.popup-rows { display: grid; grid-template-columns: 40px minmax(0, 1fr); row-gap: 6px; column-gap: 12px; align-items: baseline; }
+.popup-rows { display: grid; grid-template-columns: minmax(40px, max-content) minmax(0, 1fr); row-gap: 6px; column-gap: 12px; align-items: baseline; }
 .popup-rows dt { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--postit-text2); }
 .popup-rows dd { margin: 0; font-size: 16px; line-height: 24px; }
+/* 할 일 팝업: 할 일마다 한 줄(11-12 여러 할 일), 이름 아래 예상 시간 · 추천 시간 */
+.popup-task { display: contents; }
+.popup-plan { display: block; font-size: 13px; line-height: 18px; color: var(--postit-text2); }
 .unknown { color: var(--text3); }
 .popup-move { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; min-height: 44px; }
 .popup-move input { margin-top: 2px; flex: none; }

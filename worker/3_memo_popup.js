@@ -19,11 +19,13 @@
 //                                 suggested = 받았던 popup 그대로(고쳤는지 재려고). 모르는 칸은 '?'
 //                                 change_id = 옮길 일정(popup.change.id). 주면 그 일정은 달력에서 가려진다
 //                                 repeat = true면 매주 넣는다(학기 끝까지). 응답의 repeat = 넣은 횟수, event = 첫 주 일정
-//                                 할 일: { kind: 'task', title, date, time, suggested } → { task }  (마감 날짜만 있으면 그날 23:59, 없으면 마감 없음)
+//                                 할 일: { kind: 'task', title, date, time, minutes, also, suggested } → { task, tasks }  (마감 날짜만 있으면 그날 23:59, 없으면 마감 없음)
+//                                 also = [{ title, minutes }] 같은 메모의 나머지 할 일(마감은 같게, ext_id 'memo:<id>:2' …), tasks = 넣은 할 일 모두
 //   POST   /api/memo/:id/cancel   { kind? }                   → { ok }            일정 팝업 취소: 메모는 남아서 밤 정리가 읽는다. 할 일 팝업 취소: 메모로만(handled = 1)
 //   DELETE /api/memo/:id                                      → { ok }
 //
-// 할 일 popup 모양: { kind: "task", title, date: 마감 날짜 또는 "?", time: 마감 시각 또는 "?", by }
+// 할 일 popup 모양: { kind: "task", title, date: 마감 날짜 또는 "?", time: 마감 시각 또는 "?", minutes?: 어림한 분, also?: [{ title, minutes }], by }
+//   (11-12 사람 "여러 개 한 메모에 적으면 분리해서 넣게") 이름 오타는 AI가 고친다. AI가 없으면 쉼표로만 나눈다
 // 일정 popup 모양: { title, date: "2026-11-10", time: "15:00", end_time: "?", place: "301동", by: "ai" | "rule",
 //               from: "공학수학 2"(시각·장소를 가져온 내 일정, 없으면 없음), free: "늦은 밤"(이 시간대의 빈 시간을 골랐음, 없으면 없음), change: { id, title, start }(옮길 일정, 없으면 없음),
 //               repeat: { until: "2026-12-14" }(매주 되풀이 메모, 없으면 없음) }
@@ -127,25 +129,42 @@ async function savePopup(request, env, ctx, user, memoId) {
   return json({ event: saved.results[0], ...(weeks.length ? { repeat: weeks.length + 1 } : {}) }); // repeat = 넣은 횟수
 }
 
-/** 할 일 팝업 저장 → tasks(source 'memo', ext_id 'memo:<id>' — 밤 정리가 만드는 것과 같은 줄이라 두 번 생기지 않는다). 걸리는 시간은 밤 정리가 채운다 */
+/** 할 일 팝업 저장 → tasks(source 'memo', ext_id 'memo:<id>' — 밤 정리가 만드는 것과 같은 줄이라 두 번 생기지 않는다).
+ *  같은 메모의 나머지 할 일(also)은 'memo:<id>:2', ':3' …. 걸리는 시간은 팝업의 어림, 없으면 밤 정리가 채운다 */
 async function saveTask(body, env, ctx, user, memoId) {
   const f = taskFields(body);
   if (!f.title) return json({ error: "이름은 있어야 한다" }, 400);
   const memo = await env.DB.prepare("SELECT id FROM memos WHERE id = ? AND user_id = ?").bind(memoId, user.id).first();
   if (!memo) return json({ error: "없는 메모" }, 404);
   const due = f.date ? `${f.date}T${f.time ?? "23:59"}:00+09:00` : null;
-  const [saved] = await env.DB.batch([
-    env.DB.prepare(
-      `INSERT INTO tasks (user_id, title, due, source, ext_id) VALUES (?, ?, ?, 'memo', ?)
-       ON CONFLICT (user_id, source, ext_id) DO UPDATE SET title = excluded.title, due = excluded.due
-       RETURNING id, title, due, minutes, ready, done, source`,
-    ).bind(user.id, f.title, due, `memo:${memoId}`),
+  const list = [{ title: f.title, minutes: minutesOf(body.minutes) }, ...alsoOf(body.also)];
+  const saved = await env.DB.batch([
+    ...list.map((t, i) =>
+      env.DB.prepare(
+        `INSERT INTO tasks (user_id, title, due, minutes, source, ext_id) VALUES (?, ?, ?, ?, 'memo', ?)
+         ON CONFLICT (user_id, source, ext_id) DO UPDATE SET title = excluded.title, due = excluded.due, minutes = coalesce(excluded.minutes, tasks.minutes)
+         RETURNING id, title, due, minutes, ready, done, source`,
+      ).bind(user.id, t.title, due, t.minutes, i ? `memo:${memoId}:${i + 1}` : `memo:${memoId}`),
+    ),
     env.DB.prepare("UPDATE memos SET handled = 1 WHERE id = ? AND user_id = ?").bind(memoId, user.id),
   ]);
+  const tasks = saved.slice(0, list.length).map((r) => r.results[0]);
   const edited = body.suggested ? !sameTask(f, taskFields(body.suggested)) : Boolean(body.edited);
-  const detail = JSON.stringify({ memo_id: memoId, kind: "task", by: body.suggested?.by ?? null });
+  const detail = JSON.stringify({ memo_id: memoId, kind: "task", by: body.suggested?.by ?? null, n: tasks.length });
   background(ctx, writeLog(env, user.id, edited ? "popup_edit" : "popup_save", detail));
-  return json({ task: saved.results[0] });
+  return json({ task: tasks[0], tasks });
+}
+
+/** 걸리는 분: 5분 단위, 5~480(밤 정리 minutesOf와 같은 모양). 모르면 null */
+function minutesOf(v) {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? Math.min(Math.max(Math.round(n / 5) * 5, 5), 480) : null;
+}
+
+/** 같은 메모의 나머지 할 일: [{ title, minutes }] 이름 있는 것만, 9개까지 */
+function alsoOf(v) {
+  if (!Array.isArray(v)) return [];
+  return v.map((t) => ({ title: clean(t?.title), minutes: minutesOf(t?.minutes) })).filter((t) => t.title).slice(0, 9);
 }
 
 async function cancelPopup(request, env, ctx, user, memoId) {
@@ -253,7 +272,7 @@ export function askPopupAi(env, text, now, { fetch, timeoutMs = 2500 } = {}) {
     system: SYSTEM,
     content: userMessage(text, nowLabel(now)),
     schema: SCHEMA,
-    maxTokens: 200,
+    maxTokens: 320, // 11-12: 할 일 여러 개(also)·minutes 칸이 늘어서 200 → 320
     timeoutMs,
     fetch,
   });
@@ -320,7 +339,10 @@ function taskPopup(text, when, ai, now) {
   // '금요일 23:59 마감 과제 제출' → '과제 제출'(마감은 날짜 칸에), '오늘 밤 과제 하기' → '과제 하기'(날짜 말에 붙은 시간대)
   const rest = tidy(left.replace(/(?:^|\s)마감(?=\s|$)/g, " ").replace(LEADING_PART, "")) || left;
   const due = when ? clockOf(when, ai, now) : {};
-  return { kind: "task", title: clean(ai?.title) ?? (rest || "?"), date: due.date ?? "?", time: due.time ?? "?", by: ai ? "ai" : "rule" };
+  // AI가 없으면 쉼표로만 나눈다(이름 오타는 못 고침)
+  const parts = ai ? [] : rest.split(/\s*[,，、]\s*/).filter((x) => x.length >= 2);
+  const [first, ...also] = parts.length > 1 ? parts.map((title) => ({ title, minutes: null })) : [{ title: clean(ai?.title) ?? (rest || "?"), minutes: minutesOf(ai?.minutes) }, ...alsoOf(ai?.also)];
+  return { kind: "task", title: first.title, date: due.date ?? "?", time: due.time ?? "?", ...(first.minutes ? { minutes: first.minutes } : {}), ...(also.length ? { also } : {}), by: ai ? "ai" : "rule" };
 }
 
 /** 날짜·시각은 정규식이 먼저. 오전·오후를 짐작한 시각만 AI의 같은 시각(3시 ↔ 15시)을 따른다 */

@@ -53,6 +53,7 @@
 | Tachyon-13 | 2026-11-11 | Claude Code (Claude 데스크톱 앱, Claude Fable 5) | Tachyon-13. 시연(지금 9판 · 옛 판)과 같이 둔 글을 저장소 디자인 참고 폴더에 올림 | [Tachyon-13-시연을-저장소에-올리기.md](Tachyon-13-시연을-저장소에-올리기.md) | 사용자 직접 지시 | 사용자 → Claude Code |
 | Tachyon-14 | 2026-11-11 | Claude Code (Claude 데스크톱 앱, Claude Fable 5) | Tachyon-14. 테마 바꾸기(여섯 개 · 글로 가져오기)와 오늘 타임라인을 스크롤 없이 · 누르면 주간 달력 | [Tachyon-14-테마-바꾸기.md](Tachyon-14-테마-바꾸기.md) | 사용자 직접 지시 | 사용자 → Claude Code |
 | Tachyon-15 | 2026-11-12 | Claude Code (Claude 데스크톱 앱, Claude Fable 5) | 시연 9판 화면을 화면까지 바뀌는 테마(입자 · 종이)로 더하기, 시작 화면 포함 | [Tachyon-15-9판-화면을-테마로.md](Tachyon-15-9판-화면을-테마로.md) | 사용자 직접 지시 | 사용자 → Claude Code |
+| Tachyon-16 | 2026-11-12 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5) | 폴드 비율 · 빈 하단 · 메모 여러 할 일 나누기 · 오타 고치기 · 예상/추천 시간 · 친구 추가 열기 | [Tachyon-16-폴드-빈칸-메모-나누기.md](Tachyon-16-폴드-빈칸-메모-나누기.md) | 사용자 직접 지시 | 사용자 → Claude Code |
 | Tachyon-컨셉-01 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | Tachyon-컨셉-01. 앞 자료와 기획안 읽기 | [Tachyon-컨셉-01-자료-학습.md](Tachyon-컨셉-01-자료-학습.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
 | Tachyon-컨셉-02 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결 | Tachyon-컨셉-02. 인수인계 확인과 공유 드라이브 연결 | [Tachyon-컨셉-02-인수인계와-드라이브.md](Tachyon-컨셉-02-인수인계와-드라이브.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
 | Tachyon-컨셉-03 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | Tachyon-컨셉-03. 세션 나누기와 세션끼리 소통하는 방식 | [Tachyon-컨셉-03-세션-나누기.md](Tachyon-컨셉-03-세션-나누기.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |

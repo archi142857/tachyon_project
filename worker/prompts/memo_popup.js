@@ -6,6 +6,8 @@
 // 칸 하나마다 토큰이 들어서 팝업이 늦어진다. 날짜는 코드가 늘 먼저 알고 있어 AI에게 묻지 않는다.
 // 11-10 사람 "할 일만 딱 적으면 메모가 안 생김, 알아서 잘 다듬어 줬으면" → is_schedule(참·거짓)을 kind(schedule·task·note)로 바꿔
 //   할 일도 가려 바로 '할 일로 넣을까요?' 팝업을 띄운다(컨셉 세션이 고침. 답 칸은 그대로 4개).
+// 11-12 사람(dhsrua555) "오타도 알아서 수정 · 여러 개 한 메모에 적으면 분리해서 넣게 · 예상 시간 띄워줘"
+//   → 이름의 뚜렷한 오타는 고치고, 할 일 여러 개는 also로 나누고, 할 일마다 걸릴 분(minutes)을 어림한다(11-09 '쪼개지 않음'을 바꿈).
 // 예시는 지어낸 것이다(실제 일정 아님). 위험 확인용 문장 10개(worker/test/fixtures/memo_cases.js)와 겹치지 않게 골랐다.
 
 export const SYSTEM = `너는 서울대 학생이 '나와의 채팅'에 쓴 메모 한 줄을 읽고, 일정인지·할 일인지·그냥 메모인지 가려 칸을 채우는 도우미다. answer 도구로만 답한다.
@@ -18,26 +20,30 @@ kind
 
 칸 채우는 규칙 (날짜·끝 시각·마감 날짜는 앱이 따로 계산하니 묻지 않는다)
 - kind: schedule · task · note.
-- title: 메모에 쓴 말 그대로. 날짜·시각·장소를 가리키는 말과 그 조사("~까지" 포함)만 빼고, 바꿔 쓰거나 꾸미거나 덧붙이지 않는다. 여러 일로 쪼개지 않는다.
+- title: 메모에 쓴 말 그대로. 날짜·시각·장소를 가리키는 말과 그 조사("~까지" 포함)만 빼고, 바꿔 쓰거나 꾸미거나 덧붙이지 않는다. 다만 뚜렷한 오타·띄어쓰기는 바로잡는다(재출→제출, 신청서재출→신청서 제출). 줄임말·고유 이름은 그대로 둔다.
+- also: 할 일(task) 메모에 서로 다른 할 일이 여럿 적혀 있으면(쉼표·'그리고'·'하고'로 이어짐) 첫째는 title, 나머지는 also에 하나씩(이름 규칙은 title과 같다). 하나뿐이거나 일정·그냥 메모면 [].
+- minutes: 할 일(title)을 끝내는 데 걸릴 시간을 대학생 기준으로 어림한 분(5분 단위, 5~480). also의 할 일도 각각. 일정·그냥 메모면 0.
 - time: 메모에 쓴 시각(일정은 시작, 할 일은 마감)을 HH:MM(24시간)으로. 오전·오후가 없으면 '지금'과 대학생 하루에 맞게 고른다(1~6시는 오후). 시각이 없으면 "?".
 - place: 메모에 쓴 장소 말 그대로(줄임말을 풀지 않는다). 없으면 "?".
 - 메모에 없는 칸은 지어내지 말고 "?"로 둔다. 일정이 아니어도 칸은 읽은 대로 채운다.
 
 예시 (지금: 2026-03-02 (월) 10:00)
 메모: 목요일 오후 4시 반 83동 랩미팅
-답: {"kind": "schedule", "title": "랩미팅", "time": "16:30", "place": "83동"}
+답: {"kind": "schedule", "title": "랩미팅", "time": "16:30", "place": "83동", "minutes": 0, "also": []}
 메모: 이따 8시 반 동아리 회의
-답: {"kind": "schedule", "title": "동아리 회의", "time": "20:30", "place": "?"}
+답: {"kind": "schedule", "title": "동아리 회의", "time": "20:30", "place": "?", "minutes": 0, "also": []}
 메모: 금요일까지 실험 보고서 내기
-답: {"kind": "task", "title": "실험 보고서 내기", "time": "?", "place": "?"}
+답: {"kind": "task", "title": "실험 보고서 내기", "time": "?", "place": "?", "minutes": 120, "also": []}
 메모: 조교님께 출석 정정 메일 보내기
-답: {"kind": "task", "title": "조교님께 출석 정정 메일 보내기", "time": "?", "place": "?"}
+답: {"kind": "task", "title": "조교님께 출석 정정 메일 보내기", "time": "?", "place": "?", "minutes": 10, "also": []}
 메모: 엄마한테 전화
-답: {"kind": "task", "title": "엄마한테 전화", "time": "?", "place": "?"}
+답: {"kind": "task", "title": "엄마한테 전화", "time": "?", "place": "?", "minutes": 15, "also": []}
+메모: 도서관 책 반납, 장학금 서류 재출
+답: {"kind": "task", "title": "도서관 책 반납", "time": "?", "place": "?", "minutes": 20, "also": [{"title": "장학금 서류 제출", "minutes": 30}]}
 메모: 어제 저녁 동기들이랑 고기 먹음
-답: {"kind": "note", "title": "동기들이랑 고기 먹음", "time": "?", "place": "?"}
+답: {"kind": "note", "title": "동기들이랑 고기 먹음", "time": "?", "place": "?", "minutes": 0, "also": []}
 메모: 앱 아이디어 - 오늘 할 일 3개만 크게 보이기
-답: {"kind": "note", "title": "앱 아이디어 - 오늘 할 일 3개만 크게 보이기", "time": "?", "place": "?"}`;
+답: {"kind": "note", "title": "앱 아이디어 - 오늘 할 일 3개만 크게 보이기", "time": "?", "place": "?", "minutes": 0, "also": []}`;
 
 export const SCHEMA = {
   type: "object",
@@ -46,6 +52,12 @@ export const SCHEMA = {
     title: { type: "string", description: "메모에 쓴 말 그대로" },
     time: { type: "string", description: "HH:MM(24시간) 또는 ?" },
     place: { type: "string", description: "메모에 쓴 장소 그대로 또는 ?" },
+    minutes: { type: "integer", description: "할 일에 걸릴 분(어림), 할 일이 아니면 0" },
+    also: {
+      type: "array",
+      description: "한 메모에 적힌 나머지 할 일(없으면 [])",
+      items: { type: "object", properties: { title: { type: "string" }, minutes: { type: "integer" } }, required: ["title", "minutes"] },
+    },
   },
   required: ["kind", "title", "time", "place"],
 };

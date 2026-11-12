@@ -84,6 +84,14 @@ export function makeExample(now = new Date()) {
 // 서버와 같은 모양: 일정 { title, date, time, end_time, place, by }, 할 일 { kind: 'task', title, date, time, by }(마감 모르면 '?').
 // 둘 다 아니면 null. 할 일 끝말은 서버 TODO_END와 같다(11-10 사람 "할 일만 딱 적으면 메모가 안 생김").
 const WD = '월화수목금토일';
+
+// 할 일 팝업: 서버처럼 쉼표로 여러 할 일을 나눈다(also). ponytail: 예시에서는 걸리는 시간을 모두 30분으로 어림한다(진짜는 서버 AI가 어림)
+function taskPopup(title, date, time) {
+  const [first, ...rest] = title.split(/\s*[,，、]\s*/).filter((x) => x.length >= 2);
+  const also = rest.map((t) => ({ title: t, minutes: 30 }));
+  return { kind: 'task', title: first || '?', date, time, minutes: 30, ...(also.length ? { also } : {}), by: 'rule' };
+}
+
 export function examplePopup(text, now = new Date()) {
   let rest = ` ${text} `;
   const today = kst(now);
@@ -112,9 +120,9 @@ export function examplePopup(text, now = new Date()) {
     time = `${two(Number(m[1]))}:${m[2]}`;
     rest = rest.replace(m[0], ' ');
   }
-  if (offset === null && time === '?') return looksLikeTodo(text) ? { kind: 'task', title: tidyTask(text), date: '?', time: '?', by: 'rule' } : null;
+  if (offset === null && time === '?') return looksLikeTodo(text) ? taskPopup(tidyTask(text), '?', '?') : null;
   const due = ymd(kst(fromKst(today.y, today.m, today.d + (offset ?? 0))));
-  if (/까지|마감|제출/.test(rest)) return { kind: 'task', title: tidyTask(rest) || '?', date: due, time, by: 'rule' };
+  if (/까지|마감|제출/.test(rest)) return taskPopup(tidyTask(rest), due, time);
 
   let place = '?';
   if ((m = rest.match(/\d{1,3}(-\d)?동(\s?\d{2,4}호)?/))) {

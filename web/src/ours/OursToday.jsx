@@ -15,18 +15,20 @@ function noSlot(task) {
   return '오늘은 넣을 빈 시간이 없어요';
 }
 
-function TaskRow({ task, now, onDone }) {
+// 줄 아래 글: 예상 시간 · 추천 시간(오늘 빈 시간에 넣어 본 자리, 시연 9판처럼) · 지금 가능 (11-12 사람 "예상 시간과 추천시간 띄워줘")
+function TaskRow({ task, now, onDone, slot }) {
   const slack = slackLabel(task.slack_days);
+  const time = task.minutes == null ? '예상 시간 ?' : `예상 ${minutesLabel(task.minutes).replace('약 ', '')}`;
   return (
     <div className="y-row">
       <i className="y-dot" style={{ '--c': colorOf(task.title) }} />
       <div>
         <b>{task.title}</b>
-        <small>{[minutesLabel(task.minutes), readyLabel(task)].filter(Boolean).join(' · ')}</small>
+        <small>{[time, slot && `추천 ${hm(slot[0])}–${hm(slot[1])}`, readyLabel(task)].filter(Boolean).join(' · ')}</small>
       </div>
       <div className="y-r">
         {slack && <b>{slack}</b>}
-        <small>마감 {deadlineShort(task.due, now)}</small>
+        <small>{task.due ? `마감 ${deadlineShort(task.due, now)}` : '마감 없음'}</small>
       </div>
       <button
         type="button"
@@ -60,6 +62,7 @@ export default function OursToday({ app }) {
   const picked = items.find((x) => x.key === sel);
   const pick = (key) => setSel((s) => (s === key ? null : key));
   const free = freeMinutes(busy, nowMin);
+  const later = busy.filter((b) => b.to > nowMin); // 오늘 남은 일정(폰: 타임라인 대신 목록으로)
 
   return (
     <div className="y-hx">
@@ -116,13 +119,13 @@ export default function OursToday({ app }) {
       <div className="y-hc">
         <p className="y-lb">해야 할 일 · 남은 {openTasks.length}개</p>
         <div className="y-rows y-hr">
-          {tasks.length === 0 && <p className="y-night">할 일이 없어요</p>}
+          {tasks.length === 0 && <p className="y-night">할 일이 없어요. 아래 메모 칸에 적으면 할 일로 넣어 드려요</p>}
           {tasks.map((task, i) => {
             const key = `t${task.id}`;
             return (
               <div key={key} className={sel === key ? 'y-ti y-on' : 'y-ti'} style={{ '--c': colorOf(task.title) }}>
                 <div data-act="pick" onClick={() => pick(key)}>
-                  <TaskRow task={task} now={now} onDone={doneTask} />
+                  <TaskRow task={task} now={now} onDone={doneTask} slot={slots[i]} />
                 </div>
                 <div className="y-dt">
                   <small>
@@ -142,6 +145,35 @@ export default function OursToday({ app }) {
               전체 {openTasks.length}개 보기
             </button>
           )}
+        </div>
+        {/* 폰에서만: 오늘 남은 일정 목록(넓은 화면은 타임라인이 있다). 누르면 고치기 */}
+        <div className="y-later">
+          <p className="y-lb">
+            오늘 남은 일정 · {later.length}개
+            <button type="button" className="y-bk y-go" onClick={() => showWeekOf(today)}>
+              주간 달력 ›
+            </button>
+          </p>
+          <div className="y-rows">
+            {later.length === 0 && <p className="y-night">오늘 남은 일정이 없어요</p>}
+            {later.map(({ ev, from, to }) => (
+              <div key={ev.id} className="y-ti" onClick={() => setSheet({ event: ev })}>
+                <div className="y-row">
+                  <i className="y-dot" style={{ '--c': colorOf(ev.title) }} />
+                  <div>
+                    <b>{ev.title}</b>
+                    <small>{ev.place || '장소 없음'}</small>
+                  </div>
+                  <div className="y-r">
+                    <b className="num">
+                      {hm(from)} – {hm(to)}
+                    </b>
+                    <small>{from <= nowMin ? '하는 중' : `${Math.floor((from - nowMin) / 60) ? `${Math.floor((from - nowMin) / 60)}시간 ` : ''}${(from - nowMin) % 60}분 뒤`}</small>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

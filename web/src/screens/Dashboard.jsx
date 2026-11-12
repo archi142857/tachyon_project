@@ -230,12 +230,12 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
     setBusy(true);
     try {
       if (fields.kind === 'task') {
-        // 할 일 팝업 → 할 일 목록에 바로(걸리는 시간은 밤 정리가 채운다)
-        const { task } = await api.savePopup(popup.memoId, fields, popup.popup);
+        // 할 일 팝업 → 할 일 목록에 바로(걸리는 시간은 팝업의 어림, 없으면 밤 정리가 채운다). 한 메모에 여럿이면 tasks
+        const { task, tasks = [task] } = await api.savePopup(popup.memoId, fields, popup.popup);
         setMemos((m) => m.map((x) => (x.id === popup.memoId ? { ...x, handled: 1, task_id: task.id } : x)));
         setPopup(null);
         loadRank();
-        setSnack({ text: `‘${task.title}’ 할 일에 넣었어요` });
+        setSnack({ text: tasks.length > 1 ? `할 일 ${tasks.length}개를 넣었어요` : `‘${task.title}’ 할 일에 넣었어요` });
         return;
       }
       const { event, repeat } = await api.savePopup(popup.memoId, fields, popup.popup, changeId, weekly);
@@ -452,7 +452,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
           {page === 'together' && <TogetherPage key={togetherKey} example={example} now={now} onSnack={(text) => setSnack({ text })} />}
         </main>
 
-        {popup && <MemoPopup key={popup.memoId} popup={popup.popup} busy={busy} onSave={savePopup} onCancel={cancelPopup} />}
+        {popup && <MemoPopup key={popup.memoId} popup={popup.popup} plan={{ events: planEvents, tasks: openTasks, today, now }} busy={busy} onSave={savePopup} onCancel={cancelPopup} />}
         <Composer onSend={sendMemo} />
       </div>
       </>)}

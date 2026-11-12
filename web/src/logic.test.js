@@ -115,8 +115,10 @@ describe('예시 팝업 흉내(서버 없을 때만, 서버와 같은 모양)', 
   });
 
   it('할 일 메모는 할 일 팝업(마감은 날짜 말), 일정도 할 일도 아니면 팝업 없음', () => {
-    expect(examplePopup('동아리 회비 걷기 물어보기', now)).toEqual({ kind: 'task', title: '동아리 회비 걷기 물어보기', date: '?', time: '?', by: 'rule' });
-    expect(examplePopup('금요일까지 실험 보고서 내기', now)).toEqual({ kind: 'task', title: '실험 보고서 내기', date: '2026-11-13', time: '?', by: 'rule' });
+    expect(examplePopup('동아리 회비 걷기 물어보기', now)).toEqual({ kind: 'task', title: '동아리 회비 걷기 물어보기', date: '?', time: '?', minutes: 30, by: 'rule' });
+    expect(examplePopup('금요일까지 실험 보고서 내기', now)).toEqual({ kind: 'task', title: '실험 보고서 내기', date: '2026-11-13', time: '?', minutes: 30, by: 'rule' });
+    // 한 메모에 할 일 여럿은 쉼표로 나눈다(11-12 사람 요청)
+    expect(examplePopup('도서관 책 반납, 장학금 서류 내기', now).also).toEqual([{ title: '장학금 서류 내기', minutes: 30 }]);
     expect(examplePopup('앱 아이디어 메모', now)).toBeNull();
     expect(examplePopup('점심 맛있었다', now)).toBeNull();
   });

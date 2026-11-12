@@ -390,6 +390,28 @@ test("할 일 팝업 저장 → 할 일 생김(밤 정리와 같은 줄), 다시
   assert.equal(DB.sqlite.prepare("SELECT handled FROM memos WHERE id = ?").get(skip.body.memo.id).handled, 1, "밤 정리가 할 일로 다시 만들지 않게");
 });
 
+test("한 메모에 할 일 여럿(11-12 사람 요청): AI가 고친 이름 · 나머지(also) · 어림한 분 → 저장하면 할 일이 따로따로", async () => {
+  const fetch = async () => aiReply({ kind: "task", title: "도서관 책 반납", time: "?", place: "?", minutes: 22, also: [{ title: "장학금 서류 제출", minutes: 30 }, { title: " ", minutes: 5 }] });
+  const popup = await suggestEvent({ ANTHROPIC_API_KEY: "k" }, "도서관 책 반납, 장학금 서류 재출", NOW, { fetch });
+  assert.deepEqual(popup, { kind: "task", title: "도서관 책 반납", date: "?", time: "?", minutes: 20, also: [{ title: "장학금 서류 제출", minutes: 30 }], by: "ai" });
+  // AI가 없으면 쉼표로만 나눈다(오타는 그대로)
+  const rule = await suggestEvent({}, "금요일까지 책 반납, 서류 재출", NOW);
+  assert.deepEqual([rule.title, rule.also, rule.date], ["책 반납", [{ title: "서류 재출", minutes: null }], "2026-11-13"]);
+
+  const DB = fakeD1();
+  const env = { DB };
+  const user = addUser(DB);
+  const { memo } = (await call(env, user, "POST", "/api/memo", { text: "도서관 책 반납, 장학금 서류 재출" })).body;
+  const saved = await call(env, user, "POST", `/api/memo/${memo.id}/save`, { ...popup, date: "2026-11-13", suggested: popup });
+  await saved.ctx.settle();
+  assert.deepEqual(saved.body.tasks.map((t) => [t.title, t.minutes, t.due]), [
+    ["도서관 책 반납", 20, "2026-11-13T23:59:00+09:00"],
+    ["장학금 서류 제출", 30, "2026-11-13T23:59:00+09:00"],
+  ]);
+  assert.equal(saved.body.task.id, saved.body.tasks[0].id);
+  assert.deepEqual(DB.sqlite.prepare("SELECT ext_id FROM tasks ORDER BY id").all().map((r) => r.ext_id), [`memo:${memo.id}`, `memo:${memo.id}:2`]);
+});
+
 test("잘못된 요청과 남의 메모", async () => {
   const DB = fakeD1();
   const env = { DB };
