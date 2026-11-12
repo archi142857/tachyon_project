@@ -12,6 +12,7 @@ import DoneSheet from '../components/DoneSheet.jsx';
 import { EventEditSheet, EventInfoSheet, TaskEditSheet } from '../components/EditSheets.jsx';
 import EtlSheet from '../components/EtlSheet.jsx';
 import FeedbackSheet from '../components/FeedbackSheet.jsx';
+import InboxSheet from '../components/InboxSheet.jsx';
 import GuideSheet, { guideSeen } from '../components/GuideSheet.jsx';
 import Icon from '../components/Icon.jsx';
 import InstallSheet from '../components/InstallSheet.jsx';
@@ -197,6 +198,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   const [sheet, setSheet] = useState(null); // 'menu' | 'done' | 'feedback' | 'install' | 'calendar' | 'etl' | 'theme' | 'delete' | { event } | { task }
   const [snack, setSnack] = useState(null);
   const [focus, setFocus] = useState(null); // 집중 타이머 { task, min, end }
+  const [seed, setSeed] = useState(null); // 달력 '+ 일정' · '+ 할 일' · 날짜 누르기 → 메모 칸에 날짜를 미리 적는다
   const [localTick, setLocalTick] = useState(0); // 이 기기에 적은 할 일 차례(taskLocal.js)가 바뀌면 다시 셈
   // TT Wizard의 'Tachyon으로 보내기'로 들어왔으면(App.jsx가 받아 둔 #ttw=…) 그 시간표 창을 바로 연다(11-11 컨셉)
   const [ttwFrom] = useState(ttwLink || null);
@@ -507,7 +509,19 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   const themeName = useThemeName();
   const date = kst(now);
   const dateText = `${date.m}월 ${date.d}일 ${WEEKDAYS[date.wd]}요일`;
+  // 아직 정리 안 된 메모(밤 정리 후보와 같은 기준, example.js) → 하루 고리 바깥 점(적은 시각)
+  const looseMin = memos.filter((m) => !m.handled && !m.event_id && !m.task_id).map((m) => {
+    const p = kst(new Date(m.created_at));
+    return p.h * 60 + p.min;
+  });
   const memoCard = <MemoCard memos={memos} now={now} activeId={popup?.memoId} waiting={waiting} onTidy={() => setSheet('tidy')} />;
+
+  // 메모 칸에 'M/D '(일정) 또는 'M/D까지 '(할 일)를 적어 두고 초점 — 나머지는 사람이 적고 보내면 메모 → 팝업 → 저장
+  const calDay = calMode === 'week' && weekFrom !== today ? weekFrom : today;
+  const seedDay = (day, tail) => {
+    const p = kst(new Date(day));
+    setSeed({ text: `${p.m}/${p.d}${tail || ' '}` });
+  };
 
   // 쪽마다 머리 줄에 붙는 고르기
   const controls =
@@ -544,6 +558,12 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
             같이 보기
           </button>
         )}
+        <button type="button" className="chip-btn cal-add" onClick={() => seedDay(calDay, '')}>
+          + 일정
+        </button>
+        <button type="button" className="chip-btn cal-add" onClick={() => seedDay(calDay, '까지 ')}>
+          + 할 일
+        </button>
         <Segmented
           label="달력 보기"
           items={[
@@ -616,7 +636,10 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
               <Icon name={themeName === PARTICLE.night ? 'sun' : 'moon'} />
             </button>
           )}
-          <button type="button" className="btn-text" onClick={() => setSheet('feedback')}>
+          <button type="button" className="icon-btn" aria-label="받은함" title="받은함 · 아침 브리핑" onClick={() => setSheet('inbox')}>
+            <Icon name="inbox" />
+          </button>
+          <button type="button" className="btn-text only-wide" onClick={() => setSheet('feedback')}>
             의견
           </button>
           <button type="button" className="btn-text" onClick={() => setSheet('me')}>
@@ -673,6 +696,8 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
                 onTask={(task, slot) => setSheet({ act: task, slot })}
                 onAll={() => setPage('tasks')}
                 onWeek={() => showWeekOf(today)}
+                loose={looseMin}
+                onTidy={() => setSheet('tidy')}
                 widget={widget}
                 editing={arranging}
                 layoutKey={todayLayout.layout}
@@ -696,6 +721,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
                 onToday={() => setWeekFrom(today)}
                 onEvent={(event) => setSheet({ event })}
                 onTask={(task) => setSheet({ task })}
+                onDay={(day) => seedDay(day, '')}
                 legs={legs}
                 together={freeNow ? { name: overlayGroup.name, spans: freeNow.together } : null}
                 onTogether={planTogether}
@@ -727,7 +753,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
         {/* 정면 창(디자인 ⑤): 뒤를 막고 흐린다. 막을 누르면 '취소'와 같음 */}
         {popup && <div className="popup-scrim" aria-hidden="true" onClick={cancelPopup} />}
         {popup && <MemoPopup key={popup.memoId} popup={popup.popup} plan={{ events: planEvents, tasks: openTasks, today, now }} busy={busy} onSave={savePopup} onCancel={cancelPopup} />}
-        <Composer onSend={sendMemo} />
+        <Composer onSend={sendMemo} seed={seed} />
       </div>
 
       {guide && !join && (
@@ -736,6 +762,20 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
             setGuide(false);
             if (!askedPrefs()) setSheet('start'); // 처음이면 길잡이 뒤에 시작 질문 셋
           }}
+        />
+      )}
+      {sheet === 'inbox' && (
+        <InboxSheet
+          tasks={openTasks}
+          warning={rank.warning}
+          onClose={() => setSheet(null)}
+          onTask={(task) => setSheet({ act: task })}
+          onSnooze={(task) => {
+            snoozeTask(task.id, dateKey(addDays(today, 1)));
+            setLocalTick((n) => n + 1);
+            setSnack({ text: `‘${task.title}’ 내일로 미뤘어요` });
+          }}
+          onChanged={loadRank}
         />
       )}
       {(sheet === 'me' || sheet === 'start') && <MeSheet start={sheet === 'start'} onClose={() => (setSheet(null), setLocalTick((n) => n + 1))} onDoneList={() => setSheet('done')} onSetup={onOpenSetup} />}

@@ -49,6 +49,18 @@ function point(rad, f) {
   return [rad * Math.cos(a), rad * Math.sin(a)].map((v) => v.toFixed(1));
 }
 
+// 바깥 점 = 아직 정리 안 된 메모(적은 시각 자리, 결정 '하루 고리' 11-13). 누르는 일은 고리 밑 글 단추가 한다(피드백 16 '고리를 딱히 누르지 않음')
+function Loose({ loose = [] }) {
+  return (
+    <g className="loose">
+      {loose.map((m, i) => {
+        const [x, y] = point(121, m / 1440);
+        return <circle key={i} cx={x} cy={y} r="3.4" />;
+      })}
+    </g>
+  );
+}
+
 // from~to(분) 구간을 따라가는 호
 function arcPath({ from, to }) {
   const a = from / 1440;
@@ -89,7 +101,7 @@ function Shape({ kind, cx, cy, r, className }) {
   return <rect x={f1(cx - side / 2)} y={f1(cy - side / 2)} width={f1(side)} height={f1(side)} className={className} />;
 }
 
-function ShapeRing({ arcs, nowMin, sel, onPick, children }) {
+function ShapeRing({ arcs, nowMin, sel, onPick, loose, children }) {
   const now = nowMin / 1440;
   const { alt, seps } = ringRuns(arcs);
   return (
@@ -123,6 +135,7 @@ function ShapeRing({ arcs, nowMin, sel, onPick, children }) {
         <text className="now" x={point(128, now)[0]} y={point(128, now)[1]}>
           {hm(nowMin)}
         </text>
+        <Loose loose={loose} />
         {arcs.map((a) => (
           <path key={a.key} className="hit" d={arcPath(a)} onClick={() => onPick(a.key)} />
         ))}
@@ -137,7 +150,7 @@ const TAIL = 16; // 지금 입자 꼬리의 입자 수
 const STEP = 0.0075; // 꼬리 입자 사이(한 바퀴의 몫). 16개면 약 43°(3시간 남짓)
 const COLOR = { timetable: 'var(--mark-class)', ics: 'var(--text)', memo: 'var(--text)', slot: 'var(--mark-task)' };
 
-function ParticleRing({ arcs, nowMin, sel, onPick, children }) {
+function ParticleRing({ arcs, nowMin, sel, onPick, loose, children }) {
   const now = nowMin / 1440;
   const glowId = `ring-glow-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const picked = arcs.find((a) => a.key === sel);
@@ -194,6 +207,7 @@ function ParticleRing({ arcs, nowMin, sel, onPick, children }) {
         <text className="now" x={point(128, now)[0]} y={point(128, now)[1]}>
           {hm(nowMin)}
         </text>
+        <Loose loose={loose} />
         {arcs.map((a) => (
           <path key={a.key} className="hit" d={arcPath(a)} onClick={() => onPick(a.key)} />
         ))}
@@ -203,7 +217,7 @@ function ParticleRing({ arcs, nowMin, sel, onPick, children }) {
   );
 }
 
-// arcs = [{ key, from, to, kind }] (분, kind = timetable | ics | memo | slot)
+// arcs = [{ key, from, to, kind }] (분, kind = timetable | ics | memo | slot), loose = 정리 안 된 메모를 적은 분들
 export default function DayRing(props) {
   return useParticles() ? <ParticleRing {...props} /> : <ShapeRing {...props} />;
 }

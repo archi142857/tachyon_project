@@ -1,5 +1,5 @@
 // 주간 달력. 첫 칸은 start(처음엔 오늘)이고 좌우 화살표·밀기로 7일씩, 앞뒤 제한 없이 옮긴다(11-11 사람 "달력이 왜 3주만 보이는지").
-// 날짜 밑에는 그날 밀도 고리(DensityRing)와 쓰는 시간. ('고르게' 막대 줄과 설명은 11-12 사람 "없어도 될 듯"으로 뺐다 — 고르게 나눈 것은 고리와 할 일 쪽 '나눠 둔 몫'에 보인다.)
+// 날짜 숫자를 그날 밀도 고리(DensityRing)가 감싸고(11-13 사람 '바쁨도 밀도 고리가 날짜 숫자를 감싸도록'), 밑에 쓰는 시간. 날짜를 누르면 그날로 메모 칸을 연다(onDay). ('고르게' 막대 줄과 설명은 11-12 사람 "없어도 될 듯"으로 뺐다 — 고르게 나눈 것은 고리와 할 일 쪽 '나눠 둔 몫'에 보인다.)
 // 맨 위 줄은 과제 마감(시각을 붙여서)과 하루 종일 일정, 아래는 시간 칸. 중요한 일정은 굵은 테두리.
 // 앞 수업에서 걸어오는 시간이 쉬는 시간보다 길면 칸 안에 빨간 'N분 지각'(TT Wizard 말투, legs = campus.js dayLegs).
 import { useRef } from 'react';
@@ -27,7 +27,7 @@ const spanEnd = (sp) => (sp.end.slice(0, 10) !== sp.start.slice(0, 10) && hhmm(s
 // density(date) → 그날 밀도(density.js) 또는 null
 // together = { name, spans: [{ start, end }] } 고른 그룹의 다 같이 빈 시간(없으면 null) → 칸마다 일정 뒤에 띠.
 // 띠를 누르면 onTogether({ start, end }) — 누른 30분부터 1시간(띠 끝까지), 키보드로는 띠 처음부터
-export default function WeekCalendar({ start, events, tasks, now, density, isCurrent, onPrev, onNext, onToday, onEvent, onTask, legs, together, onTogether }) {
+export default function WeekCalendar({ start, events, tasks, now, density, isCurrent, onPrev, onNext, onToday, onEvent, onTask, onDay, legs, together, onTogether }) {
   const touch = useRef(null);
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
   const todayIdx = dayIndex(start, now);
@@ -79,17 +79,20 @@ export default function WeekCalendar({ start, events, tasks, now, density, isCur
           const d = dens[i];
           const p = kst(day);
           return (
-            <span
+            <button
               key={i}
-              className={i === todayIdx ? 'today' : undefined}
-              role="img"
-              aria-label={`${p.m}월 ${p.d}일 ${WEEKDAYS[p.wd]}요일${d ? `, 일정 ${hoursText(d.eventMin)}, 할 일 ${hoursText(d.taskMin + d.over)}` : ''}`}
+              type="button"
+              className={`cal-day${i === todayIdx ? ' today' : ''}`}
+              aria-label={`${p.m}월 ${p.d}일 ${WEEKDAYS[p.wd]}요일${d ? `, 일정 ${hoursText(d.eventMin)}, 할 일 ${hoursText(d.taskMin + d.over)}` : ''}. 이 날에 넣기`}
+              onClick={() => onDay?.(day)}
             >
               <span className="wd">{WEEKDAYS[p.wd]}</span>
-              <span className="dn num">{p.d}</span>
-              <DensityRing day={d} size={26} />
+              <span className="dn-ring">
+                <DensityRing day={d} size={36} />
+                <span className="dn num">{p.d}</span>
+              </span>
               <span className="dh num">{d ? Math.round((used(d) / 60) * 10) / 10 : ''}</span>
-            </span>
+            </button>
           );
         })}
       </div>

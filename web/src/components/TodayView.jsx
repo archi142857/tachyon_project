@@ -25,7 +25,7 @@ function noSlot(task) {
 const card = (base, w) => `card ${base}${w.lifted ? ' lifted' : ''}`;
 // fixed = { 할 일 id: { from, to } } 오늘 '이 시간에 넣기'로 정한 것(taskLocal.js) — 자리를 다시 잡지 않고 '정함'으로 보인다
 // onTask(task, slot) = 할 일 바로 다루기 창(slot = 추천 자리, 없으면 null)
-export default function TodayView({ today, events, tasks, total, now, fixed = {}, onDone, onEvent, onTask, onAll, onWeek, widget = () => ({}), editing = false, layoutKey = '' }) {
+export default function TodayView({ today, events, tasks, total, now, fixed = {}, onDone, onEvent, onTask, onAll, onWeek, loose = [], onTidy, widget = () => ({}), editing = false, layoutKey = '' }) {
   const [sel, setSel] = useState(null);
   const w = { day: widget('day'), ring: widget('ring'), tasks: widget('tasks') };
   // 낮은 칸에서 타임라인이 카드 안에서 굴면(디자인 ②) 처음엔 지금 시각이 보이게 굴려 둔다
@@ -39,7 +39,7 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
   const particles = useParticles(); // 입자 테마면 하루 고리 범례도 입자 모양(DayRing과 같게)
   const nowMin = minuteOfDay(now);
   const busy = dayEvents(events, today);
-  const slots = daySlots(tasks.map((t) => (fixed[t.id] ? { ...t, minutes: 0 } : t)), busy, nowMin); // 정한 것은 자리를 잡지 않는다
+  const slots = daySlots(tasks.map((t) => (fixed[t.id] ? { ...t, minutes: 0 } : t)), [...busy, ...Object.values(fixed)], nowMin); // 정한 것은 자리를 잡지 않고, 그 시간은 다른 할 일이 피한다
   const placed = tasks.map((task, i) => ({ task, slot: slots[i], key: `t${task.id}` })).filter((p) => p.slot);
 
   // 고를 수 있는 것 모두: 일정 + 넣어 본 자리
@@ -114,7 +114,7 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
 
       <section className={card('ring-card', w.ring)} data-slot={w.ring.slot} data-widget={w.ring.slot && 'ring'} aria-label="하루 고리">
         {w.ring.grip}
-        <DayRing arcs={items} nowMin={nowMin} sel={sel} onPick={pick}>
+        <DayRing arcs={items} nowMin={nowMin} sel={sel} onPick={pick} loose={loose}>
           {picked ? (
             <>
               <strong className="mid-title">{picked.title}</strong>
@@ -155,6 +155,12 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
               <i className="key-now" />지금
             </span>
           </p>
+        )}
+        {loose.length > 0 && onTidy && (
+          <button type="button" className="btn-text loose-btn" onClick={onTidy}>
+            <i className="key-loose" />
+            정리 안 된 메모 {loose.length}개 · 지금 정리
+          </button>
         )}
       </section>
 

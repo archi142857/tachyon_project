@@ -28,3 +28,38 @@ dialog.sheet .field .seg button { min-height: 40px; font-size: 14px; }
 
 /* 폰 머리 줄: '의견' · '나'가 두 줄로 꺾이지 않게 */
 .shell .topbar .btn-text { white-space: nowrap; }
+
+/* 달력(사람 피드백 17 · 결정 '달력에서 넣기' · '주간 달력'): 큰 주 | 월 단추, + 일정 · + 할 일, 날짜 숫자를 감싸는 밀도 고리 */
+.cal-controls .segmented button { min-width: 56px; min-height: 40px; font-size: 15px; font-weight: 700; }
+.cal-add { white-space: nowrap; }
+.cal-days .cal-day { display: block; min-width: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; border-radius: var(--r-btn); }
+.cal-days .cal-day:hover .dn { box-shadow: inset 0 0 0 1px var(--line-strong); }
+.cal-days .dn-ring { position: relative; display: grid; place-items: center; width: 36px; height: 36px; margin: 2px auto 0; }
+.cal-days .dn-ring .dring, .cal-days .dn-ring .dring-empty { position: absolute; inset: 0; margin: 0; width: 100%; height: 100%; }
+.cal-days .dn-ring .dring circle { stroke-width: 3.5; }
+.cal-days .dn-ring .dring.over .track { stroke-width: 4.5; }
+.cal-days .dn-ring .dn { position: relative; width: 22px; height: 22px; border-radius: 50%; font-size: 13px; }
+/* 폰: 주 | 월을 첫 줄 맨 앞에, 같이 · + 일정 · + 할 일은 다음 줄로 */
+@media (max-width: 899.98px) {
+  .subbar:has(.cal-controls) > .date, .subbar:has(.cal-controls) > .grow { display: none; }
+  .subbar .cal-controls { flex: 1; flex-wrap: wrap; row-gap: 8px; }
+  .subbar .cal-controls .segmented { order: -1; margin-right: auto; }
+}
+
+/* 하루 고리 바깥 점 = 정리 안 된 메모(피드백 16 · 결정 '하루 고리'): 고리는 보기만, 정리는 밑 글 단추로 */
+.ring .loose circle { fill: var(--text2); stroke: var(--card); stroke-width: 1.5; }
+.ring.particles .loose circle { fill: var(--heading); filter: drop-shadow(0 0 3px var(--accent)); }
+.loose-btn { display: inline-flex; align-items: center; gap: 6px; margin: 4px auto 0; }
+.key-loose { width: 7px; height: 7px; border-radius: 50%; background: var(--text2); flex: none; }
+
+/* 지금 정리: 할 일 메모 줄마다 언제까지(오늘 · 내일 · 일주일 안 · 빼기) */
+.tidy-row .seg { display: inline-flex; flex-wrap: wrap; margin-top: 6px; }
+.tidy-row .seg button { min-height: 34px; font-size: 13px; }
+
+/* 받은함 · 아침 브리핑 */
+.inbox-line { margin: 4px 0 8px; color: var(--text2); }
+.inbox-warn { margin: 4px 0 8px; padding: 8px 10px; border-radius: var(--r-btn); background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--text); }
+.inbox-sub { display: block; font-size: 12px; color: var(--text3); font-weight: 400; }
+.inbox-new { margin: 4px 0 8px; padding-left: 18px; }
+.inbox-new li + li { margin-top: 4px; }
+dialog.sheet .menu-list button .inbox-sub { margin-top: 2px; }

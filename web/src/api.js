@@ -210,6 +210,12 @@ export async function getEvents(from, days) {
 
 // 날마다 몫(AI 4_night planDays, 11-11): 밀도 고리·'고르게' 줄을 서버 셈 하나로 그린다. 예시 모드는 화면 셈(density.js)
 // → { ok, awake: { from, minutes }, daily_min, guessed, warning, days: [{ date, event_min, room_min, task_min, extra_min, over_min, cram_min, items: [{ task_id, min }] }] }
+// 아침 브리핑 카드(AI 4_night): { briefing: { date, made_at, by, events, top3, postpone, warning, today, new_tasks } }. 예시 모드는 null(화면이 할 일 순서로 만든다)
+export function getBriefing() {
+  if (ex) return Promise.resolve(null);
+  return call('GET', '/api/briefing');
+}
+
 export function getDailyPlan(days = 42) {
   if (ex) return Promise.resolve(null);
   return call('GET', `/api/briefing/plan?days=${days}`);
