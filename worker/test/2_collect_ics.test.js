@@ -430,6 +430,28 @@ test('폰 캘린더: 6시간 안에 같은 목록이 다시 오면 DB에 넣지 
   assert.equal(await count(env, 'events', "source = 'device' AND title = '예시 새 일정'"), 1);
 });
 
+test('폰 캘린더·주소 수집의 겹침 확인은 (user_id, start) 색인으로 찾는다(그 사람 일정 전체를 훑지 않게)', async () => {
+  // 11-12: 색인 없이 한 번에 D1 읽기 83만 줄 → 무료 하루 한도 초과. 같은 일이 다시 생기지 않게 실행 계획을 본다.
+  const { env, user } = await setup();
+  const seen = new Set();
+  const prepare = env.DB.prepare.bind(env.DB);
+  env.DB.prepare = (sql) => {
+    seen.add(sql);
+    return prepare(sql);
+  };
+  const one = [{ id: '1', title: '예시 혼자', start: Date.parse('2026-11-20T01:00:00Z') }];
+  await handle(req('/api/feeds/device', { method: 'POST', body: JSON.stringify({ events: one }) }), env, makeCtx(), user);
+  await handle(req('/api/feeds', { method: 'PUT', body: JSON.stringify({ google: GOOGLE_URL }) }), env, makeCtx(), user);
+  env.DB.prepare = prepare;
+  const correlated = [...seen].filter((sql) => /EXISTS \(SELECT 1 FROM events x/.test(sql));
+  assert.ok(correlated.length >= 2, '폰 캘린더 넣기·지우기의 겹침 확인');
+  for (const sql of correlated) {
+    const plan = env.DB.sqlite.prepare(`EXPLAIN QUERY PLAN ${sql}`).all().map((r) => r.detail);
+    const inner = plan.filter((line) => /^(SEARCH|SCAN) x\b/.test(line));
+    assert.ok(inner.length > 0 && inner.every((line) => /^SEARCH x .*start=\?/.test(line)), `${sql}\n${plan.join('\n')}`);
+  }
+});
+
 test('eTL 주소를 처음 붙일 때 이미 마감이 지난 과제는 끝낸 것으로 넣는다(eTL 토큰이 없을 때만, 있는 줄은 그대로)', async () => {
   const pastCal = (extra = []) =>
     calendar(
