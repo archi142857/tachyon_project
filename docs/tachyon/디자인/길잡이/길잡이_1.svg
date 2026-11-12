@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 240" role="img" aria-label="메모 칸에 적으면 일정과 할 일로 나뉘는 그림">
+  <rect width="360" height="240" fill="#f3f2ee"/>
+  <rect x="52" y="34" width="112" height="72" fill="#ffffff" stroke="#141414" stroke-width="1.5"/>
+  <rect x="64.5" y="48.5" width="11" height="11" fill="#ffffff" stroke="#141414" stroke-width="1.4"/>
+  <rect x="84" y="50" width="60" height="7" rx="3.5" fill="#b4b0a8"/>
+  <rect x="68" y="72" width="80" height="7" rx="3.5" fill="#b4b0a8"/>
+  <rect x="68" y="86" width="46" height="7" rx="3.5" fill="#b4b0a8"/>
+  <rect x="196" y="34" width="112" height="72" fill="#ffffff" stroke="#141414" stroke-width="1.5"/>
+  <polygon points="214,46.9 221,59 207,59" fill="#edb200" stroke="#141414" stroke-width="1.2" stroke-linejoin="round"/>
+  <rect x="228" y="50" width="60" height="7" rx="3.5" fill="#b4b0a8"/>
+  <rect x="212" y="72" width="80" height="7" rx="3.5" fill="#b4b0a8"/>
+  <rect x="212" y="86" width="46" height="7" rx="3.5" fill="#b4b0a8"/>
+  <line x1="170" y1="156" x2="116" y2="114" stroke="#141414" stroke-width="1.6"/>
+  <polygon points="116,114 123.8,115.7 119.5,121.2" fill="#141414"/>
+  <line x1="190" y1="156" x2="244" y2="114" stroke="#141414" stroke-width="1.6"/>
+  <polygon points="244,114 240.5,121.2 236.2,115.7" fill="#141414"/>
+  <rect x="22" y="164" width="316" height="48" rx="24" fill="#ffffff" stroke="#141414" stroke-width="2"/>
+  <defs><linearGradient id="g66188" x1="40" x2="66" y1="0" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#141414" stop-opacity="0.14"/><stop offset="0.6" stop-color="#141414" stop-opacity="0.41"/><stop offset="1" stop-color="#141414" stop-opacity="0.75"/></linearGradient></defs>
+  <rect x="40" y="183" width="26" height="10" fill="url(#g66188)"/>
+  <circle cx="66" cy="188" r="5" fill="#ec4227"/>
+  <rect x="82" y="184" width="84" height="8" rx="4" fill="#b4b0a8"/>
+  <rect x="172" y="184" width="34" height="8" rx="4" fill="#b4b0a8"/>
+  <rect x="212" y="184" width="52" height="8" rx="4" fill="#b4b0a8"/>
+  <circle cx="312" cy="188" r="17" fill="#141414"/>
+  <path d="M312 197V180M305 186l7-7 7 7" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
