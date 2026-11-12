@@ -10,6 +10,7 @@
 //   GET    /api/events?from=2026-11-09&to=2026-11-16
 //                                 그 기간과 겹치는 일정(to 날짜는 안 들어감, 최대 62일) → { events }. 없으면 오늘부터 7일
 //   PATCH  /api/events/:id        { important, title, start, end, place } 가운데 바꿀 것만 → { event }
+//                                 시각 일정의 끝이 없으면(안 보냄·null·옛 끝이 안 맞음) 시작 + 1시간
 //   DELETE /api/events/:id        → { ok }
 //
 // 캘린더(eTL·구글·애플·폰)에서 온 것은 그 캘린더가 원본이다. 그 줄의 제목·시각·장소를 바꾸면 15분 수집 때 되돌아가고, 지우면 다시 생긴다.
@@ -22,7 +23,7 @@
 
 import { rankTasks, crowdedWarning } from './4_night.js';
 import { json, fail, readJson } from './lib/http.js';
-import { kstDate, DAY_MS } from './lib/time.js';
+import { kstDate, kstIso, DAY_MS } from './lib/time.js';
 import { logStatement } from './lib/log.js';
 
 const FEED_SOURCES = new Set(['etl', 'google', 'apple', 'device']);
@@ -120,7 +121,14 @@ async function patchItem(request, env, user, table, id) {
   let values;
   try {
     values = Object.fromEntries(fields.map((k) => [k, clean(table, k, body[k])]));
-    if (table === 'events') checkEventTimes({ ...row, ...values });
+    if (table === 'events' && ('start' in values || 'end' in values)) {
+      const merged = { ...row, ...values };
+      const end = eventEnd(merged, values.end != null);
+      if (end !== merged.end) {
+        values.end = end;
+        if (!fields.includes('end')) fields.push('end');
+      }
+    }
   } catch (err) {
     if (err instanceof BadValue) return fail(400, err.message);
     throw err;
@@ -213,8 +221,20 @@ function clean(table, key, value) {
   }
 }
 
-function checkEventTimes({ start, end }) {
-  if (end == null) return;
-  if (DATE.test(start) !== DATE.test(end)) throw new BadValue('종일 일정은 start·end 둘 다 날짜만, 시각 일정은 둘 다 시각으로 넣어 주세요');
-  if (end <= start) throw new BadValue('end는 start보다 뒤여야 해요(종일 일정의 end는 다음 날)');
+/**
+ * 시각을 고친 뒤의 끝. 시각 일정에 끝이 없으면 시작 + 1시간(사람 11-13 "끝나는 시간을 따로 정하지 않았으면 1시간을 기본으로").
+ * 이번에 보낸 끝(endGiven)이 모양이 다르거나 시작보다 앞이면 400. 시작만 보내서 옛 끝이 안 맞게 됐으면(종일 ↔ 시각, 옛 끝보다 뒤로) 옛 끝은 버린다.
+ * 캘린더(구글·폰 등)에서 온 줄은 시각을 고칠 때만 여기를 지난다 — 끝 없는 원본은 그대로 두고 화면이 1시간으로 그린다.
+ */
+function eventEnd({ start, end }, endGiven) {
+  if (end != null && DATE.test(start) !== DATE.test(end)) {
+    if (endGiven) throw new BadValue('종일 일정은 start·end 둘 다 날짜만, 시각 일정은 둘 다 시각으로 넣어 주세요');
+    end = null;
+  }
+  if (end != null && end <= start) {
+    if (endGiven) throw new BadValue('end는 start보다 뒤여야 해요(종일 일정의 end는 다음 날)');
+    end = null;
+  }
+  if (end == null && DATETIME.test(start)) return kstIso(Date.parse(start) + 60 * 60 * 1000);
+  return end;
 }

@@ -19,7 +19,8 @@
 
 import { getUser } from "./lib/auth.js";
 import { warmUp } from "./lib/ics.js";
-import { dbProblem, DB_PROBLEM_REPLY } from "./lib/dberror.js";
+import { dbProblem, recentLimit, DB_PROBLEM_REPLY } from "./lib/dberror.js";
+import { kstIso } from "./lib/time.js";
 
 // 캘린더(ICS) 해석 코드는 Worker가 시작할 때(전역 실행 = 요청 CPU 한도 밖, 시작 한도 1초 안) 한 번 돌려 둔다.
 // 번호 파일은 처음 부를 때 초기화되므로, 그대로 두면 처음 받는 캘린더가 무료 요금제 한도(CPU 10ms)를 넘는다
@@ -56,6 +57,9 @@ export default {
         const missing = ["APP_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "ANTHROPIC_API_KEY", "GITHUB_TOKEN"].filter((k) => !env[k]);
         try {
           const row = await env.DB.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type = 'table'").first();
+          // 읽기 하나가 지나가도 이 Worker가 방금 한도 오류(읽기·쓰기)를 봤으면 같이 알린다(lib/dberror.js)
+          const seen = recentLimit();
+          if (seen) return Response.json({ ok: false, tables: row.n, problem: "limit", seen: kstIso(seen), missing }, { status: 503 });
           return Response.json({ ok: true, tables: row.n, missing });
         } catch (err) {
           // D1이 답하지 않을 때 그 까닭(무료 한도·바쁨 등)을 밖에서 바로 보게 오류 글 첫 줄만. 개인 정보는 없는 글이다.

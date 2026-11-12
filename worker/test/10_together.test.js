@@ -177,6 +177,36 @@ test('모임 시간표: 달력으로 바쁨을 세고(종일·옮긴 일정 빼�
   assert.equal((await call(env, c, `/meets/${meetId}`)).data.slots[0].me, 'busy'); // 달력 없는 사람은 칠하기 전엔 다 안 됨(when2meet처럼)
 });
 
+test('다 같이 빈 시간(내 달력에 겹쳐 그리기): 30분 칸마다 빈 사람 수와 모두 빈 구간, 사람 수만, 끝 없는 일정은 1시간', async () => {
+  const { env, a, b, d, g } = await meetSetup();
+  addEvent(env, a, '예시 비밀 수업', '2026-11-16T10:00:00+09:00', '2026-11-16T11:15:00+09:00', { place: '예시 비밀 강의실', source: 'google' });
+  addEvent(env, a, '예시 끝 없는 일정', '2026-11-16T13:00:00+09:00', null);
+  addEvent(env, b, '예시 긴 일정', '2026-11-14T20:00:00+09:00', '2026-11-16T09:00:00+09:00'); // 기간 앞에 시작했어도 겹치면 바쁨
+  // 다(c)는 달력이 없어 셀 수 없음(known에서 빠짐)
+  const { status, data } = await call(env, b, `/groups/${g}/free?from=2026-11-16&days=1&start=08:00&end=15:00`);
+  assert.equal(status, 200, JSON.stringify(data));
+  assert.deepEqual([data.members, data.known, data.slot, data.slots.length], [3, 2, 30, 14]);
+  assert.deepEqual(
+    data.slots.map((x) => `${x.start.slice(11, 16)} ${x.free}`).join(', '),
+    '08:00 1, 08:30 1, 09:00 2, 09:30 2, 10:00 1, 10:30 1, 11:00 1, 11:30 2, 12:00 2, 12:30 2, 13:00 1, 13:30 1, 14:00 2, 14:30 2',
+  );
+  assert.deepEqual(data.together, [
+    { start: '2026-11-16T09:00:00+09:00', end: '2026-11-16T10:00:00+09:00' },
+    { start: '2026-11-16T11:30:00+09:00', end: '2026-11-16T13:00:00+09:00' },
+    { start: '2026-11-16T14:00:00+09:00', end: '2026-11-16T15:00:00+09:00' },
+  ]);
+  const text = JSON.stringify(data);
+  for (const secret of ['비밀', 'google', '예시 가', '예시 다', '@example.invalid']) assert.ok(!text.includes(secret), `${secret}이 새면 안 됨`);
+
+  // 기본값: 오늘부터 7일, 08:00~24:00. 멤버가 아니면 404, 잘못된 값은 400
+  const week = await call(env, a, `/groups/${g}/free`);
+  assert.deepEqual([week.status, week.data.from, week.data.days, week.data.slots.length], [200, '2026-11-12', 7, 7 * 32]);
+  assert.equal((await call(env, d, `/groups/${g}/free`)).status, 404);
+  for (const bad of ['days=15', 'days=0', 'start=08:15', 'start=15:00&end=09:00', 'from=11월16일']) {
+    assert.equal((await call(env, a, `/groups/${g}/free?${bad}`)).status, 400, bad);
+  }
+});
+
 test('내 칸 칠하기: free·busy는 달력보다 먼저, null이면 달력대로. 없는 칸은 400', async () => {
   const { env, a, c, d, meetId } = await meetSetup();
   addEvent(env, a, '예시 수업', '2026-11-16T09:00:00+09:00', '2026-11-16T10:00:00+09:00');

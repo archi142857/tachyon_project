@@ -8,7 +8,7 @@
 - 로그인은 쿠키 세션(`credentials: 'same-origin'`). 401이면 화면은 로그인 화면으로 간다.
 - 시각은 `schema.sql` 머리말대로 **ISO 8601 + `+09:00`**(예: `2026-11-13T15:00:00+09:00`), 종일 일정은 **날짜만**(`2026-11-13`). 모르는 값은 `null`(팝업 칸만 `'?'`). 응답은 JSON.
 - 캘린더(ICS) 주소는 비밀값이라 서버가 화면에 원문을 돌려주지 않는다(끝 4자만 보이는 `masked`).
-- 서버 저장소(D1) 쪽 사정이면 어느 API든 **503 `{ error, code }`**: `code` `db_limit`(무료 하루 읽기·쓰기 한도, 한국 09:00에 풀림) · `db_busy`(잠깐 바쁨). `error`는 그대로 보여 줘도 되는 한국어 안내다(11-12, 서버).
+- 서버 저장소(D1) 쪽 사정이면 어느 API든 **503 `{ error, code }`**: `code` `db_limit`(무료 하루 읽기·쓰기 한도, 한국 09:00에 풀림) · `db_busy`(잠깐 바쁨). `error`는 그대로 보여 줘도 되는 한국어 안내다(11-12, 서버). `/api/health`도 이 Worker가 10분 안에 한도 오류를 봤으면 503 `{ ok: false, problem: 'limit', seen }`(한도 날엔 작은 읽기는 지나가기도 해서).
 - **화면(11-12, 서버 쪽지 1104):** 503이면 `error` 글을 그대로 보이고 `code`는 `error.code`로 넘긴다(`api.js` `call` — 저장소 사정 `db_limit`·`db_busy`, 같이 쓰기·eTL 준비 중). 그 밖의 5xx는 '잠깐 문제가 생겼어요…' 한 줄. `db_limit`은 로그인 화면·스낵바·창 어디서나 '오늘 서버 사용량을 모두 소진했어요. 오전 9시부터 다시 이용할 수 있어요'(사람 11-13 00:06이 고른 문구, `DB_LIMIT_TEXT`). 로그인 화면: `?login_error=db_limit` → 같은 글, `server` → '서버에 잠깐 문제가 있어요. 잠시 뒤에 다시 해 주세요', 처음 열 때 `/api/login/me`가 503 + `code`면 서버 안내 글. eTL 창의 '준비 중' 글은 `code`가 없는 503에만.
 
 ## 1_login (서버 세션) — 있음 (`worker/1_login.js`)
@@ -53,7 +53,7 @@
 | `PATCH /api/tasks/:id` | `{ done, minutes, ready, title, due }` 가운데 바꿀 것 (`done`·`ready`는 true·false 또는 1·0, `minutes`는 1~1440 정수) | `{ task }` |
 | `DELETE /api/tasks/:id` | — | `{ ok }` 메모·시간표에서 온 것만(캘린더에서 온 것은 409) |
 | `GET /api/events?from=2026-11-09&to=2026-11-16` | 한국 날짜, `to`는 빼고 센다(최대 62일) | `{ events }` 그 기간과 겹치는 일정 |
-| `PATCH /api/events/:id` | `{ important, title, start, end, place }` 가운데 바꿀 것 (시각을 모르면 `start`는 날짜만, `end`는 null) | `{ event }` 캘린더에서 온 일정의 이름·시간·장소를 바꾸면 **새 id의 사본**(`source` memo, `edited` 1)이 오고 원본은 가려진다 → 고친 뒤 목록을 다시 부른다 |
+| `PATCH /api/events/:id` | `{ important, title, start, end, place }` 가운데 바꿀 것 (시각을 모르면 `start`는 날짜만, `end`는 null) | `{ event }` 캘린더에서 온 일정의 이름·시간·장소를 바꾸면 **새 id의 사본**(`source` memo, `edited` 1)이 오고 원본은 가려진다 → 고친 뒤 목록을 다시 부른다. **시각 일정의 끝이 없으면(안 보냄·null, 시작을 옛 끝 뒤로 옮김, 종일 → 시각) 끝 = 시작 + 1시간**(11-13). 보낸 `end`가 `start`보다 앞이면 400. 끌어 옮기기는 `{ start, end }`를 놓을 때 한 번 — 쓰기 4~6줄 |
 | `DELETE /api/events/:id` | — | `{ ok }` 메모·시간표에서 온 것과 고친 사본만(캘린더에서 온 것은 409). 고친 사본을 지우면 원본이 다시 보인다 |
 
 ```js
@@ -166,6 +166,7 @@
 | `DELETE /api/together/groups/:id/members/:userId` | — | 내보내기(방장만) |
 | `POST /api/together/groups/:id/meets` | `{ title, from, to, dayStart, dayEnd, slot, length }` | 모임 시간표 만들기 `{ ok, meet }`. 날짜 `YYYY-MM-DD`(끝 날 포함, 14일까지, 다 지난 날짜는 안 됨), 하루 `'09:00'`~`'22:00'`(기본), `slot` 15·30·60분(기본 30), `length` 모임 길이(분, slot 단위, 기본 60) · 틀리면 400 + 알아듣는 문장 |
 | `GET /api/together/meets/:id` | — | 아래 '모임 시간표 응답' |
+| `GET /api/together/groups/:id/free?from=2026-11-16&days=7&start=08:00&end=24:00` | — | 내 달력에 겹쳐 그릴 '다 같이 빈 시간'(11-13). 기본 오늘부터 7일(14일까지), 08:00~24:00, 30분 칸. `{ ok, group: { id, name }, from, days, dayStart, dayEnd, slot: 30, members, known, slots: [{ start, free }], together: [{ start, end }] }` — `known` = 달력(시각 있는 일정)이 있어 셀 수 있는 사람, `free` = 그 칸이 빈 사람 수, `together` = `known` 모두가 빈 이어진 구간(같은 날 안). **사람 수만** 온다(이름·일정 없음). 바쁨 셈은 모임 시간표와 같다(시각 일정만, 끝 없으면 1시간). 멤버가 아니면 404, 틀린 값은 400. 읽기만 |
 | `PUT /api/together/meets/:id/marks` | `{ marks: [{ start, state }] }` | 내 칸 칠하기. `state` `'free'`(된다)·`'busy'`(안 된다)·`null`(달력대로 되돌림), `start`는 응답 `slots[].start` 그대로 · 응답은 GET과 같음(바로 다시 그리면 됨) |
 | `DELETE /api/together/meets/:id` | — | 만든 사람이나 방장만(`meet.canDelete`) |
 

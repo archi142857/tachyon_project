@@ -17,6 +17,9 @@
 //   DELETE /api/together/groups/:id/members/me       나가기(방장이 나가면 가장 먼저 들어온 멤버가 방장, 아무도 없으면 그룹을 지움)
 //   DELETE /api/together/groups/:id/members/:userId  내보내기(방장)
 //   POST   /api/together/groups/:id/meets { title, from, to, dayStart, dayEnd, slot, length }  모임 시간표 만들기
+//   GET    /api/together/groups/:id/free?from=2026-11-16&days=7&start=08:00&end=24:00
+//                                                    내 달력에 겹쳐 그릴 '다 같이 빈 시간'(30분 칸) → { slots: [{ start, free }], together: [{ start, end }], known, members }
+//                                                    사람 수만 보낸다(이름·일정 이름 없음), 읽기만(쓰기 0)
 //   GET    /api/together/meets/:id                   칸마다 되는 사람 수 · 내 칸 · 후보 3개 (아래)
 //   PUT    /api/together/meets/:id/marks { marks: [{ start, state: 'free'|'busy'|null }] }  내 칸 칠하기(null = 달력대로 되돌림)
 //   DELETE /api/together/meets/:id                   지우기(만든 사람 또는 방장)
@@ -71,6 +74,7 @@ async function route(request, env, user) {
       return fail(405, '그 방법으로는 안 받아요');
     }
     if (c === 'invite' && !d) return method === 'POST' ? groupInvite(env, user, url, groupId) : fail(405, '그 방법으로는 안 받아요');
+    if (c === 'free' && !d) return method === 'GET' ? groupFree(url, env, user, groupId) : fail(405, '그 방법으로는 안 받아요');
     if (c === 'members' && !d) return method === 'POST' ? addFriendToGroup(request, env, user, groupId) : fail(405, '그 방법으로는 안 받아요');
     if (c === 'members' && (d === 'me' || isId(d))) {
       if (method !== 'DELETE') return fail(405, '그 방법으로는 안 받아요');
@@ -410,26 +414,80 @@ export function slotStarts(meet) {
   return out;
 }
 
+/** 그룹 멤버(들어온 차례)와 달력이 있는지(시각 있는 일정이 하나라도). 이름은 모임 시간표만 쓴다. */
+function memberCalendars(env, groupId) {
+  return env.DB.prepare(
+    `SELECT u.id, u.name, EXISTS (SELECT 1 FROM events e WHERE e.user_id = u.id AND length(e.start) > 10) AS has_calendar
+       FROM group_members m JOIN users u ON u.id = m.user_id WHERE m.group_id = ? ORDER BY m.joined_at, u.id`,
+  ).bind(groupId);
+}
+
+// 기간 앞으로 이만큼 앞에 시작한 일정까지만 본다(그보다 긴 시각 일정은 드물다). 없으면 그 사람 옛 일정을 다 훑는다.
+const BUSY_LOOKBACK_MS = 14 * DAY_MS;
+
+/** 멤버들의 바쁨 일정: 시각이 있는 것만(종일·마감 빼고), 옮긴 일정 빼고, [fromMs, toMs)와 겹치는 것. 이름·장소는 읽지 않는다. */
+function busyEvents(env, groupId, fromMs, toMs) {
+  return env.DB.prepare(
+    `SELECT user_id, start, "end" FROM events
+      WHERE user_id IN (SELECT user_id FROM group_members WHERE group_id = ?1)
+        AND moved_to IS NULL AND length(start) > 10 AND start >= ?4 AND start < ?3 AND COALESCE("end", start) > ?2`,
+  ).bind(groupId, kstIso(fromMs), kstIso(toMs), kstIso(fromMs - BUSY_LOOKBACK_MS));
+}
+
+const FREE_SLOT_MIN = 30;
+
+/** 내 달력에 겹쳐 그릴 '다 같이 빈 시간'. 사람 수만(이름·일정 없음). 바쁨 셈은 모임 시간표와 같다(칠한 칸은 없음). */
+async function groupFree(url, env, user, groupId) {
+  const group = await groupFor(env, groupId, user.id);
+  if (!group) return fail(404, '없는 그룹이에요');
+  const q = (k) => url.searchParams.get(k);
+  const from = q('from') || kstDate();
+  const days = q('days') === null ? 7 : Number(q('days'));
+  const dayStart = minutesOf(q('start') || '08:00');
+  const dayEnd = minutesOf(q('end') || '24:00');
+  if (!DATE.test(from) || Number.isNaN(dayMs(from))) return fail(400, 'from은 2026-11-16 모양의 날짜예요');
+  if (!Number.isInteger(days) || days < 1 || days > LIMITS.days) return fail(400, `days는 1~${LIMITS.days}일이에요`);
+  if (dayStart === null || dayEnd === null || dayStart % FREE_SLOT_MIN || dayEnd % FREE_SLOT_MIN || dayStart >= dayEnd) {
+    return fail(400, 'start·end는 30분 단위 시각(예 08:00·24:00)이고 end가 start보다 뒤여야 해요');
+  }
+  const starts = slotStarts({ from_date: from, to_date: kstDate(dayMs(from) + (days - 1) * DAY_MS), day_start: dayStart, day_end: dayEnd, slot_min: FREE_SLOT_MIN });
+  const slotMs = FREE_SLOT_MIN * 60000;
+  const [members, events] = await env.DB.batch([memberCalendars(env, groupId), busyEvents(env, groupId, starts[0], starts[starts.length - 1] + slotMs)]);
+  const grid = availability({ starts, slotMs, members: members.results, marks: [], events: events.results });
+  const known = grid.known.filter(Boolean).length;
+  const free = grid.free.map(popcount);
+  const together = [];
+  for (let j = 0; j < starts.length; j++) {
+    if (!known || free[j] !== known) continue;
+    const last = together[together.length - 1];
+    if (last && last.endMs === starts[j]) last.endMs = starts[j] + slotMs;
+    else together.push({ startMs: starts[j], endMs: starts[j] + slotMs });
+  }
+  return json({
+    ok: true,
+    group: { id: group.id, name: group.name },
+    from,
+    days,
+    dayStart: hhmm(dayStart),
+    dayEnd: hhmm(dayEnd),
+    slot: FREE_SLOT_MIN,
+    members: members.results.length,
+    known, // 달력(시각 있는 일정)이 있어 셀 수 있는 사람. '다 같이' = 이 사람들이 모두 빔
+    slots: starts.map((ms, j) => ({ start: kstIso(ms), free: free[j] })),
+    together: together.map((t) => ({ start: kstIso(t.startMs), end: kstIso(t.endMs) })),
+  });
+}
+
 async function showMeet(env, user, meetId) {
   const meet = await meetFor(env, meetId, user.id);
   if (!meet) return fail(404, '없는 모임 시간표예요');
   const starts = slotStarts(meet);
   const slotMs = meet.slot_min * 60000;
-  const fromIso = kstIso(starts[0]);
-  const toIso = kstIso(starts[starts.length - 1] + slotMs);
 
   const [members, marks, events] = await env.DB.batch([
-    env.DB.prepare(
-      `SELECT u.id, u.name, EXISTS (SELECT 1 FROM events e WHERE e.user_id = u.id AND length(e.start) > 10) AS has_calendar
-         FROM group_members m JOIN users u ON u.id = m.user_id WHERE m.group_id = ? ORDER BY m.joined_at, u.id`,
-    ).bind(meet.group_id),
+    memberCalendars(env, meet.group_id),
     env.DB.prepare('SELECT user_id, slot, state FROM meet_marks WHERE meet_id = ?').bind(meetId),
-    // 시각이 있는 일정만(종일·마감 빼고), 옮긴 일정 빼고. 이름·장소는 읽지 않는다.
-    env.DB.prepare(
-      `SELECT user_id, start, "end" FROM events
-        WHERE user_id IN (SELECT user_id FROM group_members WHERE group_id = ?1)
-          AND moved_to IS NULL AND length(start) > 10 AND start < ?3 AND COALESCE("end", start) > ?2`,
-    ).bind(meet.group_id, fromIso, toIso),
+    busyEvents(env, meet.group_id, starts[0], starts[starts.length - 1] + slotMs),
   ]);
 
   const grid = availability({ starts, slotMs, members: members.results, marks: marks.results, events: events.results });

@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import worker, { routeFor, loadModule, CRONS } from '../index.js';
 import { makeEnv, makeCtx, addTestUser } from './helpers/server.js';
 import { makeSessionCookie } from '../lib/auth.js';
+import { forgetLimit } from '../lib/dberror.js';
 
 const req = (path, init) => new Request(`https://tachyon.example.invalid${path}`, init);
 
@@ -96,7 +97,17 @@ test('D1 쪽 사정(무료 하루 한도·바쁨)은 503과 안내 글, 오류 �
     await Promise.all(jobs);
     const health = await (await worker.fetch(req('/api/health'), { ...env, DB: { prepare: () => { throw new Error(message); } } }, makeCtx())).json();
     assert.equal(health.problem, 'busy');
+    // 한도에 걸린 날엔 health의 작은 읽기가 지나가도: 이 Worker가 10분 안에 본 한도 오류를 같이 알린다
+    const fine = { ...env, DB: { prepare: realPrepare } };
+    const seen = await worker.fetch(req('/api/health'), fine, makeCtx());
+    assert.equal(seen.status, 503);
+    const body = await seen.json();
+    assert.deepEqual([body.ok, body.problem, typeof body.tables], [false, 'limit', 'number']);
+    assert.match(body.seen, /\+09:00$/);
+    forgetLimit();
+    assert.equal((await worker.fetch(req('/api/health'), fine, makeCtx())).status, 200);
   } finally {
+    forgetLimit();
     console.error = realError;
   }
 });

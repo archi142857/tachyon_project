@@ -171,6 +171,29 @@ test('캘린더에서 온 일정 고치기: 사본을 넣고 원본은 가린다
   assert.equal((await week()).some((e) => e.edited), false);
 });
 
+test('끝 없는 시각 일정은 1시간: 끝을 안 보냈거나 null이거나 옛 끝이 안 맞으면 시작 + 1시간, 캘린더 원본은 시각을 고칠 때만', async () => {
+  const { env, a, cookieA, ids } = await setup();
+  const patch = async (id, body) => read(await call(env, cookieA, `/api/events/${id}`, { method: 'PATCH', body }));
+  const times = (r) => [r.status, r.data.event && r.data.event.start, r.data.event && r.data.event.end];
+  // 내 일정(10:00~11:00): 끝을 null로 → 1시간, 시작을 옛 끝 뒤로만 옮김 → 1시간, 앞으로만 옮김 → 옛 끝 그대로
+  assert.deepEqual(times(await patch(ids.nextWeek, { start: '2026-11-16T09:00:00+09:00', end: null })), [200, '2026-11-16T09:00:00+09:00', '2026-11-16T10:00:00+09:00']);
+  assert.deepEqual(times(await patch(ids.nextWeek, { start: '2026-11-16T20:30:00+09:00' })), [200, '2026-11-16T20:30:00+09:00', '2026-11-16T21:30:00+09:00']);
+  assert.deepEqual(times(await patch(ids.nextWeek, { start: '2026-11-16T20:00:00+09:00' })), [200, '2026-11-16T20:00:00+09:00', '2026-11-16T21:30:00+09:00']);
+  // 종일(11-12~11-14)을 시작만 보내 시각 일정으로 → 옛 날짜 끝은 버리고 1시간
+  assert.deepEqual(times(await patch(ids.fest, { start: '2026-11-12T15:00:00+09:00' })), [200, '2026-11-12T15:00:00+09:00', '2026-11-12T16:00:00+09:00']);
+  // 보낸 끝이 틀리면 지금처럼 400(실수는 알려 준다)
+  assert.equal((await patch(ids.nextWeek, { end: '2026-11-16T19:00:00+09:00' })).status, 400);
+
+  // 구글에서 온 끝 없는 일정: 중요만 바꾸면 사본 없이 끝도 그대로, 시각을 옮기면 사본에 1시간
+  const open = (await env.DB.prepare('INSERT INTO events (user_id, title, start, "end", source, ext_id) VALUES (?, ?, ?, NULL, ?, ?) RETURNING id')
+    .bind(a.id, '예시 끝 없는 구글 일정', '2026-11-18T09:00:00+09:00', 'google', 'g-open').first()).id;
+  const star = await patch(open, { important: true });
+  assert.deepEqual([star.data.event.id, star.data.event.end], [open, null]);
+  const dragged = await patch(open, { start: '2026-11-18T13:00:00+09:00' });
+  assert.deepEqual([dragged.data.event.edited, dragged.data.event.start, dragged.data.event.end], [1, '2026-11-18T13:00:00+09:00', '2026-11-18T14:00:00+09:00']);
+  assert.equal(env.DB.sqlite.prepare('SELECT "end" FROM events WHERE id = ?').get(open).end, null); // 원본은 그대로
+});
+
 test('내 일정 고치기: 시각 모양·순서 확인', async () => {
   const { env, cookieA, ids } = await setup();
   const ok = await read(await call(env, cookieA, `/api/events/${ids.nextWeek}`, { method: 'PATCH', body: { start: '2026-11-17T14:00:00+09:00', end: '2026-11-17T15:30:00+09:00', place: '예시 301동' } }));

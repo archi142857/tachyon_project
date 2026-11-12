@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import worker from '../index.js';
 import { safeNext } from '../1_login.js';
 import { makeEnv, makeCtx } from './helpers/server.js';
+import { forgetLimit } from '../lib/dberror.js';
 
 const ORIGIN = 'https://tachyon.example.invalid';
 const CLIENT_ID = 'example-client.apps.googleusercontent.com';
@@ -165,6 +166,7 @@ test('DB가 실패하면(무료 하루 한도 등) JSON 500 대신 login_error�
       assert.ok(!back.headers.getSetCookie().some((c) => c.startsWith('tachyon_session=')), '로그인 쿠키는 없다');
     } finally {
       console.error = realError;
+      forgetLimit();
     }
   }
 });
