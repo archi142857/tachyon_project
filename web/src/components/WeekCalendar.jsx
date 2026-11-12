@@ -6,11 +6,11 @@ import { useRef } from 'react';
 import { arriveText, lateOf } from '../campus.js';
 import { hoursText } from '../density.js';
 import { endOf, hourRange, isAllDay, layoutDay } from '../layout.js';
-import { WEEKDAYS, addDays, dayIndex, deadlineLabel, hhmm, kst, minuteOfDay, weekTitle } from '../time.js';
+import { addDays, dayIndex, deadlineLabel, endOrHour, hhmm, kst, minuteOfDay, WEEKDAYS, weekTitle } from '../time.js';
 import DensityRing from './DensityRing.jsx';
 import Icon from './Icon.jsx';
 
-const timeText = (ev) => `${hhmm(ev.start)}–${ev.end ? hhmm(ev.end) : '?'}`;
+const timeText = (ev) => `${hhmm(ev.start)}–${hhmm(endOrHour(ev.start, ev.end))}`; // 끝이 없으면 1시간(11-13)
 
 // 마우스를 올리면 보이는 한 줄(title)
 function eventLabel(ev, leg) {
@@ -146,7 +146,6 @@ export default function WeekCalendar({ start, events, tasks, now, density, isCur
                     {/* 이름은 보이는 글자 그대로 + 화면 읽기용 시각·중요(보이는 글자가 이름 안에 있어야 한다) */}
                     <span className="sr-only">{timeText(ev)}, </span>
                     {ev.title}
-                    {!ev.end && <span className="end-unknown"> (끝 ?)</span>}
                     {ev.place && <span className="place">{ev.place}</span>}
                     {ev.important ? <span className="sr-only">, 중요</span> : null}
                     {late > 0 && <span className="late-pill">{late}분 지각</span>}

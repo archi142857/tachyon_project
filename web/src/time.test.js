@@ -53,7 +53,7 @@ describe('time', () => {
   });
 
   it('팝업 시간 칸: 끝을 모르면 ?', () => {
-    expect(popupTime(fromKst(2026, 11, 10, 15).toISOString(), null)).toBe('11월 10일 (화) 15:00 ~ ?');
+    expect(popupTime(fromKst(2026, 11, 10, 15).toISOString(), null)).toBe('11월 10일 (화) 15:00 ~ 16:00'); // 끝 없으면 1시간(11-13)
     expect(popupTime(fromKst(2026, 11, 10, 15).toISOString(), fromKst(2026, 11, 10, 17).toISOString())).toBe('11월 10일 (화) 15:00 ~ 17:00');
     expect(popupTime(null, null)).toBe('?');
   });

@@ -140,7 +140,7 @@ describe('서버 모양 다루기', () => {
   });
 
   it('팝업 칸 → 일정 시작·끝(서버 toStartEnd와 같은 규칙)', () => {
-    expect(popupToEvent({ date: '2026-11-10', time: '15:00', end_time: '?' })).toEqual({ start: '2026-11-10T15:00:00+09:00', end: null });
+    expect(popupToEvent({ date: '2026-11-10', time: '15:00', end_time: '?' })).toEqual({ start: '2026-11-10T15:00:00+09:00', end: '2026-11-10T16:00:00+09:00' }); // 끝 모르면 1시간(11-13)
     expect(popupToEvent({ date: '2026-11-10', time: '15:00', end_time: '17:00' })).toEqual({ start: '2026-11-10T15:00:00+09:00', end: '2026-11-10T17:00:00+09:00' });
     expect(popupToEvent({ date: '2026-11-10', time: '?', end_time: '?' })).toEqual({ start: '2026-11-10', end: null });
   });
@@ -151,14 +151,19 @@ describe('고치기 칸', () => {
     const popup = { title: '스터디', date: '2026-11-10', time: '15:00', end_time: '?', place: '?' };
     const form = popupToForm(popup);
     expect(form).toEqual({ title: '스터디', date: '2026-11-10', start: '15:00', end: '', place: '' });
-    expect(formToPopup({ ...form, place: ' 301동 ' })).toEqual({ title: '스터디', date: '2026-11-10', time: '15:00', end_time: '?', place: '301동' });
+    expect(formToPopup({ ...form, place: ' 301동 ' })).toEqual({ title: '스터디', date: '2026-11-10', time: '15:00', end_time: '16:00', place: '301동' }); // 끝 빈칸 → 1시간(11-13)
   });
 
-  it('일정 ↔ 입력칸: 시작을 비우면 종일, 끝이 시작보다 이르면 없음', () => {
+  it('일정 ↔ 입력칸: 시작을 비우면 종일, 끝이 비었거나 시작보다 이르면 1시간', () => {
     const form = eventToForm({ title: '스터디', start: '2026-11-10T15:00:00+09:00', end: null, place: '301동' });
     expect(form).toEqual({ title: '스터디', date: '2026-11-10', start: '15:00', end: '', place: '301동' });
     expect(formToEvent({ ...form, end: '17:00' })).toEqual({ title: '스터디', start: '2026-11-10T15:00:00+09:00', end: '2026-11-10T17:00:00+09:00', place: '301동' });
-    expect(formToEvent({ ...form, end: '14:00' }).end).toBeNull();
+    expect(formToEvent({ ...form, end: '14:00' }).end).toBe('2026-11-10T16:00:00+09:00'); // 시작보다 이른 끝 → 1시간
+    // 끝을 비우면 1시간(11-13 사람), 자정을 넘어도 다음 날로
+    expect(formToEvent({ ...form, end: '' }).end).toBe('2026-11-10T16:00:00+09:00');
+    expect(formToEvent({ ...form, start: '23:30', end: '' }).end).toBe('2026-11-11T00:30:00+09:00');
+    expect(formToPopup({ title: '회의', date: '2026-11-10', start: '15:00', end: '', place: '' }).end_time).toBe('16:00');
+    expect(formToPopup({ title: '회의', date: '2026-11-10', start: '23:30', end: '', place: '' }).end_time).toBe('?');
     expect(formToEvent({ ...form, start: '' })).toEqual({ title: '스터디', start: '2026-11-10', end: null, place: '301동' });
     expect(eventToForm(normalizeEvent({ title: '예시', start: '2026-11-13', end: null, place: null })).start).toBe('');
   });

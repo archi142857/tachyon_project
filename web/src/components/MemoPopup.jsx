@@ -9,14 +9,16 @@
 import { useState } from 'react';
 import { dayEvents, daySlots, hm } from '../slots.js';
 import { minutesLabel } from '../tasks.js';
-import { WEEKDAYS, dayStartKst, isDateOnly, kst, minuteOfDay, timeInput } from '../time.js';
+import { WEEKDAYS, dayStartKst, isDateOnly, kst, minuteOfDay, plusHourText, timeInput } from '../time.js';
 import EventForm, { formToPopup, popupToForm } from './EventForm.jsx';
 
 function timeText(p) {
   if (p.date === '?' || !p.date) return '?';
   const [, m, d] = p.date.split('-').map(Number);
   const wd = WEEKDAYS[kst(dayStartKst(p.date)).wd];
-  return `${m}월 ${d}일 (${wd}) ${p.time === '?' ? '?' : p.time} ~ ${p.end_time === '?' || !p.end_time ? '?' : p.end_time}`;
+  if (p.time === '?' || !p.time) return `${m}월 ${d}일 (${wd}) ?`;
+  // 끝을 모르면 1시간(11-13, 저장할 때도 서버가 +1시간)
+  return `${m}월 ${d}일 (${wd}) ${p.time} ~ ${p.end_time === '?' || !p.end_time ? plusHourText(p.time, true) || '?' : p.end_time}`;
 }
 
 // 옮길 일정의 옛 날짜: "11월 11일 (수) 09:30"

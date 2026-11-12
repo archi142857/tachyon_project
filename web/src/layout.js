@@ -3,7 +3,7 @@ import { dayIndex, kst, minuteOfDay } from './time.js';
 
 const HOUR = 60 * 60 * 1000;
 
-// 끝 시각을 모르면 한 시간짜리로 그린다(칸에는 '끝 ?'를 붙인다)
+// 끝 시각이 없으면 한 시간짜리로 그린다(11-13부터 끝 없는 일정은 1시간이 규칙 — time.js endOrHour)
 export function endOf(ev) {
   return ev.end ? Date.parse(ev.end) : Date.parse(ev.start) + HOUR;
 }

@@ -43,6 +43,21 @@ export function dayIndex(start, dateOrIso) {
   return i >= 0 && i < 7 ? i : -1;
 }
 
+// 끝을 정하지 않은 일정·메모는 1시간으로 본다(11-13 사람 "끝나는 시간을 따로 정하지 않았으면 1시간을 기본으로").
+// 서버(AI toStartEnd)도 같은 규칙. 예전에 끝 없이 들어간 일정도 그릴 때·보일 때 1시간이다.
+export const DEFAULT_EVENT_MIN = 60;
+export function endOrHour(startIso, endIso) {
+  return endIso || toKstIso(new Date(Date.parse(startIso) + DEFAULT_EVENT_MIN * 60000));
+}
+// 'HH:MM' + 1시간. 자정을 넘으면 null(입력칸 하나로는 다음 날을 못 적는다), wrap이면 '00:30'처럼 돌려 보인다
+export function plusHourText(time, wrap = false) {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(time || '');
+  if (!m) return null;
+  const h = Number(m[1]) + 1;
+  if (h >= 24 && !wrap) return null;
+  return `${String(h % 24).padStart(2, '0')}:${m[2]}`;
+}
+
 // 9:30, 15:00
 export function hhmm(dateOrIso) {
   const p = kst(dateOrIso);
@@ -72,11 +87,11 @@ export function dueLabel(dueIso, now = new Date()) {
   return `${p.m}월 ${p.d}일`;
 }
 
-// 팝업의 시간 칸: '11월 10일 (화) 15:00 ~ ?' (모르는 칸은 '?')
+// 팝업·정보 창의 시간 칸: '11월 10일 (화) 15:00 ~ 17:00'. 끝이 없으면 1시간(11-13)
 export function popupTime(startIso, endIso) {
   if (!startIso) return '?';
   const p = kst(startIso);
-  return `${p.m}월 ${p.d}일 (${WEEKDAYS[p.wd]}) ${hhmm(startIso)} ~ ${endIso ? hhmm(endIso) : '?'}`;
+  return `${p.m}월 ${p.d}일 (${WEEKDAYS[p.wd]}) ${hhmm(startIso)} ~ ${hhmm(endOrHour(startIso, endIso))}`;
 }
 
 // 서버에 보내는 시각 글자: schema.sql 머리말대로 '2026-11-13T15:00:00+09:00'

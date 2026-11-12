@@ -4,7 +4,7 @@
 import { examplePopup, makeExample } from './example.js';
 import { groupDetail, makeTogether, meetView, summary } from './togetherExample.js';
 import { CROWDED, dueThisWeek, topThree } from './tasks.js';
-import { addDays, dayStartKst, isDateOnly, toKstIso, weekStart } from './time.js';
+import { addDays, dayStartKst, endOrHour, isDateOnly, toKstIso, weekStart } from './time.js';
 
 // 웹은 같은 주소(/api/...)로 부른다. 나중에 Capacitor 앱으로 감쌀 때만 VITE_API_BASE에 서버 주소를 넣는다.
 const BASE = import.meta.env?.VITE_API_BASE || '';
@@ -66,7 +66,8 @@ export function normalizeEvent(ev) {
 export function popupToEvent(f) {
   if (f.time === '?' || !f.time) return { start: f.date, end: null };
   const start = `${f.date}T${f.time}:00+09:00`;
-  const end = f.end_time && f.end_time !== '?' && f.end_time > f.time ? `${f.date}T${f.end_time}:00+09:00` : null;
+  // 끝을 모르면 1시간(11-13, 서버 AI toStartEnd와 같은 규칙)
+  const end = f.end_time && f.end_time !== '?' && f.end_time > f.time ? `${f.date}T${f.end_time}:00+09:00` : endOrHour(start, null);
   return { start, end };
 }
 
