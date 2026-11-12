@@ -55,7 +55,10 @@ export async function handle(request, env, ctx, user) {
 // ── 읽기 ─────────────────────────────────────────────────────────
 
 const TASK_COLUMNS = 'id, title, due, minutes, ready, done, source';
-const DONE_AT = `(SELECT MAX(at) FROM log WHERE log.user_id = tasks.user_id AND log.action = 'task_done' AND json_extract(log.detail, '$.id') = tasks.id) AS done_at`;
+// 끝낸 시각: 이 사람의 task_done 줄을 한 번만 모아(할 일 id마다 마지막 시각) 붙인다. 할 일마다 log를 다시 훑으면
+// D1 읽기가 '끝낸 할 일 수 × task_done 줄 수'로 커진다(11-12 무료 하루 읽기 한도).
+const DONE_AT_JOIN = `LEFT JOIN (SELECT json_extract(detail, '$.id') AS task_id, MAX(at) AS done_at FROM log
+     WHERE action = 'task_done' AND user_id = ?1 AND json_valid(detail) GROUP BY 1) d ON d.task_id = tasks.id`;
 const EVENT_COLUMNS = `id, title, start, "end", place, source, important, (source = 'memo' AND ext_id LIKE 'edit:%') AS edited`; // edited = 캘린더 일정을 여기서 고친 사본
 
 async function listTasks(url, env, user) {
@@ -72,10 +75,11 @@ async function listTasks(url, env, user) {
   const where = done === '1' ? 'AND done = 1' : '';
   const order = done === '1' ? 'done_at DESC, due DESC' : 'done, due IS NULL, due';
   // 끝낸 시각은 tasks 표에 칸이 없어서 log의 마지막 task_done 줄에서 읽는다(기록이 없으면 null → 맨 뒤)
-  const columns = done === '1' ? `${TASK_COLUMNS}, ${DONE_AT}` : TASK_COLUMNS;
-  const { results } = await env.DB.prepare(`SELECT ${columns} FROM tasks WHERE user_id = ? ${where} ORDER BY ${order}, id LIMIT ?`)
-    .bind(user.id, limit)
-    .all();
+  const sql =
+    done === '1'
+      ? `SELECT ${TASK_COLUMNS}, done_at FROM tasks ${DONE_AT_JOIN} WHERE tasks.user_id = ?1 ${where} ORDER BY ${order}, id LIMIT ?2`
+      : `SELECT ${TASK_COLUMNS} FROM tasks WHERE user_id = ?1 ${where} ORDER BY ${order}, id LIMIT ?2`;
+  const { results } = await env.DB.prepare(sql).bind(user.id, limit).all();
   return json({ ok: true, tasks: results });
 }
 
