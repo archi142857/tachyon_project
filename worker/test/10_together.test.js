@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import worker from '../index.js';
-import { TOGETHER_SQL, availability, bestTimes, slotStarts } from '../10_together.js';
+import { TOGETHER_TABLES, availability, bestTimes, slotStarts } from '../10_together.js';
 import { makeSessionCookie } from '../lib/auth.js';
 import { makeEnv, makeCtx, addTestUser } from './helpers/server.js';
 
@@ -19,7 +19,8 @@ test.after(() => {
 
 async function setup({ tables = true } = {}) {
   const env = makeEnv();
-  if (tables) env.DB.sqlite.exec(TOGETHER_SQL);
+  // 표는 schema.sql에 있다. '원격 D1에 아직 없음'을 볼 때만 지운다(자식 표부터).
+  if (!tables) for (const name of [...TOGETHER_TABLES].reverse()) env.DB.sqlite.exec(`DROP TABLE ${name}`);
   const people = {};
   for (const [key, name] of [['a', '예시 가'], ['b', '예시 나'], ['c', '예시 다'], ['d', '예시 라']]) {
     const user = await addTestUser(env, { sub: `sub-${key}`, email: `${key}@example.invalid`, name });

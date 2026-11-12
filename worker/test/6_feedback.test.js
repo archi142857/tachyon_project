@@ -234,8 +234,34 @@ test('reportServerError: 구독 주소의 서명은 가리고, DB가 고장 나�
   assert.equal(calls[0].payload.title, '[오류] 서버 GET /api/calendar/….ics: TypeError: 예시 실패');
   assert.ok(!calls[0].payload.body.includes('abcdefabcdef0123456789ab'));
 
-  const broken = { ...GITHUB, DB: { prepare: () => { throw new Error('예시 DB 없음'); } } };
-  assert.deepEqual(await reportServerError(broken, new Error('예시'), { where: 'cron */15 * * * *' }), { issue: null });
+  const broken = { DB: { prepare: () => { throw new Error('예시 DB 없음'); } } }; // GitHub 연결도 없음
+  assert.deepEqual(await reportServerError(broken, new Error('예시'), { where: 'cron */15 * * * *' }), { issue: null, duplicate: false, capped: true });
+});
+
+test('D1이 안 될 때(무료 하루 한도): GitHub에 열린 같은 이슈가 있으면 만들지 않고, 없으면 하나만 만든다', async () => {
+  const limit = "D1_ERROR: Your account has exceeded D1's free tier daily row read limit. 예시";
+  const env = { ...GITHUB, DB: { prepare: () => { throw new Error(limit); } } };
+  const calls = [];
+  let open = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), method: init.method || 'GET' });
+    if ((init.method || 'GET') === 'GET') return Response.json(open);
+    const issue = { number: 40 + calls.length, body: JSON.parse(init.body).body };
+    open = [issue, ...open];
+    return Response.json({ number: issue.number, html_url: `https://github.com/example/tachyon-example/issues/${issue.number}` }, { status: 201 });
+  };
+  const first = await reportServerError(env, new Error(limit), { where: '서버 D1 예시-1' });
+  assert.equal(first.duplicate, false);
+  assert.ok(first.issue > 40);
+  assert.deepEqual(calls.map((c) => c.method), ['GET', 'POST']); // 열린 이슈를 먼저 보고 만든다
+  // 같은 Worker에서 또: 기억으로 거름(GitHub에 다시 안 감)
+  assert.deepEqual(await reportServerError(env, new Error(limit), { where: '서버 D1 예시-1' }), { issue: first.issue, duplicate: true });
+  assert.equal(calls.length, 2);
+  // 다른 Worker(기억 없음 = 모듈을 새로 불러 흉내)에서 같은 오류: 열린 이슈의 '같은 오류 열쇠'를 보고 만들지 않는다
+  const another = await import('../6_feedback.js?another-worker');
+  const before = calls.length;
+  assert.deepEqual(await another.reportServerError(env, new Error(limit), { where: '서버 D1 예시-1' }), { issue: first.issue, duplicate: true });
+  assert.deepEqual(calls.slice(before).map((c) => c.method), ['GET']);
 });
 
 test('scrub: 개인 정보 모양은 지우고 보통 글은 그대로', () => {

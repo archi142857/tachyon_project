@@ -147,6 +147,28 @@ test('실패하면 화면으로 돌려보내며 login_error를 붙인다', async
   assert.equal(new URL(noConfig.headers.get('location')).searchParams.get('login_error'), 'config');
 });
 
+test('DB가 실패하면(무료 하루 한도 등) JSON 500 대신 login_error로 돌려보내고 이슈로 보고한다', async () => {
+  const limit = "D1_ERROR: Your account has exceeded D1's free tier daily row read limit. 예시";
+  for (const [message, reason] of [[limit, 'db_limit'], ['예시 DB 고장', 'server']]) {
+    const e = env();
+    const realPrepare = e.DB.prepare.bind(e.DB);
+    e.DB.prepare = (sql) => {
+      if (/INSERT INTO users/.test(sql)) throw new Error(message);
+      return realPrepare(sql);
+    };
+    const realError = console.error;
+    console.error = () => {};
+    try {
+      const { back } = await login(e);
+      assert.equal(back.status, 302, reason);
+      assert.equal(new URL(back.headers.get('location')).searchParams.get('login_error'), reason);
+      assert.ok(!back.headers.getSetCookie().some((c) => c.startsWith('tachyon_session=')), '로그인 쿠키는 없다');
+    } finally {
+      console.error = realError;
+    }
+  }
+});
+
 test('로그아웃은 쿠키를 지우고, 로그인 없이 내 정보는 401', async () => {
   const e = env();
   const out = await call(e, '/api/login/logout', { method: 'POST', headers: { origin: ORIGIN } });

@@ -400,6 +400,36 @@ test('폰 캘린더: 앱이 보낸 일정을 넣고, 빠진 것은 지우고, �
   assert.equal((await send('x')).status, 400);
 });
 
+test('폰 캘린더: 6시간 안에 같은 목록이 다시 오면 DB에 넣지 않고, 주소 수집으로 겹치게 된 폰 일정은 지운다', async () => {
+  const { env, user } = await setup();
+  const send = async (events) => (await handle(req('/api/feeds/device', { method: 'POST', body: JSON.stringify({ events }) }), env, makeCtx(), user)).json();
+  const party = Date.parse('2026-11-28T09:00:00Z'); // 한국 18:00 — googleCalendar()의 '예시 모임'과 같은 시작
+  const list = [
+    { id: '1', title: '예시 모임', start: party, end: party + 2 * 60 * MIN },
+    { id: '2', title: '예시 혼자', start: Date.parse('2026-11-20T01:00:00Z') },
+  ];
+  assert.deepEqual(await send(list), { ok: true, count: 2, same: 0 }); // 구글 주소가 아직 없어 둘 다 넣음
+  const batch = env.DB.batch.bind(env.DB);
+  let batches = 0;
+  env.DB.batch = async (statements) => {
+    batches++;
+    return batch(statements);
+  };
+  assert.deepEqual(await send(list), { ok: true, count: 2, same: 0, unchanged: true });
+  assert.equal(batches, 0);
+  env.DB.batch = batch;
+  // 구글 주소를 붙이면 '예시 모임'이 구글로 들어오고, 겹친 폰 일정은 그 수집에서 지운다
+  await handle(req('/api/feeds', { method: 'PUT', body: JSON.stringify({ google: GOOGLE_URL }) }), env, makeCtx(), user);
+  assert.equal(await count(env, 'events', "source = 'device'"), 1);
+  assert.equal(await count(env, 'events', "title = '예시 모임'"), 1);
+  // 6시간이 지나면 같은 목록도 다시 넣는다(겹친 것은 빼고), 목록이 바뀌면 바로 넣는다
+  clock = NOW + 6 * 60 * MIN + MIN;
+  assert.deepEqual(await send(list), { ok: true, count: 1, same: 1 });
+  const changed = [list[1], { id: '3', title: '예시 새 일정', start: Date.parse('2026-11-21T01:00:00Z') }];
+  assert.deepEqual(await send(changed), { ok: true, count: 2, same: 0 });
+  assert.equal(await count(env, 'events', "source = 'device' AND title = '예시 새 일정'"), 1);
+});
+
 test('eTL 주소를 처음 붙일 때 이미 마감이 지난 과제는 끝낸 것으로 넣는다(eTL 토큰이 없을 때만, 있는 줄은 그대로)', async () => {
   const pastCal = (extra = []) =>
     calendar(

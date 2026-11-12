@@ -26,71 +26,12 @@
 //   when2meet처럼 칠한 '된다' 칸만 된다. 칠한 칸도 달력도 없는 사람은 '아직 모름'(unknown)이라 세지 않는다.
 //   후보 = 지금 뒤에 시작하는, 모임 길이만큼 이어진 칸(같은 날) 가운데 처음부터 끝까지 되는 사람이 많은 순, 겹치지 않게 3개.
 //
-// 표는 TOGETHER_SQL(아래, schema.sql에 넣자고 소통판에 제안). 원격 D1에 표가 없으면 503 '준비 중'.
+// 표는 schema.sql 끝(friends·groups·group_members·invites·meets·meet_marks). 원격 D1에 표가 없으면 503 '준비 중'.
 
 import { json, fail, readJson } from './lib/http.js';
 import { kstIso, kstDate, DAY_MS } from './lib/time.js';
 import { logStatement } from './lib/log.js';
 import { b64url } from './lib/secret.js';
-
-const NOW_ISO = "strftime('%Y-%m-%dT%H:%M:%S+09:00', 'now', '+9 hours')";
-
-/** 제안 표(schema.sql 합의 전까지 시험이 이걸로 만든다). 모두 사용자·그룹을 지우면 같이 지워진다. */
-export const TOGETHER_SQL = `
--- 친구: 둘이 친구가 되면 두 줄(나 → 친구, 친구 → 나). 끊으면 두 줄 다 지운다.
-CREATE TABLE IF NOT EXISTS friends (
-  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  friend_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  created_at TEXT NOT NULL DEFAULT (${NOW_ISO}),
-  PRIMARY KEY (user_id, friend_id)
-);
--- 그룹: 방장(owner_id)이 이름을 바꾸고 멤버를 내보낸다. 방장 계정이 지워지면 NULL → 가장 먼저 들어온 멤버가 방장 노릇.
-CREATE TABLE IF NOT EXISTS groups (
-  id         INTEGER PRIMARY KEY,
-  name       TEXT NOT NULL,
-  owner_id   INTEGER REFERENCES users(id) ON DELETE SET NULL,
-  created_at TEXT NOT NULL DEFAULT (${NOW_ISO})
-);
-CREATE TABLE IF NOT EXISTS group_members (
-  group_id  INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
-  user_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  joined_at TEXT NOT NULL DEFAULT (${NOW_ISO}),
-  PRIMARY KEY (group_id, user_id)
-);
-CREATE INDEX IF NOT EXISTS group_members_user ON group_members (user_id);
--- 초대 링크: 무작위 코드(22자). kind friend = 만든 사람과 친구, group = 그 그룹에 들어감. 7일 동안 여러 번 쓸 수 있다.
-CREATE TABLE IF NOT EXISTS invites (
-  code       TEXT PRIMARY KEY,
-  kind       TEXT NOT NULL,
-  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  group_id   INTEGER REFERENCES groups(id) ON DELETE CASCADE,
-  expires_at TEXT NOT NULL,
-  uses       INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT NOT NULL DEFAULT (${NOW_ISO})
-);
--- 모임 시간표: 날짜 from~to(끝 날 포함, 14일까지), 하루 day_start~day_end(분), 칸 slot_min분, 모임 길이 length_min분.
-CREATE TABLE IF NOT EXISTS meets (
-  id         INTEGER PRIMARY KEY,
-  group_id   INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
-  title      TEXT NOT NULL,
-  from_date  TEXT NOT NULL,
-  to_date    TEXT NOT NULL,
-  day_start  INTEGER NOT NULL,
-  day_end    INTEGER NOT NULL,
-  slot_min   INTEGER NOT NULL DEFAULT 30,
-  length_min INTEGER NOT NULL DEFAULT 60,
-  created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
-  created_at TEXT NOT NULL DEFAULT (${NOW_ISO})
-);
--- 손으로 칠한 칸만 저장한다(나머지는 각자 달력으로 셈). slot = 칸 시작 '2026-11-16T09:30:00+09:00'.
-CREATE TABLE IF NOT EXISTS meet_marks (
-  meet_id INTEGER NOT NULL REFERENCES meets(id) ON DELETE CASCADE,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  slot    TEXT NOT NULL,
-  state   TEXT NOT NULL,
-  PRIMARY KEY (meet_id, user_id, slot)
-);
-`;
 
 const INVITE_DAYS = 7;
 const LIMITS = { groups: 20, members: 30, meets: 30, invites: 20, days: 14 };

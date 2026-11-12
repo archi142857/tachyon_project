@@ -76,7 +76,10 @@ export async function scheduled(event, env, ctx) {
 // 앱(web/src/native.js)이 열릴 때마다 폰 캘린더의 수집 기간 일정을 통째로 보낸다. source = 'device', ext_id = '<폰 일정 id>@<시작>'
 // (되풀이 일정은 id가 같아서 시작을 붙인다). 보낸 목록에 없는 device 일정은 지운다(폰에서 지운 것).
 // 주소로 이미 받는 캘린더(구글 등)와 이름·시작이 같은 것은 넣지 않는다(같은 일정이 두 번 보이지 않게).
+// 지난번(6시간 안)과 똑같은 목록이면 DB에 다시 넣지 않고 지난 결과를 준다 — 앱을 열 때마다 오는데 대개 그대로라서.
+// (11-12 무료 D1 하루 읽기 500만 줄을 넘긴 주범이 이 요청이었다: 색인 없이 한 번에 83만 줄 → 색인 뒤 6천 줄 → 같으면 수십 줄)
 const DEVICE_MAX = 3000;
+const DEVICE_SAME_MS = 6 * 60 * 60 * 1000;
 
 async function saveDeviceEvents(request, env, userId, now = Date.now()) {
   const body = await readJson(request, 1024 * 1024);
@@ -97,16 +100,41 @@ async function saveDeviceEvents(request, env, userId, now = Date.now()) {
         place: e.place ? String(e.place).slice(0, 200) : null,
       };
     });
-  const twin = `EXISTS (SELECT 1 FROM events x WHERE x.user_id = events.user_id AND x.source != 'device' AND x.title = events.title AND x.start = events.start)`;
+  const hash = (await fingerprint(JSON.stringify(events))).slice(0, 32);
+  const last = await lastDeviceSync(env, userId, now);
+  if (last && last.hash === hash && Number.isInteger(last.count)) {
+    await logStatement(env, userId, 'device_sync', { sent: events.length, hash, count: last.count, skipped: true }).run();
+    return json({ ok: true, count: last.count, same: events.length - last.count, unchanged: true });
+  }
   const range = [kstIso(from.getTime()), kstIso(to.getTime())];
   const results = await env.DB.batch([
     ...eventStatements(env, userId, 'device', events, range, true, { skipTwins: true }),
-    env.DB.prepare(`DELETE FROM events WHERE user_id = ? AND source = 'device' AND ${twin}`).bind(userId),
+    deviceTwinCleanup(env, userId),
     env.DB.prepare("SELECT count(*) AS n FROM events WHERE user_id = ? AND source = 'device' AND start >= ? AND start < ?").bind(userId, ...range),
-    logStatement(env, userId, 'device_sync', { sent: events.length }),
   ]);
-  const count = results.at(-2).results[0].n;
+  const count = results.at(-1).results[0].n;
+  await logStatement(env, userId, 'device_sync', { sent: events.length, hash, count }).run();
   return json({ ok: true, count, same: events.length - count });
+}
+
+/** 다른 칸(구글 등)에 이름·시작이 같은 일정이 있는 폰 일정을 지운다. 폰 캘린더를 받을 때와 주소 수집으로 일정이 바뀔 때. */
+function deviceTwinCleanup(env, userId) {
+  return env.DB.prepare(
+    `DELETE FROM events WHERE user_id = ? AND source = 'device'
+       AND EXISTS (SELECT 1 FROM events x WHERE x.user_id = events.user_id AND x.source != 'device' AND x.title = events.title AND x.start = events.start)`,
+  ).bind(userId);
+}
+
+/** 이 사람의 마지막 폰 캘린더 받기(6시간 안) 기록 { hash, count } 또는 null. log_action_at 색인으로 그 시간의 device_sync 줄만 읽는다. */
+async function lastDeviceSync(env, userId, now) {
+  const row = await env.DB.prepare("SELECT detail FROM log WHERE action = 'device_sync' AND at >= ? AND user_id = ? ORDER BY at DESC, id DESC LIMIT 1")
+    .bind(kstIso(now - DEVICE_SAME_MS), userId)
+    .first();
+  try {
+    return row && row.detail ? JSON.parse(row.detail) : null;
+  } catch {
+    return null;
+  }
 }
 
 // ── 기간 ─────────────────────────────────────────────────────────
@@ -345,6 +373,7 @@ export async function syncFeed(env, feed, { force = false, now = Date.now(), tex
     const statements = [];
     if (kind === 'etl') statements.push(...taskStatements(env, userId, kind, tasks, range, allowDelete, kstIso(now)));
     statements.push(...eventStatements(env, userId, kind, events, range, allowDelete));
+    statements.push(deviceTwinCleanup(env, userId)); // 새로 온 일정과 겹치게 된 폰 일정(폰 쪽은 같은 목록이면 다시 안 넣음)
     statements.push(
       env.DB.prepare('UPDATE feeds SET last_hash = ?, last_ok_at = ?, last_error = NULL, item_count = ?, dead_count = 0 WHERE id = ?').bind(
         hash,

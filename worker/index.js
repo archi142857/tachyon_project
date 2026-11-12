@@ -19,6 +19,7 @@
 
 import { getUser } from "./lib/auth.js";
 import { warmUp } from "./lib/ics.js";
+import { dbProblem, DB_PROBLEM_REPLY } from "./lib/dberror.js";
 
 // 캘린더(ICS) 해석 코드는 Worker가 시작할 때(전역 실행 = 요청 CPU 한도 밖, 시작 한도 1초 안) 한 번 돌려 둔다.
 // 번호 파일은 처음 부를 때 초기화되므로, 그대로 두면 처음 받는 캘린더가 무료 요금제 한도(CPU 10ms)를 넘는다
@@ -59,7 +60,7 @@ export default {
         } catch (err) {
           // D1이 답하지 않을 때 그 까닭(무료 한도·바쁨 등)을 밖에서 바로 보게 오류 글 첫 줄만. 개인 정보는 없는 글이다.
           console.error("health: D1 실패", err && err.message);
-          return Response.json({ ok: false, db: dbError(err), missing }, { status: 503 });
+          return Response.json({ ok: false, db: dbError(err), problem: dbProblem(err), missing }, { status: 503 });
         }
       }
 
@@ -82,7 +83,10 @@ export default {
       return res instanceof Response ? res : Response.json({ error: "없는 주소" }, { status: 404 });
     } catch (err) {
       console.error("서버 오류", request.method, url.pathname, err && err.stack);
-      reportError(env, ctx, err, { request });
+      // D1 쪽 사정(무료 하루 한도·잠깐 바쁨)이면 주소와 상관없이 이슈 하나로 모으고, 화면에는 503과 안내 글
+      const problem = dbProblem(err);
+      reportError(env, ctx, err, problem ? { where: "서버 D1" } : { request });
+      if (problem) return Response.json(DB_PROBLEM_REPLY[problem], { status: 503 });
       return Response.json({ error: "서버에서 오류가 났다" }, { status: 500 });
     }
   },

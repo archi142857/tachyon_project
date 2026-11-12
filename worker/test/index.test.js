@@ -70,6 +70,37 @@ test('번호 파일이 던진 오류는 500 JSON으로 감싼다', async () => {
   }
 });
 
+test('D1 쪽 사정(무료 하루 한도·바쁨)은 503과 안내 글, 오류 보고는 주소와 상관없이 \'서버 D1\' 하나로', async () => {
+  const env = makeEnv();
+  const user = await addTestUser(env);
+  const cookie = (await makeSessionCookie(env, user.id)).split(';')[0];
+  const realPrepare = env.DB.prepare.bind(env.DB);
+  let message = '';
+  env.DB.prepare = (sql) => {
+    if (/FROM users/.test(sql)) return realPrepare(sql);
+    throw new Error(message);
+  };
+  const jobs = [];
+  const ctx = { ...makeCtx(), waitUntil: (p) => jobs.push(p) };
+  const realError = console.error;
+  console.error = () => {};
+  try {
+    message = "D1_ERROR: Your account has exceeded D1's free tier daily row read limit. Upgrade to a paid plan 예시";
+    const res = await worker.fetch(req('/api/feeds', { headers: { cookie } }), env, ctx);
+    assert.equal(res.status, 503);
+    assert.equal((await res.json()).code, 'db_limit');
+    message = 'D1_ERROR: Network connection lost. 예시';
+    const busy = await worker.fetch(req('/api/feeds', { headers: { cookie } }), env, ctx);
+    assert.equal(busy.status, 503);
+    assert.equal((await busy.json()).code, 'db_busy');
+    await Promise.all(jobs);
+    const health = await (await worker.fetch(req('/api/health'), { ...env, DB: { prepare: () => { throw new Error(message); } } }, makeCtx())).json();
+    assert.equal(health.problem, 'busy');
+  } finally {
+    console.error = realError;
+  }
+});
+
 test('/api/health: D1이 답하지 않으면 503과 오류 글 첫 줄(긴 숫자는 지움)', async () => {
   const env = makeEnv();
   env.DB.prepare = () => {

@@ -93,21 +93,36 @@ export async function reportServerError(env, err, { request, where } = {}) {
 }
 
 /** 같은 오류(어디서 + 메시지 모양)는 이슈 하나만. 이미 보고했으면 duplicate. */
+// D1이 안 될 때(11-12 무료 하루 읽기 한도처럼) log로 같은 오류를 못 찾는다 → 이 Worker 안 기억과 GitHub의 열린 이슈로 거른다.
+const seenHere = new Map(); // 같은 오류 열쇠 → 이슈 번호
+const HERE_MAX = 5; // D1이 안 될 때 Worker 하나가 만드는 이슈 수 한도
+
 async function reportError(env, { where: rawWhere, message, stack, device: dev, userId, host = null }) {
   const where = String(rawWhere).slice(0, 120);
   const msg = scrub(message, host).slice(0, 300);
   const fp = await fingerprint(`${where}\n${msg.replace(/\d+/g, '#')}`);
-  // 이슈가 있는 줄을 먼저 본다. GitHub 연결 전에 난 오류(이슈 없음)는 연결된 뒤 처음 다시 날 때 이슈를 만든다.
-  // detail은 JSON.stringify 글이라 LIKE로 찾는다(json_extract는 다른 기능이 남긴 JSON 아닌 줄에서 멈출 수 있어서).
-  const seen = await env.DB.prepare(
-    `SELECT detail FROM log WHERE action = 'error_report' AND detail LIKE ?
-      ORDER BY detail LIKE '%"issue":null%', id DESC LIMIT 1`,
-  )
-    .bind(`%"fp":"${fp}"%`)
-    .first();
-  const seenIssue = seen ? issueOf(seen.detail) : null;
-  if (seen && (seenIssue !== null || !githubReady(env))) return { issue: seenIssue, duplicate: true };
-  if ((await countToday(env, 'error_report')) >= ERROR_ISSUES_PER_DAY) return { issue: null, duplicate: false, capped: true };
+  let dbOk = true;
+  try {
+    // 이슈가 있는 줄을 먼저 본다. GitHub 연결 전에 난 오류(이슈 없음)는 연결된 뒤 처음 다시 날 때 이슈를 만든다.
+    // detail은 JSON.stringify 글이라 LIKE로 찾는다(json_extract는 다른 기능이 남긴 JSON 아닌 줄에서 멈출 수 있어서).
+    const seen = await env.DB.prepare(
+      `SELECT detail FROM log WHERE action = 'error_report' AND detail LIKE ?
+        ORDER BY detail LIKE '%"issue":null%', id DESC LIMIT 1`,
+    )
+      .bind(`%"fp":"${fp}"%`)
+      .first();
+    const seenIssue = seen ? issueOf(seen.detail) : null;
+    if (seen && (seenIssue !== null || !githubReady(env))) return { issue: seenIssue, duplicate: true };
+    if ((await countToday(env, 'error_report')) >= ERROR_ISSUES_PER_DAY) return { issue: null, duplicate: false, capped: true };
+  } catch (err) {
+    dbOk = false;
+    console.error('오류 보고: D1로 같은 오류 찾기 실패', err && err.message);
+    if (seenHere.has(fp)) return { issue: seenHere.get(fp), duplicate: true };
+    if (!githubReady(env) || seenHere.size >= HERE_MAX) return { issue: null, duplicate: false, capped: true };
+    const open = await findOpenIssue(env, fp);
+    seenHere.set(fp, open);
+    if (open !== null) return { issue: open, duplicate: true };
+  }
 
   const lines = scrub(stack, host).split('\n');
   if (lines[0].trim() === msg.trim()) lines.shift(); // 서버 오류의 stack은 첫 줄이 메시지 그대로
@@ -129,8 +144,18 @@ async function reportError(env, { where: rawWhere, message, stack, device: dev, 
     ].join('\n'),
     labels: ['오류', '자동'],
   });
-  await logStatement(env, userId, 'error_report', { fp, where, issue: issue ? issue.number : null }).run();
-  return { issue: issue ? issue.number : null, duplicate: false };
+  const number = issue ? issue.number : null;
+  if (!dbOk) {
+    seenHere.set(fp, number);
+    return { issue: number, duplicate: false };
+  }
+  try {
+    await logStatement(env, userId, 'error_report', { fp, where, issue: number }).run();
+  } catch (err) {
+    seenHere.set(fp, number);
+    console.error('오류 보고: log 기록 실패', err && err.message);
+  }
+  return { issue: number, duplicate: false };
 }
 
 // ── GitHub ───────────────────────────────────────────────────────
@@ -148,19 +173,34 @@ function issueOf(detail) {
   }
 }
 
+const githubHeaders = (env) => ({
+  authorization: `Bearer ${env.GITHUB_TOKEN}`,
+  accept: 'application/vnd.github+json',
+  'x-github-api-version': '2022-11-28',
+  'content-type': 'application/json',
+  'user-agent': 'Tachyon-feedback',
+});
+
+/** 열린 이슈(최근 30개) 가운데 본문에 이 '같은 오류 열쇠'가 있는 것의 번호, 없거나 못 보면 null */
+async function findOpenIssue(env, fp) {
+  try {
+    const res = await fetch(`https://api.github.com/repos/${env.GITHUB_REPO}/issues?state=open&per_page=30`, { headers: githubHeaders(env) });
+    if (!res.ok) return null;
+    const list = await res.json();
+    const hit = Array.isArray(list) ? list.find((it) => typeof it.body === 'string' && it.body.includes(`같은 오류 열쇠: ${fp}`)) : null;
+    return hit ? hit.number : null;
+  } catch {
+    return null;
+  }
+}
+
 /** 이슈를 만든다. 토큰이 없거나 실패하면 null(의견은 log에 남아 있음). 라벨이 없으면 GitHub이 만든다. */
 export async function createIssue(env, { title, body, labels }) {
   if (!githubReady(env)) return null;
   const post = (payload) =>
     fetch(`https://api.github.com/repos/${env.GITHUB_REPO}/issues`, {
       method: 'POST',
-      headers: {
-        authorization: `Bearer ${env.GITHUB_TOKEN}`,
-        accept: 'application/vnd.github+json',
-        'x-github-api-version': '2022-11-28',
-        'content-type': 'application/json',
-        'user-agent': 'Tachyon-feedback',
-      },
+      headers: githubHeaders(env),
       body: JSON.stringify(payload),
     });
   try {

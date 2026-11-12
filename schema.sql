@@ -46,6 +46,9 @@ CREATE TABLE IF NOT EXISTS events (
                                           -- 새 일정을 지우면 NULL로 돌아온다. 11-10 추가: 있던 DB는 ALTER TABLE events ADD COLUMN moved_to INTEGER;
   UNIQUE (user_id, source, ext_id)
 );
+-- 사람 × 시작 시각. 기간으로 읽기(달력·밀도·브리핑)와 폰 캘린더 겹침 확인이 그 사람 일정 전체를 훑지 않게.
+-- 없을 때 폰 캘린더 올리기 한 번이 D1 읽기 83만 줄이었다(일정 1232개, 11-12 무료 하루 읽기 500만 줄 초과의 원인). 원격 D1에는 11-12 10:13 넣음.
+CREATE INDEX IF NOT EXISTS events_user_start ON events (user_id, start);
 
 CREATE TABLE IF NOT EXISTS tasks (
   id         INTEGER PRIMARY KEY,
@@ -112,4 +115,57 @@ CREATE TABLE IF NOT EXISTS etl_items (
   UNIQUE (user_id, ext_id)
 );
 
--- 3단계: friends, groups, group_members
+-- 같이 쓰기(worker/10_together.js): 친구·그룹·모임 시간표. 모두 사용자·그룹을 지우면 같이 지워진다. 원격 D1에는 11-12 10:13 넣음.
+-- 친구: 둘이 친구가 되면 두 줄(나 → 친구, 친구 → 나). 끊으면 두 줄 다 지운다.
+CREATE TABLE IF NOT EXISTS friends (
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  friend_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S+09:00', 'now', '+9 hours')),
+  PRIMARY KEY (user_id, friend_id)
+);
+-- 그룹: 방장(owner_id)이 이름을 바꾸고 멤버를 내보낸다. 방장 계정이 지워지면 NULL → 가장 먼저 들어온 멤버가 방장 노릇.
+CREATE TABLE IF NOT EXISTS groups (
+  id         INTEGER PRIMARY KEY,
+  name       TEXT NOT NULL,
+  owner_id   INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S+09:00', 'now', '+9 hours'))
+);
+CREATE TABLE IF NOT EXISTS group_members (
+  group_id  INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  user_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  joined_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S+09:00', 'now', '+9 hours')),
+  PRIMARY KEY (group_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS group_members_user ON group_members (user_id);
+-- 초대 링크: 무작위 코드(22자). kind friend = 만든 사람과 친구, group = 그 그룹에 들어감. 7일 동안 여러 번 쓸 수 있다.
+CREATE TABLE IF NOT EXISTS invites (
+  code       TEXT PRIMARY KEY,
+  kind       TEXT NOT NULL,
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  group_id   INTEGER REFERENCES groups(id) ON DELETE CASCADE,
+  expires_at TEXT NOT NULL,
+  uses       INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S+09:00', 'now', '+9 hours'))
+);
+-- 모임 시간표: 날짜 from~to(끝 날 포함, 14일까지), 하루 day_start~day_end(분), 칸 slot_min분, 모임 길이 length_min분.
+CREATE TABLE IF NOT EXISTS meets (
+  id         INTEGER PRIMARY KEY,
+  group_id   INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  title      TEXT NOT NULL,
+  from_date  TEXT NOT NULL,
+  to_date    TEXT NOT NULL,
+  day_start  INTEGER NOT NULL,
+  day_end    INTEGER NOT NULL,
+  slot_min   INTEGER NOT NULL DEFAULT 30,
+  length_min INTEGER NOT NULL DEFAULT 60,
+  created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S+09:00', 'now', '+9 hours'))
+);
+-- 손으로 칠한 칸만 저장한다(나머지는 각자 달력으로 셈). slot = 칸 시작 '2026-11-16T09:30:00+09:00'.
+CREATE TABLE IF NOT EXISTS meet_marks (
+  meet_id INTEGER NOT NULL REFERENCES meets(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  slot    TEXT NOT NULL,
+  state   TEXT NOT NULL,
+  PRIMARY KEY (meet_id, user_id, slot)
+);

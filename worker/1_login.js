@@ -30,6 +30,7 @@ import { json, fail, readJson } from './lib/http.js';
 import { logAction, logStatement } from './lib/log.js';
 import { deleteAccountStatements as togetherCleanup, TOGETHER_TABLES } from './10_together.js';
 import { kstIso } from './lib/time.js';
+import { dbProblem } from './lib/dberror.js';
 
 const GOOGLE_AUTH = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN = 'https://oauth2.googleapis.com/token';
@@ -44,7 +45,7 @@ export async function handle(request, env, ctx, user) {
   const method = request.method;
 
   if (pathname === '/api/login' && method === 'GET') return startLogin(url, env);
-  if (pathname === '/api/login/callback' && method === 'GET') return finishLogin(request, url, env, user);
+  if (pathname === '/api/login/callback' && method === 'GET') return finishLogin(request, url, env, user, ctx);
   if (pathname === '/api/login/ticket' && method === 'GET') return useTicket(request, url, env);
   if (pathname === '/api/login/logout' && method === 'POST') {
     return json({ ok: true }, 200, { 'set-cookie': clearSessionCookie() });
@@ -95,7 +96,7 @@ async function startLogin(url, env) {
 
 // ── 구글이 돌려보냄: 사용자 확인 → users 행 → 로그인 쿠키 ───────────
 
-async function finishLogin(request, url, env, user) {
+async function finishLogin(request, url, env, user, ctx) {
   const flow = await readFlow(env, getCookie(request, FLOW_COOKIE));
   const next = flow ? flow.next : '/';
   const clearFlow = cookie(FLOW_COOKIE, '', 0, { path: '/api/login' });
@@ -119,13 +120,23 @@ async function finishLogin(request, url, env, user) {
   if (!claims.sub || !claims.email || claims.email_verified !== true) return back('email');
 
   // 구글 계정 고유 번호(sub)로 찾는다(이메일은 바뀔 수 있음). 있으면 이메일·이름만 새로.
-  const row = await env.DB.prepare(
-    `INSERT INTO users (google_sub, email, name, created_at) VALUES (?1, ?2, ?3, ?4)
-     ON CONFLICT (google_sub) DO UPDATE SET email = excluded.email, name = excluded.name
-     RETURNING *`,
-  )
-    .bind(String(claims.sub), String(claims.email).toLowerCase(), claims.name ? String(claims.name).slice(0, 100) : null, kstIso())
-    .first();
+  // DB가 실패하면(11-12 무료 D1 하루 읽기 한도) JSON 500 대신 앱으로 돌려보내 화면이 안내한다: db_limit · server
+  let row;
+  try {
+    row = await env.DB.prepare(
+      `INSERT INTO users (google_sub, email, name, created_at) VALUES (?1, ?2, ?3, ?4)
+       ON CONFLICT (google_sub) DO UPDATE SET email = excluded.email, name = excluded.name
+       RETURNING *`,
+    )
+      .bind(String(claims.sub), String(claims.email).toLowerCase(), claims.name ? String(claims.name).slice(0, 100) : null, kstIso())
+      .first();
+    if (!row) throw new Error('users 줄을 돌려받지 못함');
+  } catch (err) {
+    console.error('로그인: users 저장 실패', err && err.message);
+    const problem = dbProblem(err);
+    reportLater(env, ctx, err, { request, where: problem ? '서버 D1' : undefined });
+    return back(problem === 'limit' ? 'db_limit' : 'server');
+  }
   await logAction(env, row.id, 'login', flow.app ? { app: true } : null);
   if (flow.app) {
     const ticket = await signFlow(env, { uid: row.id, app: flow.app, exp: Math.floor(Date.now() / 1000) + TICKET_SECONDS });
@@ -136,6 +147,12 @@ async function finishLogin(request, url, env, user) {
   headers.append('set-cookie', await makeSessionCookie(env, row.id));
   headers.append('set-cookie', clearFlow);
   return new Response(null, { status: 302, headers });
+}
+
+/** 서버 오류를 6_feedback.js(오류 자동 보고)에 넘긴다. 응답은 기다리지 않는다. */
+function reportLater(env, ctx, err, info) {
+  const job = import('./6_feedback.js').then((feedback) => feedback.reportServerError(env, err, info)).catch(() => {});
+  if (ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(job);
 }
 
 /** 앱으로 돌려보낸다(tachyon://login?ticket=… 또는 ?error=…). 이 브라우저에는 로그인 쿠키를 주지 않는다. */
