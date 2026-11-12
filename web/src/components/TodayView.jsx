@@ -58,8 +58,11 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
   const picked = items.find((x) => x.key === sel);
   const pick = (key) => setSel((s) => (s === key ? null : key));
 
-  const first = Math.min(9, ...items.map((x) => Math.floor(x.from / 60)), Math.floor(nowMin / 60));
-  const last = Math.max(20, ...items.map((x) => Math.ceil(x.to / 60)), Math.ceil((nowMin + 1) / 60));
+  // 입자 = 9판 타임라인(H0): 8–24시, 지금이나 일정이 8시 전이면 0–24시. 눈금과 시각은 8칸으로(2시간 또는 3시간마다)
+  const early = Math.min(9, ...items.map((x) => Math.floor(x.from / 60)), Math.floor(nowMin / 60));
+  const first = particles ? (early < 8 ? 0 : 8) : early;
+  const last = particles ? 24 : Math.max(20, ...items.map((x) => Math.ceil(x.to / 60)), Math.ceil((nowMin + 1) / 60));
+  const step = particles ? (24 - first) / 8 : 1;
   const top = (min) => `calc(var(--hour) * ${(min - first * 60) / 60})`;
   const box = (from, to) => ({ top: `calc(${top(from)} + 1px)`, height: `calc(var(--hour) * ${Math.max(to - from, 30) / 60} - 2px)` });
 
@@ -77,13 +80,13 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
         </div>
         {/* 하루 전체가 --day-h 높이에 들어가게 한 시간 높이를 나눈다 */}
         <div className="cal-grid one" style={{ '--hour': `calc(var(--day-h) / ${last - first})`, height: 'var(--day-h)' }}>
-          {Array.from({ length: last - first - 1 }, (_, i) => (
-            <div key={i} className="hline" style={{ top: `calc(var(--hour) * ${i + 1})` }} aria-hidden="true" />
+          {Array.from({ length: (last - first) / step - 1 }, (_, i) => (
+            <div key={i} className="hline" style={{ top: `calc(var(--hour) * ${(i + 1) * step})` }} aria-hidden="true" />
           ))}
           <div className="hours" aria-hidden="true">
-            {Array.from({ length: last - first }, (_, i) => (
-              <span key={i} className="num" style={{ top: i === 0 ? '2px' : `calc(var(--hour) * ${i} - 8px)` }}>
-                {first + i}
+            {Array.from({ length: (last - first) / step }, (_, i) => (
+              <span key={i} className="num" style={{ top: i === 0 ? '2px' : `calc(var(--hour) * ${i * step} - 8px)` }}>
+                {first + i * step}
               </span>
             ))}
           </div>
@@ -116,7 +119,7 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
               </div>
             ))}
             <div className="now-line" role="img" style={{ top: top(nowMin) }} aria-label={`지금 ${hm(nowMin)}`}>
-              {particles && <span className="now-at num">{hm(nowMin)}</span>}
+              {particles && <span className="now-at num">{hm(nowMin).padStart(5, '0')}</span>}
             </div>
           </div>
         </div>

@@ -61,7 +61,7 @@ html[data-theme^='입자'] .side-nav .count, html[data-theme^='입자'] .tabs .c
 /* ── 왼쪽 메뉴 · 이름표(9판 .side · .logo) ── */
 @media (min-width: 900px) {
   html[data-theme^='입자'] .shell { grid-template-columns: 196px minmax(0, 1fr); }
-  html[data-theme^='입자'] .side { padding: 26px 22px; border: 0; background: var(--bg); }
+  html[data-theme^='입자'] .side { gap: 0; padding: 26px 22px; border: 0; background: var(--bg); }
 }
 html[data-theme^='입자'] .side-brand { height: auto; margin-bottom: 36px; padding: 0; gap: 10px; }
 html[data-theme^='입자'] .wordmark { margin: 0; font: inherit; }
@@ -97,7 +97,8 @@ html[data-theme^='입자'] .subbar .date { font-family: var(--font); font-size: 
 
 /* ── 오늘 화면(9판 .hx): 칸 테두리 없이 타임라인 · 고리 · 할 일. 칸 이름은 왼쪽 가는 보라 막대가 붙은 작은 이름표(.lb) ── */
 html[data-theme^='입자'] .today-grid { gap: 14px 26px; }
-html[data-theme^='입자'] .card:not(.lifted) { border: 0; border-radius: 0; background: none; box-shadow: none; } /* 9판엔 카드 테두리가 없다: 칸은 lb 제목과 줄로만 나뉜다 */
+html[data-theme^='입자'] .card:not(.lifted) { border: 0; border-radius: 0; background: none; box-shadow: none; }
+html[data-theme^='입자'] .today-grid > .card:not(.lifted) { padding: 0 4px; } /* 테가 없으니 안쪽 여백도 9판처럼 거의 없이 */ /* 9판엔 카드 테두리가 없다: 칸은 lb 제목과 줄로만 나뉜다 */
 html[data-theme^='입자'] .make-group { height: 44px; border: 0; border-radius: 12px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 500; box-shadow: none; }
 html[data-theme^='입자'] .card-title { display: flex; align-items: center; gap: 8px; font-family: var(--font); font-size: 12px; line-height: 1.4; font-weight: 400; letter-spacing: 0; color: var(--mu); }
 html[data-theme^='입자'] .card-title::before { content: ''; flex: none; width: 1.5px; height: 11px; background: var(--vi); }
@@ -114,8 +115,8 @@ html[data-theme^='입자'] .cal-grid.one .col, html[data-theme^='입자'] .cal-g
 html[data-theme^='입자'] .ev { --c: var(--vi); border: 0; border-radius: 9px; padding: 4px 8px 4px 10px; background: color-mix(in srgb, var(--c) 22%, var(--s1)); box-shadow: inset 2px 0 0 var(--c); color: var(--ink); font-size: 12px; line-height: 1.25; font-weight: 500; }
 html[data-theme^='입자'] .ev::before { display: none; }
 html[data-theme^='입자'] .ev .place { display: block; margin-top: 1px; font-size: 10px; line-height: 1.3; font-weight: 400; color: var(--mu); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-html[data-theme^='입자'] .cal-grid.one .ev { padding: 4px 12px 4px 14px; font-size: 13px; }
-html[data-theme^='입자'] .cal-grid.one .ev .place { font-size: 11px; }
+html[data-theme^='입자'] .cal-grid.one .ev { padding: 4px 12px 4px 14px; font-size: 14px; }
+html[data-theme^='입자'] .cal-grid.one .ev .place { font-size: 12px; } /* 9판 .dv .eb */
 html[data-theme^='입자'] .ev.important { box-shadow: inset 2px 0 0 var(--c), 0 0 0 1px color-mix(in srgb, var(--c) 70%, transparent); font-weight: 600; }
 html[data-theme^='입자'] .ev.slot { background: color-mix(in srgb, var(--c) 7%, var(--s1)); box-shadow: none; border: 1px dotted color-mix(in srgb, var(--c) 60%, transparent); }
 html[data-theme^='입자'] .ev.slot::before { display: inline; content: '추천'; margin-right: 6px; padding: 0; border: 0; font-size: 10px; font-weight: 400; color: var(--c); background: none; }
@@ -133,6 +134,32 @@ html[data-theme^='입자'] .cal-days .wd { font-size: 12px; font-weight: 400; co
 html[data-theme^='입자'] .cal-days .today .wd { color: var(--ink); }
 html[data-theme^='입자'] .cal-days .dn { font-size: 17px; font-weight: 300; letter-spacing: -0.03em; border-radius: 50%; }
 html[data-theme^='입자'] .cal-days .today .dn { background: var(--ink); color: var(--bg); font-weight: 400; box-shadow: 0 0 14px -2px var(--vi); }
+/* 달력 머리(9판 .cn): 크고 가는 제목 + 청록 '오늘부터', 넘기기는 32px 테 단추. 날짜는 9판 .dh b(34px · 19px), 고리 48px(9판 .dw) */
+html[data-theme^='입자'] .cal-head { gap: 8px; min-height: 48px; padding-left: 0; }
+html[data-theme^='입자'] .cal-head .card-title { font-size: 22px; font-weight: 300; letter-spacing: -0.03em; color: var(--ink); white-space: nowrap; }
+html[data-theme^='입자'] .cal-head .card-title::before { content: none; }
+html[data-theme^='입자'] .cal-head .card-title em { margin-left: 4px; font-style: normal; font-size: 12px; font-weight: 400; letter-spacing: 0; color: var(--te); }
+html[data-theme^='입자'] .cal-head :is(.icon-btn, .btn-text) { width: auto; height: 32px; padding: 0 10px; font-size: 13px; border-radius: 10px; }
+html[data-theme^='입자'] .cal-days > button { padding: 4px 0 12px; }
+html[data-theme^='입자'] .cal-days .dn-ring { width: 48px; height: 48px; margin-top: 3px; }
+html[data-theme^='입자'] .cal-days .dn-ring .dn { width: 34px; height: 34px; font-size: 19px; }
+html[data-theme^='입자'] .cal-days .dh { display: none; } /* 9판 날짜 밑엔 숫자가 없다(쓰는 시간은 고리와 이름에) */
+/* 주간 달력 마감 = 그 시각의 점선(9판 .dl), 지금 = 칸을 가로지르는 옅은 점선과 왼쪽 시각(9판 .nl), 지난 일정은 옅게(9판 .eb.dn) */
+html[data-theme^='입자'] .cal-grid .dl { position: absolute; left: 3px; right: 3px; height: 0; z-index: 1; margin: 0; padding: 0; border: 0; border-top: 1px dashed var(--c); background: none; cursor: pointer; }
+html[data-theme^='입자'] .cal-grid .dl::before { content: ''; position: absolute; left: -1px; top: -4px; width: 7px; height: 7px; border-radius: 50%; background: color-mix(in srgb, var(--c) 40%, var(--ink)); box-shadow: 0 0 8px 1px var(--c); }
+html[data-theme^='입자'] .cal-grid .dl span { position: absolute; left: 10px; right: 0; bottom: 3px; font-size: 10px; line-height: 1.2; text-align: left; color: color-mix(in srgb, var(--c) 55%, var(--ink)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html[data-theme^='입자'] .cal-grid .dl.dn { opacity: 0.4; }
+html[data-theme^='입자'] .cal-grid .dl.dn span { text-decoration: line-through; }
+html[data-theme^='입자'] .cal-grid .nl { position: absolute; left: 0; right: 0; height: 0; z-index: 2; pointer-events: none; border-top: 1px dashed color-mix(in srgb, var(--ink) 20%, transparent); }
+html[data-theme^='입자'] .cal-grid .nl span { position: absolute; left: 0; top: -7px; width: 29px; text-align: right; font-size: 10px; line-height: 14px; color: var(--ink); background: var(--bg); }
+html[data-theme^='입자'] .cal-grid .ev.past { opacity: 0.45; }
+html[data-theme^='입자'] .page-cal > .cal .cal-scroll { --hour: max(22px, calc(100cqh / var(--hours, 12))); } /* 9판 .tg처럼 하루가 한 화면에 */
+html[data-theme^='입자'] .dz { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; } /* 9판 날짜 둘레 점 고리 */
+html[data-theme^='입자'] .dz circle { fill: var(--mu); opacity: 0.3; }
+html[data-theme^='입자'] .dz .l { fill: var(--vi); opacity: 1; }
+html[data-theme^='입자'] .dz .t { fill: var(--te); opacity: 1; }
+html[data-theme^='입자'] .dz.hot :is(.l, .t) { fill: #ff9d5c; filter: drop-shadow(0 0 2px #ff9d5c); }
+html[data-theme^='입자'] .dz.past { opacity: 0.45; }
 html[data-theme^='입자'] .dring .track { stroke: var(--mu); opacity: 0.55; stroke-dasharray: 0.01 3.2; stroke-linecap: round; } /* 9판 날짜 둘레 점 고리 */
 html[data-theme^='입자'] .dring .ev { stroke: var(--vi); }
 html[data-theme^='입자'] .dring .task { stroke: var(--te); }
@@ -153,7 +180,12 @@ html[data-theme^='입자'] .month-grid .mline.deadline::before { width: 4px; hei
 html[data-theme^='입자'] .month-grid .mline.deadline::after { content: none; }
 html[data-theme^='입자'] .mline b { font-weight: 400; color: var(--mu); }
 html[data-theme^='입자'] .mcell { position: relative; overflow: hidden; } html[data-theme^='입자'] .month-grid .mline { flex: none; }
-html[data-theme^='입자'] .mmore { position: absolute; top: 9px; right: 34px; font-size: 11px; color: var(--mu); } /* 9판처럼 '+N'은 날짜 줄 오른쪽 */
+html[data-theme^='입자'] .mmore { position: absolute; top: 9px; right: 10px; font-size: 10px; color: var(--fa); } /* 9판 .mo: '+N'은 날짜 줄 오른쪽 */
+html[data-theme^='입자'] .mcell .mtop .dring, html[data-theme^='입자'] .mcell .mtop .dring-empty, html[data-theme^='입자'] .mline b { display: none; } /* 9판 칸엔 고리와 시각이 없다(주간 달력에 있다) */
+html[data-theme^='입자'] .mcell.past:not(.out) { opacity: 0.55; }
+html[data-theme^='입자'] .mcell .dp { position: absolute; left: 9px; right: 9px; bottom: 6px; height: 1px; background: color-mix(in srgb, var(--ink) 16%, transparent); }
+html[data-theme^='입자'] .mcell .dp::before { content: ''; position: absolute; left: 0; top: 0; width: var(--p); height: 1px; background: linear-gradient(90deg, transparent, var(--ink)); }
+html[data-theme^='입자'] .mcell .dp::after { content: ''; position: absolute; left: var(--p); top: -2.5px; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 8px 2px var(--vi); }
 html[data-theme^='입자'] .mline:is(.timetable, .ics, .memo, .allday, .deadline) { background: none; }
 
 /* 하루 고리(9판 .rw · .ring.day · .ty · .mid) */
@@ -245,7 +277,7 @@ html[data-theme^='입자'] .composer input::placeholder { color: var(--fa); }
 html[data-theme^='입자'] .composer .send { width: auto; height: 44px; padding: 0 16px; border-radius: 10px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 500; gap: 8px; white-space: nowrap; }
 html[data-theme^='입자'] .composer .send::after { content: '→'; transition: transform 0.25s; }
 html[data-theme^='입자'] .composer .send:hover::after { transform: translateX(3px); }
-html[data-theme^='입자'] .composer .send:disabled { background: var(--ink); color: var(--bg); opacity: 0.4; }
+html[data-theme^='입자'] .composer .send:disabled { background: var(--ink); color: var(--bg); opacity: 1; cursor: default; } /* 9판 '남기기'는 늘 흰 단추 */
 html[data-theme^='입자'] .composer .memo-count { flex: none; height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: none; box-shadow: inset 0 0 0 1px var(--ln); color: var(--mu); font-size: 14px; white-space: nowrap; cursor: pointer; }
 html[data-theme^='입자'] .composer .memo-count:hover { color: var(--ink); box-shadow: inset 0 0 0 1px var(--fa); }
 @media (max-width: 599.98px) {
@@ -288,3 +320,16 @@ html[data-theme^='입자'] .shell .page { animation: nine-up 0.4s cubic-bezier(0
 html.theme-fade, html.theme-fade * { transition: background-color 0.6s ease, color 0.6s ease, border-color 0.6s ease, fill 0.6s ease, stroke 0.6s ease, box-shadow 0.6s ease !important; }
 /* 입자 밤 ↔ 낮은 9판처럼 --t 하나가 움직인다(위 표시가 html의 전환을 덮지 않게) */
 html.theme-fade[data-theme^='입자'] { transition: --t 0.9s cubic-bezier(0.45, 0, 0.2, 1) !important; }
+
+/* 메모 칸 = 9판 어두운 줄(.row): 말풍선 대신 둥근 줄, 시각은 옅게 */
+html[data-theme^='입자'] .memo-log .bubble { border: 0; border-radius: 14px; padding: 10px 14px; background: var(--row); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); font-size: 14px; font-weight: 500; line-height: 1.4; }
+html[data-theme^='입자'] .memo-log .bubble.on { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vi) 75%, transparent), 0 0 18px -8px var(--vi); }
+html[data-theme^='입자'] .memo-log time { font-size: 11px; color: var(--fa); }
+html[data-theme^='입자'] .memo-day { font-size: 12px; color: var(--fa); }
+html[data-theme^='입자'] .memo-saved { font-size: 11px; color: var(--te); }
+/* 메모 쪽(9판 메모 화면): 메모 칸과 같은 폭(560px) 가운데 기둥, 메모 하나 = 9판 .row 한 줄(글은 왼쪽, 시각은 오른쪽) */
+html[data-theme^='입자'] .memo-page .memo-card { width: min(100%, 560px); margin: 0 auto; }
+html[data-theme^='입자'] .memo-page .bubble-row { align-self: stretch; max-width: none; flex-direction: row-reverse; align-items: center; gap: 12px; min-height: 62px; padding: 0 18px; border-radius: 18px; background: var(--row); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 6%, transparent); }
+html[data-theme^='입자'] .memo-page .bubble-row:has(.bubble.on) { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vi) 75%, transparent), 0 0 18px -8px var(--vi); }
+html[data-theme^='입자'] .memo-page .bubble { flex: 1; padding: 0; border-radius: 0; background: none; box-shadow: none; font-size: 14px; font-weight: 500; }
+html[data-theme^='입자'] .memo-page .memo-saved { text-align: right; }

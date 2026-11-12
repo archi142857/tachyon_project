@@ -1,8 +1,24 @@
 // 할 일 3개(왼쪽 위). 순서와 몰린 주 경고는 서버(/api/briefing/rank)가 준다. 체크하면 끝, 제목을 누르면 고치기.
 // 전체 목록은 햄버거 메뉴 안에 있다.
 import { minutesLabel, readyLabel, slackLabel } from '../tasks.js';
-import { daysUntil, deadlineLabel } from '../time.js';
+import { WEEKDAYS, daysUntil, deadlineLabel, hhmm, kst, shortDate } from '../time.js';
 import { tint, useParticles } from '../themeName.js';
+
+// 9판 말투(시연 9판 span · dueWord): '여유 11시간 41분' / '오늘 15:00 마감' · '모레 자정 마감'
+function spanWord(ms) {
+  if (ms <= 0) return '지남';
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor((ms % 86400000) / 3600000);
+  const m = Math.round((ms % 3600000) / 60000);
+  if (d) return h ? `${d}일 ${h}시간` : `${d}일`;
+  if (h) return m === 0 ? `${h}시간` : m === 30 ? `${h}시간 반` : `${h}시간 ${m}분`;
+  return `${m}분`;
+}
+function dueWord(dueIso, now) {
+  const d = daysUntil(dueIso, now);
+  const day = ['어제', '오늘', '내일', '모레'][d + 1] || (d > 0 && d < 7 ? `${WEEKDAYS[kst(dueIso).wd]}요일` : shortDate(dueIso));
+  return `${day} ${hhmm(dueIso) === '23:59' ? '자정' : hhmm(dueIso)} 마감`;
+}
 
 // track = 마감 자(디자인 ⑥, 사람 피드백 4 '마감 시간 선형으로'): 지금 → 7일 뒤 같은 자에 마감 ▲. 할 일 쪽 전체 목록에서만
 export function TaskRow({ task, now, onDone, onEdit, track = false }) {
@@ -15,6 +31,8 @@ export function TaskRow({ task, now, onDone, onEdit, track = false }) {
   const soon = !late && task.due && daysUntil(task.due, now) === 0;
   const due = <span className={late ? 'due late-due' : soon ? 'due soon' : 'due'}>{deadlineLabel(task.due, now)}</span>;
   // 입자 테마 = 9판 줄: 과목 색 점 · 제목과 걸리는 시간 · 오른쪽에 여유와 마감 · 맨 오른쪽 동그란 체크
+  // 여유 = 마감까지 남은 시간 − 걸리는 시간(9판 slack)
+  const left = task.due ? Date.parse(task.due) - new Date(now).getTime() - (task.minutes || 0) * 60000 : 0;
   if (nine)
     return (
       <div className={task.done ? 'task row9 dn' : 'task row9'} style={{ '--c': tint(task.title) }}>
@@ -26,10 +44,12 @@ export function TaskRow({ task, now, onDone, onEdit, track = false }) {
           <small className="meta num">{[minutes, ready].filter(Boolean).join(' · ')}</small>
           {track && task.due && <DueTrack due={task.due} now={now} />}
         </span>
-        <span className="r num">
-          {slack && <b className={task.slack_days < 0 ? 'short' : undefined}>{slack}</b>}
-          <small>{due}</small>
-        </span>
+        {task.due && (
+          <span className="r num">
+            <b className={left <= 0 ? 'short' : undefined}>여유 {spanWord(left)}</b>
+            <small className={late ? 'late-due' : undefined}>{dueWord(task.due, now)}</small>
+          </span>
+        )}
         <input type="checkbox" className="ck" aria-label={`${task.title} 끝`} checked={!!task.done} onChange={() => onDone(task)} />
       </div>
     );

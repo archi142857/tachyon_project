@@ -205,7 +205,7 @@ function ParticleRing({ arcs, nowMin, sel, onPick, loose = [], children }) {
             );
           })}
         <text className="nw" x={point(119, now)[0]} y={point(119, now)[1]}>
-          {hm(nowMin)}
+          {hm(nowMin).padStart(5, '0')}
         </text>
         {/* 바깥 점 = 정리 안 된 메모(적은 시각 자리), 9판의 떠 있는 메모 입자 모양 */}
         {loose.map((m, i) => {

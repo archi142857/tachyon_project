@@ -1,12 +1,31 @@
 // 날마다 밀도 고리(11-11 사람 요청): 한 바퀴 = 그날 깨어 있는 시간(7시~24시, density.js AWAKE).
 // 남색 = 일정, 노란 형광 = 할 일(마감 전 날들에 고르게 나눈 몫), 주황 = 빠듯(하루 편한 몫을 넘겨 빈 시간까지), 빈 곳 = 빈 시간, 붉은 테 = 빈 시간보다 넘침.
 // 글자(시간)는 옆에서 따로 보인다. 그림은 화면 읽기에서 빼고, 부르는 쪽이 aria-label로 한 줄을 준다.
+// 입자 테마에서 큰 고리(30px 이상)는 9판 .dz: 점 16개 중 쓰는 몫만큼 켠다(일정 보라, 할 일 청록, 넘치면 모두 주황).
 import { AWAKE } from '../density.js';
+import { useParticles } from '../themeName.js';
 
 const R = 12;
 const C = 2 * Math.PI * R;
 
+const DOTS = 16;
+
 export default function DensityRing({ day, size = 28 }) {
+  const nine = useParticles() && size >= 30;
+  if (nine) {
+    const e = day ? Math.min(1, day.eventMin / AWAKE) : 0;
+    const t = day ? Math.min(1 - e, (day.taskMin + day.over) / AWAKE) : 0;
+    const le = Math.round(e * DOTS);
+    const lt = Math.round((e + t) * DOTS);
+    const over = day && (day.over > 0 || day.eventMin + day.taskMin > AWAKE);
+    return (
+      <svg className={`dz${over ? ' hot' : ''}${day?.past ? ' past' : ''}`} viewBox="-24 -24 48 48" width={size} height={size} aria-hidden="true">
+        {Array.from({ length: DOTS }, (_, j) => (
+          <circle key={j} cx={(21 * Math.sin((j / DOTS) * 2 * Math.PI)).toFixed(1)} cy={(-21 * Math.cos((j / DOTS) * 2 * Math.PI)).toFixed(1)} r="1.5" className={j < le ? 'l' : j < lt ? 't' : undefined} />
+        ))}
+      </svg>
+    );
+  }
   if (!day) return <span className="dring-empty" style={{ width: size, height: size }} aria-hidden="true" />;
   const e = Math.min(1, day.eventMin / AWAKE);
   const t = Math.min(1 - e, (day.taskMin + day.over) / AWAKE);
