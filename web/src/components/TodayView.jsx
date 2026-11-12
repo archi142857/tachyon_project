@@ -86,7 +86,7 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
               return (
                 <div
                   key={key}
-                  className={`ev ${kindOf(ev)}${ev.important ? ' important' : ''}${sel === key ? ' sel' : ''}`}
+                  className={`ev ${kindOf(ev)}${to - from <= 60 ? ' short' : ''}${ev.important ? ' important' : ''}${sel === key ? ' sel' : ''}`}
                   style={{ ...box(from, to), left: `calc(${(col / cols) * 100}% + 2px)`, width: `calc(${100 / cols}% - 4px)` }}
                 >
                   <span className="sr-only">
@@ -114,6 +114,12 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
 
       <section className={card('ring-card', w.ring)} data-slot={w.ring.slot} data-widget={w.ring.slot && 'ring'} aria-label="하루 고리">
         {w.ring.grip}
+        {loose.length > 0 && onTidy && (
+          <button type="button" className="btn-text loose-btn" onClick={onTidy}>
+            <i className="key-loose" />
+            메모 {loose.length}개 정리
+          </button>
+        )}
         <DayRing arcs={items} nowMin={nowMin} sel={sel} onPick={pick} loose={loose}>
           {picked ? (
             <>
@@ -155,12 +161,6 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
               <i className="key-now" />지금
             </span>
           </p>
-        )}
-        {loose.length > 0 && onTidy && (
-          <button type="button" className="btn-text loose-btn" onClick={onTidy}>
-            <i className="key-loose" />
-            정리 안 된 메모 {loose.length}개 · 지금 정리
-          </button>
         )}
       </section>
 

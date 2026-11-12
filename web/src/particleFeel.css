@@ -9,7 +9,10 @@ html.theme-fade, html.theme-fade * { transition: background-color 0.6s ease, col
 /* 글씨: 제목 · 숫자는 가늘게, 크게 */
 html:is([data-theme='입자 밤'], [data-theme='입자 낮']) { --font-head: 'Pretendard Variable', Pretendard, system-ui, sans-serif; --r-card: 22px; --r-btn: 10px; }
 html:is([data-theme='입자 밤'], [data-theme='입자 낮']) .card-title { font-weight: 400; letter-spacing: -0.02em; }
-html:is([data-theme='입자 밤'], [data-theme='입자 낮']) .mid-big { font-size: 40px; line-height: 44px; font-weight: 200; letter-spacing: -0.04em; }
+/* 크고 가는 숫자는 고리 크기에 맞춰(넓은 화면 위젯 고리에서 '17시간 46분'이 세 줄로 갈리던 것, 컨셉 11-13 01:29) */
+html:is([data-theme='입자 밤'], [data-theme='입자 낮']) .ring-wrap { container-type: inline-size; }
+html:is([data-theme='입자 밤'], [data-theme='입자 낮']) .ring-mid { padding: 0 27%; }
+html:is([data-theme='입자 밤'], [data-theme='입자 낮']) .mid-big { font-size: min(40px, 8cqw); line-height: 1.15; font-weight: 200; letter-spacing: -0.04em; white-space: nowrap; }
 html:is([data-theme='입자 밤'], [data-theme='입자 낮']) .mid-title { font-weight: 300; font-size: 17px; }
 html:is([data-theme='입자 밤'], [data-theme='입자 낮']) .shell .topbar .date { font-size: 20px; font-weight: 300; letter-spacing: -0.03em; color: var(--heading); }
 

@@ -126,6 +126,10 @@ function ConnectForm({ busy, onConnect }) {
               {opened ? 'eTL 다시 열기' : 'eTL 열어 토큰 만들기'}
             </button>
           </div>
+          {/* 사람 피드백 2 '링크 열었을 때 주소가 바로 보여야': 로그인 뒤 다른 쪽으로 가도 이 주소로 찾아가게 */}
+          <p className="hint">
+            주소: <span className="num" style={{ userSelect: 'all' }}>{SETTINGS_URL.replace('https://', '')}</span>
+          </p>
           <ol className="etl-steps">
             <li>열린 eTL 설정 아래쪽 ‘승인된 통합’에서 ‘+ 새 액세스 토큰’</li>
             <li>용도에 ‘Tachyon’ → ‘토큰 생성’(만료일은 비워도 돼요)</li>

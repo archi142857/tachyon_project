@@ -49,7 +49,8 @@ dialog.sheet .field .seg button { min-height: 40px; font-size: 14px; }
 /* 하루 고리 바깥 점 = 정리 안 된 메모(피드백 16 · 결정 '하루 고리'): 고리는 보기만, 정리는 밑 글 단추로 */
 .ring .loose circle { fill: var(--text2); stroke: var(--card); stroke-width: 1.5; }
 .ring.particles .loose circle { fill: var(--heading); filter: drop-shadow(0 0 3px var(--accent)); }
-.loose-btn { display: inline-flex; align-items: center; gap: 6px; margin: 4px auto 0; }
+.ring-card { position: relative; }
+.ring-card > .loose-btn { position: absolute; top: 8px; left: 8px; z-index: 1; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
 .key-loose { width: 7px; height: 7px; border-radius: 50%; background: var(--text2); flex: none; }
 
 /* 지금 정리: 할 일 메모 줄마다 언제까지(오늘 · 내일 · 일주일 안 · 빼기) */
@@ -63,3 +64,7 @@ dialog.sheet .field .seg button { min-height: 40px; font-size: 14px; }
 .inbox-new { margin: 4px 0 8px; padding-left: 18px; }
 .inbox-new li + li { margin-top: 4px; }
 dialog.sheet .menu-list button .inbox-sub { margin-top: 2px; }
+
+/* 오늘 일정의 한 시간 이하 칸: 장소를 이름 옆 한 줄로(둘째 줄이 잘리던 것, 컨셉 11-13 01:29) */
+.day .ev.short { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.day .ev.short .place { display: inline; margin-left: 6px; opacity: 0.8; }
