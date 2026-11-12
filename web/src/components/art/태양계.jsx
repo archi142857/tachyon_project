@@ -53,7 +53,7 @@ function Planet({ kind, s, id }) {
 // 네 갈래로 반짝이는 별
 const sparkle = (s) => `M0 ${-s}L${s * 0.16} ${-s * 0.16}L${s} 0L${s * 0.16} ${s * 0.16}L0 ${s}L${-s * 0.16} ${s * 0.16}L${-s} 0L${-s * 0.16} ${-s * 0.16}Z`;
 
-export default function SolarRing({ arcs, nowMin, sel, onPick, children }) {
+export default function SolarRing({ arcs, nowMin, sel, onPick, loose, children }) {
   const id = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const rand = seeded('stars');
   const stars = [];
@@ -84,7 +84,7 @@ export default function SolarRing({ arcs, nowMin, sel, onPick, children }) {
   const ray = radial(40, 112, nowMin);
 
   return (
-    <RingFrame name="solar" sel={sel} mid={children}>
+    <RingFrame name="solar" sel={sel} mid={children} loose={loose}>
       <defs>
         <radialGradient id={`${id}-sun`}>
           <stop offset="0" stopColor="#fff8cf" />
@@ -118,14 +118,14 @@ export default function SolarRing({ arcs, nowMin, sel, onPick, children }) {
       ))}
       <g className="belt-rocks">{rocks}</g>
       <g className="stars">{stars}</g>
-      <HourLabels nowMin={nowMin} rad={128} />
+      <HourLabels nowMin={nowMin} loose={loose} rad={128} />
       <line className="ray" {...ray} stroke={`url(#${id}-ray)`} filter={`url(#${id}-glow)`} />
       {arcs.map((a) => {
         const k = look(a.kind);
         const R = ORBIT[k];
         const s = Math.min(8.5, 3.8 + (a.to - a.from) / 42);
         return (
-          <g key={a.key} className={`ev k-${k} ${when(a, nowMin)}${a.key === sel ? ' on' : ''}`}>
+          <g key={a.key} className={`item k-${k} ${when(a, nowMin)}${a.key === sel ? ' on' : ''}`}>
             <path className="trail" d={arcPath(R, a.from + 3, a.to - 3)} filter={`url(#${id}-glow)`} />
             <g transform={at(R, (a.from + a.to) / 2)}>
               <g className="pl">

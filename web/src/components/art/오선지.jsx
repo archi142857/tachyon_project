@@ -58,11 +58,11 @@ function Notes({ a, nowMin }) {
   );
 }
 
-export default function StaffRing({ arcs, nowMin, sel, onPick, children }) {
+export default function StaffRing({ arcs, nowMin, sel, onPick, loose, children }) {
   const { seps } = ringRuns(arcs);
   const gap = 2.4 * minPerUnit(82); // 겹세로줄 두 줄 사이
   return (
-    <RingFrame name="staff" sel={sel} mid={children}>
+    <RingFrame name="staff" sel={sel} mid={children} loose={loose}>
       <circle r="82" className="ribbon" />
       {LINES.map((r) => (
         <circle key={r} r={r} className="line" />
@@ -74,9 +74,9 @@ export default function StaffRing({ arcs, nowMin, sel, onPick, children }) {
       <text className="clef" transform={at(82, 16, deg(16))}>
         𝄞
       </text>
-      <HourLabels nowMin={nowMin} rad={121} />
+      <HourLabels nowMin={nowMin} loose={loose} rad={121} />
       {arcs.map((a) => (
-        <g key={a.key} className={`ev k-${look(a.kind)} ${when(a, nowMin)}${a.key === sel ? ' on' : ''}`}>
+        <g key={a.key} className={`item k-${look(a.kind)} ${when(a, nowMin)}${a.key === sel ? ' on' : ''}`}>
           <Notes a={a} nowMin={nowMin} />
         </g>
       ))}

@@ -31,12 +31,13 @@ npx vitest run design      # 시안 넷이 고리 약속(기능 쪽)을 지키�
 |---|---|
 | `index.html` · `main.jsx` | 시안 쪽(조절 줄 · 기기 틀 · 네 테마 나란히) |
 | `app.jsx` | 테마를 입힌 '오늘' 화면 모형(실제 앱 자리 그대로, 값은 지어낸 것). 넓은 화면/폰은 css 컨테이너 폭 900px로 갈림 |
-| `backdrop.jsx` | 테마마다 화면 뒤 꾸밈(별 · 검은 띠 · 네온 궤도, 뉴모피즘은 없음) |
+| `../src/components/art/Backdrop.jsx` | 테마마다 화면 뒤 꾸밈(별 · 검은 띠 · 네온 궤도, 뉴모피즘은 없음) |
 | `days.js` | 지어낸 하루 둘(수업 많은 날 · 붙은 일정 많은 날) |
-| `rings/common.jsx` | 시안이 같이 쓰는 것: 좌표 · 호 · 시각 글자 · 누르는 띠 · 틀 |
-| `rings/태양계.jsx` `오선지.jsx` `원자.jsx` `뉴모피즘.jsx` | 시안 하나 = 파일 하나. 파일 맨 위에 무엇이 무엇인지 |
-| `rings/index.js` | 시안 목록(새 시안 = 파일 하나 + 여기 한 줄) |
-| `design.css` | 1) 틀(자리, 변수로만) 2) 테마마다 변수 + 부품 모양 + 고리 그림 규칙 |
+| `../src/components/art/common.jsx` | 시안이 같이 쓰는 것: 좌표 · 호 · 시각 글자 · 누르는 띠 · 틀 |
+| `../src/components/art/태양계.jsx` `오선지.jsx` `원자.jsx` `뉴모피즘.jsx` | 시안 하나 = 파일 하나. 파일 맨 위에 무엇이 무엇인지 |
+| `../src/components/art/index.js` | 시안 목록(새 시안 = 파일 하나 + 여기 한 줄). 이름 = 앱 테마 이름(`themes.js` `ART_THEMES`) |
+| `../src/components/art/art.css` · `fonts.js` | 고리 · 바탕 그림 규칙과 글꼴(앱에 실은 @fontsource). 11-13 02:47부터 앱 테마도 이 폴더를 같이 쓴다 |
+| `design.css` | 1) 틀(자리, 변수로만) 2) 테마마다 변수 + 부품 모양(고리 그림은 art.css) |
 | `rings.test.jsx` | 점검 |
 
 ## 고리 약속 (자리 · 기능, 모든 시안이 같다)
@@ -59,10 +60,11 @@ npx vitest run design      # 시안 넷이 고리 약속(기능 쪽)을 지키�
 
 ## 새 시안 넣기
 
-1. `rings/`에 파일 하나: `RingFrame` 안에 그림을 그리고 맨 끝에 `<Hits>`. 파일 맨 위 주석에 종류 셋 · 길이 · 지금 · 붙은 일정이 무엇으로 보이는지 적는다. `legend`도 내보낸다.
-2. `rings/index.js`에 한 줄.
-3. `backdrop.jsx`에 바탕 그림 하나, `design.css`에 `.t-이름 { --bg … }`(틀 변수) + 부품 모양 + `.이름` 고리 그림 규칙.
-4. `npx vitest run design`.
+1. `../src/components/art/`에 파일 하나: `RingFrame` 안에 그림을 그리고 맨 끝에 `<Hits>`. 파일 맨 위 주석에 종류 셋 · 길이 · 지금 · 붙은 일정이 무엇으로 보이는지 적는다. `legend`도 내보낸다.
+2. `index.js`에 한 줄.
+3. `Backdrop.jsx`에 바탕 그림 하나, `art.css`에 `.이름` 고리 그림 규칙, `design.css`에 `.t-이름 { --bg … }`(틀 변수) + 부품 모양.
+4. 앱에도 넣으려면 [테마 만드는 법](../../docs/tachyon/디자인/테마_만드는_법.md)의 '값보다 더 바뀌는 테마'(themes.css 값 · looks.css 모양 · 로딩 화면 · 테마 창).
+5. `npx vitest run design`.
 
 ## 시안 아티팩트 다시 올리기
 
@@ -70,4 +72,4 @@ npx vitest run design      # 시안 넷이 고리 약속(기능 쪽)을 지키�
 cd web && nice npx vite build design --config vite.config.js --base ./ --outDir /tmp/시안 --emptyOutDir
 ```
 
-`/tmp/시안/index.html`의 `<head>` 속 글꼴 링크 · css · js 줄만 남긴 페이지와 `assets/` 파일들을 같은 아티팩트 주소로 다시 올린다.
+`/tmp/시안/index.html`의 `<head>` 속 css · js 줄만 남긴 페이지와 `assets/` 파일들을 같은 아티팩트 주소로 다시 올린다.

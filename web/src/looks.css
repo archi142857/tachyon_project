@@ -1,0 +1,116 @@
+/* 그림 테마 넷(태양계 · 오선지 · 원자 모형 · 뉴모피즘)의 모양 층. 사람 11-13 02:47 "일단 이것들 실제 앱 테마에 넣어줘. 규칙과 형식에 맞아야 해".
+   시안(web/design, design.css의 .t-solar · .t-staff · .t-atom · .t-soft)을 앱 부품 이름으로 옮겼다. 자리 · 내용 · 기능은 그대로, 겉모습만.
+   색 값은 themes.css(대비는 themes.test.js), 하루 고리와 화면 뒤 그림은 components/art. 모든 규칙이 그 테마의 html[data-theme] 안에서만 걸린다.
+   main.jsx에서 nine.css 다음에 부른다. */
+
+/* ── 공통: 화면 뒤 그림이 보이게 틀을 비우고, 그림은 맨 뒤에 고정 ── */
+.theme-backdrop { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; }
+html:is([data-theme='태양계'], [data-theme='오선지'], [data-theme='원자 모형'], [data-theme='뉴모피즘']) :where(body, .shell, .side, .shell .topbar, .shell .composer, .tabs) { background: transparent; } /* :where = 테마별 규칙이 덮을 수 있게 */
+html[data-theme='태양계'] { background: radial-gradient(55% 45% at 12% 18%, rgb(30 150 160 / 0.38), transparent 70%), radial-gradient(45% 40% at 88% 28%, rgb(130 60 180 / 0.4), transparent 70%), radial-gradient(70% 55% at 55% 95%, rgb(40 120 95 / 0.35), transparent 70%), #050814; }
+html[data-theme='원자 모형'] { background: radial-gradient(50% 40% at 82% 18%, rgb(255 120 30 / 0.13), transparent 70%), radial-gradient(50% 45% at 8% 85%, rgb(40 180 255 / 0.13), transparent 70%), #070d1c; }
+/* 수업 칸 글자색은 --ev-text로 정해 장소 줄(.place)도 같이 바뀐다.
+   제목 · 날짜 · 숫자 · 일정 이름은 테마 글꼴 하나(시안 02:41 "글씨가 테마와 따로 놀지 않게"). 뉴모피즘은 프리텐다드 그대로 */
+html:is([data-theme='태양계'], [data-theme='오선지'], [data-theme='원자 모형']) :is(.num, .ev, .hours span) { font-family: var(--font-head); }
+
+/* ════ 태양계: 유리처럼 비치는 어두운 칸, 금빛 제목 · 단추, 행성 모양 표시 ════ */
+html[data-theme='태양계'] .card { background: rgb(10 16 38 / 0.62); border-color: rgb(190 205 255 / 0.13); box-shadow: 0 12px 40px rgb(0 0 0 / 0.4); backdrop-filter: blur(10px); }
+html[data-theme='태양계'] :is(.card-title, .topbar .date, .subbar .date) { text-shadow: 0 0 14px rgb(255 190 80 / 0.35); }
+html[data-theme='태양계'] .side { background: rgb(5 8 20 / 0.35); }
+html[data-theme='태양계'] .side-nav button[aria-current='page'] { background: rgb(255 201 74 / 0.13); color: #ffe3a0; border-left-color: #ffc94a; }
+html[data-theme='태양계'] .tabs button[aria-current='page'] { color: #ffe3a0; }
+html[data-theme='태양계'] .segmented button[aria-pressed='true'] { background: linear-gradient(160deg, #ffe08a, #ff9d2e); color: #2a1600; border-color: transparent; }
+html[data-theme='태양계'] .ev.timetable { background: linear-gradient(120deg, rgb(242 196 107 / 0.34), rgb(201 139 76 / 0.2)), var(--card); --ev-text: #ffe9c2; color: #ffe9c2; }
+html[data-theme='태양계'] .ev.timetable::before { background: radial-gradient(circle at 35% 30%, #f8dcae, #c98b4c 55%, #2c1608); }
+html[data-theme='태양계'] :is(.ev.ics, .ev.memo) { background: rgb(127 176 255 / 0.1); border-color: rgb(127 176 255 / 0.55); }
+html[data-theme='태양계'] :is(.ev.ics, .ev.memo)::before { background: radial-gradient(circle at 35% 30%, #cfe4ff, #3d74d9 50%, #08173a); box-shadow: none; border-radius: 50%; }
+html[data-theme='태양계'] .ev.slot { background: transparent; border-color: rgb(230 235 247 / 0.5); }
+html[data-theme='태양계'] .task input { appearance: none; border-radius: 50%; border: 1.5px solid rgb(255 255 255 / 0.35); }
+html[data-theme='태양계'] .task input:checked { border-color: transparent; background: radial-gradient(circle at 35% 30%, #fff3c4, #ffc94a 45%, #b5600c); box-shadow: 0 0 10px rgb(255 190 70 / 0.6); }
+html[data-theme='태양계'] .bubble { background: rgb(255 255 255 / 0.08); border-color: rgb(255 255 255 / 0.08); }
+html[data-theme='태양계'] .composer form { background: rgb(12 18 42 / 0.8); border: 1px solid rgb(255 201 74 / 0.35); border-radius: 999px; box-shadow: 0 0 30px rgb(255 170 50 / 0.12); }
+html[data-theme='태양계'] .composer .send:not(:disabled) { background: linear-gradient(160deg, #ffe08a, #ff9d2e); color: #2a1600; border-radius: 999px; }
+html[data-theme='태양계'] .key-dot { background: radial-gradient(circle at 35% 30%, #f8dcae, #c98b4c 50%, #2c1608); }
+html[data-theme='태양계'] .key-sq { border-radius: 50%; background: radial-gradient(circle at 35% 30%, #cfe4ff, #3d74d9 50%, #08173a); box-shadow: none; }
+html[data-theme='태양계'] .key-tri { clip-path: none; width: 10px; border-radius: 50%; background: none; box-shadow: inset -4px 2px 0 0 #e3e8f4; }
+html[data-theme='태양계'] .key-tri::after { display: none; }
+
+/* ════ 오선지: 흰 종이 · 각진 검은 테와 엇갈린 그림자, 비스듬한 리본 단추, 음표 표시 ════ */
+html[data-theme='오선지'] .card { border: 2.5px solid #0d0d0d; box-shadow: 6px 6px 0 #0d0d0d; }
+html[data-theme='오선지'] .side { border-right: 2.5px solid #0d0d0d; background: #ffffff; }
+html[data-theme='오선지'] .shell .topbar, html[data-theme='오선지'] .tabs { border-bottom: 2.5px solid #0d0d0d; background: #ffffff; }
+html[data-theme='오선지'] .side-nav button[aria-current='page'] { background: #0d0d0d; color: #ffffff; border-left-color: #d10f2f; }
+html[data-theme='오선지'] .side-nav button[aria-current='page'] .count { background: #ffffff; color: #0d0d0d; }
+html[data-theme='오선지'] .tabs button[aria-current='page'] { background: #0d0d0d; color: #ffffff; border-bottom-color: #0d0d0d; transform: skewX(-12deg); }
+html[data-theme='오선지'] .segmented button[aria-pressed='true'] { background: #0d0d0d; color: #ffffff; border-color: #0d0d0d; transform: skewX(-12deg); }
+html[data-theme='오선지'] .ev.timetable { background: #0d0d0d; --ev-text: #ffffff; color: #ffffff; }
+html[data-theme='오선지'] :is(.ev.timetable, .ev.ics, .ev.memo)::before { width: auto; height: auto; background: none; box-shadow: none; border-radius: 0; font: 13px/1 'Noto Music', serif; vertical-align: 0; }
+html[data-theme='오선지'] .ev.timetable::before { content: '♩'; }
+html[data-theme='오선지'] :is(.ev.ics, .ev.memo)::before { content: '♫'; }
+html[data-theme='오선지'] :is(.ev.ics, .ev.memo) { border-width: 2px; }
+html[data-theme='오선지'] .ev.slot { background: repeating-linear-gradient(-45deg, #ffffff 0 5px, #ededea 5px 6px); border: 1.5px dashed #0d0d0d; }
+html[data-theme='오선지'] .now-line { border-top-width: 3px; }
+html[data-theme='오선지'] .task input { appearance: none; width: 18px; height: 13px; margin-top: 4px; border: 2px solid #0d0d0d; border-radius: 50%; transform: rotate(-20deg); }
+html[data-theme='오선지'] .task input:checked { background: #0d0d0d; }
+html[data-theme='오선지'] .bubble { background: #ffffff; border-color: #0d0d0d; border-radius: 0; box-shadow: 3px 3px 0 #0d0d0d; }
+html[data-theme='오선지'] .composer form { background: #ffffff; border: 2.5px solid #0d0d0d; border-radius: 0; box-shadow: 5px 5px 0 #0d0d0d; }
+html[data-theme='오선지'] .composer .send { border-radius: 0; transform: skewX(-10deg); }
+html[data-theme='오선지'] :is(.key-dot, .key-sq, .key-tri) { width: auto; height: auto; background: none; box-shadow: none; clip-path: none; border-radius: 0; color: #0d0d0d; font: 14px/1 'Noto Music', serif; }
+html[data-theme='오선지'] .key-dot::before { content: '♩'; }
+html[data-theme='오선지'] .key-sq::before { content: '♫'; }
+html[data-theme='오선지'] .key-tri::after { content: '◇'; position: static; inset: auto; background: none; clip-path: none; font: 700 11px/1 var(--font); }
+
+/* ════ 원자 모형: 빛나는 테두리와 단추, 전자 모양 표시. 오르빗은 굵기가 하나라 굵게 대신 빛으로 강조 ════ */
+html[data-theme='원자 모형'] { font-synthesis-weight: none; }
+html[data-theme='원자 모형'] .card { background: rgb(12 22 48 / 0.85); border-color: rgb(70 190 255 / 0.35); box-shadow: 0 0 28px rgb(40 160 255 / 0.13), inset 0 0 24px rgb(40 160 255 / 0.06); }
+html[data-theme='원자 모형'] :is(.card-title, .topbar .date, .subbar .date) { font-weight: 400; text-shadow: 0 0 10px rgb(54 214 255 / 0.55); }
+html[data-theme='원자 모형'] .card-title::before { content: ''; display: inline-block; width: 7px; height: 7px; margin: 0 9px 2px 0; border-radius: 50%; background: #ff8a1e; box-shadow: 0 0 8px #ff8a1e; }
+html[data-theme='원자 모형'] .side { background: rgb(5 10 24 / 0.5); }
+html[data-theme='원자 모형'] .side-nav button[aria-current='page'] { background: rgb(54 214 255 / 0.1); color: #36d6ff; border-left-color: #36d6ff; box-shadow: 0 0 14px rgb(54 214 255 / 0.2); }
+html[data-theme='원자 모형'] .tabs button[aria-current='page'] { color: #36d6ff; text-shadow: 0 0 8px rgb(54 214 255 / 0.8); border-bottom-color: #36d6ff; }
+html[data-theme='원자 모형'] .segmented button[aria-pressed='true'] { background: rgb(54 214 255 / 0.14); color: #36d6ff; border-color: #36d6ff; box-shadow: 0 0 10px rgb(54 214 255 / 0.4); }
+html[data-theme='원자 모형'] .ev.timetable { background: linear-gradient(90deg, rgb(255 138 30 / 0.3), rgb(255 138 30 / 0.12)), var(--card); --ev-text: #ffd3ad; color: #ffd3ad; box-shadow: inset 2px 0 0 #ff8a1e; }
+html[data-theme='원자 모형'] .ev.timetable::before { background: #ff8a1e; box-shadow: 0 0 6px #ff8a1e; }
+html[data-theme='원자 모형'] :is(.ev.ics, .ev.memo) { background: rgb(54 214 255 / 0.07); box-shadow: 0 0 10px rgb(54 214 255 / 0.3); }
+html[data-theme='원자 모형'] :is(.ev.ics, .ev.memo)::before { width: 4px; height: 4px; margin: 0 6px 0 2px; border-radius: 50%; background: #36d6ff; box-shadow: 0 0 0 2px #0c1630, 0 0 0 3px #36d6ff; }
+html[data-theme='원자 모형'] .ev.slot { background: transparent; border-color: #ffd36b; }
+html[data-theme='원자 모형'] .now-line { box-shadow: 0 0 8px var(--now); }
+html[data-theme='원자 모형'] .task input { appearance: none; border-radius: 50%; border: 1.5px dashed #8fa8c4; }
+html[data-theme='원자 모형'] .task input:checked { background: #ff8a1e; border: 1.5px solid #ffc08a; box-shadow: 0 0 10px #ff8a1e; }
+html[data-theme='원자 모형'] .bubble { background: rgb(54 214 255 / 0.1); border-color: rgb(54 214 255 / 0.4); box-shadow: 0 0 12px rgb(54 214 255 / 0.15); }
+html[data-theme='원자 모형'] .composer form { background: rgb(5 10 24 / 0.9); border: 1px solid rgb(255 138 30 / 0.6); border-radius: 14px; box-shadow: 0 0 22px rgb(255 138 30 / 0.25); }
+html[data-theme='원자 모형'] .composer .send:not(:disabled) { background: rgb(255 138 30 / 0.15); color: #ffc08a; box-shadow: inset 0 0 0 1.5px #ff8a1e, 0 0 14px rgb(255 138 30 / 0.5); }
+html[data-theme='원자 모형'] .key-dot { background: #ff8a1e; box-shadow: 0 0 8px #ff8a1e; }
+html[data-theme='원자 모형'] .key-sq { width: 5px; height: 5px; margin: 0 6px 0 2px; border-radius: 50%; background: #36d6ff; box-shadow: 0 0 0 2.5px #0c1630, 0 0 0 4px #36d6ff; }
+html[data-theme='원자 모형'] .key-tri { clip-path: none; width: 9px; height: 9px; border-radius: 50%; background: none; border: 1.6px dashed #ffd36b; box-sizing: border-box; }
+html[data-theme='원자 모형'] .key-tri::after { display: none; }
+html[data-theme='원자 모형'] .key-now { box-shadow: 0 0 8px var(--now); }
+
+/* ════ 뉴모피즘: 연회색 판 하나, 선 대신 그림자(볼록 = 칸 · 단추, 오목 = 입력 칸 · 고른 것), 파랑 하나 ════ */
+html[data-theme='뉴모피즘'] {
+  --up: 8px 8px 18px #c2c9d4, -8px -8px 18px #ffffff; --up-sm: 4px 4px 9px #c2c9d4, -4px -4px 9px #ffffff;
+  --in: inset 5px 5px 10px #c6cdd8, inset -5px -5px 10px #ffffff; --in-sm: inset 3px 3px 6px #c6cdd8, inset -3px -3px 6px #ffffff;
+  --blue: linear-gradient(145deg, #4670e0, #2f54c2); /* 흰 글자가 읽히는 파랑(가장 밝은 쪽도 흰 글자 4.5 이상) */
+}
+html[data-theme='뉴모피즘'] .card { border-color: transparent; box-shadow: var(--up); }
+html[data-theme='뉴모피즘'] :is(.card-title, .topbar .date, .subbar .date) { text-shadow: 1px 1px 1px #ffffff, -1px -1px 1px rgb(163 174 194 / 0.45); }
+html[data-theme='뉴모피즘'] :is(.side, .tabs) { border-color: transparent; }
+html[data-theme='뉴모피즘'] .side-nav button[aria-current='page'] { background: var(--bg); color: #2b4fb8; border-left-color: transparent; border-radius: 14px; box-shadow: var(--in); }
+html[data-theme='뉴모피즘'] .tabs { gap: 4px; padding: 6px 8px; }
+html[data-theme='뉴모피즘'] .tabs button { border-bottom: 0; border-radius: 999px; }
+html[data-theme='뉴모피즘'] .tabs button[aria-current='page'] { color: #2b4fb8; box-shadow: var(--in-sm); }
+html[data-theme='뉴모피즘'] .segmented { border-color: transparent; box-shadow: var(--in-sm); }
+html[data-theme='뉴모피즘'] .segmented button[aria-pressed='true'] { background: var(--bg); color: #2b4fb8; border-color: transparent; box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] :is(.icon-btn, .btn-text) { border-color: transparent; box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] .ev.timetable { background: var(--blue); --ev-text: #ffffff; color: #ffffff; box-shadow: 3px 3px 7px #b9c1cd, -3px -3px 7px #ffffff; }
+html[data-theme='뉴모피즘'] .ev.timetable::before { background: #ffffff; }
+html[data-theme='뉴모피즘'] :is(.ev.ics, .ev.memo) { background: var(--bg); border-color: transparent; box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] .ev.slot { background: var(--bg); border-color: transparent; box-shadow: var(--in-sm); }
+html[data-theme='뉴모피즘'] .task input { appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--bg); box-shadow: var(--in-sm); }
+html[data-theme='뉴모피즘'] .task input:checked { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 12.5l3.2 3.2L17 9' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"), var(--blue); box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] .bubble { border-color: transparent; border-radius: 18px 18px 6px 18px; box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] .composer form { background: var(--bg); border: 0; border-radius: 999px; box-shadow: var(--in); }
+html[data-theme='뉴모피즘'] .composer .send:not(:disabled) { background: var(--blue); color: #ffffff; border-radius: 999px; box-shadow: 4px 4px 9px #b9c1cd, -4px -4px 9px #ffffff; }
+html[data-theme='뉴모피즘'] .key-dot { width: 16px; height: 8px; border-radius: 8px; background: var(--blue); box-shadow: 2px 2px 4px #b9c1cd, -2px -2px 4px #ffffff; }
+html[data-theme='뉴모피즘'] .key-sq { border-radius: 50%; background: radial-gradient(circle, #3a63d8 0 2px, transparent 2.5px), linear-gradient(135deg, #f6f8fb, #d8dde6); box-shadow: 2px 2px 4px #c2c9d4, -2px -2px 4px #ffffff; }
+html[data-theme='뉴모피즘'] .key-tri { clip-path: none; width: 10px; height: 10px; border-radius: 50%; background: var(--bg); box-shadow: inset 2px 2px 3px #c2c9d4, inset -2px -2px 3px #ffffff; }
+html[data-theme='뉴모피즘'] .key-tri::after { display: none; }

@@ -1,4 +1,5 @@
-// 하루 고리: 한 바퀴가 오늘 하루(0–24시, 맨 위가 0시)이고 입자 하나하나가 시간 조각이다. 모양은 테마에 따라 둘(themeName.js).
+// 하루 고리: 한 바퀴가 오늘 하루(0–24시, 맨 위가 0시)이고 입자 하나하나가 시간 조각이다. 모양은 테마에 따라 셋(themeName.js).
+//  - 그림 테마(태양계 · 오선지 · 원자 모형 · 뉴모피즘): 테마마다 그린 고리(components/art, 맨 아래 DayRing).
 //  - 기본(③ 바우하우스와 나머지 테마): 모양이 뜻이다(색만으로 가르지 않음) — ● 수업, □ 내 일정(달력·메모),
 //    ▲ 할 일을 넣어 본 자리, 작은 점 = 빈 시간, 붉은 금 = 지금. 일정 뒤에는 달력과 같은 색 띠.
 //  - 입자 테마('입자 밤'·'입자 낮'): 시연 9판의 하루 고리 그대로 — 과목 색 입자, 넣어 본 자리의 섬유, 흰 타키온(아래 ParticleRing, 모양은 nine.css).
@@ -6,7 +7,8 @@
 // 색 구간을 누르면 onPick(key). 가운데 글자는 children으로 받는다.
 // 같은 내용이 옆의 타임라인·할 일 목록에 글자로 있어서 그림은 화면 읽기에서 뺀다(aria-hidden).
 import { WAKE, hm } from '../slots.js';
-import { tint, useParticles } from '../themeName.js';
+import { tint, useParticles, useThemeName } from '../themeName.js';
+import { RINGS as ART } from './art/index.js';
 
 const RINGS = [[66, 40, 1.6], [75, 46, 1.8], [84, 52, 2], [93, 58, 2.2], [102, 64, 2.4]]; // 반지름, 점 개수, 점 크기
 const f1 = (v) => v.toFixed(1);
@@ -228,6 +230,11 @@ function ParticleRing({ arcs, nowMin, sel, onPick, loose = [], children }) {
 }
 
 // arcs = [{ key, from, to, kind }] (분, kind = timetable | ics | memo | slot), loose = 정리 안 된 메모를 적은 분들
+// 그림 테마(태양계 · 오선지 · 원자 모형 · 뉴모피즘, 사람 11-13 02:47)는 그 테마의 고리(components/art)를 쓴다.
 export default function DayRing(props) {
-  return useParticles() ? <ParticleRing {...props} /> : <ShapeRing {...props} />;
+  const theme = useThemeName();
+  const Art = ART.find((r) => r.name === theme)?.Ring;
+  const particles = useParticles();
+  if (Art) return <Art {...props} />;
+  return particles ? <ParticleRing {...props} /> : <ShapeRing {...props} />;
 }

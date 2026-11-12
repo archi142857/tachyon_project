@@ -5,10 +5,11 @@ import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
 import '@fontsource-variable/jost';
+import '../src/components/art/fonts.js'; // 그림 테마 글꼴(앱과 같은 것)
 import './design.css';
-import { RINGS } from './rings/index.js';
+import { RINGS } from '../src/components/art/index.js';
 import { DAYS } from './days.js';
-import { hm } from './rings/common.jsx';
+import { hm } from '../src/components/art/common.jsx';
 import MockApp, { TASKS } from './app.jsx';
 
 const START = 14 * 60 + 40; // 처음 보이는 '지금'(오후, 지난 일정과 남은 일정이 같이 보이게)

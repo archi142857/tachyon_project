@@ -1,0 +1,124 @@
+/* 그림 테마 넷(태양계 · 오선지 · 원자 모형 · 뉴모피즘)의 그림: 하루 고리(svg.art)와 화면 뒤 바탕(svg.backdrop).
+   앱(DayRing · ThemeBackdrop)과 시안 쪽(web/design)이 같이 쓴다. 테마 값(themes.css)과 상관없이 그림마다 색이 정해져 있어서
+   변수도 그림 상자(.ring-wrap.이름 · .backdrop.이름)에 둔다. 앱의 .ring 규칙과 섞이지 않게 고리 svg 이름은 .art. */
+
+/* ── 고리 공통(앱 DayRing과 같은 틀: .ring-wrap > svg + .ring-mid) */
+.ring-wrap.solar { --sky: #0a1026; --r-dim: #a3acc9; --r-now: #ff7a5c; --mid-ink: #2a1300; --mid-dim: #5a3203; --c-class: #f2c46b; --c-mine: #7fb0ff; --c-slot: #e6ebf7;
+  --art-font: 'Hahmlet Variable', serif; --mid-font: 700 22px/1.15 var(--art-font); --mid-fx: 0 0 14px rgba(255, 190, 80, 0.35); --loose: #fff3c4; }
+.ring-wrap.staff { --sky: #ffffff; --r-dim: #55555c; --r-now: #d10f2f; --mid-ink: #0d0d0d; --mid-dim: #55555c; --c-class: #ffffff; --c-mine: #ffffff; --c-slot: #ffffff;
+  --art-font: 'Noto Serif KR Variable', serif; --mid-font: 900 19px/1.2 var(--art-font); --loose: #0d0d0d; }
+.ring-wrap.atom { --sky: #070d1c; --r-dim: #8aa3c0; --r-now: #ff5c7a; --mid-ink: #ffffff; --mid-dim: #ffd3ad; --c-class: #ff8a1e; --c-mine: #36d6ff; --c-slot: #ffd36b;
+  --art-font: 'Orbit', 'Pretendard Variable', sans-serif; --mid-font: 400 22px/1.15 var(--art-font); --mid-fx: 0 0 10px rgba(54, 214, 255, 0.55); --loose: #36d6ff; }
+.ring-wrap.soft { --sky: #e3e7ee; --r-dim: #6c7891; --r-now: #e0453a; --mid-ink: #2c3a52; --mid-dim: #6c7891;
+  --art-font: 'Pretendard Variable', Pretendard, sans-serif; --mid-font: 800 22px/1.15 var(--art-font); --mid-fx: 1px 1px 1px #ffffff, -1px -1px 1px rgba(163, 174, 194, 0.45); --loose: #3a63d8; }
+.art { display: block; width: 100%; height: auto; overflow: visible; }
+.art text { font: 500 8.5px/1 var(--art-font); fill: var(--r-dim); text-anchor: middle; dominant-baseline: central; font-variant-numeric: tabular-nums; }
+.art .now-label { fill: var(--r-now); font-weight: 700; paint-order: stroke; stroke: var(--sky); stroke-width: 3px; }
+.art .hit { fill: none; stroke: transparent; stroke-width: 48; cursor: pointer; pointer-events: stroke; }
+.art .item { transition: opacity 0.3s; }
+.art.has-sel .item:not(.on) { opacity: 0.22; }
+.art .k-class { --c: var(--c-class); }
+.art .k-mine { --c: var(--c-mine); }
+.art .k-slot { --c: var(--c-slot); }
+.art .loose circle { fill: var(--loose); stroke: var(--sky); stroke-width: 1.4; pointer-events: none; }
+/* 가운데 글자도 그 고리의 글꼴 · 색 · 빛(앱 .mid-big · .mid-sub · .mid-title, 시안 쪽 .mid-kind) */
+.ring-wrap:is(.solar, .staff, .atom, .soft) .ring-mid { color: var(--mid-dim); }
+.ring-wrap:is(.solar, .staff, .atom, .soft) .mid-big { font: var(--mid-font); color: var(--mid-ink); text-shadow: var(--mid-fx, none); }
+.ring-wrap:is(.solar, .staff, .atom, .soft) .mid-title { font-family: var(--art-font); color: var(--mid-ink); text-shadow: var(--mid-fx, none); }
+.ring-wrap:is(.solar, .staff, .atom, .soft) .mid-sub { color: var(--mid-dim); }
+@media (prefers-reduced-motion: reduce) { .art *, .backdrop * { animation: none !important; transition: none !important; } }
+html[data-still='1'] :is(.art, .backdrop) * { animation: none !important; }
+
+/* ── 화면 뒤 바탕(Backdrop.jsx) */
+.backdrop { pointer-events: none; }
+.backdrop.solar .dot { fill: #fff; opacity: 0.55; }
+.backdrop.solar .sp { fill: #fff6dc; animation: twinkle 4s ease-in-out infinite alternate; }
+.backdrop.solar .far-planet circle { fill: #2a2140; }
+.backdrop.solar .far-planet ellipse { fill: none; stroke: #c9a86a; stroke-width: 6; opacity: 0.35; }
+.backdrop.staff .rib { fill: #0d0d0d; }
+.backdrop.staff .rib-line { stroke: #fff; stroke-width: 1.6; opacity: 0.9; }
+.backdrop.staff .rib-note { fill: #fff; font: 44px/1 'Noto Music', serif; }
+.backdrop.atom .orbits ellipse { fill: none; stroke: #ff8a1e; stroke-width: 1.5; opacity: 0.22; }
+.backdrop.atom .orbits .cy { stroke: #36d6ff; }
+.backdrop.atom .dust { fill: #ff8a1e; opacity: 0.35; }
+.backdrop.atom .dust.cy { fill: #36d6ff; }
+
+/* ── 태양계: 빛나는 해 · 하얀 궤도 · 금빛 소행성대 · 그늘진 행성 */
+@keyframes twinkle { from { opacity: 0.2; } to { opacity: 1; } }
+.ring-wrap.solar { background: radial-gradient(circle, rgba(255, 160, 40, 0.1), transparent 62%); border-radius: 50%; }
+.solar .orbit { fill: none; stroke: rgba(255, 255, 255, 0.5); stroke-width: 0.5; }
+.solar .star { fill: #fff; animation: twinkle 3.6s ease-in-out infinite alternate; }
+.solar .sparkle { fill: #fff8e0; }
+.solar .star.sleep { opacity: 0.3; animation: none; }
+.solar .rock { fill: #e3b45c; }
+.solar .rock.dim { fill: #8a6a3a; }
+.solar .ray { stroke-width: 3; stroke-linecap: round; }
+.solar .trail { fill: none; stroke: var(--c); stroke-width: 2.2; stroke-linecap: round; opacity: 0.5; transition: opacity 0.3s; }
+.solar .belt { fill: none; stroke: #e9c48e; stroke-width: 1.2; }
+.solar .cloud-band { stroke: rgba(255, 255, 255, 0.35); stroke-width: 0.6; }
+.solar .pl { transform-box: fill-box; transform-origin: center; transition: transform 0.35s cubic-bezier(0.3, 1.5, 0.5, 1), opacity 0.3s; }
+.solar .past .pl { opacity: 0.35; filter: grayscale(0.7); }
+.solar .past .trail { opacity: 0.15; }
+.solar .now .pl { filter: drop-shadow(0 0 4px #ffcf5a); }
+.solar .on .pl { transform: scale(1.35); }
+.solar .on .trail { opacity: 0.95; }
+
+/* ── 오선지: 굵은 검은 띠 위 흰 오선 · 흰 음표 · 빨간 재생 줄 */
+.staff .ribbon { fill: none; stroke: #0d0d0d; stroke-width: 46; }
+.staff .line { fill: none; stroke: #fff; stroke-width: 0.6; opacity: 0.9; }
+.staff .sleep { fill: none; stroke: #fbfbf7; stroke-width: 46; opacity: 0.18; }
+.staff .bar { stroke: #fff; stroke-width: 0.5; opacity: 0.45; }
+.staff .clef { font: 30px/1 'Noto Music', serif; fill: #fff; }
+.staff .head { fill: var(--c); }
+.staff .hollow { fill: #0d0d0d; stroke: var(--c); stroke-width: 1.2; }
+.staff .stem { stroke: var(--c); stroke-width: 0.8; }
+.staff .beam { fill: none; stroke: var(--c); stroke-width: 2.6; }
+.staff .note.past, .staff .head.past, .staff .beam.past { opacity: 0.35; }
+.staff .item.on { filter: drop-shadow(0 0 2.5px #fff); }
+.staff .item.on .stem { stroke-width: 1.2; }
+.staff .dbar line { stroke: #fff; stroke-width: 1.1; }
+.staff .play line { stroke: var(--r-now); stroke-width: 1.8; }
+.staff .play polygon { fill: var(--r-now); }
+
+/* ── 원자 모형: 주황 플라스마 원자핵 · 네온 껍질 · 오가는 전자 */
+.atom .tilted ellipse { fill: none; stroke: #ff8a1e; stroke-width: 0.6; opacity: 0.2; }
+.atom .tilted .cyan { stroke: #36d6ff; }
+.atom .orbit { fill: none; stroke-width: 0.8; opacity: 0.6; }
+.atom .s-class { stroke: #ff8a1e; }
+.atom .s-mine { stroke: #36d6ff; }
+.atom .s-slot { stroke: #ffd36b; stroke-dasharray: 2 3; }
+.atom .track { fill: none; stroke: none; }
+.atom .cloud circle { fill: var(--c); opacity: 0.7; transition: opacity 0.3s; }
+.atom .core { fill: var(--c); }
+.atom .halo { fill: none; stroke: var(--c); stroke-width: 1; }
+.atom .hole { fill: #070d1c; stroke: var(--c); stroke-width: 1.2; stroke-dasharray: 2 1.4; }
+.atom .e { transform-box: fill-box; transform-origin: center; transition: transform 0.3s; }
+.atom .past .cloud circle { opacity: 0.2; }
+.atom .past .e { opacity: 0.4; }
+.atom .on .e { transform: scale(1.5); }
+.atom .on .cloud circle { opacity: 1; }
+.atom .tick { stroke: #8aa3c0; stroke-width: 0.7; }
+.atom .photon path { fill: none; stroke: var(--r-now); stroke-width: 1.3; stroke-dasharray: 5 2; animation: flow 1s linear infinite; }
+.atom .photon polygon { fill: var(--r-now); }
+@keyframes flow { to { stroke-dashoffset: -7; } }
+
+/* ── 뉴모피즘: 볼록한 판 · 눌린 홈 · 캡슐 · 구슬 · 보조개 */
+.soft .plate { fill: #e3e7ee; }
+.soft .groove { fill: none; stroke-width: 45; }
+.soft .g-dark { stop-color: #c8cfda; }
+.soft .g-light { stop-color: #f8fafc; }
+.soft .g-face { stop-color: #d9dee7; }
+.soft .lip { fill: none; stroke: rgba(255, 255, 255, 0.8); stroke-width: 0.5; }
+.soft .sh-dark { flood-color: #b6bfcc; }
+.soft .sh-light { flood-color: #ffffff; }
+.soft .b-light { stop-color: #7aa2f7; }
+.soft .b-dark { stop-color: #3a63d8; }
+.soft .progress { fill: none; stroke-width: 2.4; stroke-linecap: round; }
+.soft .capsule { fill: none; stroke-width: 9; stroke-linecap: round; transition: stroke-width 0.25s; }
+.soft .bead-dot { fill: #3a63d8; }
+.soft .past { opacity: 0.45; }
+.soft .on .capsule { stroke-width: 11.5; }
+.soft .on .bead-dot { r: 2.3; }
+.soft .on .dimple { stroke: #3a63d8; stroke-width: 0.8; }
+.soft .knob-dot { fill: #e0453a; }
+.soft .button { fill: #e3e7ee; }

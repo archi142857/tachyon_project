@@ -40,3 +40,44 @@
 .ld-name::before { content: ''; width: 22px; height: 5px; border-radius: 5px; background: linear-gradient(90deg, currentColor 22%, #8f7bff 40%, transparent); }
 
 @media (prefers-reduced-motion: reduce) { .theme-loader, .theme-loader * { animation: none !important; } }
+
+/* 그림 테마 넷(사람 11-13 02:47): 하루 고리의 얼굴을 작게 + 그 테마 글꼴의 이름(themes.js LOADER). 바탕은 그 테마의 실제 색 */
+.theme-loader.art .ld-art { position: relative; width: 140px; aspect-ratio: 1; display: grid; place-items: center; }
+.theme-loader.art .ld-art > * { position: absolute; }
+.theme-loader.art .ld-word { animation: ld-in 0.4s 0.3s backwards; }
+@keyframes ld-orbit { to { transform: rotate(360deg); } }
+/* 태양계: 빛나는 해 둘레를 두 행성이 돈다 */
+.theme-loader.solar { background: radial-gradient(55% 45% at 12% 18%, rgb(30 150 160 / 0.38), transparent 70%), radial-gradient(45% 40% at 88% 28%, rgb(130 60 180 / 0.4), transparent 70%), #050814; color: #e8ecff; }
+.theme-loader.solar p { color: #a3acc9; }
+.theme-loader.solar .ld-word { font: 700 30px/1 'Cinzel Variable', serif; letter-spacing: 0.1em; color: #f4dc9a; text-shadow: 0 0 14px rgb(255 190 80 / 0.45); }
+.theme-loader.solar b { width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #fff3c4, #ffc94a 45%, #ff7a3c); box-shadow: 0 0 30px 6px rgb(255 170 50 / 0.55); }
+.theme-loader.solar i { inset: 22px; border: 1px solid rgb(255 255 255 / 0.35); border-radius: 50%; animation: ld-orbit 1.6s linear infinite; }
+.theme-loader.solar i + i { inset: 0; animation-duration: 2.6s; }
+.theme-loader.solar i::after { content: ''; position: absolute; left: 50%; top: -5px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #cfe4ff, #3d74d9 50%, #08173a); }
+.theme-loader.solar i + i::after { background: radial-gradient(circle at 35% 30%, #f8dcae, #c98b4c 55%, #2c1608); }
+/* 오선지: 비스듬한 검은 띠 위로 흰 음표가 차례로 올라온다 */
+.theme-loader.staff { background: #fbfbf7; color: #0d0d0d; }
+.theme-loader.staff p { color: #4a4a50; }
+.theme-loader.staff .ld-word { font: italic 400 36px/1 'DM Serif Display', serif; }
+.theme-loader.staff .ld-art { width: 220px; aspect-ratio: auto; height: 70px; grid-auto-flow: column; gap: 22px; transform: rotate(-8deg); }
+.theme-loader.staff b { inset: 6px -10px; background: repeating-linear-gradient(#0d0d0d 0 9px, #ffffff 9px 10.5px) #0d0d0d; box-shadow: 6px 6px 0 #d10f2f; }
+.theme-loader.staff .ld-art > i { position: relative; color: #ffffff; font: 30px/1 'Noto Music', serif; font-style: normal; animation: ld-drop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) backwards; }
+.theme-loader.staff i:nth-of-type(2) { animation-delay: 0.15s; }
+.theme-loader.staff i:nth-of-type(3) { animation-delay: 0.3s; }
+/* 원자 모형: 주황 원자핵 둘레 기울어진 네온 궤도 셋이 돈다 */
+.theme-loader.atom { background: radial-gradient(50% 40% at 82% 18%, rgb(255 120 30 / 0.13), transparent 70%), #070d1c; color: #e3f3ff; }
+.theme-loader.atom p { color: #8fa8c4; }
+.theme-loader.atom .ld-word { font: 700 28px/1 'Orbitron Variable', sans-serif; letter-spacing: 0.14em; color: #ffb36b; text-shadow: 0 0 12px rgb(255 138 30 / 0.7); }
+.theme-loader.atom .ld-art { animation: ld-orbit 3s linear infinite; }
+.theme-loader.atom b { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #ffd3ad, #ff8a1e 60%); box-shadow: 0 0 22px 4px rgb(255 138 30 / 0.6); }
+.theme-loader.atom i { width: 140px; height: 50px; border: 1.5px solid #36d6ff; border-radius: 50%; box-shadow: 0 0 10px rgb(54 214 255 / 0.5); }
+.theme-loader.atom i:nth-of-type(2) { transform: rotate(60deg); }
+.theme-loader.atom i:nth-of-type(3) { transform: rotate(-60deg); }
+/* 뉴모피즘: 오목한 홈을 따라 볼록한 구슬이 돈다 */
+.theme-loader.soft { background: #e3e7ee; color: #2c3a52; }
+.theme-loader.soft p { color: #4c586f; }
+.theme-loader.soft .ld-word { font: 900 32px/1 'Nunito Variable', sans-serif; color: #2b4fb8; text-shadow: 1px 1px 1px #ffffff; }
+.theme-loader.soft b { inset: 0; border-radius: 50%; box-shadow: inset 8px 8px 16px #c6cdd8, inset -8px -8px 16px #ffffff; }
+.theme-loader.soft b::after { content: ''; position: absolute; inset: 26px; border-radius: 50%; background: #e3e7ee; box-shadow: 6px 6px 12px #c2c9d4, -6px -6px 12px #ffffff; }
+.theme-loader.soft i { inset: 0; animation: ld-orbit 1.4s cubic-bezier(0.6, 0, 0.4, 1) infinite; }
+.theme-loader.soft i::after { content: ''; position: absolute; left: 50%; top: 5px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: linear-gradient(145deg, #4670e0, #2f54c2); box-shadow: 3px 3px 6px #b9c1cd, -3px -3px 6px #ffffff; }

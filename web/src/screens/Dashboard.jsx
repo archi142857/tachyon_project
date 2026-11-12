@@ -25,6 +25,7 @@ import TaskActSheet from '../components/TaskActSheet.jsx';
 import { askedPrefs, readPrefs } from '../prefs.js';
 import { addFocus, arrange, fixTask, fixedOn, pinTask, snoozeTask } from '../taskLocal.js';
 import MonthCalendar from '../components/MonthCalendar.jsx';
+import { ThemeBackdrop } from '../components/art/Backdrop.jsx'; // 그림 테마의 화면 뒤 그림(11-13 02:47)
 import Sheet from '../components/Sheet.jsx';
 import Snackbar from '../components/Snackbar.jsx';
 import TaskList from '../components/TaskList.jsx';
@@ -579,6 +580,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
 
   return (
     <div className="shell">
+      <ThemeBackdrop />
       <aside className="side">
         <div className="side-brand">
           <h1 className="wordmark">

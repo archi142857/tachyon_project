@@ -1,9 +1,9 @@
 // 테마를 입힌 '오늘' 화면(실제 앱 web/src의 자리 · 기능을 그대로 옮긴 모형). 값은 모두 지어낸 것.
 // 넓은 화면 = 왼쪽 메뉴 · 위 날짜 줄 · 세 칸(오늘 일정 시간표 | 하루 고리 + 할 일 | 메모) · 아래 적기 칸.
 // 폰 = 위 줄 · 탭 · 날짜와 하루/일정/할 일 · 하루 고리 · 할 일 · 아래 적기 칸. 둘은 css 컨테이너 폭(900px)으로 갈린다.
-import { KIND_NAME, hm, look } from './rings/common.jsx';
-import { RINGS } from './rings/index.js';
-import Backdrop from './backdrop.jsx';
+import { KIND_NAME, hm, look } from '../src/components/art/common.jsx';
+import { RINGS } from '../src/components/art/index.js';
+import Backdrop from '../src/components/art/Backdrop.jsx';
 
 export const TASKS = [
   { id: 't1', title: '선형대수 과제 3', due: '마감 오늘 23:59', est: '약 2시간', pick: '19:30–21:00 어때요?', late: true },
@@ -94,7 +94,7 @@ export default function MockApp({ theme, day, nowMin, sel, onPick, done, onDone,
   const left = TASKS.filter((t) => !done[t.id]).length;
   return (
     <div className={`app t-${theme}`}>
-      <Backdrop theme={theme} />
+      <Backdrop theme={RINGS.find((r) => r.id === theme).name} />
       <aside className="side only-wide">
         <div className="logo">
           <i className="logo-mark" aria-hidden="true" />

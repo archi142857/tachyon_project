@@ -31,12 +31,12 @@ function Electron({ kind }) {
 // 지금 빛알: 원자핵 가장자리(48)에서 바깥(112)까지 물결, 끝에 화살촉. +x 쪽으로 그리고 돌린다
 const WAVE = `M48 0${' q2 -4.5 4 0 q2 4.5 4 0'.repeat(7)} L110 0`;
 
-export default function AtomRing({ arcs, nowMin, sel, onPick, children }) {
+export default function AtomRing({ arcs, nowMin, sel, onPick, loose, children }) {
   const id = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const still = useStill();
   const glow = `url(#${id}-glow)`;
   return (
-    <RingFrame name="atom" sel={sel} mid={children}>
+    <RingFrame name="atom" sel={sel} mid={children} loose={loose}>
       <defs>
         <filter id={`${id}-glow`} x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="1.8" result="b" />
@@ -63,12 +63,12 @@ export default function AtomRing({ arcs, nowMin, sel, onPick, children }) {
       </g>
       <circle r="58" fill={`url(#${id}-core)`} className="nucleus" />
       {Object.entries(SHELL).map(([k, r]) => (
-        <circle key={r} r={r} className={`shell s-${k}`} filter={glow} />
+        <circle key={r} r={r} className={`orbit s-${k}`} filter={glow} />
       ))}
       {Array.from({ length: 24 }, (_, h) => (
         <line key={h} className="tick" {...radial(112, 115, h * 60)} />
       ))}
-      <HourLabels nowMin={nowMin} />
+      <HourLabels nowMin={nowMin} loose={loose} />
       {arcs.map((a) => {
         const k = look(a.kind);
         const R = SHELL[k];
@@ -87,7 +87,7 @@ export default function AtomRing({ arcs, nowMin, sel, onPick, children }) {
           </g>
         );
         return (
-          <g key={a.key} className={`ev k-${k} ${when(a, nowMin)}${a.key === sel ? ' on' : ''}`}>
+          <g key={a.key} className={`item k-${k} ${when(a, nowMin)}${a.key === sel ? ' on' : ''}`}>
             <path id={path} d={arcPath(R, a.from + 3, a.to - 3)} className="track" />
             <g className="cloud">{cloud}</g>
             {still ? (

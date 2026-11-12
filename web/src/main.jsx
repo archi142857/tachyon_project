@@ -13,6 +13,8 @@ import './request1113.css'; // 11-13 요청 층(디자인 components.css 넷째 
 import './feedback1113.css'; // 11-13 피드백 열다섯의 디자인 몫(정면 창 · 마감 자 · 추천 · 길잡이 · 메모 칸 · 로그인) — request1113.css 다음에
 import './actions1113.css'; // 11-13 결정의 9판 기능(할 일 바로 다루기 · 집중 막대 · 정함/추천 줄 · 나) — feedback1113.css 다음에
 import './nine.css'; // 입자 테마 = 시연 9판 모양 그대로(바우하우스는 건드리지 않음) — 맨 끝에
+import './components/art/fonts.js'; // 그림 테마 글꼴(앱에 실음: 함렛 · 본명조 · 오르빗 · 시네잇 · DM Serif · 오르비트론 · 누니토 · Noto Music)
+import './looks.css'; // 그림 테마 넷의 모양 층(칸 · 단추 · 바탕) — nine.css 다음에
 import './loader.css'; // 테마를 바꿀 때 덮는 테마별 로딩 화면
 import { applyTheme, currentTheme } from './themes.js';
 

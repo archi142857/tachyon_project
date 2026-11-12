@@ -25,11 +25,11 @@ const dots = (a, every) => {
   return Array.from({ length: n }, (_, i) => a.from + ((i + 0.5) * len) / n);
 };
 
-export default function SoftRing({ arcs, nowMin, sel, onPick, children }) {
+export default function SoftRing({ arcs, nowMin, sel, onPick, loose, children }) {
   const id = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const u = (n) => `url(#${id}-${n})`;
   return (
-    <RingFrame name="soft" sel={sel} mid={children}>
+    <RingFrame name="soft" sel={sel} mid={children} loose={loose}>
       <defs>
         {/* 볼록: 오른쪽 아래 그림자 + 왼쪽 위 빛 */}
         <filter id={`${id}-up`} x="-40%" y="-40%" width="180%" height="180%">
@@ -65,7 +65,7 @@ export default function SoftRing({ arcs, nowMin, sel, onPick, children }) {
       {Array.from({ length: 24 }, (_, h) => (
         <circle key={h} r={h % 3 ? 0.9 : 1.4} className="tick" transform={at(RIM, h * 60)} fill={u('in-sm')} />
       ))}
-      <HourLabels nowMin={nowMin} rad={131} />
+      <HourLabels nowMin={nowMin} loose={loose} rad={131} />
       <path className="progress" d={arcPath(RIM, 0, Math.max(0.5, nowMin))} stroke={u('blue')} />
       {arcs.map((a) => {
         const k = look(a.kind);
@@ -80,7 +80,7 @@ export default function SoftRing({ arcs, nowMin, sel, onPick, children }) {
           ));
         else body = dots(a, 20).map((m) => <circle key={m} r="4.4" className="dimple" fill={u('in-sm')} transform={at(R.slot, m)} />);
         return (
-          <g key={a.key} className={`ev k-${k} ${when(a, nowMin)}${a.key === sel ? ' on' : ''}`}>
+          <g key={a.key} className={`item k-${k} ${when(a, nowMin)}${a.key === sel ? ' on' : ''}`}>
             {body}
           </g>
         );

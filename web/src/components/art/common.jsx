@@ -1,8 +1,10 @@
-// 고리 시안들이 같이 쓰는 것: 좌표 · 호 · 시각 글자 · 누르는 띠 · 틀(svg + 가운데 글자 칸).
-// 모든 시안이 지키는 '고리 약속'(README)은 여기서 정한다. 시안 파일은 그림만 다르게 그린다.
+// 그림 테마(태양계 · 오선지 · 원자 모형 · 뉴모피즘)의 고리가 같이 쓰는 것: 좌표 · 호 · 시각 글자 · 누르는 띠 · 틀(svg + 가운데 글자 칸).
+// 모든 고리가 지키는 '고리 약속'(web/design/README.md)은 여기서 정한다. 고리 파일은 그림만 다르게 그린다.
+// 앱(DayRing.jsx)과 시안 쪽(web/design)이 같은 파일을 쓴다. svg 이름은 'art'(앱의 .ring 규칙이 그림에 번지지 않게).
 import { useEffect, useState } from 'react';
-export { WAKE, hm } from '../../src/slots.js';
-export { ringRuns } from '../../src/components/DayRing.jsx'; // 붙은 일정 가르기(seps)는 앱과 같은 계산
+import './art.css';
+export { WAKE, hm } from '../../slots.js';
+export { ringRuns } from '../DayRing.jsx'; // 붙은 일정 가르기(seps)는 앱 기본 고리와 같은 계산
 
 export const VIEW = '-136 -136 272 272'; // 앱 고리와 같은 크기
 export const MID_FREE = 56; // 가운데 글자 칸: 이 반지름 안에는 진한 그림을 두지 않는다
@@ -76,11 +78,13 @@ export function useStill() {
   return still;
 }
 
-/** 3시간마다 시각 글자. 지금 시각 글자와 겹치는 것은 뺀다(앱과 같다) */
-export function HourLabels({ nowMin, rad = 126 }) {
+const gap = (a, b) => Math.abs(((((a - b) % 1440) + 1440 + 720) % 1440) - 720); // 하루 둘레 위 두 분 사이(0~720)
+
+/** 3시간마다 시각 글자. 지금 시각 글자와 겹치는 것, 정리 안 된 메모 점이 올라앉는 것은 뺀다(앱 화면에서 '2●4시'로 보였음, 11-13) */
+export function HourLabels({ nowMin, rad = 126, loose = [] }) {
   return Array.from({ length: 8 }, (_, i) => {
     const h = i * 3;
-    if (Math.abs((((h * 60 - nowMin) % 1440) + 1440 + 720) % 1440 - 720) < 70) return null;
+    if (gap(h * 60, nowMin) < 70 || loose.some((m) => gap(h * 60, m) < 30)) return null;
     const [x, y] = point(rad, h * 60);
     return (
       <text key={h} className="hour" x={f1(x)} y={f1(y)}>
@@ -105,12 +109,19 @@ export function Hits({ arcs, onPick }) {
   return arcs.map((a) => <path key={a.key} className="hit" d={arcPath(HIT, a.from, a.to)} onClick={() => onPick(a.key)} />);
 }
 
-/** 고리 틀: svg와 가운데 글자 칸. 같은 내용이 옆 목록에 글자로 있어서 그림은 화면 읽기에서 뺀다 */
-export function RingFrame({ name, sel, mid, children }) {
+/** 고리 틀: svg와 가운데 글자 칸. 같은 내용이 옆 목록에 글자로 있어서 그림은 화면 읽기에서 뺀다.
+ *  loose = 아직 정리 안 된 메모를 적은 분들(앱 기본 고리와 같은 바깥 점, 누르는 일은 고리 밑 글 단추가 한다) */
+export function RingFrame({ name, sel, mid, loose = [], children }) {
   return (
     <div className={`ring-wrap ${name}`}>
-      <svg className={sel ? 'ring has-sel' : 'ring'} viewBox={VIEW} aria-hidden="true">
+      <svg className={sel ? 'art has-sel' : 'art'} viewBox={VIEW} aria-hidden="true">
         {children}
+        <g className="loose">
+          {loose.map((m, i) => {
+            const [x, y] = point(122, m);
+            return <circle key={i} cx={f1(x)} cy={f1(y)} r="3.2" />;
+          })}
+        </g>
       </svg>
       <div className="ring-mid">{mid}</div>
     </div>

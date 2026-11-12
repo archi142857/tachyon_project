@@ -43,3 +43,89 @@ html[data-theme='입자 낮'], [data-theme='입자 낮'] {
   color-scheme: light;
 }
 
+
+/* ── 그림 테마 넷(사람 11-13 01:28 아이디어 · 01:54 레퍼런스 · 02:47 "실제 앱 테마에 넣어줘"). 시안 = web/design.
+   값은 여기, 칸 · 단추 · 바탕 그림 같은 모양은 looks.css, 하루 고리와 바탕 그림은 components/art. 글꼴은 앱에 실음(components/art/fonts.js). */
+
+/* 태양계: 성운이 번진 깊은 우주, 금빛 해. 제목 · 날짜 · 숫자는 함렛 */
+html[data-theme='태양계'], [data-theme='태양계'] {
+  --bg: #050814; --card: #0c1330; --inset: #0a1028; --raised: #121a3c;
+  --heading: #f4dc9a; --text: #e8ecff; --text2: #a3acc9; --text3: #9ba4c4;
+  --line: #c8d4ff24; --grid: #c8d4ff17; --line-strong: #6f7aa8;
+  --fill: #161f45; --bubble: #1a2350;
+  --accent: #ffc94a; --accent-press: #f0b22e; --accent-text: #ffd36b; --on-accent: #2a1600; --focus: #ffd66b;
+  --warn: #ffc94a; --warn-bg: #33260a; --danger: #ff8a7a;
+  --stamp: #ff8a7a; --highlight: #4a3a10; --postit: #1a2147; --postit-text2: #c9cfe6; --postit-unknown: #a3acc9;
+  --now: #ff6f52; --dot-off: #3c4468; --today-wash: #0f1838;
+  --ev-class: #4a3a1c; --ev-ics: #18284f; --ev-memo: #2c1f4f;
+  --snack-bg: #e8ecff; --snack-text: #0c1330; --snack-action: #7a4f00;
+  --scrim: #000000a6; --shadow: 0 12px 40px #00000066;
+  --r-chip: 8px; --r-postit: 12px; --r-card: 20px; --r-btn: 12px; --r-bubble: 16px; --r-sheet: 22px;
+  --font-head: 'Hahmlet Variable', 'Pretendard Variable', Pretendard, serif;
+  --map-bg: #0a1028; --map-dot: #283260; --map-halo: #050814; --map-route: #ffc94a; --map-pin: #ffc94a; --map-pin-text: #2a1600; --map-label: #c9cfe6;
+  --mark-class: #f2c46b; --mark-task: #ffc94a; --ev-mine-line: #7fb0ff;
+  --together: #5ad6a8; --together-bg: #10342a;
+  color-scheme: dark;
+}
+
+/* 오선지: 흰 종이 · 굵은 먹 띠 · 빨간 재생 줄, 각진 테와 엇갈린 그림자. 제목 · 날짜 · 숫자는 본명조 */
+html[data-theme='오선지'], [data-theme='오선지'] {
+  --bg: #fbfbf7; --card: #ffffff; --inset: #f4f4ef; --raised: #ffffff;
+  --heading: #0d0d0d; --text: #0d0d0d; --text2: #4a4a50; --text3: #5c5c63;
+  --line: #0d0d0d; --grid: #dcdcd6; --line-strong: #0d0d0d;
+  --fill: #efefea; --bubble: #ffffff;
+  --accent: #0d0d0d; --accent-press: #000000; --accent-text: #0d0d0d; --on-accent: #ffffff; --focus: #d10f2f;
+  --warn: #0d0d0d; --warn-bg: #fcf1c9; --danger: #c00d29;
+  --stamp: #d10f2f; --highlight: #fcf1c9; --postit: #ffffff; --postit-text2: #4a4a50; --postit-unknown: #5c5c63;
+  --now: #d10f2f; --dot-off: #b4b4ae; --today-wash: #f4f4ef;
+  --ev-class: #e9e9e3; --ev-ics: #ffffff; --ev-memo: #ffffff;
+  --snack-bg: #0d0d0d; --snack-text: #ffffff; --snack-action: #ffffff;
+  --scrim: #0d0d0d66; --shadow: 4px 4px 0 #0d0d0d;
+  --r-chip: 0px; --r-postit: 0px; --r-card: 0px; --r-btn: 0px; --r-bubble: 0px; --r-sheet: 0px;
+  --font-head: 'Noto Serif KR Variable', serif;
+  --map-bg: #f4f4ef; --map-dot: #d6d6d0; --map-halo: #ffffff; --map-route: #0d0d0d; --map-pin: #0d0d0d; --map-pin-text: #ffffff; --map-label: #4a4a50;
+  --mark-class: #0d0d0d; --mark-task: #edb200; --ev-mine-line: #0d0d0d;
+  --together: #1f7a4d; --together-bg: #e3f1e8;
+  color-scheme: light;
+}
+
+/* 원자 모형: 남색 바탕에 하늘색 · 주황 네온, 빛나는 테. 제목 · 날짜 · 숫자는 오르빗 */
+html[data-theme='원자 모형'], [data-theme='원자 모형'] {
+  --bg: #070d1c; --card: #0c1630; --inset: #0a1328; --raised: #11203f;
+  --heading: #ffffff; --text: #e3f3ff; --text2: #8fa8c4; --text3: #8fa8c4;
+  --line: #46beff40; --grid: #46beff1a; --line-strong: #3a8fc0;
+  --fill: #12224a; --bubble: #0f2a48;
+  --accent: #36d6ff; --accent-press: #1fc0ea; --accent-text: #36d6ff; --on-accent: #04121f; --focus: #36d6ff;
+  --warn: #ffb36b; --warn-bg: #33200c; --danger: #ff7a92;
+  --stamp: #ff7a92; --highlight: #4a3510; --postit: #14203f; --postit-text2: #b9cde3; --postit-unknown: #8fa8c4;
+  --now: #ff5c7a; --dot-off: #34466a; --today-wash: #0e1a36;
+  --ev-class: #4a2a12; --ev-ics: #0e3048; --ev-memo: #3a1c3c;
+  --snack-bg: #e3f3ff; --snack-text: #070d1c; --snack-action: #0068a0;
+  --scrim: #000000a6; --shadow: 0 0 28px #28a0ff22;
+  --r-chip: 8px; --r-postit: 10px; --r-card: 16px; --r-btn: 10px; --r-bubble: 14px; --r-sheet: 18px;
+  --font-head: 'Orbit', 'Pretendard Variable', Pretendard, sans-serif;
+  --map-bg: #0a1328; --map-dot: #1e3358; --map-halo: #070d1c; --map-route: #36d6ff; --map-pin: #36d6ff; --map-pin-text: #04121f; --map-label: #b9cde3;
+  --mark-class: #ff8a1e; --mark-task: #ffd36b; --ev-mine-line: #36d6ff;
+  --together: #5ad6a8; --together-bg: #10342a;
+  color-scheme: dark;
+}
+
+/* 뉴모피즘: 연회색 판 하나, 선 대신 그림자(볼록 · 오목)로 칸을 가름. 파랑 하나, 글꼴은 프리텐다드 그대로 */
+html[data-theme='뉴모피즘'], [data-theme='뉴모피즘'] {
+  --bg: #e3e7ee; --card: #e3e7ee; --inset: #dde2ea; --raised: #e9ecf2;
+  --heading: #2c3a52; --text: #2c3a52; --text2: #4c586f; --text3: #525e76;
+  --line: #cbd2dd; --grid: #cdd3dd; --line-strong: #6c7891;
+  --fill: #dce1e9; --bubble: #e3e7ee;
+  --accent: #3a63d8; --accent-press: #2f54c2; --accent-text: #2b4fb8; --on-accent: #ffffff; --focus: #3a63d8;
+  --warn: #7a3d00; --warn-bg: #f3e3c8; --danger: #b02f27;
+  --stamp: #b02f27; --highlight: #f3e3c8; --postit: #e9ecf2; --postit-text2: #4c586f; --postit-unknown: #525e76;
+  --now: #b8332a; --dot-off: #b4bccb; --today-wash: #e9ecf2;
+  --ev-class: #c9d6f7; --ev-ics: #e9ecf2; --ev-memo: #ecdce6;
+  --snack-bg: #2c3a52; --snack-text: #ffffff; --snack-action: #b9cbff;
+  --scrim: #2c3a5266; --shadow: 8px 8px 18px #c2c9d4, -8px -8px 18px #ffffff;
+  --r-chip: 12px; --r-postit: 18px; --r-card: 24px; --r-btn: 999px; --r-bubble: 18px; --r-sheet: 28px;
+  --map-bg: #dde2ea; --map-dot: #c2c9d4; --map-halo: #e3e7ee; --map-route: #3a63d8; --map-pin: #3a63d8; --map-pin-text: #ffffff; --map-label: #4c586f;
+  --mark-class: #3a63d8; --mark-task: #c98a0c; --ev-mine-line: transparent;
+  --together: #1a6b43; --together-bg: #d6ecdf;
+  color-scheme: light;
+}
