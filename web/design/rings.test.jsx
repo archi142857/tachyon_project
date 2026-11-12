@@ -19,3 +19,12 @@ test.each(RINGS)('$name 고리: 일정마다 누르는 띠, aria-hidden, 좌표�
     }
   }
 });
+
+test.each(RINGS)('$name 테마 앱 화면: 그려지고 일정 수만큼 시간표 칸', async ({ id }) => {
+  const { default: MockApp } = await import('./app.jsx');
+  const day = DAYS.many;
+  const html = renderToStaticMarkup(<MockApp theme={id} day={day} nowMin={880} sel={null} onPick={() => {}} done={{}} onDone={() => {}} uid="t" />);
+  expect(html).toContain(`t-${id}`);
+  expect(html.match(/class="tl-ev /g)).toHaveLength(day.arcs.length);
+  expect(html).not.toMatch(/NaN|undefined|Infinity/);
+});

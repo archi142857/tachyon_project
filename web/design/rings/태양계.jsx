@@ -7,8 +7,8 @@
 import { useId } from 'react';
 import { RingFrame, Hits, HourLabels, NowLabel, WAKE, hm, at, arcPath, look, point, radial, seeded, when, f1 } from './common.jsx';
 
-const ORBIT = { class: 66, mine: 84, slot: 102 };
-const BELT = 116; // 금빛 소행성대(눈금 대신)
+const ORBIT = { class: 71, mine: 88, slot: 105 }; // 안쪽 궤도가 해(60)에 묻히지 않게
+const BELT = 119; // 금빛 소행성대(눈금 대신)
 
 export const legend = [
   ['수업', '고리 달린 행성 · 안쪽 궤도'],
@@ -112,7 +112,7 @@ export default function SolarRing({ arcs, nowMin, sel, onPick, children }) {
           </feMerge>
         </filter>
       </defs>
-      <circle r="64" className="sun" fill={`url(#${id}-sun)`} />
+      <circle r="60" className="sun" fill={`url(#${id}-sun)`} />
       {Object.values(ORBIT).map((r) => (
         <circle key={r} r={r} className="orbit" />
       ))}
