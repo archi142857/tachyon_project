@@ -75,7 +75,16 @@ test("사진 읽기: R2에 두고 Sonnet에게 사진을 보내 수업 칸을 �
   let sent;
   const fake = async (_u, init) => {
     sent = JSON.parse(init.body);
-    return aiReply({ classes: [...CLASSES, { title: "이상한 칸", day: "월", start: "15:00", end: "14:00", place: "?", sure: true }], note: "" });
+    return aiReply({
+      classes: [
+        ...CLASSES,
+        { title: "이상한 칸", day: "월", start: "15:00", end: "14:00", place: "?", sure: true },
+        { title: "[예시] 요일을 길게", day: "금요일", start: "9:00", end: "10:15", place: "?", sure: true }, // 강제 못 하는 Sonnet이 enum을 어겨도 받음
+        { title: "[예시] 영어 요일", day: "(Wed)", start: "13:00", end: "14:15", place: "?", sure: true },
+        { title: "두 요일 한 칸", day: "월수", start: "11:00", end: "12:15", place: "?", sure: true }, // 이건 버림
+      ],
+      note: "",
+    });
   };
   const png = new Uint8Array([137, 80, 78, 71, 1, 2, 3]);
   const r = await withFetch(fake, () => post(env, user, "/api/timetable", { body: png, type: "image/png" }));
@@ -89,6 +98,8 @@ test("사진 읽기: R2에 두고 Sonnet에게 사진을 보내 수업 칸을 �
   assert.deepEqual(r.body.classes, [
     { title: "[예시] 유기화학", day: "화", start: "09:30", end: "10:45", place: "301-118", sure: true },
     { title: "[예시] 생명과학실험", day: "목", start: "14:00", end: "17:00", place: "?", sure: false },
+    { title: "[예시] 요일을 길게", day: "금", start: "09:00", end: "10:15", place: "?", sure: true },
+    { title: "[예시] 영어 요일", day: "수", start: "13:00", end: "14:15", place: "?", sure: true },
   ]);
   assert.match(r.body.from, /^\d{4}-\d{2}-\d{2}$/);
   assert.equal(r.body.until, semesterEnd(r.body.from));

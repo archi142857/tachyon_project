@@ -137,11 +137,20 @@ export function expandWeekly(classes, from, until) {
 /** AI 답이나 화면에서 온 수업 칸 하나를 다듬는다. 요일·시각이 이상하면 버린다(null). */
 function cleanClass(c) {
   if (!c || typeof c !== "object") return null;
+  const day = dayOf(c.day);
   const start = hhmm(c.start);
   const end = hhmm(c.end);
-  if (!DAYS.includes(c.day) || !start || !end || end <= start) return null;
+  if (!day || !start || !end || end <= start) return null;
   const text = (v) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 100) : "?");
-  return { title: text(c.title), day: c.day, start, end, place: text(c.place), sure: c.sure !== false };
+  return { title: text(c.title), day, start, end, place: text(c.place), sure: c.sure !== false };
+}
+
+// 요일 한 글자로: '월', '월요일', '(월)', 'Mon'. Sonnet 5.5는 도구를 강제하지 못해(llm.js) 스키마의 enum을 드물게 어길 수 있어서 받아 준다
+const EN_DAYS = { sun: "일", mon: "월", tue: "화", wed: "수", thu: "목", fri: "금", sat: "토" };
+function dayOf(v) {
+  const s = String(v ?? "").trim().replace(/^\((.*)\)$/, "$1");
+  if (/^[일월화수목금토](?:요일|욜)?$/.test(s)) return s[0];
+  return EN_DAYS[s.slice(0, 3).toLowerCase()] ?? null;
 }
 
 function hhmm(v) {
