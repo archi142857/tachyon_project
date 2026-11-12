@@ -13,6 +13,9 @@
 .ring.particles .pg circle { fill: var(--c); opacity: 0.9; transform: scale(1.35); transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1), opacity 0.3s; }
 .ring.particles .pg.slot circle { opacity: 0.8; stroke: var(--accent-text); stroke-width: 0.45; } /* 노랑은 밝은 바탕에서 옅어서 가는 먹 테 */
 .ring.particles .pg circle.p { opacity: 0.3; }
+/* 붙어 있는 같은 색 무리(사람 11-13 "분간이 안 됨"): 둘째 무리는 속이 빈 입자 */
+.ring.particles .pg.alt circle { fill: color-mix(in srgb, var(--c) 18%, transparent); stroke: var(--c); stroke-width: 0.7; }
+.ring.particles .pg.slot.alt circle { stroke: var(--accent-text); stroke-width: 0.6; fill: color-mix(in srgb, var(--c) 35%, transparent); }
 /* 고른 것: 입자가 두 배로 커지고 그 색으로 빛난다. 나머지는 물러난다 */
 .ring.particles .pg.on { filter: drop-shadow(0 0 1.5px color-mix(in srgb, var(--c) 70%, transparent)) drop-shadow(0 0 5px color-mix(in srgb, var(--c) 40%, transparent)); }
 .ring.particles .pg.on circle { opacity: 1; transform: scale(2); }

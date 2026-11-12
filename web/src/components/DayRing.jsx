@@ -3,6 +3,7 @@
 //    ▲ 할 일을 넣어 본 자리, 작은 점 = 빈 시간, 붉은 금 = 지금. 일정 뒤에는 달력과 같은 색 띠.
 //  - 입자 테마('입자 밤'·'입자 낮'): 팀원 시연 9판의 입자 모양 — 모두 동그라미, 구간마다 무리와 뜻 색, 고르면 커지고 빛남,
 //    지금 = 바깥 테를 도는 빨간 입자와 꼬리(사람 11-12 "플랫하게 바꾸지 말고 원 스타일을 살려봐" → 07:11 "입자 테마에서"). 모양은 particles.css.
+// 붙어 있는 같은 모양 구간(수업 둘, 넣어 본 자리 둘 …)은 경계에 틈을 내고 번갈아 속을 채우고 비운다(사람 11-13 "같은 모양이나 색깔로 연속된 일정이 표시되면 분간이 안 됨").
 // 색 구간을 누르면 onPick(key). 가운데 글자는 children으로 받는다.
 // 같은 내용이 옆의 타임라인·할 일 목록에 글자로 있어서 그림은 화면 읽기에서 뺀다(aria-hidden).
 import { useId } from 'react';
@@ -13,6 +14,35 @@ const RINGS = [[66, 40, 1.6], [75, 46, 1.8], [84, 52, 2], [93, 58, 2.2], [102, 6
 const f1 = (v) => v.toFixed(1);
 const MID = 84; // 누르는 띠의 가운데 반지름
 const FRAME = 114; // 바깥 테(사람 11-11 23:34 'B')
+
+// 겉모양이 같은 것끼리(● 수업 · □ 달력·메모 일정 · ▲ 넣어 본 자리) 앞 구간 끝에서 뒤 구간 시작까지 GAP분 안이면 붙어 보인다고 본다.
+// 고리의 입자 사이가 22~36분이라 15분 쉬는 시간(16:30–17:20, 17:35–18:25)도 한 덩어리로 보인다 → 30분.
+// → alt = 번갈아 다르게 그릴 구간 key, cuts = 경계(분, 틈 가운데). 많이(OVERLAP분 넘게) 겹치는 구간은 건드리지 않는다.
+const LOOK = { timetable: 'class', ics: 'mine', memo: 'mine', slot: 'slot' };
+const GAP = 30;
+const OVERLAP = 5;
+export function ringRuns(arcs) {
+  const alt = new Set();
+  const cuts = [];
+  const byLook = new Map();
+  for (const a of arcs) {
+    const look = LOOK[a.kind] || a.kind;
+    if (!byLook.has(look)) byLook.set(look, []);
+    byLook.get(look).push(a);
+  }
+  for (const list of byLook.values()) {
+    list.sort((x, y) => x.from - y.from || x.to - y.to);
+    for (let i = 1; i < list.length; i++) {
+      const p = list[i - 1];
+      const c = list[i];
+      const gap = c.from - p.to;
+      if (gap > GAP || gap < -OVERLAP) continue;
+      cuts.push(Math.round((p.to + c.from) / 2));
+      if (!alt.has(p.key)) alt.add(c.key);
+    }
+  }
+  return { alt, cuts };
+}
 
 // 하루 가운데 f(0~1) 지점, 반지름 rad인 곳의 좌표
 function point(rad, f) {
@@ -62,13 +92,18 @@ function Shape({ kind, cx, cy, r, className }) {
 
 function ShapeRing({ arcs, nowMin, sel, onPick, children }) {
   const now = nowMin / 1440;
+  const { alt, cuts } = ringRuns(arcs);
   return (
     <div className="ring-wrap">
       <svg className={sel ? 'ring has-sel' : 'ring'} viewBox="-136 -136 272 272" aria-hidden="true">
         {/* 바깥 테: 눈금 바깥 가는 선 하나(사람 11-11 23:34 'B'), 입자보다 먼저 */}
         <circle className="frame" r={FRAME} />
         {arcs.map((a) => (
-          <path key={a.key} className={`band ${a.kind}${a.key === sel ? ' on' : ''}`} d={arcPath(a)} />
+          <path key={a.key} className={`band ${a.kind}${alt.has(a.key) ? ' alt' : ''}${a.key === sel ? ' on' : ''}`} d={arcPath(a)} />
+        ))}
+        {/* 붙어 있는 두 구간 사이 틈: 띠를 바탕색으로 끊는다(입자는 그 위에) */}
+        {cuts.map((m) => (
+          <line key={`cut${m}`} className="cut" x1={point(61, m / 1440)[0]} y1={point(61, m / 1440)[1]} x2={point(107, m / 1440)[0]} y2={point(107, m / 1440)[1]} />
         ))}
         {RINGS.flatMap(([rad, n, r]) =>
           Array.from({ length: n }, (_, j) => {
@@ -78,7 +113,7 @@ function ShapeRing({ arcs, nowMin, sel, onPick, children }) {
             const [cx, cy] = point(rad, f).map(Number);
             const past = min < nowMin ? ' past' : '';
             if (!arc) return <circle key={`${rad}-${j}`} cx={cx} cy={cy} r={0.9} className={`${min < WAKE * 60 ? 'sleep' : 'free'}${past}`} />;
-            const cls = `${arc.kind === 'slot' ? 'slot' : `ev ${arc.kind}`}${arc.key === sel ? ' on' : ''}${past}`;
+            const cls = `${arc.kind === 'slot' ? 'slot' : `ev ${arc.kind}`}${alt.has(arc.key) ? ' alt' : ''}${arc.key === sel ? ' on' : ''}${past}`;
             return <Shape key={`${rad}-${j}`} kind={arc.kind} cx={cx} cy={cy} r={r} className={cls} />;
           }),
         )}
@@ -107,6 +142,7 @@ function ParticleRing({ arcs, nowMin, sel, onPick, children }) {
   const now = nowMin / 1440;
   const glowId = `ring-glow-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const picked = arcs.find((a) => a.key === sel);
+  const { alt } = ringRuns(arcs); // 붙어 있는 같은 색 무리는 번갈아 속을 비운다(particles.css)
 
   // 입자를 구간 무리와 나머지(빈 시간·잠)로 나눈다
   const groups = new Map(arcs.map((a) => [a.key, []]));
@@ -147,7 +183,7 @@ function ParticleRing({ arcs, nowMin, sel, onPick, children }) {
         <circle className="frame" r={FRAME} />
         <g className="bg">{rest}</g>
         {arcs.map((a) => (
-          <g key={a.key} className={`pg ${a.kind === 'slot' ? 'slot' : `ev ${a.kind}`}${a.key === sel ? ' on' : ''}`} style={{ '--c': COLOR[a.kind] }}>
+          <g key={a.key} className={`pg ${a.kind === 'slot' ? 'slot' : `ev ${a.kind}`}${alt.has(a.key) ? ' alt' : ''}${a.key === sel ? ' on' : ''}`} style={{ '--c': COLOR[a.kind] }}>
             {groups.get(a.key)}
           </g>
         ))}

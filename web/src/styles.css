@@ -422,6 +422,12 @@ select.input { padding-right: 36px; }
 .ring line.now { stroke: var(--now); stroke-width: 1.6; }
 .ring text.now { fill: var(--now); font-weight: 700; }
 .ring .hit { fill: none; stroke: transparent; stroke-width: 48; pointer-events: stroke; cursor: pointer; }
+/* 붙어 있는 같은 모양 구간(사람 11-13): 경계에 바탕색 틈, 둘째는 속을 뒤집는다 — ● → ○, □ → ■, ▲ → △, 띠는 옅게 */
+.ring line.cut { stroke: var(--card); stroke-width: 2.2; }
+.ring .band.alt { opacity: 0.55; }
+.ring circle.ev.timetable.alt { fill: var(--card); stroke: var(--mark-class); stroke-width: 1.1; }
+.ring rect.ev.alt { fill: var(--accent-text); }
+.ring polygon.slot.alt { fill: var(--card); stroke-width: 0.9; }
 .ring-mid { position: absolute; inset: 0; padding: 0 30%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
 .mid-title { font-family: var(--font-head); font-size: 15px; line-height: 20px; color: var(--heading); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; word-break: keep-all; }
 .mid-big { font-family: var(--font-head); font-size: 22px; line-height: 30px; color: var(--heading); }
