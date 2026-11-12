@@ -15,6 +15,8 @@
 //   GET  /api/briefing        → { briefing }  오늘 카드. 밤 정리 전이면 지금 할 일로 바로 만든다(AI 없음). log: briefing_open
 //   GET  /api/briefing/rank   → { tasks, warning }  지금 할 일 전체를 여유 적은 순으로(대시보드 '할 일 3개'용)
 //   GET  /api/briefing/plan?days=42 → { days: [...] }  오늘부터 날마다 몫(밀도 고리·주 '고르게' 줄). 모양은 web/API.md
+//   POST /api/briefing/now    {}             → { plan, summary }   지금 정리 — 정리 보기(밤 정리 규칙, AI 한 번, 아무것도 안 바꿈, 10분에 5번까지)
+//   POST /api/briefing/now    { apply: plan } → { briefing, summary } 이대로 정리하기 — 받은 안을 그대로 넣는다(AI 다시 안 부름)
 //   POST /api/briefing/run    → { briefing }  이 사용자 밤 정리를 지금 돌린다(시험용, 10분에 3번까지)
 // Cron: scheduled() — wrangler.toml crons "30 16 * * *"(UTC) = 한국 01:30
 // 설정(선택, wrangler.toml [vars]): DAILY_TASK_MIN = 하루에 할 일에 쓰는 시간(분), 기본 180
@@ -46,6 +48,7 @@ export async function handle(request, env, ctx, user) {
   if (action === "rank" && request.method === "GET") return getRank(env, user);
   if (action === "plan" && request.method === "GET") return getPlan(env, user, new URL(request.url));
   if (action === "run" && request.method === "POST") return runNow(env, user);
+  if (action === "now" && request.method === "POST") return organizeNow(request, env, user);
   return json({ error: "없는 주소" }, 404);
 }
 
@@ -97,42 +100,14 @@ async function runNow(env, user) {
 /** 한 사용자의 밤 정리. AI가 없거나 실패해도 브리핑은 만든다(메모는 다음 밤에 다시 읽는다). */
 export async function runNight(env, userId, now = new Date(), { fetch } = {}) {
   await writeLog(env, userId, "night_run", null);
-  const memos = (
-    await env.DB.prepare("SELECT id, text, created_at FROM memos WHERE user_id = ? AND handled = 0 ORDER BY id LIMIT ?")
-      .bind(userId, MAX_MEMOS)
-      .all()
-  ).results;
-  // 걸리는 시간을 채울 할 일: 마감이 다가오는 것부터, 그다음 마감 없는 것, 마감이 지난 것은 맨 뒤
-  // (eTL 주소를 처음 붙이면 지난 30일 과제가 끝남 표시 없이 들어와서, 앞에서부터 40개를 고르면 지난 과제가 다 차지한다)
-  const blank = (
-    await env.DB.prepare(
-      `SELECT id, title, due FROM tasks WHERE user_id = ? AND done = 0 AND minutes IS NULL
-       ORDER BY CASE WHEN due IS NULL THEN 1 WHEN due < ? THEN 2 ELSE 0 END, due, id LIMIT ?`,
-    )
-      .bind(userId, kstDate(now), MAX_TASKS)
-      .all()
-  ).results;
+  const { memos, blank } = await loadUnsorted(env, userId, now);
 
   let newTasks = [];
   if ((memos.length || blank.length) && env.ANTHROPIC_API_KEY) {
     try {
-      const r = await askJson(env, {
-        model: "smart",
-        system: SYSTEM,
-        schema: SCHEMA,
-        content: userMessage(
-          nowLabel(now),
-          memos.map((m) => ({ id: m.id, written: nowLabel(dbTime(m.created_at)), text: m.text })),
-          blank,
-        ),
-        maxTokens: 8000, // 메모 40 + 할 일 40이면 답이 3천 토큰을 넘을 수 있다(5.5 모델은 같은 글에 토큰이 더 든다). 쓴 만큼만 값을 낸다
-        timeoutMs: 120000,
-        retries: 2,
-        fetch,
-      });
-      await writeLog(env, userId, "llm", usageDetail("night", r));
+      const data = await askNight(env, userId, now, memos, blank, { fetch, use: "night" });
       const memoText = new Map(memos.map((m) => [`memo:${m.id}`, m.text]));
-      newTasks = (await applyNight(env, userId, memos, blank, r.data)).map((t) => ({ ...t, memo: memoText.get(t.ext_id) }));
+      newTasks = (await applyNight(env, userId, memos, blank, data)).map((t) => ({ ...t, memo: memoText.get(t.ext_id) }));
     } catch (e) {
       await writeLog(env, userId, "llm_fail", JSON.stringify({ use: "night", error: String(e?.message ?? e).slice(0, 160) }));
     }
@@ -148,6 +123,151 @@ export async function runNight(env, userId, now = new Date(), { fetch } = {}) {
 }
 
 /** AI 답 → tasks 넣기·걸리는 시간 채우기·메모 처리 표시 (한 번에, 보낸 id만 믿는다) */
+/** 아직 정리하지 않은 메모(handled = 0)와 걸리는 시간이 빈 할 일. 밤 정리·지금 정리가 같이 쓴다 */
+async function loadUnsorted(env, userId, now) {
+  const memos = (
+    await env.DB.prepare("SELECT id, text, created_at FROM memos WHERE user_id = ? AND handled = 0 ORDER BY id LIMIT ?")
+      .bind(userId, MAX_MEMOS)
+      .all()
+  ).results;
+  // 걸리는 시간을 채울 할 일: 마감이 다가오는 것부터, 그다음 마감 없는 것, 마감이 지난 것은 맨 뒤
+  // (eTL 주소를 처음 붙이면 지난 30일 과제가 끝남 표시 없이 들어와서, 앞에서부터 40개를 고르면 지난 과제가 다 차지한다)
+  const blank = (
+    await env.DB.prepare(
+      `SELECT id, title, due FROM tasks WHERE user_id = ? AND done = 0 AND minutes IS NULL
+       ORDER BY CASE WHEN due IS NULL THEN 1 WHEN due < ? THEN 2 ELSE 0 END, due, id LIMIT ?`,
+    )
+      .bind(userId, kstDate(now), MAX_TASKS)
+      .all()
+  ).results;
+  return { memos, blank };
+}
+
+/** 밤 정리 프롬프트로 AI에게 한 번 묻는다(메모·빈 할 일을 한꺼번에). 답 JSON을 돌려주고 사용량을 log에 남긴다 */
+async function askNight(env, userId, now, memos, blank, { fetch, use }) {
+  const r = await askJson(env, {
+    model: "smart",
+    system: SYSTEM,
+    schema: SCHEMA,
+    content: userMessage(
+      nowLabel(now),
+      memos.map((m) => ({ id: m.id, written: nowLabel(dbTime(m.created_at)), text: m.text })),
+      blank,
+    ),
+    maxTokens: 8000, // 메모 40 + 할 일 40이면 답이 3천 토큰을 넘을 수 있다(5.5 모델은 같은 글에 토큰이 더 든다). 쓴 만큼만 값을 낸다
+    timeoutMs: 120000,
+    retries: 2,
+    fetch,
+  });
+  await writeLog(env, userId, "llm", usageDetail(use, r));
+  return r.data;
+}
+
+// ── 지금 정리 (11-13 사람 요청 "할 일 바로 정리", 밤 01:30까지 기다리지 않고) ──
+// 정리 보기: 밤 정리와 같은 규칙·같은 AI 한 번(메모 n개를 한꺼번에)으로 안(plan)을 만들어 보여 준다. DB는 log만 쓴다.
+// 이대로 정리하기: 화면이 받은 안을 그대로(빼거나 이름·마감을 고친 것도) 돌려보내면 넣는다. AI는 다시 안 부른다(토큰 아끼기).
+// 그사이 팝업으로 넣은 메모·이미 시간이 찬 할 일은 건너뛴다.
+const NOW_PER_10MIN = 5;
+
+async function organizeNow(request, env, user) {
+  const body = await request.json().catch(() => ({}));
+  const now = new Date();
+  if (body && body.apply) return applyPlan(env, user.id, now, body.apply);
+
+  const since = isoKst(new Date(now.getTime() - 10 * 60 * 1000));
+  const recent = await env.DB.prepare("SELECT count(*) AS n FROM log WHERE user_id = ? AND action = 'night_now' AND at > ?").bind(user.id, since).first();
+  if (recent.n >= NOW_PER_10MIN) return json({ error: `10분에 ${NOW_PER_10MIN}번까지만 정리해 볼 수 있어요` }, 429);
+
+  const { memos, blank } = await loadUnsorted(env, user.id, now);
+  if (!memos.length && !blank.length) return json({ plan: { memos: [], tasks: [] }, summary: "정리할 메모가 없어요" });
+  if (!env.ANTHROPIC_API_KEY) return json({ error: "지금은 AI가 없어 정리하지 못해요. 밤 01:30에 정리해요" }, 503);
+  await writeLog(env, user.id, "night_now", null);
+  let data;
+  try {
+    data = await askNight(env, user.id, now, memos, blank, { use: "night_now" }); // fetch는 llm.js가 쓰는 전역 fetch(시험은 그것을 바꾼다)
+  } catch (e) {
+    await writeLog(env, user.id, "llm_fail", JSON.stringify({ use: "night_now", error: String(e?.message ?? e).slice(0, 160) }));
+    return json({ error: "지금은 정리하지 못했어요. 잠시 뒤에 다시 해 보거나 밤 01:30 정리를 기다려 주세요" }, 502);
+  }
+  const plan = planOf(memos, blank, data);
+  return json({ plan, summary: summaryOf(plan) });
+}
+
+/** AI 답 → 화면에 보일 안: 메모마다 할 일인지·이름·마감(쓴 날짜 말 먼저)·걸릴 분, 빈 할 일마다 걸릴 분 */
+function planOf(memos, blank, data) {
+  const byMemo = new Map((data?.memos ?? []).map((a) => [a.id, a]));
+  const byTask = new Map((data?.tasks ?? []).map((a) => [a.id, a]));
+  return {
+    memos: memos.map((m) => {
+      const a = byMemo.get(m.id);
+      const task = a?.is_task === true;
+      return {
+        id: m.id,
+        text: m.text,
+        task,
+        title: task ? (clean(a.title) ?? m.text) : null,
+        due: task ? dueOf(m, a.due) : null,
+        minutes: task ? minutesOf(a.minutes) : null,
+        ready: task ? (a.ready === "after" ? "after" : "now") : null,
+        answered: Boolean(a), // AI가 답하지 않은 메모는 넣어도 그대로 남는다(밤에 다시 읽음)
+      };
+    }),
+    tasks: blank
+      .filter((t) => byTask.has(t.id))
+      .map((t) => {
+        const a = byTask.get(t.id);
+        return { id: t.id, title: t.title, due: t.due, minutes: minutesOf(a.minutes) ?? 60, ready: a.ready === "after" ? "after" : "now" };
+      }),
+  };
+}
+
+/** 정리 결과 한 줄(11-13 사람 요청 '정리 결과를 한 줄로') */
+function summaryOf(plan) {
+  const answered = plan.memos.filter((m) => m.answered);
+  const tasks = answered.filter((m) => m.task).length;
+  const parts = [];
+  if (answered.length) parts.push(`메모 ${answered.length}개 → 할 일 ${tasks}개${answered.length - tasks ? ` · 그냥 메모 ${answered.length - tasks}개` : ""}`);
+  if (plan.tasks.length) parts.push(`걸리는 시간 ${plan.tasks.length}개 어림`);
+  return parts.length ? parts.join(" · ") : "정리할 메모가 없어요";
+}
+
+/** 이대로 정리하기: 화면이 돌려보낸 안을 검사해 넣는다(내 것이고 아직 정리 안 된 메모·시간 빈 할 일만) */
+async function applyPlan(env, userId, now, plan) {
+  const memoIds = [...new Set((plan?.memos ?? []).map((m) => m?.id).filter(Number.isInteger))].slice(0, MAX_MEMOS);
+  const taskIds = [...new Set((plan?.tasks ?? []).map((t) => t?.id).filter(Number.isInteger))].slice(0, MAX_TASKS);
+  if (!memoIds.length && !taskIds.length) return json({ error: "넣을 안이 없다" }, 400);
+  const placeholders = (ids) => ids.map(() => "?").join(", ");
+  const [memos, blank] = await Promise.all([
+    memoIds.length
+      ? env.DB.prepare(`SELECT id, text, created_at FROM memos WHERE user_id = ? AND handled = 0 AND id IN (${placeholders(memoIds)})`).bind(userId, ...memoIds).all().then((r) => r.results)
+      : [],
+    taskIds.length
+      ? env.DB.prepare(`SELECT id, title, due FROM tasks WHERE user_id = ? AND done = 0 AND minutes IS NULL AND id IN (${placeholders(taskIds)})`).bind(userId, ...taskIds).all().then((r) => r.results)
+      : [],
+  ]);
+  // 안 → applyNight가 받는 AI 답 모양. 마감은 화면이 보낸 것(고쳤을 수 있다)이 맞는 모양이면 그것, 아니면 밤 정리와 같은 셈
+  const memoById = new Map(memos.map((m) => [m.id, m]));
+  const data = {
+    memos: (plan.memos ?? [])
+      .filter((m) => memoById.has(m?.id) && m.answered !== false)
+      .map((m) => ({ id: m.id, is_task: m.task === true, title: m.title, due: validDue(m.due) ?? "?", minutes: m.minutes, ready: m.ready === "after" ? "after" : "now", keepDue: Boolean(validDue(m.due)) })),
+    tasks: (plan.tasks ?? []).map((t) => ({ id: t?.id, minutes: t?.minutes, ready: t?.ready === "after" ? "after" : "now" })),
+  };
+  const memoText = new Map(memos.map((m) => [`memo:${m.id}`, m.text]));
+  const newTasks = (await applyNight(env, userId, memos, blank, data)).map((t) => ({ ...t, memo: memoText.get(t.ext_id) }));
+  const card = await buildBriefing(env, userId, now, { by: "now", newTasks });
+  await env.DB.prepare(
+    "INSERT INTO briefings (user_id, date, text) VALUES (?, ?, ?) ON CONFLICT (user_id, date) DO UPDATE SET text = excluded.text",
+  )
+    .bind(userId, card.date, JSON.stringify(card))
+    .run();
+  const applied = { memos: data.memos.length, tasks: newTasks.length, minutes: blank.filter((t) => data.tasks.some((a) => a.id === t.id)).length };
+  await writeLog(env, userId, "night_now_apply", JSON.stringify(applied));
+  return json({ briefing: card, applied, summary: summaryOf(planOf(memos, blank.filter((t) => data.tasks.some((a) => a.id === t.id)), data)) });
+}
+
+const validDue = (d) => (typeof d === "string" && /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}\+09:00)?$/.test(d) ? d : null);
+
 async function applyNight(env, userId, memos, blank, data) {
   const memoById = new Map(memos.map((m) => [m.id, m]));
   const blankIds = new Set(blank.map((t) => t.id));
@@ -164,7 +284,7 @@ async function applyNight(env, userId, memos, blank, data) {
         `INSERT INTO tasks (user_id, title, due, minutes, ready, source, ext_id) VALUES (?, ?, ?, ?, ?, 'memo', ?)
          ON CONFLICT (user_id, source, ext_id) DO NOTHING
          RETURNING id, title, due, minutes, ready, ext_id`,
-      ).bind(userId, clean(a.title) ?? memo.text, dueOf(memo, a.due), minutesOf(a.minutes), a.ready === "after" ? 0 : 1, `memo:${memo.id}`),
+      ).bind(userId, clean(a.title) ?? memo.text, a.keepDue ? a.due : dueOf(memo, a.due), minutesOf(a.minutes), a.ready === "after" ? 0 : 1, `memo:${memo.id}`),
     );
   }
   for (const a of data?.tasks ?? []) {

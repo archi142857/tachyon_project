@@ -86,6 +86,18 @@
 - `GET /api/briefing` → 아침 브리핑 카드(2단계 화면), `GET /api/briefing/rank` → 할 일 여유 순(대시보드는 위 `/api/tasks`로 같은 순서를 받는다), `POST /api/briefing/run`.
 - 카드 모양: `{ date, made_at, by, events, top3, postpone, warning, today: { event_min, task_min, extra_min, over_min }, new_tasks }`. `today`는 아래 날마다 몫의 오늘 칸과 같은 셈이다(11-11).
 
+### 지금 정리 — 밤 01:30까지 기다리지 않고 (11-13, 사람 피드백 '할 일 바로 정리')
+
+| 요청 | 보냄 | 받음 |
+| --- | --- | --- |
+| `POST /api/briefing/now` | `{}` | **정리 보기** `{ plan: { memos: [{ id, text, task, title, due, minutes, ready, answered }], tasks: [{ id, title, due, minutes, ready }] }, summary }` — 아무것도 안 바꾼다(log만). 10분에 5번까지(429). 정리할 게 없으면 AI 없이 `plan` 빈 칸 + `summary` '정리할 메모가 없어요'. AI 없음 503, AI 실패 502(`error` 글을 그대로 보이면 된다) |
+| `POST /api/briefing/now` | `{ apply: plan }` | **이대로 정리하기** `{ briefing, applied: { memos, tasks, minutes }, summary }` — 받은 안을 넣고 오늘 브리핑 카드를 새로 만든다(`by: 'now'`). AI는 다시 안 부른다 |
+
+- 규칙은 밤 정리와 같다(`prompts/night.js`, Sonnet 한 번에 아직 정리 안 한 메모 40개·걸리는 시간이 빈 할 일 40개까지). `task: false`인 메모는 '그냥 메모'로 정리됐다고 표시만 한다(할 일 안 만듦). `answered: false`(AI가 답 안 한 메모)는 넣어도 그대로 남아 밤에 다시 읽는다.
+- `due`: 메모에 쓴 날짜 말(쓴 때 기준)이 먼저, 없으면 AI 어림, 그것도 없으면 `null`. 모양은 `YYYY-MM-DD` 또는 `YYYY-MM-DDTHH:MM:SS+09:00`. `ready`: `now` = 지금 가능, `after` = 수업·자료 뒤.
+- 화면은 `plan`에서 빼거나(그 줄을 안 보내면 그 메모는 그대로 남음) `title`·`due`·`minutes`를 고쳐 보낼 수 있다. 그사이 팝업으로 넣은 메모·이미 시간이 찬 할 일은 건너뛴다. 같은 안을 두 번 보내도 할 일은 한 번만 생긴다(ext_id `memo:<id>`).
+- `summary` 예: '메모 2개 → 할 일 1개 · 그냥 메모 1개 · 걸리는 시간 1개 어림'.
+
 ### 날마다 몫 — 밀도 고리·주 '고르게' 줄 (11-11, 사람 요청 "날마다 밀도 고리 + 주간 밀도가 고르게")
 
 | 요청 | 보냄 | 받음 |

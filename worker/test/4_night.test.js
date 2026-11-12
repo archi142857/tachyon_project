@@ -328,3 +328,105 @@ test("주소: 브리핑 열기(밤 정리 전이면 바로 만듦) · 순서 · 
   assert.equal(rebuilt.status, 200);
   assert.equal(rebuilt.body.briefing.by, "now");
 });
+
+// ── 지금 정리 (POST /api/briefing/now) ──
+
+const postNow = (env, user, body) =>
+  handle(new Request("https://x.test/api/briefing/now", { method: "POST", body: JSON.stringify(body ?? {}) }), env, fakeCtx(), user).then(async (r) => ({ status: r.status, body: await r.json() }));
+
+async function withFetch(fake, fn) {
+  const real = globalThis.fetch;
+  globalThis.fetch = fake;
+  try {
+    return await fn();
+  } finally {
+    globalThis.fetch = real;
+  }
+}
+
+test("지금 정리: 정리 보기는 AI 한 번(메모·빈 할 일 한꺼번에)으로 안과 한 줄을 주고 아무것도 안 바꾼다", async () => {
+  const { DB, user, ids } = seed();
+  const env = { DB, ANTHROPIC_API_KEY: "k" };
+  let calls = 0;
+  let sent;
+  const fake = async (_u, init) => {
+    calls++;
+    sent = JSON.parse(init.body).messages[0].content;
+    return aiReply({
+      memos: [
+        { id: ids.m1, is_task: true, title: "유기화학 과제", due: "?", minutes: 120, ready: "now" },
+        { id: ids.m2, is_task: false, title: "?", due: "?", minutes: 0, ready: "now" },
+      ],
+      tasks: [{ id: ids.t1, minutes: 45, ready: "after" }],
+    });
+  };
+  const r = await withFetch(fake, () => postNow(env, user, {}));
+  assert.equal(r.status, 200);
+  assert.equal(calls, 1);
+  assert.match(sent, /유기화학 과제 다음주 월요일까지/);
+  assert.doesNotMatch(sent, /이미 일정으로 저장한 메모/); // 정리된 메모는 안 보낸다
+  assert.deepEqual(r.body.plan.memos, [
+    { id: ids.m1, text: "유기화학 과제 다음주 월요일까지", task: true, title: "유기화학 과제", due: "2026-11-16", minutes: 120, ready: "now", answered: true }, // 마감은 쓴 날짜 말(쓴 때 기준) 먼저
+    { id: ids.m2, text: "오늘 동아리 사람들 좋았음", task: false, title: null, due: null, minutes: null, ready: null, answered: true },
+  ]);
+  assert.deepEqual(r.body.plan.tasks, [{ id: ids.t1, title: "[예시] 3주차 퀴즈", due: "2026-11-12T23:59:00+09:00", minutes: 45, ready: "after" }]);
+  assert.equal(r.body.summary, "메모 2개 → 할 일 1개 · 그냥 메모 1개 · 걸리는 시간 1개 어림");
+  // 바뀐 것 없음(log만)
+  assert.equal(DB.sqlite.prepare("SELECT count(*) AS n FROM tasks WHERE source = 'memo'").get().n, 0);
+  assert.equal(DB.sqlite.prepare("SELECT count(*) AS n FROM memos WHERE handled = 0").get().n, 2);
+  assert.equal(DB.sqlite.prepare("SELECT minutes FROM tasks WHERE id = ?").get(ids.t1).minutes, null);
+  assert.deepEqual(DB.sqlite.prepare("SELECT action FROM log ORDER BY id").all().map((x) => x.action), ["night_now", "llm"]);
+  assert.match(DB.sqlite.prepare("SELECT detail FROM log WHERE action = 'llm'").get().detail, /"use":"night_now"/);
+});
+
+test("지금 정리: 이대로 정리하기는 받은 안(고친 이름·마감 포함)을 AI 없이 넣고 브리핑을 새로 만든다", async () => {
+  const { DB, user, ids } = seed();
+  const env = { DB, ANTHROPIC_API_KEY: "k" };
+  const plan = {
+    memos: [
+      { id: ids.m1, text: "…", task: true, title: "유기화학 과제 마무리", due: "2026-11-14", minutes: 90, ready: "now", answered: true }, // 사람이 이름·마감을 고침
+      { id: ids.m2, task: false, answered: true },
+      { id: ids.m3, task: true, title: "이미 넣은 것", due: "2026-11-20", answered: true }, // 이미 정리된 메모 → 건너뜀
+      { id: 9999, task: true, title: "남의 메모", answered: true }, // 없는 메모 → 건너뜀
+    ],
+    tasks: [{ id: ids.t1, minutes: 45, ready: "after" }, { id: ids.t2, minutes: 10 }], // t2는 이미 시간이 있다 → 그대로
+  };
+  let calls = 0;
+  const r = await withFetch(async () => (calls++, aiReply({})), () => postNow(env, user, { apply: plan }));
+  assert.equal(r.status, 200);
+  assert.equal(calls, 0); // AI 다시 안 부름
+  const made = DB.sqlite.prepare("SELECT title, due, minutes, ready, ext_id FROM tasks WHERE source = 'memo'").all();
+  assert.deepEqual(made.map((t) => ({ ...t })), [{ title: "유기화학 과제 마무리", due: "2026-11-14", minutes: 90, ready: 1, ext_id: `memo:${ids.m1}` }]);
+  assert.deepEqual(DB.sqlite.prepare("SELECT id FROM memos WHERE handled = 0").all(), []);
+  assert.deepEqual({ ...DB.sqlite.prepare("SELECT minutes, ready FROM tasks WHERE id = ?").get(ids.t1) }, { minutes: 45, ready: 0 });
+  assert.equal(DB.sqlite.prepare("SELECT minutes FROM tasks WHERE id = ?").get(ids.t2).minutes, 30);
+  assert.equal(r.body.briefing.by, "now");
+  assert.deepEqual(r.body.briefing.new_tasks.map((t) => [t.title, t.memo]), [["유기화학 과제 마무리", "유기화학 과제 다음주 월요일까지"]]);
+  assert.deepEqual(r.body.applied, { memos: 2, tasks: 1, minutes: 1 });
+  assert.equal(r.body.summary, "메모 2개 → 할 일 1개 · 그냥 메모 1개 · 걸리는 시간 1개 어림");
+  assert.ok(DB.sqlite.prepare("SELECT text FROM briefings WHERE user_id = ?").get(user.id).text.includes('"by":"now"'));
+  assert.equal(DB.sqlite.prepare("SELECT count(*) AS n FROM log WHERE action = 'night_now_apply'").get().n, 1);
+  // 다시 넣어도 두 번 생기지 않는다
+  await postNow(env, user, { apply: plan });
+  assert.equal(DB.sqlite.prepare("SELECT count(*) AS n FROM tasks WHERE source = 'memo'").get().n, 1);
+  assert.equal((await postNow(env, user, { apply: { memos: [], tasks: [] } })).status, 400);
+});
+
+test("지금 정리: 정리할 것이 없으면 AI를 안 부르고, 키가 없으면 503, AI가 실패하면 502, 10분에 5번까지", async () => {
+  const empty = fakeD1();
+  const nobody = addUser(empty);
+  let calls = 0;
+  const count = async () => (calls++, aiReply({ memos: [], tasks: [] }));
+  const none = await withFetch(count, () => postNow({ DB: empty, ANTHROPIC_API_KEY: "k" }, nobody, {}));
+  assert.deepEqual([none.status, none.body.summary, calls], [200, "정리할 메모가 없어요", 0]);
+
+  const { DB, user } = seed();
+  assert.equal((await postNow({ DB }, user, {})).status, 503);
+  const env = { DB, ANTHROPIC_API_KEY: "k" };
+  const fail = await withFetch(async () => new Response("bad", { status: 400 }), () => postNow(env, user, {}));
+  assert.equal(fail.status, 502);
+  assert.match(DB.sqlite.prepare("SELECT detail FROM log WHERE action = 'llm_fail'").get().detail, /night_now/);
+  for (let i = 0; i < 4; i++) assert.equal((await withFetch(count, () => postNow(env, user, {}))).status, 200);
+  assert.equal((await withFetch(count, () => postNow(env, user, {}))).status, 429); // 실패한 1번 + 4번 = 5번
+  assert.equal((await postNow(null, null, {}).catch(() => ({ status: 401 }))).status, 401);
+});
