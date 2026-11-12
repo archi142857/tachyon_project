@@ -2,7 +2,7 @@
 // 고리의 색 구간이나 할 일 줄을 누르면 고리 · 타임라인 · 할 일이 같이 골라진다(sel = 'e일정 id' | 't할 일 id').
 // 타임라인은 굴리지 않고 하루가 한눈에 보이며, 누르면 주간 달력으로 간다(onWeek).
 // 옅은 점선 칸은 빈 시간에 할 일을 넣어 본 자리다(slots.js). 저장하지 않는다.
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { layoutDay } from '../layout.js';
 import { dayEvents, daySlots, freeMinutes, hm } from '../slots.js';
 import { deadlineLabel, deadlineShort, minuteOfDay } from '../time.js';
@@ -21,8 +21,19 @@ function noSlot(task) {
 }
 
 // today = 오늘 0시(ISO), tasks = 화면에 보일 할 일(순서대로), total = 안 끝낸 할 일 수
-export default function TodayView({ today, events, tasks, total, now, onDone, onEvent, onTask, onAll, onWeek }) {
+// widget(id) = 넓은 화면 위젯 칸(WidgetGrid): { slot, lifted, grip } — 없으면 지금 그대로. editing이면 타임라인 카드를 눌러도 달력으로 가지 않는다
+const card = (base, w) => `card ${base}${w.lifted ? ' lifted' : ''}`;
+export default function TodayView({ today, events, tasks, total, now, onDone, onEvent, onTask, onAll, onWeek, widget = () => ({}), editing = false, layoutKey = '' }) {
   const [sel, setSel] = useState(null);
+  const w = { day: widget('day'), ring: widget('ring'), tasks: widget('tasks') };
+  // 낮은 칸에서 타임라인이 카드 안에서 굴면(디자인 ②) 처음엔 지금 시각이 보이게 굴려 둔다
+  const dayRef = useRef(null);
+  useLayoutEffect(() => {
+    const box = dayRef.current;
+    const line = box?.querySelector('.now-line');
+    if (!box || !line || box.scrollHeight <= box.clientHeight + 1) return;
+    box.scrollTop = Math.max(0, line.offsetTop - box.clientHeight / 3);
+  }, [layoutKey, w.day.slot]);
   const particles = useParticles(); // 입자 테마면 하루 고리 범례도 입자 모양(DayRing과 같게)
   const nowMin = minuteOfDay(now);
   const busy = dayEvents(events, today);
@@ -45,7 +56,8 @@ export default function TodayView({ today, events, tasks, total, now, onDone, on
   return (
     <>
       {/* 카드 어디를 눌러도 주간 달력으로 간다. 키보드로는 머리의 '주간 달력' 단추(누름이 카드로 올라온다) */}
-      <section className="card day" aria-label="오늘 타임라인" onClick={onWeek}>
+      <section ref={dayRef} className={card('day', w.day)} data-slot={w.day.slot} data-widget={w.day.slot && 'day'} aria-label="오늘 타임라인" onClick={editing ? undefined : onWeek}>
+        {w.day.grip}
         <div className="tasks-head">
           <h2 className="card-title">오늘 일정</h2>
           <span className="tag num">{busy.length}</span>
@@ -98,7 +110,8 @@ export default function TodayView({ today, events, tasks, total, now, onDone, on
         </div>
       </section>
 
-      <section className="card ring-card" aria-label="하루 고리">
+      <section className={card('ring-card', w.ring)} data-slot={w.ring.slot} data-widget={w.ring.slot && 'ring'} aria-label="하루 고리">
+        {w.ring.grip}
         <DayRing arcs={items} nowMin={nowMin} sel={sel} onPick={pick}>
           {picked ? (
             <>
@@ -143,7 +156,8 @@ export default function TodayView({ today, events, tasks, total, now, onDone, on
         )}
       </section>
 
-      <section className="card tasks" aria-label="할 일">
+      <section className={card('tasks', w.tasks)} data-slot={w.tasks.slot} data-widget={w.tasks.slot && 'tasks'} aria-label="할 일">
+        {w.tasks.grip}
         <div className="tasks-head">
           <h2 className="card-title">할 일</h2>
           {total > tasks.length && (

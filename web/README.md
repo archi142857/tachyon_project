@@ -51,6 +51,9 @@ npm run build      # dist/
 | `src/shell.css` | 앱 틀: 100dvh 꽉 찬 화면, 문서는 안 굴리고 칸 안에서만, 넓은 화면(900px~) 왼쪽 메뉴 · 폰 위 탭, 오늘 쪽 칸 배치, 주·월 달력, 밀도 고리, 할 일 쪽. 색은 모두 `var(--…)`라 테마를 따른다 |
 | `src/shape.css` | ③ 바우하우스 모양 층(디자인 `components.css` 셋째 묶음 그대로): 하루 고리 ● □ ▲·바깥 테, 달력 칸 앞 모양, 월 보기 모양, 밀도 고리 색, '같이' 쪽 흰 점·후보 칩. shell.css 다음에 부른다 |
 | `src/particles.css` · `src/themeName.js` | 입자 테마('입자 밤'·'입자 낮')에서만 하루 고리를 팀원 시연(9판) 입자 모양으로 — 모두 동그라미, 구간마다 뜻 색, 고르면 커지고 빛남, 돋아나는 움직임, 지금 = 바깥 테를 도는 빨간 입자와 꼬리(사람 11-12 07:11). 다른 테마는 ③ ● □ ▲. `themeName.js`의 `useParticles()`가 지금 테마를 읽는다. particles.css는 shape.css 다음에 부른다 |
+| `src/request1113.css` | 11-13 요청 층(디자인 `components.css` 넷째 묶음 그대로): 다 같이 빈 시간 띠 · 범례 칩 `.together-key` · '같이' 그룹 만들기 알약, 오늘 쪽 위젯 배치 넷(`data-layout` · `data-slot`) · 손잡이 · 놓을 칸, 일정 끌기 그림자 칸, 하루 고리 금 `.ring line.sep`. shape.css 다음, particles.css 앞에 부른다 |
+| `src/components/WidgetGrid.jsx` · `src/todayLayout.js` | 넓은 화면 '오늘' 쪽 위젯(11-13): '배치 바꾸기'를 누르면 손잡이로 끌어 놓기 · 눌러 집고 '여기에 놓기' · ←→, FLIP으로 미끄러짐. 배치 넷(세 칸 = 지금 화면 · 네 칸 · 고리 크게 · 2 × 2, 1200px부터, 900~1199는 2 × 2) · '처음대로'. 고른 배치 · 차례는 이 기기(`tachyon_today_layout`). 폰은 지금 탭 그대로 |
+| 겹쳐 보기(`Dashboard.jsx` · `WeekCalendar.jsx` · `api.getGroupFree`) | 주 달력에 고른 그룹의 '다 같이 빈 시간' 띠(11-13, 서버 `GET /api/together/groups/:id/free`). 달력 머리 칩이 범례 겸 켜고 끄기, '같이' 쪽 그룹 줄마다 '달력에 겹쳐 보기'. 띠를 누르면 그 시간으로 '모임' 팝업(메모 → 저장). 고른 그룹 · 켜짐은 이 기기(`tachyon_together_overlay`) |
 | `public/` | `manifest.webmanifest`, `sw.js`, `_headers`, `icons/` |
 
 ## 정한 것

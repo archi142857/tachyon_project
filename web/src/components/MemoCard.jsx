@@ -2,7 +2,8 @@
 import { useEffect, useRef } from 'react';
 import { dayLabel, hhmm } from '../time.js';
 
-export default function MemoCard({ memos, now, activeId, waiting }) {
+// widget = 넓은 화면 '오늘' 쪽 위젯 칸(WidgetGrid의 widget('memo')): { slot, lifted, grip }
+export default function MemoCard({ memos, now, activeId, waiting, widget = {} }) {
   const logRef = useRef(null);
 
   useEffect(() => {
@@ -12,7 +13,8 @@ export default function MemoCard({ memos, now, activeId, waiting }) {
 
   let lastDay = null;
   return (
-    <section className="card memo-card" aria-label="메모">
+    <section className={`card memo-card${widget.lifted ? ' lifted' : ''}`} data-slot={widget.slot} data-widget={widget.slot && 'memo'} aria-label="메모">
+      {widget.grip}
       <h2 className="card-title">메모</h2>
       <div className="memo-log" ref={logRef} aria-live="polite">
         {memos.length === 0 && <p className="empty">아래 칸에 적으면 여기에 쌓여요</p>}

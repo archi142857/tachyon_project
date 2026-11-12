@@ -25,10 +25,26 @@ import TaskList from '../components/TaskList.jsx';
 import ThemeSheet from '../components/ThemeSheet.jsx';
 import TogetherPage from '../components/TogetherPage.jsx';
 import TodayView from '../components/TodayView.jsx';
+import WidgetGrid from '../components/WidgetGrid.jsx';
+import { DEFAULT_ORDER, FIRST, LAYOUTS, readLayout, swapOrder, writeLayout } from '../todayLayout.js';
 import TtwSheet from '../components/TtwSheet.jsx';
 import WeekCalendar from '../components/WeekCalendar.jsx';
 import { PLAN_DAYS, dateKey, eventOnlyDay, fromServerPlan, planDensity } from '../density.js';
 import { WEEKDAYS, addDays, dayStart, hhmm, kst, monthGrid, sameDay, shiftMonth, shortDate, toKstIso } from '../time.js';
+
+// 넓은 화면(900px부터)인가 — 오늘 쪽 위젯 칸은 넓은 화면에서만(폰은 지금 탭)
+const WIDE = '(min-width: 900px)';
+function useWide() {
+  const [wide, setWide] = useState(() => window.matchMedia?.(WIDE).matches ?? true);
+  useEffect(() => {
+    const m = window.matchMedia?.(WIDE);
+    if (!m) return undefined;
+    const on = () => setWide(m.matches);
+    m.addEventListener('change', on);
+    return () => m.removeEventListener('change', on);
+  }, []);
+  return wide;
+}
 
 function useNow() {
   const [now, setNow] = useState(() => new Date());
@@ -110,6 +126,26 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   }, []);
   const [groups, setGroups] = useState(null); // 내 그룹(달력 쪽에서 받는다. null = 아직 · 못 받음)
   const [free, setFree] = useState(null); // { key, data } 고른 그룹의 그 주 '다 같이 빈' 구간
+  // 오늘 쪽 위젯 배치(11-13, 디자인 넷째 묶음 ②): 고른 배치 · 차례는 이 기기에, '배치 바꾸기'를 눌렀을 때만 옮긴다
+  const wide = useWide();
+  const [todayLayout, setTodayLayout] = useState(readLayout); // { layout, order }
+  const [arranging, setArranging] = useState(false);
+  const saveLayout = useCallback((next) => {
+    setTodayLayout(next);
+    writeLayout(next);
+  }, []);
+  const swapWidgets = useCallback(
+    (i, j) =>
+      setTodayLayout((prev) => {
+        const next = { ...prev, order: swapOrder(prev.order, i, j) };
+        writeLayout(next);
+        return next;
+      }),
+    [],
+  );
+  useEffect(() => {
+    if (page !== 'today' || !wide) setArranging(false);
+  }, [page, wide]);
   const [calMode, setCalMode] = useState('week');
   const [weekFrom, setWeekFrom] = useState(today); // 주간 달력 첫 칸(처음엔 오늘)
   const [month, setMonth] = useState(() => ({ y: kst(now).y, m: kst(now).m }));
@@ -492,6 +528,31 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
           <span className="date only-wide num">{dateText}</span>
           <span className="only-wide">{controls}</span>
           <span className="grow" />
+          {page === 'today' &&
+            (arranging ? (
+              <span className="layout-tools only-wide">
+                <span className="layout-pick only-1200" role="group" aria-label="배치">
+                  {LAYOUTS.map(([k, label]) => (
+                    <button key={k} type="button" className={k} aria-pressed={todayLayout.layout === k} aria-label={label} title={label} onClick={() => saveLayout({ layout: k, order: DEFAULT_ORDER[k] })}>
+                      <i />
+                      <i />
+                      <i />
+                      <i />
+                    </button>
+                  ))}
+                </span>
+                <button type="button" className="btn-text quiet" onClick={() => saveLayout(FIRST)}>
+                  처음대로
+                </button>
+                <button type="button" className="btn-text" onClick={() => setArranging(false)}>
+                  다 됨
+                </button>
+              </span>
+            ) : (
+              <button type="button" className="btn-text only-wide" onClick={() => setArranging(true)}>
+                배치 바꾸기
+              </button>
+            ))}
           <button type="button" className="btn-text" onClick={() => setSheet('feedback')}>
             의견
           </button>
@@ -516,7 +577,9 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
 
         <main className={`page page-${page}`} data-pane={pane}>
           {page === 'today' && (
-            <div className="today-grid">
+            <WidgetGrid wide={wide} layout={todayLayout.layout} order={todayLayout.order} editing={arranging} onSwap={swapWidgets}>
+              {(widget) => (
+                <>
               <TodayView
                 today={today}
                 events={planEvents}
@@ -528,9 +591,14 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
                 onTask={(task) => setSheet({ task })}
                 onAll={() => setPage('tasks')}
                 onWeek={() => showWeekOf(today)}
+                widget={widget}
+                editing={arranging}
+                layoutKey={todayLayout.layout}
               />
-              <div className="today-memo only-xl">{memoCard}</div>
-            </div>
+              <MemoCard memos={memos} now={now} activeId={popup?.memoId} waiting={waiting} widget={widget('memo')} />
+                </>
+              )}
+            </WidgetGrid>
           )}
           {page === 'cal' &&
             (calMode === 'week' ? (
