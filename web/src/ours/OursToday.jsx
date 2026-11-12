@@ -100,7 +100,7 @@ export default function OursToday({ app }) {
         )}
       </div>
 
-      <div className="y-hc">
+      <div className="y-hc y-tc">
         <p className="y-lb">
           오늘 일정 · 고리를 누르면 여기서 같은 칸이 골라져요
           <button type="button" className="y-bk y-go" onClick={() => showWeekOf(today)}>
