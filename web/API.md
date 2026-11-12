@@ -8,12 +8,13 @@
 - 로그인은 쿠키 세션(`credentials: 'same-origin'`). 401이면 화면은 로그인 화면으로 간다.
 - 시각은 `schema.sql` 머리말대로 **ISO 8601 + `+09:00`**(예: `2026-11-13T15:00:00+09:00`), 종일 일정은 **날짜만**(`2026-11-13`). 모르는 값은 `null`(팝업 칸만 `'?'`). 응답은 JSON.
 - 캘린더(ICS) 주소는 비밀값이라 서버가 화면에 원문을 돌려주지 않는다(끝 4자만 보이는 `masked`).
+- 서버 저장소(D1) 쪽 사정이면 어느 API든 **503 `{ error, code }`**: `code` `db_limit`(무료 하루 읽기·쓰기 한도, 한국 09:00에 풀림) · `db_busy`(잠깐 바쁨). `error`는 그대로 보여 줘도 되는 한국어 안내다(11-12, 서버).
 
 ## 1_login (서버 세션) — 있음 (`worker/1_login.js`)
 
 | 요청 | 보냄 | 받음 |
 | --- | --- | --- |
-| `GET /api/login?next=/` | 화면이 이 주소로 **이동**한다 | 구글 로그인 뒤 `next`로 돌아온다. 실패하면 `/?login_error=denied·state·google·email·config` |
+| `GET /api/login?next=/` | 화면이 이 주소로 **이동**한다 | 구글 로그인 뒤 `next`로 돌아온다. 실패하면 `/?login_error=denied·state·google·email·config·db_limit·server`(뒤 둘은 DB 실패, 11-12) |
 | `GET /api/login/me` | — | `{ ok, user: { id, email, name, dept, year }, needsSetup }` · 로그인 전 401 |
 | `PUT /api/login/me` | `{ dept, year }` (둘 다 있어야 한다, 학년 1~8) | `{ ok, user, needsSetup }` |
 | `DELETE /api/login/me` | `{ confirm: true }` (없으면 400) | `{ ok }` + 로그인 쿠키 지움. 내 자료를 모두 지운다 → 화면은 로그인 화면에 '계정과 내 자료를 모두 지웠어요'. 메뉴 맨 끝 '계정 지우기' 창과 다시 연 설정 맨 아래, 두 번 눌러야 지움 |
@@ -31,7 +32,7 @@
 | `GET /api/feeds` | — | `{ ok, feeds: [{ kind, set: false } 또는 { kind, set: true, hint, count, okAt, triedAt, error, stopped }] }` |
 | `PUT /api/feeds` | `{ etl?, google?, apple? }` 글 = 저장, `""`·`null` = 지우기, 칸이 없으면 그대로 | `{ ok, results, feeds }` 저장한 칸은 바로 한 번 받아 본다 |
 | `POST /api/feeds/collect` | — | `{ ok, results, feeds }` 저장된 주소를 지금 다시 받는다(멈춘 주소도 한 번 더). 메뉴에서 다시 연 설정의 '지금 다시 받기' |
-| `POST /api/feeds/device` | `{ events: [{ id, title, start, end, allDay, place }] }` (start·end는 ms) | `{ ok, count, same }` 안드로이드 앱이 읽은 폰 캘린더를 통째로 올린다(`native.js`). 빠진 것은 지우고, 다른 캘린더와 이름·시작이 같은 것은 뺀다(same). 온 일정은 `source: 'device'`, 고칠 수 없음 |
+| `POST /api/feeds/device` | `{ events: [{ id, title, start, end, allDay, place }] }` (start·end는 ms) | `{ ok, count, same, unchanged? }` 안드로이드 앱이 읽은 폰 캘린더를 통째로 올린다(`native.js`). 빠진 것은 지우고, 다른 캘린더와 이름·시작이 같은 것은 뺀다(same). 6시간 안에 같은 목록이 다시 오면 DB에 넣지 않고 지난 결과에 `unchanged: true`(11-12). 온 일정은 `source: 'device'`, 고칠 수 없음 |
 
 ```js
 // results[] 한 칸 (PUT·collect)
