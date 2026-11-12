@@ -4,7 +4,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import worker, { routeFor, loadModule, CRONS } from '../index.js';
-import { makeEnv, makeCtx } from './helpers/server.js';
+import { makeEnv, makeCtx, addTestUser } from './helpers/server.js';
+import { makeSessionCookie } from '../lib/auth.js';
 
 const req = (path, init) => new Request(`https://tachyon.example.invalid${path}`, init);
 
@@ -51,15 +52,38 @@ test('번호 파일이 없으면 501, 다른 사이트의 쓰기 요청은 403, 
 
 test('번호 파일이 던진 오류는 500 JSON으로 감싼다', async () => {
   const env = makeEnv();
-  env.DB.prepare = () => {
+  const user = await addTestUser(env);
+  const cookie = (await makeSessionCookie(env, user.id)).split(';')[0];
+  const realPrepare = env.DB.prepare.bind(env.DB);
+  env.DB.prepare = (sql) => {
+    if (/FROM users/.test(sql)) return realPrepare(sql); // 로그인 확인은 되고, 번호 파일의 DB 일에서 던진다
     throw new Error('예시 DB 고장');
   };
   const realError = console.error;
   console.error = () => {};
   try {
-    const res = await worker.fetch(req('/api/health'), env, makeCtx());
+    const res = await worker.fetch(req('/api/feeds', { headers: { cookie } }), env, makeCtx());
     assert.equal(res.status, 500);
     assert.equal((await res.json()).error, '서버에서 오류가 났다');
+  } finally {
+    console.error = realError;
+  }
+});
+
+test('/api/health: D1이 답하지 않으면 503과 오류 글 첫 줄(긴 숫자는 지움)', async () => {
+  const env = makeEnv();
+  env.DB.prepare = () => {
+    throw new Error('D1_ERROR: 예시 한도 초과 1234567890\n두 번째 줄');
+  };
+  const realError = console.error;
+  console.error = () => {};
+  try {
+    const res = await worker.fetch(req('/api/health'), env, makeCtx());
+    assert.equal(res.status, 503);
+    const data = await res.json();
+    assert.equal(data.ok, false);
+    assert.equal(data.db, 'D1_ERROR: 예시 한도 초과 #');
+    assert.ok(Array.isArray(data.missing));
   } finally {
     console.error = realError;
   }

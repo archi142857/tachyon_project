@@ -51,10 +51,16 @@ export default {
     const url = new URL(request.url);
     try {
       if (url.pathname === "/api/health") {
-        const row = await env.DB.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type = 'table'").first();
         // 아직 안 넣은 비밀값 이름(값은 안 보임). 설정이 끝나면 빈 배열.
         const missing = ["APP_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "ANTHROPIC_API_KEY", "GITHUB_TOKEN"].filter((k) => !env[k]);
-        return Response.json({ ok: true, tables: row.n, missing });
+        try {
+          const row = await env.DB.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type = 'table'").first();
+          return Response.json({ ok: true, tables: row.n, missing });
+        } catch (err) {
+          // D1이 답하지 않을 때 그 까닭(무료 한도·바쁨 등)을 밖에서 바로 보게 오류 글 첫 줄만. 개인 정보는 없는 글이다.
+          console.error("health: D1 실패", err && err.message);
+          return Response.json({ ok: false, db: dbError(err), missing }, { status: 503 });
+        }
       }
 
       const name = routeFor(url.pathname);
@@ -132,6 +138,12 @@ export async function loadModule(name) {
     if (missing && text.includes(name)) return null;
     throw err;
   }
+}
+
+/** D1 오류 글의 첫 줄(160자). 긴 숫자는 지운다. */
+export function dbError(err) {
+  const text = String((err && err.message) || err || "").split("\n")[0];
+  return text.replace(/\d{6,}/g, "#").slice(0, 160);
 }
 
 /** 쓰기 요청(POST·PUT·DELETE)이 같은 사이트 화면에서 왔는지. Origin 머리글이 없으면(앱 밖 도구·앱) 통과. */
