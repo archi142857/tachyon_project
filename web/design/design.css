@@ -172,7 +172,7 @@ button, a, label { cursor: pointer; }
 .ring .k-mine { --c: var(--c-mine); }
 .ring .k-slot { --c: var(--c-slot); }
 .ring-mid { position: absolute; inset: 31%; display: grid; place-content: center; text-align: center; gap: 1px; pointer-events: none; font-size: 11.5px; color: var(--mid-dim); }
-.ring-mid .mid-big { font-size: 21px; font-weight: 800; color: var(--mid-ink); letter-spacing: -0.01em; }
+.ring-mid .mid-big { font: var(--mid-font, 800 21px/1.2 var(--num)); color: var(--mid-ink); letter-spacing: -0.01em; }
 .ring-mid .mid-title { font-size: 15px; font-weight: 700; color: var(--mid-ink); }
 .ring-mid .mid-kind { font-size: 11px; }
 
@@ -184,7 +184,7 @@ html[data-still='1'] .app * { animation: none !important; }
   --ink: #e8ecff; --ink2: #a3acc9; --line: rgba(200, 212, 255, 0.14); --grid: rgba(200, 212, 255, 0.09); --accent: #ffc94a; --focus: #ffd66b; --now: #ff6f52;
   --r: 20px; --r-sm: 12px; --r-xs: 8px;
   --panel: rgba(10, 16, 38, 0.58); --panel-border: 1px solid rgba(190, 205, 255, 0.13); --panel-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-  --brand-font: 700 18px/1 'Cinzel', var(--font); --brand-ls: 0.1em; --brand-ink: #f4dc9a; --h-font: 700 17px/1.2 'Cinzel', var(--font); --h-ink: #f4dc9a;
+  --brand-font: 700 18px/1 'Cinzel', 'Hahmlet', serif; --brand-ls: 0.1em; --brand-ink: #f4dc9a; --h-font: 600 17px/1.2 'Cinzel', 'Hahmlet', serif; --h-ink: #f4dc9a; --mid-font: 600 22px/1.15 'Cinzel', 'Hahmlet', serif;
   --logo: linear-gradient(90deg, rgba(255, 255, 255, 0.15), #ffc94a 60%, #ff7a3c);
   --nav-on: rgba(255, 201, 74, 0.13); --nav-on-ink: #ffe3a0; --side-bg: rgba(5, 8, 20, 0.35);
   --seg-bg: rgba(255, 255, 255, 0.06); --seg-on: linear-gradient(160deg, #ffe08a, #ff9d2e); --seg-on-ink: #2a1600; --chip-bg: rgba(255, 255, 255, 0.08);
@@ -235,7 +235,7 @@ html[data-still='1'] .app * { animation: none !important; }
   --bg: #fbfbf7; --ink: #0d0d0d; --ink2: #55555c; --line: #0d0d0d; --grid: #dcdcd6; --accent: #0d0d0d; --focus: #d10f2f; --now: #d10f2f;
   --r: 0; --r-sm: 0; --r-xs: 0;
   --panel: #fff; --panel-border: 2.5px solid #0d0d0d; --panel-shadow: 6px 6px 0 #0d0d0d;
-  --brand-font: italic 900 24px/1 'Playfair Display', 'Noto Serif KR', serif; --h-font: italic 900 19px/1.2 'Playfair Display', 'Noto Serif KR', serif;
+  --brand-font: italic 400 24px/1 'DM Serif Display', 'Noto Serif KR', serif; --h-font: italic 400 19px/1.2 'DM Serif Display', 'Noto Serif KR', serif;
   --logo: repeating-linear-gradient(#0d0d0d 0 1.5px, #fff 1.5px 3px); --nav-on: #0d0d0d; --nav-on-ink: #fff; --side-bg: #fff; --side-border: 2.5px solid #0d0d0d;
   --seg-bg: transparent; --seg-on: #0d0d0d; --seg-on-ink: #fff; --chip-bg: #0d0d0d;
   --ev-class-bg: #0d0d0d; --ev-class-ink: #fff;
@@ -253,9 +253,9 @@ html[data-still='1'] .app * { animation: none !important; }
 .t-staff .top { background: #fff; border-bottom: 2.5px solid #0d0d0d; }
 .t-staff .count { color: #fff; }
 .t-staff .tabs { background: #fff; border-bottom: 2.5px solid #0d0d0d; }
-.t-staff .tabs button { font: italic 700 14px/1.4 'Playfair Display', 'Noto Serif KR', serif; }
+.t-staff .tabs button { font: italic 400 14px/1.4 'DM Serif Display', 'Noto Serif KR', serif; }
 .t-staff .tabs button[aria-current] { background: #0d0d0d; color: #fff; transform: skewX(-12deg); border-bottom-color: #0d0d0d !important; padding-inline: 14px; }
-.t-staff .side-nav button { font: italic 700 16px/1.4 'Playfair Display', 'Noto Serif KR', serif; }
+.t-staff .side-nav button { font: italic 400 16px/1.4 'DM Serif Display', 'Noto Serif KR', serif; }
 .t-staff .side-nav button[aria-current] { transform: skewX(-10deg); }
 .t-staff .subbar { background: #fff; padding-bottom: 10px; border-bottom: 2.5px solid #0d0d0d; }
 .t-staff .seg { border: 2px solid #0d0d0d; border-radius: 0; }
@@ -291,14 +291,16 @@ html[data-still='1'] .app * { animation: none !important; }
 .staff .dbar line { stroke: #fff; stroke-width: 1.1; }
 .staff .play line { stroke: var(--r-now); stroke-width: 1.8; }
 .staff .play polygon { fill: var(--r-now); }
-.t-staff .ring-mid .mid-big, .t-staff .ring-mid .mid-title { font: italic 900 19px/1.2 'Playfair Display', 'Noto Serif KR', serif; }
+.t-staff { font-synthesis-style: none; } /* 한글은 가짜 기울임 없이 바로 선 세리프(로마자만 DM Serif Display 이탤릭) */
+.t-staff .ring-mid .mid-big, .t-staff .ring-mid .mid-title { font: italic 400 19px/1.2 'DM Serif Display', 'Noto Serif KR', serif; }
 
 /* ── 2-3) 원자 모형: 남색 위 주황 · 하늘색 네온. 빛나는 테두리 · 빛나는 단추 · 전자 표시 */
 .t-atom {
   --ink: #e3f3ff; --ink2: #8aa3c0; --line: rgba(70, 190, 255, 0.25); --grid: rgba(70, 190, 255, 0.1); --accent: #36d6ff; --focus: #36d6ff; --now: #ff5c7a;
   --r: 16px; --r-sm: 10px; --r-xs: 8px;
   --panel: rgba(12, 22, 48, 0.85); --panel-border: 1px solid rgba(70, 190, 255, 0.35); --panel-shadow: 0 0 28px rgba(40, 160, 255, 0.13), inset 0 0 24px rgba(40, 160, 255, 0.06);
-  --brand-font: 700 17px/1 'Orbitron', var(--font); --brand-ls: 0.14em; --brand-ink: #ffb36b; --h-font: 700 16px/1.2 var(--font); --h-ink: #fff;
+  --brand-font: 700 17px/1 'Orbitron', 'Orbit', var(--font); --brand-ls: 0.14em; --brand-ink: #ffb36b; --h-font: 500 16px/1.2 'Orbitron', 'Orbit', var(--font); --h-ink: #fff;
+  --num: 'Orbitron', 'Orbit', var(--font); --mid-font: 500 20px/1.15 'Orbitron', 'Orbit', var(--font);
   --logo: linear-gradient(90deg, #36d6ff, #ff8a1e); --nav-on: rgba(54, 214, 255, 0.1); --nav-on-ink: #36d6ff; --nav-on-shadow: inset 2px 0 0 #36d6ff, 0 0 14px rgba(54, 214, 255, 0.2); --side-bg: rgba(5, 10, 24, 0.5);
   --seg-bg: rgba(5, 10, 24, 0.7); --seg-on: rgba(54, 214, 255, 0.14); --seg-on-ink: #36d6ff; --seg-on-shadow: 0 0 10px rgba(54, 214, 255, 0.4), inset 0 0 0 1px #36d6ff; --chip-bg: rgba(54, 214, 255, 0.12);
   --ev-class-bg: linear-gradient(90deg, rgba(255, 138, 30, 0.3), rgba(255, 138, 30, 0.12)); --ev-class-ink: #ffd3ad;
@@ -356,7 +358,8 @@ html[data-still='1'] .app * { animation: none !important; }
   --in: inset 5px 5px 10px #c6cdd8, inset -5px -5px 10px #ffffff; --in-sm: inset 3px 3px 6px #c6cdd8, inset -3px -3px 6px #ffffff;
   --blue: linear-gradient(145deg, #6e98f5, #3a63d8);
   --panel: #e3e7ee; --panel-border: 0; --panel-shadow: var(--up);
-  --brand-font: 800 18px/1 var(--font); --brand-ink: #3a63d8; --h-font: 700 16px/1.2 var(--font); --h-ink: #2c3a52;
+  --brand-font: 900 19px/1 'Nunito', var(--font); --brand-ink: #3a63d8; --h-font: 700 16px/1.2 'Nunito', var(--font);
+  --num: 'Nunito', var(--font); --mid-font: 800 22px/1.15 'Nunito', var(--font); --h-ink: #2c3a52;
   --logo: var(--blue); --nav-on: #e3e7ee; --nav-on-ink: #3a63d8; --nav-on-shadow: var(--in); --side-border: 0;
   --seg-bg: #e3e7ee; --seg-on: #e3e7ee; --seg-on-ink: #3a63d8; --seg-on-shadow: var(--up-sm); --chip-bg: #e3e7ee;
   --ev-class-bg: var(--blue); --ev-class-ink: #fff;
