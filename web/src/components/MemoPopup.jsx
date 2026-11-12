@@ -68,7 +68,7 @@ function TaskPopup({ popup, plan, busy, onSave, onCancel }) {
     return { kind: 'task', title: first?.title || '?', minutes: first?.minutes ?? null, also, date: f.date || '?', time: f.date && f.time ? f.time : '?' };
   };
   return (
-    <div className="popup" role="dialog" aria-label="할 일로 넣을까요?">
+    <div className="popup front" role="dialog" aria-modal="true" aria-label="할 일로 넣을까요?">
       <p className="popup-title">{editing ? '고쳐서 할 일로' : items.length > 1 ? `할 일 ${items.length}개로 넣을까요?` : '할 일로 넣을까요?'}</p>
       {editing ? (
         <div className="form-grid">
@@ -108,6 +108,7 @@ function TaskPopup({ popup, plan, busy, onSave, onCancel }) {
         <button
           type="button"
           className="btn"
+          autoFocus
           disabled={busy || (editing && !form.titles.some((t) => t.trim()))}
           onClick={() => onSave(editing ? toFields(form) : { kind: 'task', title: popup.title, date: popup.date, time: popup.time, minutes: popup.minutes ?? null, also: popup.also ?? [] })}
         >
@@ -143,7 +144,7 @@ function EventPopup({ popup, busy, onSave, onCancel }) {
   const fields = ({ title, date, time, end_time, place }) => ({ title, date, time, end_time, place });
 
   return (
-    <div className="popup" role="dialog" aria-label="일정으로 저장할까요?">
+    <div className="popup front" role="dialog" aria-modal="true" aria-label="일정으로 저장할까요?">
       <p className="popup-title">{editing ? '고쳐서 저장' : '이대로 저장할까요?'}</p>
       {editing ? (
         <EventForm form={form} onChange={setForm} idPrefix="popup" />
@@ -184,6 +185,7 @@ function EventPopup({ popup, busy, onSave, onCancel }) {
         <button
           type="button"
           className="btn"
+          autoFocus
           disabled={busy || (editing && !formReady)}
           onClick={() => {
             if (editing) onSave(formToPopup(form), changeId, weekly);

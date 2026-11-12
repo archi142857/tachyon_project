@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeEvent, popupToEvent } from './api.js';
 import { eventToForm, formToEvent, formToPopup, popupToForm } from './components/EventForm.jsx';
+import { subjectOf } from './components/TaskList.jsx';
 import { examplePopup, makeExample } from './example.js';
 import { endOf, hourRange, isAllDay, layoutDay } from './layout.js';
 import { FEEDS, detectFeed, feedResult, normalizeIcs, resultLine, unsavedErrors } from './setup.js';
@@ -204,5 +205,13 @@ describe('모임 시간표 후보(meet.js bestTimes)', () => {
       ['11:00', 2],
       ['12:00', 1],
     ]);
+  });
+});
+
+describe('할 일 과목별 묶음', () => {
+  it('수업 이름이 제목에 있으면 그 과목, 없으면 첫 낱말', () => {
+    expect(subjectOf({ title: '과제 5 미적분학' }, ['미적분학'])).toBe('미적분학');
+    expect(subjectOf({ title: '영어 에세이 초안' }, ['미적분학'])).toBe('영어');
+    expect(subjectOf({ title: '[실험] 보고서' }, [])).toBe('실험');
   });
 });

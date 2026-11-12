@@ -25,7 +25,7 @@ export default function JoinSheet({ code, onClose, onJoined }) {
 
   const what = info && (info.kind === 'group' ? `그룹 ‘${info.group?.name}’(${info.group?.members}명)에 초대했어요` : '친구 추가를 보냈어요');
   return (
-    <Sheet title="초대 받기" onClose={onClose}>
+    <Sheet title="초대 받기" onClose={onClose} front>
       <div className="form-grid">
         {!info && !error && <p className="hint">초대 링크를 살펴보는 중…</p>}
         {info && (

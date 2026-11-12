@@ -3,7 +3,8 @@
 import { minutesLabel, readyLabel, slackLabel } from '../tasks.js';
 import { daysUntil, deadlineLabel } from '../time.js';
 
-export function TaskRow({ task, now, onDone, onEdit }) {
+// track = 마감 자(디자인 ⑥, 사람 피드백 4 '마감 시간 선형으로'): 지금 → 7일 뒤 같은 자에 마감 ▲. 할 일 쪽 전체 목록에서만
+export function TaskRow({ task, now, onDone, onEdit, track = false }) {
   const ready = readyLabel(task);
   const minutes = minutesLabel(task.minutes);
   const slack = slackLabel(task.slack_days);
@@ -23,8 +24,21 @@ export function TaskRow({ task, now, onDone, onEdit }) {
           {slack && <span className={task.slack_days < 0 ? 'min short' : 'min'}> · {slack}</span>}
           {ready && <span className="ready"> · {ready}</span>}
         </span>
+        {track && task.due && <DueTrack due={task.due} now={now} />}
       </span>
     </div>
+  );
+}
+
+const WEEK = 7 * 24 * 60 * 60 * 1000;
+function DueTrack({ due, now }) {
+  const left = Date.parse(due) - new Date(now).getTime();
+  const p = Math.min(1, Math.max(0, left / WEEK));
+  return (
+    <span className={`due-track${left < 0 ? ' late' : left > WEEK ? ' far' : ''}`} style={{ '--p': p }} aria-hidden="true">
+      <i className="fill" />
+      <i className="mark" />
+    </span>
   );
 }
 

@@ -1,7 +1,7 @@
-// 아래에서 올라오는 창(넓은 화면은 가운데). 브라우저의 <dialog>를 써서 Esc·포커스 가두기를 그대로 받는다.
+// 아래에서 올라오는 창(넓은 화면은 가운데). front = 폰에서도 정면 가운데 + 뒤 흐림(사람 피드백 3 '정면에 뙇', 디자인 ⑤). 브라우저의 <dialog>를 써서 Esc·포커스 가두기를 그대로 받는다.
 import { useEffect, useRef } from 'react';
 
-export default function Sheet({ title, onClose, children }) {
+export default function Sheet({ title, onClose, front = false, className = '', children }) {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -13,7 +13,7 @@ export default function Sheet({ title, onClose, children }) {
   return (
     <dialog
       ref={ref}
-      className="sheet"
+      className={`sheet${front ? ' front' : ''}${className ? ` ${className}` : ''}`}
       aria-label={title}
       onCancel={(e) => {
         e.preventDefault();

@@ -288,6 +288,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   const legs = useMemo(() => dayLegs(allEvents, campus), [allEvents, campus]);
 
   const openTasks = useMemo(() => rank.tasks.filter((t) => !t.done), [rank.tasks]);
+  const subjects = useMemo(() => [...new Set(allEvents.filter((e) => e.source === 'timetable').map((e) => e.title))], [allEvents]);
 
   // 날마다 밀도(오늘부터 6주). 서버 셈(AI 4_night planDays — 할 일 순서·경고와 같은 셈)을 그리고, 예시 모드나 못 받았을 때만 화면 셈.
   // 할 일·일정이 바뀌면 다시 받는다. 지난날·6주 밖은 일정만
@@ -643,7 +644,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
             ))}
           {page === 'tasks' && (
             <div className="tasks-grid">
-              <TaskList tasks={openTasks} now={now} plan={plan} onDone={doneTask} onEdit={(task) => setSheet({ task })} onDoneList={() => setSheet('done')} />
+              <TaskList tasks={openTasks} now={now} plan={plan} subjects={subjects} onDone={doneTask} onEdit={(task) => setSheet({ task })} onDoneList={() => setSheet('done')} />
             </div>
           )}
           {page === 'memo' && <div className="memo-page">{memoCard}</div>}
@@ -652,6 +653,8 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
               }} />}
         </main>
 
+        {/* 정면 창(디자인 ⑤): 뒤를 막고 흐린다. 막을 누르면 '취소'와 같음 */}
+        {popup && <div className="popup-scrim" aria-hidden="true" onClick={cancelPopup} />}
         {popup && <MemoPopup key={popup.memoId} popup={popup.popup} plan={{ events: planEvents, tasks: openTasks, today, now }} busy={busy} onSave={savePopup} onCancel={cancelPopup} />}
         <Composer onSend={sendMemo} />
       </div>

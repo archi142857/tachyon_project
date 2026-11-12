@@ -50,7 +50,7 @@ export default function TidySheet({ onClose, onDone }) {
   }
 
   return (
-    <Sheet title="지금 정리" onClose={onClose}>
+    <Sheet title="지금 정리" onClose={onClose} front>
       {!res && !error && (
         <p className="hint" aria-live="polite">
           아직 정리 안 한 메모와 걸리는 시간을 모르는 할 일을 살펴보는 중이에요. 몇 초~수십 초 걸려요…

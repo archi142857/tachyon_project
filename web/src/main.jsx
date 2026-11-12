@@ -10,6 +10,7 @@ import './themes.css';
 import './shell.css'; // 앱 틀(꽉 찬 화면, 칸 안에서만 굴림) — styles.css 다음에
 import './shape.css'; // ③ 모양 층(디자인 components.css 셋째 묶음) — shell.css 다음에
 import './request1113.css'; // 11-13 요청 층(디자인 components.css 넷째 묶음: 겹쳐 보기 · 위젯 · 일정 끌기 · 고리 금) — shape.css 다음에
+import './feedback1113.css'; // 11-13 피드백 열다섯의 디자인 몫(정면 창 · 마감 자 · 추천 · 길잡이 · 메모 칸 · 로그인) — request1113.css 다음에
 import './particles.css'; // 하루 고리 입자(팀원 시연 9판 모양) — shape.css 다음에
 import './particleFeel.css'; // 입자 테마의 사용감(가는 글씨 · 빛 · 움직임) — 맨 끝에
 import { applyTheme, currentTheme } from './themes.js';

@@ -56,7 +56,7 @@ export function EventEditSheet({ event, leg, campus, events, onSave, onDelete, o
   }
 
   return (
-    <Sheet title="일정 고치기" onClose={onClose}>
+    <Sheet title="일정 고치기" onClose={onClose} front>
       <EventForm form={form} onChange={setForm} idPrefix="edit-event" />
       {feed && (
         <p className="hint">
@@ -86,7 +86,7 @@ const SOURCE_NAME = { ...FEED_NAME, timetable: '시간표', memo: '메모' };
 export function EventInfoSheet({ event, leg, campus, events, onEdit, onClose }) {
   const when = isAllDay(event) ? `${dayLabel(event.start)} · 하루 종일` : popupTime(event.start, event.end);
   return (
-    <Sheet title="일정 정보" onClose={onClose}>
+    <Sheet title="일정 정보" onClose={onClose} front>
       <p className="info-title">{event.title}</p>
       <dl className="info-list">
         <dt>언제</dt>
@@ -138,7 +138,7 @@ export function TaskEditSheet({ task, onSave, onDelete, onClose }) {
   }
 
   return (
-    <Sheet title="할 일 고치기" onClose={onClose}>
+    <Sheet title="할 일 고치기" onClose={onClose} front>
       <div className="form-grid">
         <label className="field">
           <span>이름</span>
