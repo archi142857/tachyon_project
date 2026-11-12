@@ -117,7 +117,7 @@
 | 요청 | 보냄 | 받음 |
 | --- | --- | --- |
 | `GET /api/memo?limit=50` | — | `{ memos: [{ id, text, created_at, handled, event_id, task_id }] }` 오래된 것부터. `event_id`가 있으면 '달력에 넣었어요', `task_id`(밤 정리)면 '할 일에 넣었어요' |
-| `POST /api/memo` | `{ text }` | `{ memo, popup }` · `popup` = `null`(그냥 메모), 일정 `{ title, date, time, end_time, place, by }`, 할 일 `{ kind: 'task', title, date, time, by }`(마감, 모르면 `'?'`, 11-10) |
+| `POST /api/memo` | `{ text }` | `{ memo, popup }` · `popup` = `null`(그냥 메모), 일정 `{ title, date, time, end_time, place, by, guessed? }`, 할 일 `{ kind: 'task', title, date, time, by }`(마감, 모르면 `'?'`, 11-10) |
 | `POST /api/memo/:id/save` | `{ title, date, time, end_time, place, suggested, change_id?, repeat? }` · `suggested` = 받았던 popup 그대로, `change_id` = 옮길 일정(`popup.change.id`, 주면 그 일정은 달력에서 가려진다), `repeat: true` = 매주 넣기(`popup.repeat`가 있을 때 체크 칸을 켠 채 저장). 할 일은 `{ kind: 'task', title, date, time, suggested }` | `{ event }`(매주로 넣었으면 `{ event: 첫 주 일정, repeat: 넣은 횟수 }`) · 할 일은 `{ task }`(tasks source `memo`, 마감 날짜만 있으면 23:59, 없으면 마감 없음) |
 | `POST /api/memo/:id/cancel` | `{ kind? }` | `{ ok }` · 일정 팝업: 메모는 남고 밤 정리가 읽는다. 할 일 팝업(`kind: 'task'`, 화면 '메모로만'): 메모로만 남고 밤 정리도 할 일로 안 만든다 |
 
@@ -127,6 +127,8 @@
 - 메모에 길이를 쓰면(`운동 2시간`, `1시간 반`, `40분`. '2시간 뒤'는 아님) 그 길이를 쓴다(11-11, `lib/known.js` `lengthOf`·`useLength`): 빈 시간 고르기는 그 길이로(1시간보다 길면 시작 뒤 1시간까지만 시간대 안이면 됨, 자정은 안 넘음), 시작 시각만 아는 일정은 `end_time` = 시작 + 길이, 이름에서 그 말은 뺀다. 안 쓰면 지금처럼 1시간 / 끝 `'?'`.
 - 매주 메모(`매주 목요일 …`, `목요일마다 …`. 격주·'2주마다'·매일은 아님)는 `popup.repeat = { until: '2026-12-14' }`(학기 끝, 시간표와 같은 `semesterEnd`)가 붙는다(11-11). 화면은 '매주 같은 요일·시간으로 12월 14일(학기 끝)까지 넣어요' 체크 칸(끌 수 있음)을 보이고, 켠 채 저장하면 `repeat: true`를 보낸다. 서버는 그날부터 학기 끝까지 주마다 일정을 한 줄씩 넣는다(`ext_id` 첫 주 `memo:<id>`, 다음부터 `memo:<id>:w1` …). 묶음은 따로 없어서 지우기·고치기는 하나씩이고, 빈 시간 확인은 첫 주만 한다.
 - 저장할 때 이름·날짜는 꼭 있어야 한다(없으면 400). 그래서 화면은 이름이나 날짜가 '?'면 '저장' 대신 고치기 칸부터 연다. 시각이 '?'면 종일 일정으로 저장된다.
+- **끝을 안 정한 일정은 1시간(11-13 사람 요청):** 시각이 있고 끝을 안 썼으면 `end_time` = 시작 + 1시간(자정 앞에서는 23:59)으로 채워 온다. 끝 없이 저장해도 서버가 시작 + 1시간으로 넣는다(자정을 넘으면 다음 날).
+- **추천 칸 `popup.guessed`(11-13, 사람 피드백 5 '추천/고르기 명확하게'):** 사람이 쓰지 않았는데 서버가 채운 칸의 이름 배열(`'date'`·`'time'`·`'end_time'`·`'place'`, 없으면 칸 자체가 없음). `date` = 날짜 말 없이 시각만 써서 오늘·내일로 짐작, `time`·`end_time` = 빈 시간에 넣어 봄(`free`)·내 일정에서 가져옴(`from`)·1시간 끝, `place` = 내 일정에서 가져옴. 쓴 길이('2시간')로 낸 끝은 정한 것. 화면은 이 칸을 추천처럼(점선·연하게 — 디자인 규칙), 나머지는 정한 것처럼 보이면 된다. 사람이 그 칸을 고치거나 그대로 저장하면 정한 것이 된다(저장할 때 `guessed`는 안 보내도 된다).
 - 고쳤는지는 서버가 `suggested`와 견줘 `log`에 남긴다(팝업 정확도). 응답이 2.5초까지 걸릴 수 있어 화면은 메모를 먼저 붙이고 '살펴보는 중…'을 보인다.
 - 아직 화면에 없는 것: `DELETE /api/memo/:id`, 더 오래된 메모 불러오기(`before`).
 

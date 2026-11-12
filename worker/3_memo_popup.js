@@ -212,11 +212,27 @@ export async function suggestEvent(env, text, now = new Date(), { ctx, userId, f
   const popup = mergePopup(text, when, ai, now);
   if (!popup || popup.kind === "task") return popup;
   const len = lengthOf(text); // '2시간'이라고 썼으면 그 길이로
-  const filled = withHour(useLength(suggestFree(useKnown(popup, text, known, isoKst(now).slice(0, 10)), text, busy, isoKst(now), len?.minutes), len));
+  const filled = markGuessed(popup, withHour(useLength(suggestFree(useKnown(popup, text, known, isoKst(now).slice(0, 10)), text, busy, isoKst(now), len?.minutes), len)), when, len);
   if (!WEEKLY.test(text) || NOT_WEEKLY.test(text)) return filled;
   // 매주 되풀이: 저장할 때 { repeat: true }를 보내면 학기 끝까지 같은 요일·시각으로 넣는다(savePopup). 화면에서 끌 수 있다
   const title = filled.title.replace(/매주|(?<![가-힣])마다(?![가-힣])/g, " ").replace(/\s+/g, " ").trim() || filled.title;
   return { ...filled, title, repeat: { until: semesterEnd(filled.date) } };
+}
+
+/**
+ * 사람이 쓰지 않았는데 앱이 채운 칸 → popup.guessed = ['date', 'time', 'end_time', 'place'] 중 그런 것(없으면 칸 없음).
+ * 화면은 이 칸을 '추천'처럼(점선·연하게) 보이고, 쓴 칸은 '정한 것'처럼 보인다(11-13 사람 피드백 5 '추천/고르기 명확하게').
+ * - date: 날짜 말 없이 시각만 써서 오늘·내일로 짐작했을 때
+ * - time·end_time·place: 메모(규칙·AI가 읽은 것)에는 없었는데 내 일정에서 가져왔거나(useKnown, popup.from) 빈 시간을 골랐거나
+ *   (suggestFree, popup.free) 끝을 1시간으로 잡았을 때(withHour). 단 쓴 길이('2시간')로 낸 끝은 시작이 쓴 시각이면 정한 것
+ */
+function markGuessed(read, popup, when, len) {
+  const guessed = [];
+  if (when && !when.dateExplicit) guessed.push("date");
+  if (read.time === "?" && popup.time !== "?") guessed.push("time");
+  if (read.end_time === "?" && popup.end_time !== "?" && !(len && !guessed.includes("time"))) guessed.push("end_time");
+  if (read.place === "?" && popup.place !== "?") guessed.push("place");
+  return guessed.length ? { ...popup, guessed } : popup;
 }
 
 /**

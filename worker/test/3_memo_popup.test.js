@@ -260,7 +260,7 @@ test("AI에게 지금 시각과 메모를 보내고, 답으로 팝업을 만들�
 
   assert.equal(sent.messages[0].content, "지금: 2026-11-09 (월) 17:00\n메모: 내일 3시 301동 스터디");
   assert.equal(sent.model, "claude-haiku-5-5");
-  assert.deepEqual(p, { title: "스터디", date: "2026-11-10", time: "15:00", end_time: "16:00", place: "301동", by: "ai" }); // 끝을 안 썼으면 1시간(11-13)
+  assert.deepEqual(p, { title: "스터디", date: "2026-11-10", time: "15:00", end_time: "16:00", place: "301동", by: "ai", guessed: ["end_time"] }); // 끝을 안 썼으면 1시간 = 추천(11-13)
   const log = DB.sqlite.prepare("SELECT action, detail FROM log").all();
   assert.equal(log.length, 1);
   assert.equal(log[0].action, "llm");
@@ -291,6 +291,16 @@ const call = (env, user, method, path, body, ctx = fakeCtx()) =>
 test("로그인 안 하면 401", async () => {
   const r = await call({ DB: fakeD1() }, null, "GET", "/api/memo");
   assert.equal(r.status, 401);
+});
+
+test("추천 칸(guessed): 쓰지 않았는데 채운 칸만 — 시각만 쓴 날짜, 빈 시간·내 일정에서 가져온 칸, 1시간 끝. 쓴 길이·쓴 끝은 정한 것", async () => {
+  const at = new Date("2026-11-11T10:00:00+09:00"); // 예시 시각
+  assert.equal((await suggestEvent({}, "내일 3시 스터디 301동에서", at)).guessed?.join(), "end_time");
+  assert.equal((await suggestEvent({}, "내일 3시~5시 스터디", at)).guessed, undefined); // 다 썼다
+  assert.equal((await suggestEvent({}, "내일 3시 스터디 2시간", at)).guessed, undefined); // 쓴 길이로 낸 끝은 정한 것
+  assert.equal((await suggestEvent({}, "3시 스터디", at)).guessed?.join(), "date,end_time"); // 날짜 말이 없어 오늘로 짐작
+  assert.equal((await suggestEvent({}, "내일 점심 밥약", at)).guessed?.join(), "time,end_time"); // 빈 시간에 넣어 봄
+  assert.equal((await suggestEvent({}, "금요일까지 보고서 내기", at)).guessed, undefined); // 할 일 팝업은 그대로
 });
 
 test("끝을 안 정한 일정은 1시간(11-13 사람 요청): 팝업 끝 칸을 채우고, 끝 없이 저장해도 시작 + 1시간", async () => {
@@ -327,7 +337,7 @@ test("메모 쓰기 → 목록 → 팝업 저장 → 일정 생김 → 고쳐 �
   assert.equal(added.status, 200);
   const { memo, popup } = added.body;
   assert.match(memo.created_at, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\+09:00$/);
-  assert.deepEqual(popup, { title: "발표 연습", date: "2026-11-20", time: "14:00", end_time: "15:00", place: "301동", by: "rule" });
+  assert.deepEqual(popup, { title: "발표 연습", date: "2026-11-20", time: "14:00", end_time: "15:00", place: "301동", by: "rule", guessed: ["end_time"] });
 
   await call(env, user, "POST", "/api/memo", { text: "장보기 목록 정리" });
   const list = await call(env, user, "GET", "/api/memo");
@@ -536,6 +546,7 @@ test("메모 → 팝업(내 일정 반영) → 옮겨 저장: 옛 일정은 달�
   assert.deepEqual(popup, {
     title: "공학수학 2 중간고사", date: "2026-11-16", time: "09:30", end_time: "10:45", place: "43-1동 201호", by: "ai",
     from: "공학수학 2", change: { id: oldId, title: "공학수학 2 중간 2", start: "2026-11-11T09:30:00+09:00" },
+    guessed: ["time", "end_time", "place"], // 메모에 없던 시각·장소를 내 일정에서 가져옴 = 추천
   });
 
   const memo = DB.sqlite.prepare("INSERT INTO memos (user_id, text) VALUES (?, ?) RETURNING id").get(user.id, text);
@@ -591,7 +602,7 @@ test("메모 → 팝업: 시간대만 쓰면 DB의 그날 내 일정을 피해 �
   add.run(other.id, "2026-11-12T22:30:00+09:00", "2026-11-12T23:30:00+09:00", "c", null);
   const fetch = async () => aiReply({ is_schedule: true, title: "조 모임", date: "2026-11-12", time: "?", end_time: "?", place: "?" });
   const popup = await suggestEvent({ ANTHROPIC_API_KEY: "k", DB }, "11월 12일 늦은 밤에 조 모임", new Date("2026-11-11T09:17:00+09:00"), { userId: user.id, fetch });
-  assert.deepEqual(popup, { title: "조 모임", date: "2026-11-12", time: "22:30", end_time: "23:30", place: "?", by: "ai", free: "늦은 밤" });
+  assert.deepEqual(popup, { title: "조 모임", date: "2026-11-12", time: "22:30", end_time: "23:30", place: "?", by: "ai", free: "늦은 밤", guessed: ["time", "end_time"] });
 });
 
 test("길이를 쓴 메모: '2시간'을 읽어 빈 시간도 그 길이로 고르고, 시작만 알면 끝을 채운다", () => {
@@ -638,7 +649,7 @@ test("매주 메모 → 팝업에 repeat, 저장하면 학기 끝까지 주마�
   const fetch = async () => aiReply({ is_schedule: true, title: "산책 2시간", date: "2026-11-12", time: "?", end_time: "?", place: "?" });
   const now = new Date("2026-11-11T09:27:00+09:00"); // 수요일
   const popup = await suggestEvent({ ANTHROPIC_API_KEY: "k", DB }, "매주 목요일마다 아침에 산책 2시간", now, { userId: user.id, fetch });
-  assert.deepEqual(popup, { title: "산책", date: "2026-11-12", time: "08:30", end_time: "10:30", place: "?", by: "ai", free: "아침", repeat: { until: "2026-12-14" } });
+  assert.deepEqual(popup, { title: "산책", date: "2026-11-12", time: "08:30", end_time: "10:30", place: "?", by: "ai", free: "아침", guessed: ["time", "end_time"], repeat: { until: "2026-12-14" } });
 
   // AI 없이(규칙): 이름에서 '매주'·'마다'·'2시간'이 빠지고 끝 = 시작 + 2시간
   const rule = await suggestEvent({}, "매주 목요일마다 저녁 7시 산책 2시간", now);
