@@ -1,7 +1,7 @@
 // 예시 자료: 모두 지어낸 것이다(실제 사람·수업·일정이 아니다).
 // 서버 없이 화면을 볼 때('예시로 둘러보기', 주소 끝 ?example)만 쓰고, 화면 위에 '예시 자료'를 띄운다.
 // 모양은 서버와 같다: 시각은 '…T15:00:00+09:00', 종일 일정은 날짜만, 팝업의 모르는 칸은 '?'.
-import { fromKst, kst, toKstIso, weekStart } from './time.js';
+import { fromKst, kst, plusHourText, toKstIso, weekStart } from './time.js';
 
 const two = (n) => String(n).padStart(2, '0');
 const ymd = (p) => `${p.y}-${two(p.m)}-${two(p.d)}`;
@@ -129,13 +129,17 @@ export function examplePopup(text, now = new Date()) {
     place = m[0];
     rest = rest.replace(m[0], ' ');
   }
+  // 서버(AI b5fe7db)처럼 적지 않았는데 채운 칸을 guessed로: 날짜를 안 쓰면 오늘, 끝을 안 쓰면 시작 + 1시간
+  const end = time === '?' ? '?' : plusHourText(time) || '?';
+  const guessed = [offset === null && 'date', end !== '?' && 'end_time'].filter(Boolean);
   return {
     title: rest.replace(/\s+/g, ' ').trim() || '?',
     date: due,
     time,
-    end_time: '?',
+    end_time: end,
     place,
     by: 'rule',
+    ...(guessed.length ? { guessed } : {}),
   };
 }
 
@@ -144,3 +148,44 @@ const TODO_END = /(?:기|할\s*것|할것|해야\s*(?:함|됨|돼|해|지|할\s*
 const looksLikeTodo = (text) => !PAST.test(text) && TODO_END.test(text.trim().replace(/[\s.!~,;:]+$/, ''));
 // 할 일 이름: 앞뒤 빈칸과 맨 앞 '까지'만 뗀다(쓴 말 그대로)
 const tidyTask = (text) => text.replace(/\s+/g, ' ').trim().replace(/^까지\s*/, '');
+
+// 지금 정리 예시(11-13): 서버(AI) 대신 규칙으로 — 아직 안 다룬 메모는 할 일 같으면 할 일, 아니면 '그냥 메모'. 걸리는 시간 모르는 할 일은 1시간 어림
+export function exampleTidy(ex, now = new Date()) {
+  const memos = ex.memos
+    .filter((m) => !m.handled && !m.event_id && !m.task_id)
+    .slice(0, 40)
+    .map((m) => {
+      const p = examplePopup(m.text, now);
+      const task = p?.kind === 'task' || (!p && looksLikeTodo(m.text));
+      if (!task) return { id: m.id, text: m.text, task: false, answered: true };
+      const due = p && p.date !== '?' ? (p.time && p.time !== '?' ? `${p.date}T${p.time}:00+09:00` : p.date) : null;
+      return { id: m.id, text: m.text, task: true, title: p ? p.title : tidyTask(m.text), due, minutes: p?.minutes ?? 60, ready: 'now', answered: true };
+    });
+  const tasks = ex.tasks.filter((t) => !t.done && t.minutes == null).slice(0, 40).map((t) => ({ id: t.id, title: t.title, due: t.due, minutes: 60, ready: 'now' }));
+  const n = memos.filter((m) => m.task).length;
+  const parts = [n && `할 일 ${n}개`, memos.length - n && `그냥 메모 ${memos.length - n}개`].filter(Boolean).join(' · ');
+  const summary = memos.length || tasks.length ? [memos.length && `메모 ${memos.length}개 → ${parts}`, tasks.length && `걸리는 시간 ${tasks.length}개 어림`].filter(Boolean).join(' · ') : '정리할 메모가 없어요';
+  return { plan: { memos, tasks }, summary, example: true };
+}
+
+export function applyExampleTidy(ex, plan) {
+  let made = 0;
+  for (const [i, m] of (plan.memos ?? []).entries()) {
+    const memo = ex.memos.find((x) => x.id === m.id);
+    if (!memo || memo.handled) continue;
+    memo.handled = 1;
+    if (!m.task) continue;
+    const id = Date.now() + i;
+    const due = m.due && m.due.length === 10 ? `${m.due}T23:59:00+09:00` : m.due || null;
+    ex.tasks.push({ id, title: m.title, due, minutes: m.minutes ?? null, ready: m.ready === 'after' ? 0 : 1, done: 0, source: 'memo' });
+    memo.task_id = id;
+    made += 1;
+  }
+  let timed = 0;
+  for (const t of plan.tasks ?? []) {
+    const task = ex.tasks.find((x) => x.id === t.id);
+    if (task && task.minutes == null && t.minutes) (task.minutes = t.minutes), (timed += 1);
+  }
+  const summary = [made && `할 일 ${made}개를 넣었어요`, timed && `걸리는 시간 ${timed}개를 채웠어요`].filter(Boolean).join(' · ') || '정리했어요';
+  return { ok: true, applied: { memos: (plan.memos ?? []).length, tasks: made, minutes: timed }, summary };
+}

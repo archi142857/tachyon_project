@@ -7,6 +7,7 @@
 // popup.from = 시각·장소를 가져온 내 일정 이름(알려 준다), popup.free = 빈 시간을 고른 시간대 말(알려 준다), popup.change = 옮길 일정(저장하면 그 일정은 달력에서 빠진다. 끌 수 있다).
 // popup.repeat = 매주 되풀이 메모({ until: 학기 끝 }). 켜 둔 채 저장하면 그날까지 주마다 넣는다. 끌 수 있다.
 // popup.together = 주 달력의 다 같이 빈 시간 띠에서 잡은 모임이면 그 그룹 이름(11-13). 내 달력에만 넣는다고 알려 준다.
+// popup.guessed = 사람이 안 썼는데 서버가 채운 칸 이름(AI b5fe7db: date · time · end_time · place) → 그 칸만 추천처럼 점선(사람 피드백 5, 모양은 디자인이 정하면 맞춘다).
 import { useState } from 'react';
 import { dayEvents, daySlots, hm } from '../slots.js';
 import { minutesLabel } from '../tasks.js';
@@ -138,6 +139,7 @@ function EventPopup({ popup, busy, onSave, onCancel }) {
   const [weekly, setWeekly] = useState(Boolean(popup.repeat));
   const canSaveAsIs = popup.title !== '?' && popup.date !== '?';
   const formReady = form.title.trim() && form.date;
+  const guess = new Set(Array.isArray(popup.guessed) ? popup.guessed : []);
   const fields = ({ title, date, time, end_time, place }) => ({ title, date, time, end_time, place });
 
   return (
@@ -151,10 +153,11 @@ function EventPopup({ popup, busy, onSave, onCancel }) {
             <dt>이름</dt>
             <dd>{show(popup.title)}</dd>
             <dt>시간</dt>
-            <dd className="num">{timeText(popup)}</dd>
+            <dd className={guess.has('date') || guess.has('time') || guess.has('end_time') ? 'num guess' : 'num'}>{timeText(popup)}</dd>
             <dt>장소</dt>
-            <dd>{show(popup.place)}</dd>
+            <dd className={guess.has('place') ? 'guess' : undefined}>{show(popup.place)}</dd>
           </dl>
+          {guess.size > 0 && !popup.free && !popup.from && <p className="hint" style={{ marginTop: 6 }}>점선 칸은 적지 않아서 채워 본 거예요. 다르면 고치기를 눌러요.</p>}
           {popup.time === '?' && popup.date !== '?' && <p className="hint" style={{ marginTop: 6 }}>시각을 모르면 하루 종일 일정으로 넣어요.</p>}
           {popup.free && <p className="hint" style={{ marginTop: 6 }}>‘{popup.free}’에서 비어 있는 시간으로 골랐어요. 바꾸려면 고치기를 눌러요.</p>}
           {popup.together && <p className="hint" style={{ marginTop: 6 }}>‘{popup.together}’ 모두가 비어 있는 시간이에요. 내 달력에 넣어요 — 멤버에게는 따로 알려 주세요.</p>}

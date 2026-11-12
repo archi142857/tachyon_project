@@ -3,7 +3,8 @@ import { useEffect, useRef } from 'react';
 import { dayLabel, hhmm } from '../time.js';
 
 // widget = 넓은 화면 '오늘' 쪽 위젯 칸(WidgetGrid의 widget('memo')): { slot, lifted, grip }
-export default function MemoCard({ memos, now, activeId, waiting, widget = {} }) {
+// onTidy = '지금 정리' 창 열기(11-13 사람 피드백 10 · 15). 없으면 단추도 없다
+export default function MemoCard({ memos, now, activeId, waiting, widget = {}, onTidy }) {
   const logRef = useRef(null);
 
   useEffect(() => {
@@ -15,7 +16,15 @@ export default function MemoCard({ memos, now, activeId, waiting, widget = {} })
   return (
     <section className={`card memo-card${widget.lifted ? ' lifted' : ''}`} data-slot={widget.slot} data-widget={widget.slot && 'memo'} aria-label="메모">
       {widget.grip}
-      <h2 className="card-title">메모</h2>
+      <div className="tasks-head">
+        <h2 className="card-title">메모</h2>
+        <span className="grow" />
+        {onTidy && (
+          <button type="button" className="btn-text" onClick={onTidy}>
+            지금 정리
+          </button>
+        )}
+      </div>
       <div className="memo-log" ref={logRef} aria-live="polite">
         {memos.length === 0 && <p className="empty">아래 칸에 적으면 여기에 쌓여요</p>}
         {memos.map((memo) => {

@@ -25,7 +25,7 @@ function InviteLink({ link, what }) {
   async function copy() {
     try {
       await navigator.clipboard.writeText(link.url);
-      setNote('복사했어요');
+      setNote('복사했어요 — 카톡·문자에 붙여 넣어 보내요');
     } catch {
       setNote('주소를 길게 눌러 복사해 주세요');
     }
@@ -40,20 +40,27 @@ function InviteLink({ link, what }) {
   return (
     <div className="invite">
       <input className="input" readOnly value={link.url} aria-label="초대 링크" onFocus={(e) => e.target.select()} />
+      {/* 초대 쉽게(사람 피드백 6): 친구 코드가 오기 전엔 보내기를 크게 — 폰은 공유 창(카톡·문자), 공유 창이 없으면 복사 */}
       <div className="invite-actions">
-        <button type="button" className="btn-text" onClick={copy}>
-          복사
-        </button>
-        {typeof navigator.share === 'function' && (
-          <button type="button" className="btn-text" onClick={share}>
-            보내기
+        {typeof navigator.share === 'function' ? (
+          <>
+            <button type="button" className="btn invite-main" onClick={share}>
+              카톡·문자로 보내기
+            </button>
+            <button type="button" className="btn-text" onClick={copy}>
+              복사
+            </button>
+          </>
+        ) : (
+          <button type="button" className="btn invite-main" onClick={copy}>
+            링크 복사
           </button>
         )}
-        <span className="hint num">
-          {link.example ? '예시 링크(받을 수 없어요)' : `${shortDate(link.expiresAt)}까지 · 여러 사람이 써도 돼요`}
-          {note ? ` · ${note}` : ''}
-        </span>
       </div>
+      <span className="hint num">
+        {link.example ? '예시 링크(받을 수 없어요)' : `${shortDate(link.expiresAt)}까지 · 여러 사람이 써도 돼요`}
+        {note ? ` · ${note}` : ''}
+      </span>
     </div>
   );
 }

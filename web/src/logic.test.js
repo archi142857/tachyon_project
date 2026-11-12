@@ -105,8 +105,9 @@ describe('캘린더 주소', () => {
 });
 
 describe('예시 팝업 흉내(서버 없을 때만, 서버와 같은 모양)', () => {
-  it('내일 3시 301동 스터디 → 쓴 말 그대로 제목, 끝은 ?', () => {
-    expect(examplePopup('내일 3시 301동 스터디', now)).toEqual({ title: '스터디', date: '2026-11-10', time: '15:00', end_time: '?', place: '301동', by: 'rule' });
+  it('내일 3시 301동 스터디 → 쓴 말 그대로 제목, 끝은 1시간(11-13 서버 · AI와 같게, 채운 칸은 guessed)', () => {
+    expect(examplePopup('내일 3시 301동 스터디', now)).toEqual({ title: '스터디', date: '2026-11-10', time: '15:00', end_time: '16:00', place: '301동', by: 'rule', guessed: ['end_time'] });
+    expect(examplePopup('3시 스터디', now)).toMatchObject({ time: '15:00', end_time: '16:00', guessed: ['date', 'end_time'] });
   });
 
   it('요일·반·오전, 시각을 모르면 ?', () => {

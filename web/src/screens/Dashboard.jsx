@@ -24,6 +24,7 @@ import Snackbar from '../components/Snackbar.jsx';
 import TaskList from '../components/TaskList.jsx';
 import ThemeSheet from '../components/ThemeSheet.jsx';
 import TogetherPage from '../components/TogetherPage.jsx';
+import TidySheet from '../components/TidySheet.jsx';
 import TodayView from '../components/TodayView.jsx';
 import WidgetGrid from '../components/WidgetGrid.jsx';
 import { DEFAULT_ORDER, FIRST, LAYOUTS, readLayout, swapOrder, writeLayout } from '../todayLayout.js';
@@ -450,7 +451,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
 
   const date = kst(now);
   const dateText = `${date.m}월 ${date.d}일 ${WEEKDAYS[date.wd]}요일`;
-  const memoCard = <MemoCard memos={memos} now={now} activeId={popup?.memoId} waiting={waiting} />;
+  const memoCard = <MemoCard memos={memos} now={now} activeId={popup?.memoId} waiting={waiting} onTidy={() => setSheet('tidy')} />;
 
   // 쪽마다 머리 줄에 붙는 고르기
   const controls =
@@ -595,7 +596,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
                 editing={arranging}
                 layoutKey={todayLayout.layout}
               />
-              <MemoCard memos={memos} now={now} activeId={popup?.memoId} waiting={waiting} widget={widget('memo')} />
+              <MemoCard memos={memos} now={now} activeId={popup?.memoId} waiting={waiting} widget={widget('memo')} onTidy={() => setSheet('tidy')} />
                 </>
               )}
             </WidgetGrid>
@@ -721,6 +722,17 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
         />
       )}
       {sheet === 'theme' && <ThemeSheet onClose={() => setSheet(null)} />}
+      {sheet === 'tidy' && (
+        <TidySheet
+          onClose={() => setSheet(null)}
+          onDone={(text) => {
+            setSheet(null);
+            setSnack({ text });
+            api.listMemos().then((r) => setMemos(r.memos), () => {});
+            loadRank();
+          }}
+        />
+      )}
       {sheet === 'delete' && (
         <Sheet title="계정 지우기" onClose={() => setSheet(null)}>
           <DeleteAccount example={example} onDeleted={onDeleted} />

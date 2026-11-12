@@ -67,6 +67,18 @@ html.locked, html.locked body { height: 100%; overflow: hidden; overscroll-behav
 .today-grid button.drop-zone { pointer-events: auto; cursor: pointer; font-family: inherit; } /* 눌러서 집은 뒤 누르는 '여기에 놓기' */
 .today-grid button.drop-zone:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 .layout-tools { display: inline-flex; align-items: center; gap: 4px; }
+/* 초대 링크: 보내기를 크게(사람 피드백 6) */
+.invite-actions .invite-main { flex: 1; height: 44px; font-size: 15px; }
+/* 지금 정리 창(11-13) */
+.tidy-summary { margin: 0 0 6px; font-weight: 700; color: var(--heading); }
+.tidy-list { list-style: none; margin: 8px 0 12px; padding: 0; display: grid; gap: 2px; max-height: min(52vh, 440px); overflow-y: auto; overscroll-behavior: contain; }
+.tidy-row { display: flex; align-items: flex-start; gap: 10px; min-height: 48px; padding: 8px 4px; border-top: 1px solid var(--line); cursor: pointer; }
+.tidy-row input { flex: none; width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--accent); }
+.tidy-text { display: grid; gap: 2px; min-width: 0; }
+.tidy-from { font-size: 13px; line-height: 18px; color: var(--text2); overflow-wrap: anywhere; }
+.tidy-to { font-size: 15px; line-height: 21px; color: var(--text); }
+/* 메모 팝업의 추천 칸(AI guessed): 적지 않아 채워 본 칸 — 점선 밑줄. 디자인 규칙이 오면 맞춘다 */
+.popup-rows dd.guess { text-decoration: underline dashed var(--line-strong); text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
 .layout-tools .layout-pick { margin-right: 8px; }
 @media not (min-width: 1200px) {
   .only-1200 { display: none !important; } /* 배치 넷은 1200px부터(900~1199는 어느 배치든 2 × 2) */

@@ -1,7 +1,7 @@
 // 화면이 서버와 주고받는 것은 모두 이 파일을 거친다. 주소와 JSON 모양은 web/API.md에 있다.
 // '예시로 둘러보기'(또는 주소 끝 ?example)일 때는 서버 대신 example.js의 지어낸 자료를 쓴다.
 // 시각은 schema.sql 머리말대로 '…T15:00:00+09:00', 종일 일정은 날짜만('2026-11-13').
-import { examplePopup, makeExample } from './example.js';
+import { applyExampleTidy, examplePopup, exampleTidy, makeExample } from './example.js';
 import { groupDetail, groupFree, makeTogether, meetView, summary } from './togetherExample.js';
 import { CROWDED, dueThisWeek, topThree } from './tasks.js';
 import { addDays, dayStartKst, endOrHour, isDateOnly, toKstIso, weekStart } from './time.js';
@@ -339,6 +339,18 @@ export function savePopup(memoId, fields, suggested, changeId, weekly) {
     return reply({ event });
   }
   return call('POST', `/api/memo/${encodeURIComponent(memoId)}/save`, { ...fields, suggested, change_id: changeId, repeat: weekly || undefined });
+}
+
+// 지금 정리(11-13 사람 피드백 10 · 15, AI 0ea4fff): 밤 정리를 기다리지 않고 지금. AI 한 번이라 몇 초~수십 초.
+// 정리 보기 → { plan: { memos: [{ id, text, task, title, due, minutes, ready, answered }], tasks: [{ id, title, due, minutes, ready }] }, summary } — 아무것도 안 바뀐다
+// 이대로 정리하기(뺀 줄은 안 보냄) → { briefing, applied, summary }. 429 · 502 · 503은 서버 문장 그대로
+export function tidyNow() {
+  if (ex) return reply(exampleTidy(ex), 700);
+  return call('POST', '/api/briefing/now', {});
+}
+export function tidyApply(plan) {
+  if (ex) return reply(applyExampleTidy(ex, plan));
+  return call('POST', '/api/briefing/now', { apply: plan });
 }
 
 // 팝업 취소: 메모는 메모로 남는다. 일정 팝업이면 밤 정리가 다시 읽고, 할 일 팝업(kind 'task')이면 메모로만 둔다
