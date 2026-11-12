@@ -91,6 +91,11 @@ export function applyTheme(name, mine = loadThemes(), { save = true } = {}) {
     clearTimeout(applyTheme.fade);
     applyTheme.fade = setTimeout(() => root.classList.remove('theme-fade'), 700);
   }
+  // 입자 테마는 9판 글꼴(Inter · Noto Sans KR, 9판과 같은 곳에서)을 처음 고를 때 한 번 받는다. 받는 동안은 비슷한 Pretendard로 보인다
+  if (name.startsWith('입자') && typeof document !== 'undefined' && !document.getElementById('nine-font')) {
+    const link = Object.assign(document.createElement('link'), { id: 'nine-font', rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&display=swap' });
+    document.head.append(link);
+  }
   for (const key of KEYS) root.style.removeProperty(key);
   root.style.colorScheme = '';
   if (own) {
@@ -125,4 +130,46 @@ export function themeText() {
     if (value) vars[key] = value;
   }
   return JSON.stringify({ name: '내 테마', dark: cs.colorScheme === 'dark', vars }, null, 1);
+}
+
+// 바우하우스 ↔ 입자를 오갈 때(사람 11-13 01:48 "로딩 시간이 생길 수 있으니까 각 테마별 로딩 화면을 만들고 바뀌게 해줘"):
+// 넘어갈 테마의 로딩 화면(loader.css)을 먼저 덮고, 그 뒤에서 테마를 바꾸고, 글꼴까지 준비되면 걷는다. 밤 ↔ 낮은 9판처럼 바로 이어서 바뀐다.
+const family = (name) => (String(name || '').startsWith('입자') ? '입자' : '바우하우스');
+const DOTS = Array.from({ length: 56 }, (_, i) => {
+  const a = (i / 56) * 2 * Math.PI - Math.PI / 2;
+  const r = 40 + (i % 3) * 6; // 세 겹
+  const x = 50 + r * Math.cos(a);
+  const y = 50 + r * Math.sin(a);
+  const k = ((i * 37) % 56) / 56; // 흩어진 자리 · 모이는 차례(고정된 섞기)
+  const fx = Math.round(Math.cos(i * 2.39996) * 160);
+  const fy = Math.round(Math.sin(i * 2.39996) * 160);
+  return `<i style="left:${x.toFixed(1)}%;top:${y.toFixed(1)}%;--fx:${fx}px;--fy:${fy}px;--d:${Math.round(k * 420)}ms;--c:${['#8f7bff', '#35e0c0', '#ff6fb5', '#5aa2ff', '#ffa04a', '#fff', '#fff', '#fff'][i % 8]}"></i>`;
+}).join('');
+const LOADER = {
+  입자: `<div class="ld-ring">${DOTS}<b class="ld-ty"></b><span class="ld-name">Tachyon</span></div><p>입자로 넘어가는 중</p>`,
+  바우하우스: '<div class="ld-shapes"><i class="c"></i><i class="s"></i><i class="t"></i></div><span class="ld-word">Tachyon</span><span class="ld-bar"></span><p>바우하우스로 넘어가는 중</p>',
+};
+export function switchTheme(name, mine = loadThemes()) {
+  const root = document.documentElement;
+  const to = mine.some((t) => t.name === name) ? '바우하우스' : family(name);
+  if (to === family(root.dataset.theme) || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return applyTheme(name, mine);
+  document.querySelector('.theme-loader')?.remove();
+  const cover = document.createElement('div');
+  cover.className = `theme-loader ${to === '입자' ? 'nine' : 'bauhaus'}${name === PARTICLE.day ? ' day' : ''}`;
+  cover.setAttribute('role', 'status');
+  cover.setAttribute('aria-label', `${to} 테마로 바꾸는 중`);
+  cover.innerHTML = LOADER[to];
+  document.body.append(cover);
+  // 열린 시트(모달)보다 위에 오게 맨 위 층(popover)에 올린다. 못 쓰는 웹뷰는 z-index로만 덮는다
+  if (cover.showPopover) {
+    cover.popover = 'manual';
+    cover.showPopover();
+  }
+  setTimeout(() => applyTheme(name, mine), 380); // 덮개가 다 덮은 뒤
+  const fonts = document.fonts?.ready ?? Promise.resolve();
+  Promise.all([new Promise((r) => setTimeout(r, 1500)), fonts]).then(() => {
+    cover.classList.add('out');
+    setTimeout(() => cover.remove(), 500);
+  });
+  return name; // 테마 창이 고른 이름(들어 있는 것 · 가져온 것)만 넘긴다
 }

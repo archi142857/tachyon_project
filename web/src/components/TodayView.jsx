@@ -6,12 +6,20 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { layoutDay } from '../layout.js';
 import { dayEvents, daySlots, freeMinutes, hm } from '../slots.js';
 import { deadlineLabel, deadlineShort, minuteOfDay } from '../time.js';
-import { useParticles } from '../themeName.js';
+import { tint, useParticles } from '../themeName.js';
 import DayRing from './DayRing.jsx';
 import { TaskRow } from './TasksCard.jsx';
 
 const kindOf = (ev) => (ev.source === 'timetable' || ev.source === 'memo' ? ev.source : 'ics');
-const span = (min) => [Math.floor(min / 60) && `${Math.floor(min / 60)}시간`, min % 60 && `${min % 60}분`].filter(Boolean).join(' ') || '0분';
+const parts = (min) => [[Math.floor(min / 60), '시간'], [min % 60, '분']].filter(([n]) => n);
+const span = (min) => parts(min).map(([n, u]) => `${n}${u}`).join(' ') || '0분';
+// 9판의 큰 숫자: 숫자는 크고 가늘게, 단위는 작게('14시간 45분')
+const bigSpan = (min) => (parts(min).length ? parts(min).map(([n, u]) => (
+  <span key={u}>
+    {n}
+    <i>{u}</i>{' '}
+  </span>
+)) : '0분');
 
 // 할 일을 오늘 못 넣은 까닭
 function noSlot(task) {
@@ -36,7 +44,7 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
     if (!box || !line || box.scrollHeight <= box.clientHeight + 1) return;
     box.scrollTop = Math.max(0, line.offsetTop - box.clientHeight / 3);
   }, [layoutKey, w.day.slot]);
-  const particles = useParticles(); // 입자 테마면 하루 고리 범례도 입자 모양(DayRing과 같게)
+  const particles = useParticles(); // 입자 테마 = 9판 모양(과목 색 · 시각 줄 · 큰 숫자 · 고리 설명 한 줄)
   const nowMin = minuteOfDay(now);
   const busy = dayEvents(events, today);
   const slots = daySlots(tasks.map((t) => (fixed[t.id] ? { ...t, minutes: 0 } : t)), [...busy, ...Object.values(fixed)], nowMin); // 정한 것은 자리를 잡지 않고, 그 시간은 다른 할 일이 피한다
@@ -87,19 +95,19 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
                 <div
                   key={key}
                   className={`ev ${kindOf(ev)}${to - from <= 60 ? ' short' : ''}${ev.important ? ' important' : ''}${sel === key ? ' sel' : ''}`}
-                  style={{ ...box(from, to), left: `calc(${(col / cols) * 100}% + 2px)`, width: `calc(${100 / cols}% - 4px)` }}
+                  style={{ ...box(from, to), left: `calc(${(col / cols) * 100}% + 2px)`, width: `calc(${100 / cols}% - 4px)`, '--c': tint(ev.title) }}
                 >
                   <span className="sr-only">
                     {hm(from)}–{hm(to)},{' '}
                   </span>
                   {ev.title}
-                  {ev.place && <span className="place">{ev.place}</span>}
+                  {particles ? <span className="place">{[ev.place, `${hm(from)} – ${hm(to)}`].filter(Boolean).join(' · ')}</span> : ev.place && <span className="place">{ev.place}</span>}
                   {ev.important ? <span className="sr-only">, 중요</span> : null}
                 </div>
               );
             })}
             {placed.map(({ task, slot, key }) => (
-              <div key={key} className={`ev slot${sel === key ? ' sel' : ''}`} style={{ ...box(slot[0], slot[1]), left: '2px', width: 'calc(100% - 4px)' }}>
+              <div key={key} className={`ev slot${sel === key ? ' sel' : ''}`} style={{ ...box(slot[0], slot[1]), left: '2px', width: 'calc(100% - 4px)', '--c': tint(task.title) }}>
                 <span className="sr-only">
                   {hm(slot[0])}–{hm(slot[1])},{' '}
                 </span>
@@ -107,7 +115,9 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
                 <span className="place">넣어 본 자리 · 마감 {deadlineShort(task.due, now)}</span>
               </div>
             ))}
-            <div className="now-line" role="img" style={{ top: top(nowMin) }} aria-label={`지금 ${hm(nowMin)}`} />
+            <div className="now-line" role="img" style={{ top: top(nowMin) }} aria-label={`지금 ${hm(nowMin)}`}>
+              {particles && <span className="now-at num">{hm(nowMin)}</span>}
+            </div>
           </div>
         </div>
       </section>
@@ -129,6 +139,11 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
               </span>
               {picked.sub && <span className="mid-sub">{picked.sub}</span>}
             </>
+          ) : particles ? (
+            <>
+              <strong className="mid-big num">{bigSpan(freeMinutes(busy, nowMin))}</strong>
+              <span className="mid-sub">오늘 남은 빈 시간</span>
+            </>
           ) : (
             <>
               <span className="mid-sub">오늘 남은 빈 시간</span>
@@ -145,17 +160,19 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
               고르기 풀기
             </button>
           </div>
+        ) : particles ? (
+          <p className="ring-cap">한 바퀴 = 오늘 0–24시 · 색 = 수업과 일정 · 옅은 구간 = 할 일을 넣어 본 자리 · 흰 입자 = 지금 · 바깥 점 = 아직 정리 안 된 메모</p>
         ) : (
-          <p className={particles ? 'ring-key particles' : 'ring-key'}>
+          <p className="ring-key">
             <span>
               <i className="key-dot" />
               수업
             </span>
             <span>
-              <i className={particles ? 'key-dot mine' : 'key-sq'} />내 일정
+              <i className="key-sq" />내 일정
             </span>
             <span>
-              <i className={particles ? 'key-dot slot' : 'key-tri'} />할 일을 넣어 본 자리
+              <i className="key-tri" />할 일을 넣어 본 자리
             </span>
             <span>
               <i className="key-now" />지금

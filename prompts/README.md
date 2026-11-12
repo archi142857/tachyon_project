@@ -57,6 +57,7 @@
 | Tachyon-17 | 2026-11-13 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5) | 달력 일정 정보 창 · 고리 끌어 3칸 옮기기 · 합치며 빠진 기능 정리 | [Tachyon-17-일정-정보-고리-끌기.md](Tachyon-17-일정-정보-고리-끌기.md) | 사용자 직접 지시 | 사용자 → Claude Code |
 | Tachyon-18 | 2026-11-13 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5) | 레이아웃 통일(테마는 겉모양만) · 기능별 결정과 더한 피드백 정리 | [Tachyon-18-레이아웃-통일.md](Tachyon-18-레이아웃-통일.md) | 사용자 직접 지시 | 사용자 → Claude Code |
 | Tachyon-19 | 2026-11-13 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5) | 테마 둘(바우하우스 · 입자 밤/낮) · 같은 자리 다른 느낌 · 피드백 1–19와 결정 19개 반영 | [Tachyon-19-테마-둘과-피드백-반영.md](Tachyon-19-테마-둘과-피드백-반영.md) | 사용자 직접 지시 | 사용자 → Claude Code |
+| Tachyon-21 | 2026-11-13 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5) | 입자 테마 = 시연 9판 요소 그대로(자리 · 내용은 같고 모양만 9판) · 테마별 로딩 화면 | [Tachyon-21-입자-테마-9판-그대로와-로딩-화면.md](Tachyon-21-입자-테마-9판-그대로와-로딩-화면.md) | 사용자 직접 지시 | 사용자 → Claude Code |
 | Tachyon-컨셉-01 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | Tachyon-컨셉-01. 앞 자료와 기획안 읽기 | [Tachyon-컨셉-01-자료-학습.md](Tachyon-컨셉-01-자료-학습.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
 | Tachyon-컨셉-02 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결 | Tachyon-컨셉-02. 인수인계 확인과 공유 드라이브 연결 | [Tachyon-컨셉-02-인수인계와-드라이브.md](Tachyon-컨셉-02-인수인계와-드라이브.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
 | Tachyon-컨셉-03 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | Tachyon-컨셉-03. 세션 나누기와 세션끼리 소통하는 방식 | [Tachyon-컨셉-03-세션-나누기.md](Tachyon-컨셉-03-세션-나누기.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |

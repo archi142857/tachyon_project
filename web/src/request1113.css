@@ -1,7 +1,7 @@
 /* 11-13 사람 요청 층 — docs/tachyon/디자인/components.css '11-13 넷째 묶음'을 그대로 옮겼다(디자인 f6be900).
    ① 다 같이 빈 시간 겹쳐 보기(주 달력 띠 · 범례 칩 · '같이' 쪽 그룹 만들기) ② 오늘 쪽 위젯 · 배치 넷 ③ 일정 끌기 ④ 하루 고리 금.
-   main.jsx에서 shape.css 다음, particles.css 앞에 부른다. 고칠 때는 디자인 세션의 components.css와 같이 고친다.
-   화면 쪽 더한 것(번갈아 속 뒤집기 ○ ■ △ 등)은 styles.css · particles.css · shell.css에 따로 둔다. */
+   main.jsx에서 shape.css 다음, nine.css 앞에 부른다. 고칠 때는 디자인 세션의 components.css와 같이 고친다.
+   화면 쪽 더한 것(번갈아 속 뒤집기 ○ ■ △ 등)은 styles.css · shell.css에 따로 둔다(입자 테마는 nine.css). */
 
 /* ════ 11-13 넷째 묶음: 사람 요청(11-13 00:01~00:04, 컨셉 소통판 00:06) ════
    ① 다 같이 빈 시간 겹쳐 보기 ② 오늘 쪽 위젯 · 기본 배치 넷 ③ 일정 끌기 ④ 하루 고리에서 붙은 일정 가르기.

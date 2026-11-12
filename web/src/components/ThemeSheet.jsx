@@ -1,7 +1,7 @@
 // 테마 고르기 · 새 테마 가져오기(메뉴 → 테마). 기능과 자리는 그대로, 색 · 글꼴 · 움직임이 바뀐다(themes.js).
 // 테마는 둘(사람 11-13 01:15): 바우하우스 · 입자. 입자는 밤 · 낮을 고른다(머리 줄 해 · 달 단추와 같음).
 import { useState } from 'react';
-import { DEFAULT, MAX_MINE, PARTICLE, applyTheme, currentTheme, loadThemes, parseTheme, saveThemes, themeText } from '../themes.js';
+import { DEFAULT, MAX_MINE, PARTICLE, currentTheme, loadThemes, parseTheme, saveThemes, switchTheme, themeText } from '../themes.js';
 import Sheet from './Sheet.jsx';
 
 // 색 견본: 바탕 위에 카드 · 강조 · 수업 색
@@ -20,7 +20,7 @@ export default function ThemeSheet({ onClose }) {
   const [error, setError] = useState('');
   const [note, setNote] = useState('');
 
-  const use = (name, list = mine) => setNow(applyTheme(name, list));
+  const use = (name, list = mine) => setNow(switchTheme(name, list)); // 바우하우스 ↔ 입자는 로딩 화면을 덮고 바꾼다
   function keep(list) {
     saveThemes(list);
     setMine(list);

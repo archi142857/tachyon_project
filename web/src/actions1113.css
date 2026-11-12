@@ -1,5 +1,5 @@
 /* 11-13 사람 결정(docs/tachyon/합치기_결정.md)의 9판 기능을 기본 화면에 넣은 몫: 할 일 바로 다루기 · 집중 막대 · 정함/추천 줄 · 나 창.
-   모든 테마 공통, 색은 테마 값만. 입자 테마의 사용감은 particleFeel.css가 덮는다. main.jsx에서 feedback1113.css 다음에. */
+   모든 테마 공통, 색은 테마 값만. 입자 테마는 nine.css가 9판 모양으로 덮는다. main.jsx에서 feedback1113.css 다음에. */
 
 /* 추천 자리 줄 = 누르면 '이 시간에 넣기'(점선 꼬리표), 정한 자리 = 실선 */
 button.slot-note { display: block; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }

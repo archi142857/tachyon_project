@@ -1,14 +1,12 @@
 // 하루 고리: 한 바퀴가 오늘 하루(0–24시, 맨 위가 0시)이고 입자 하나하나가 시간 조각이다. 모양은 테마에 따라 둘(themeName.js).
 //  - 기본(③ 바우하우스와 나머지 테마): 모양이 뜻이다(색만으로 가르지 않음) — ● 수업, □ 내 일정(달력·메모),
 //    ▲ 할 일을 넣어 본 자리, 작은 점 = 빈 시간, 붉은 금 = 지금. 일정 뒤에는 달력과 같은 색 띠.
-//  - 입자 테마('입자 밤'·'입자 낮'): 팀원 시연 9판의 입자 모양 — 모두 동그라미, 구간마다 무리와 뜻 색, 고르면 커지고 빛남,
-//    지금 = 바깥 테를 도는 빨간 입자와 꼬리(사람 11-12 "플랫하게 바꾸지 말고 원 스타일을 살려봐" → 07:11 "입자 테마에서"). 모양은 particles.css.
+//  - 입자 테마('입자 밤'·'입자 낮'): 시연 9판의 하루 고리 그대로 — 과목 색 입자, 넣어 본 자리의 섬유, 흰 타키온(아래 ParticleRing, 모양은 nine.css).
 // 붙어 보이는 구간은 경계에 바탕색 금(디자인 ④), 같은 모양끼리는 번갈아 속을 뒤집는다(ringRuns, 사람 11-13 "분간이 안 됨").
 // 색 구간을 누르면 onPick(key). 가운데 글자는 children으로 받는다.
 // 같은 내용이 옆의 타임라인·할 일 목록에 글자로 있어서 그림은 화면 읽기에서 뺀다(aria-hidden).
-import { useId } from 'react';
 import { WAKE, hm } from '../slots.js';
-import { useParticles } from '../themeName.js';
+import { tint, useParticles } from '../themeName.js';
 
 const RINGS = [[66, 40, 1.6], [75, 46, 1.8], [84, 52, 2], [93, 58, 2.2], [102, 64, 2.4]]; // 반지름, 점 개수, 점 크기
 const f1 = (v) => v.toFixed(1);
@@ -145,73 +143,85 @@ function ShapeRing({ arcs, nowMin, sel, onPick, loose, children }) {
   );
 }
 
-// ── 입자 테마: 무리 색(테마 값), 지금 입자 꼬리
-const TAIL = 16; // 지금 입자 꼬리의 입자 수
-const STEP = 0.0075; // 꼬리 입자 사이(한 바퀴의 몫). 16개면 약 43°(3시간 남짓)
-const COLOR = { timetable: 'var(--mark-class)', ics: 'var(--text)', memo: 'var(--text)', slot: 'var(--mark-task)' };
+// ── 입자 테마 = 시연 9판의 하루 고리 그대로(dhsrua555 시안, 사람 11-13 01:48 "입자에서는 시안 9판의 요소들이 그대로").
+// 입자 다섯 겹(작은 점), 일정 · 넣어 본 자리에 든 입자만 과목 색(tint)으로, 넣어 본 자리는 안쪽 마디로 모이는 섬유,
+// 지금 = 고리 바깥 흰 타키온과 꼬리(.ty), 가운데 숨 쉬는 빛(--sc = 고른 것의 색). 모양은 nine.css.
+const NINE = [[66, 40, 1], [75, 46, 1.2], [84, 52, 1.4], [93, 58, 1.6], [102, 64, 1.8]];
 
-function ParticleRing({ arcs, nowMin, sel, onPick, loose, children }) {
+function ParticleRing({ arcs, nowMin, sel, onPick, loose = [], children }) {
   const now = nowMin / 1440;
-  const glowId = `ring-glow-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const picked = arcs.find((a) => a.key === sel);
-  const { alt } = ringRuns(arcs); // 붙어 있는 같은 색 무리는 번갈아 속을 비운다(particles.css). 금은 입자 모양에 맞지 않아 이것으로 대신한다
-
-  // 입자를 구간 무리와 나머지(빈 시간·잠)로 나눈다
   const groups = new Map(arcs.map((a) => [a.key, []]));
   const rest = [];
-  for (const [rad, n, r] of RINGS) {
+  for (const [rad, n, r] of NINE) {
     for (let j = 0; j < n; j++) {
       const f = (j + (n % 4) / 4) / n;
       const min = f * 1440;
       const arc = arcs.find((a) => min >= a.from && min < a.to);
       const [cx, cy] = point(rad, f);
-      const past = min < nowMin;
-      const style = { '--d': `${Math.round(f * 500)}ms` }; // 돋아나는 차례
-      if (arc) groups.get(arc.key).push(<circle key={`${rad}-${j}`} cx={cx} cy={cy} r={r} className={past ? 'p' : undefined} style={style} />);
-      else rest.push(<circle key={`${rad}-${j}`} cx={cx} cy={cy} r={0.9} className={`${min < WAKE * 60 ? 'sleep' : 'free'}${past ? ' p' : ''}`} style={style} />);
+      const cls = `${min < WAKE * 60 ? 'z' : ''}${min < nowMin ? ' p' : ''}`.trim() || undefined;
+      (arc ? groups.get(arc.key) : rest).push(<circle key={`${rad}-${j}`} className={cls} cx={cx} cy={cy} r={r} />);
     }
   }
-
-  // 지금 입자의 꼬리: 지나온 쪽으로 갈수록 작고 옅게. 머리가 맨 위에 오게 먼 것부터 그린다
-  const tail = Array.from({ length: TAIL }, (_, i) => {
-    const k = TAIL - i; // TAIL … 1
-    const t = 1 - k / (TAIL + 1);
-    const [cx, cy] = point(FRAME, now - k * STEP);
-    return <circle key={k} cx={cx} cy={cy} r={(0.35 + 2.3 * t).toFixed(2)} style={{ opacity: (t ** 1.7).toFixed(2) }} />;
-  });
-  const [hx, hy] = point(FRAME, now);
-
+  const P = (rad, f) => point(rad, f).join(' ');
   return (
-    <div className="ring-wrap">
-      <svg className={sel ? 'ring particles has-sel' : 'ring particles'} viewBox="-136 -136 272 272" aria-hidden="true" style={{ '--sc': picked ? COLOR[picked.kind] : 'var(--text)' }}>
-        <defs>
-          <radialGradient id={glowId}>
-            <stop offset="0" style={{ stopColor: 'var(--sc)', stopOpacity: picked ? 0.14 : 0.05 }} />
-            <stop offset="1" style={{ stopColor: 'var(--sc)', stopOpacity: 0 }} />
-          </radialGradient>
-        </defs>
-        {/* 가운데 번짐 · 바깥 테 — 입자보다 먼저 */}
-        <circle className="glow" r="64" style={{ fill: `url(#${glowId})` }} />
-        <circle className="frame" r={FRAME} />
+    <div className="ring-wrap nine" style={{ '--sc': picked ? tint(picked.title) : 'var(--vi)' }}>
+      <svg className="ring day" viewBox="-120 -120 240 240" aria-hidden="true">
         <g className="bg">{rest}</g>
-        {arcs.map((a) => (
-          <g key={a.key} className={`pg ${a.kind === 'slot' ? 'slot' : `ev ${a.kind}`}${alt.has(a.key) ? ' alt' : ''}${a.key === sel ? ' on' : ''}`} style={{ '--c': COLOR[a.kind] }}>
-            {groups.get(a.key)}
-          </g>
-        ))}
-        <Ticks now={now} />
-        <g className="comet">
-          {tail}
-          <circle className="head" cx={hx} cy={hy} r="3.2" />
-        </g>
-        <text className="now" x={point(128, now)[0]} y={point(128, now)[1]}>
+        {arcs.map((a) => {
+          const x = a.from / 1440;
+          const y = a.to / 1440;
+          const m = (x + y) / 2;
+          const d = y - x;
+          const fiber = (k) => `M${P(62, x + d * k)} Q${P(55, m + d * (k - 0.5) * 0.5)} ${P(41, m)}`;
+          const [nx, ny] = point(41, m);
+          const slot = a.kind === 'slot';
+          return (
+            <g key={a.key} className={`${slot ? 'sg' : 'eg'}${a.key === sel ? ' on' : ''}`} style={{ '--c': tint(a.title) }}>
+              {groups.get(a.key)}
+              {slot && [0, 0.25, 0.5, 0.75, 1].map((k) => <path key={k} className="fb" d={fiber(k)} />)}
+              {slot && <circle className="nd" cx={nx} cy={ny} r="1.5" />}
+              {slot && a.key === sel && (
+                <circle className="pl" r="1.4">
+                  <animateMotion dur="1.6s" repeatCount="indefinite" path={fiber(0.5)} />
+                </circle>
+              )}
+            </g>
+          );
+        })}
+        {Array.from({ length: 24 }, (_, h) => {
+          const [x1, y1] = point(108, h / 24);
+          const [x2, y2] = point(h % 3 ? 109.5 : 111.5, h / 24);
+          return <line key={h} x1={x1} y1={y1} x2={x2} y2={y2} />;
+        })}
+        {[0, 3, 6, 9, 12, 15, 18, 21]
+          .filter((h) => Math.abs(h - nowMin / 60) > 0.8 && Math.abs(h + 24 - nowMin / 60) > 0.8)
+          .map((h) => {
+            const [x, y] = point(119, h / 24);
+            return (
+              <text key={h} x={x} y={y}>
+                {h || 24}시
+              </text>
+            );
+          })}
+        <text className="nw" x={point(119, now)[0]} y={point(119, now)[1]}>
           {hm(nowMin)}
         </text>
-        <Loose loose={loose} />
+        {/* 바깥 점 = 정리 안 된 메모(적은 시각 자리), 9판의 떠 있는 메모 입자 모양 */}
+        {loose.map((m, i) => {
+          const [x, y] = point(127, m / 1440);
+          return (
+            <g key={i} className="fl">
+              <circle className="fo" cx={x} cy={y} r="5.5" />
+              <circle className="fd" cx={x} cy={y} r="2.4" />
+            </g>
+          );
+        })}
         {arcs.map((a) => (
           <path key={a.key} className="hit" d={arcPath(a)} onClick={() => onPick(a.key)} />
         ))}
       </svg>
+      <i className="ty day" style={{ transform: `rotate(${now * 360}deg)` }} />
       <div className="ring-mid">{children}</div>
     </div>
   );

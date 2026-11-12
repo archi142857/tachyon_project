@@ -4,6 +4,7 @@ import { endOf, isAllDay } from '../layout.js';
 import { WEEKDAYS, addDays, dayStart, hhmm, kst, monthGrid, sameDay } from '../time.js';
 import DensityRing from './DensityRing.jsx';
 import Icon from './Icon.jsx';
+import { tint } from '../themeName.js';
 
 const MAX_LINES = 3;
 
@@ -71,7 +72,7 @@ export default function MonthCalendar({ anchor, events, tasks, now, density, onP
                 <DensityRing day={density(day)} size={18} />
               </span>
               {shown.map((l) => (
-                <span key={l.key} className={`mline ${l.kind}`}>
+                <span key={l.key} className={`mline ${l.kind}`} style={{ '--c': tint(l.text) }}>
                   {l.time && <b className="num">{l.time}</b>} {l.text}
                 </span>
               ))}

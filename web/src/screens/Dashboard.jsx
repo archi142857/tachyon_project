@@ -631,9 +631,9 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
               </button>
             ))}
           {(themeName === PARTICLE.night || themeName === PARTICLE.day) && (
-            // 입자 테마의 밤 ↔ 낮(9판 해 · 달 단추). 색이 천천히 넘어간다
-            <button type="button" className="icon-btn theme-flip" aria-label={themeName === PARTICLE.night ? '낮으로' : '밤으로'} title={themeName === PARTICLE.night ? '낮으로' : '밤으로'} onClick={() => applyTheme(themeName === PARTICLE.night ? PARTICLE.day : PARTICLE.night)}>
-              <Icon name={themeName === PARTICLE.night ? 'sun' : 'moon'} />
+            // 입자 테마의 밤 ↔ 낮(9판 스위치: 달이 미끄러져 해가 된다). 색이 천천히 넘어간다
+            <button type="button" className="sw" aria-label={themeName === PARTICLE.night ? '낮으로' : '밤으로'} title={themeName === PARTICLE.night ? '낮으로' : '밤으로'} onClick={() => applyTheme(themeName === PARTICLE.night ? PARTICLE.day : PARTICLE.night)}>
+              <i />
             </button>
           )}
           <button type="button" className="icon-btn" aria-label="받은함" title="받은함 · 아침 브리핑" onClick={() => setSheet('inbox')}>
@@ -753,7 +753,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
         {/* 정면 창(디자인 ⑤): 뒤를 막고 흐린다. 막을 누르면 '취소'와 같음 */}
         {popup && <div className="popup-scrim" aria-hidden="true" onClick={cancelPopup} />}
         {popup && <MemoPopup key={popup.memoId} popup={popup.popup} plan={{ events: planEvents, tasks: openTasks, today, now }} busy={busy} onSave={savePopup} onCancel={cancelPopup} />}
-        <Composer onSend={sendMemo} seed={seed} />
+        <Composer onSend={sendMemo} seed={seed} memoCount={memos.length} onMemos={() => setPage('memo')} />
       </div>
 
       {guide && !join && (

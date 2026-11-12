@@ -2,15 +2,37 @@
 // 전체 목록은 햄버거 메뉴 안에 있다.
 import { minutesLabel, readyLabel, slackLabel } from '../tasks.js';
 import { daysUntil, deadlineLabel } from '../time.js';
+import { tint, useParticles } from '../themeName.js';
 
 // track = 마감 자(디자인 ⑥, 사람 피드백 4 '마감 시간 선형으로'): 지금 → 7일 뒤 같은 자에 마감 ▲. 할 일 쪽 전체 목록에서만
 export function TaskRow({ task, now, onDone, onEdit, track = false }) {
+  const nine = useParticles();
   const ready = readyLabel(task);
   const minutes = minutesLabel(task.minutes);
   const slack = slackLabel(task.slack_days);
   // 마감은 날짜·시각을 늘 함께(11-11 사람 "마감 시간 같은 게 안 보이니까 불편함"). 지났으면 붉게, 오늘이면 진하게
   const late = task.due && Date.parse(task.due) < new Date(now).getTime();
   const soon = !late && task.due && daysUntil(task.due, now) === 0;
+  const due = <span className={late ? 'due late-due' : soon ? 'due soon' : 'due'}>{deadlineLabel(task.due, now)}</span>;
+  // 입자 테마 = 9판 줄: 과목 색 점 · 제목과 걸리는 시간 · 오른쪽에 여유와 마감 · 맨 오른쪽 동그란 체크
+  if (nine)
+    return (
+      <div className={task.done ? 'task row9 dn' : 'task row9'} style={{ '--c': tint(task.title) }}>
+        <i className="dot" aria-hidden="true" />
+        <span className="body">
+          <button type="button" className="title" onClick={() => onEdit(task)}>
+            {task.title}
+          </button>
+          <small className="meta num">{[minutes, ready].filter(Boolean).join(' · ')}</small>
+          {track && task.due && <DueTrack due={task.due} now={now} />}
+        </span>
+        <span className="r num">
+          {slack && <b className={task.slack_days < 0 ? 'short' : undefined}>{slack}</b>}
+          <small>{due}</small>
+        </span>
+        <input type="checkbox" className="ck" aria-label={`${task.title} 끝`} checked={!!task.done} onChange={() => onDone(task)} />
+      </div>
+    );
   return (
     <div className="task">
       <input type="checkbox" aria-label={`${task.title} 끝`} checked={!!task.done} onChange={() => onDone(task)} />
@@ -19,7 +41,7 @@ export function TaskRow({ task, now, onDone, onEdit, track = false }) {
           {task.title}
         </button>
         <span className="meta num">
-          <span className={late ? 'due late-due' : soon ? 'due soon' : 'due'}>{deadlineLabel(task.due, now)}</span>
+          {due}
           {minutes && <span className="min"> · {minutes}</span>}
           {slack && <span className={task.slack_days < 0 ? 'min short' : 'min'}> · {slack}</span>}
           {ready && <span className="ready"> · {ready}</span>}

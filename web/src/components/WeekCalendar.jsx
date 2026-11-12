@@ -9,6 +9,7 @@ import { endOf, hourRange, isAllDay, layoutDay } from '../layout.js';
 import { addDays, dayIndex, deadlineLabel, endOrHour, hhmm, kst, minuteOfDay, toKstIso, WEEKDAYS, weekTitle } from '../time.js';
 import DensityRing from './DensityRing.jsx';
 import Icon from './Icon.jsx';
+import { tint } from '../themeName.js';
 
 const timeText = (ev) => `${hhmm(ev.start)}–${hhmm(endOrHour(ev.start, ev.end))}`; // 끝이 없으면 1시간(11-13)
 
@@ -177,6 +178,7 @@ export default function WeekCalendar({ start, events, tasks, now, density, isCur
                       height: `calc(var(--hour) * ${Math.max(len, 0.5)} - 2px)`,
                       left: `calc(${(col / cols) * 100}% + 2px)`,
                       width: `calc(${100 / cols}% - 4px)`,
+                      '--c': tint(ev.title),
                     }}
                     title={eventLabel(ev, leg)}
                     onClick={() => onEvent(ev)}

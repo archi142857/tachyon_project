@@ -1,0 +1,42 @@
+/* 테마를 바꿀 때 덮는 로딩 화면(themes.js switchTheme). 넘어갈 테마의 얼굴로 덮는다(사람 11-13 01:48 "각 테마별 로딩 화면").
+   덮개는 테마 값이 바뀌는 동안 그 위에 있어서 색을 테마 값이 아니라 그 테마의 실제 색으로 적는다.
+   바우하우스(친구 시안) = 흰 종이 · 먹 · 빨강 파랑 노랑, ● ■ ▲가 차례로 떨어지고 먹 줄이 찬다.
+   입자(9판) = 검은 바탕에 흩어진 입자가 모여 고리가 되고, 흰 타키온이 거꾸로 돈다. */
+.theme-loader { position: fixed; inset: 0; z-index: 1000; display: grid; place-content: center; justify-items: center; gap: 18px; animation: ld-in 0.35s ease both; }
+.theme-loader[popover] { width: auto; height: auto; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; overflow: hidden; } /* 기본 popover 상자 모양 지우기 */
+.theme-loader::backdrop { background: none; }
+.theme-loader.out { animation: ld-out 0.45s ease forwards; }
+.theme-loader p { margin: 0; font-size: 13px; }
+@keyframes ld-in { from { opacity: 0; } }
+@keyframes ld-out { to { opacity: 0; visibility: hidden; } }
+
+/* 바우하우스 */
+.theme-loader.bauhaus { background: #ffffff; color: #141414; font-family: 'Pretendard Variable', Pretendard, sans-serif; }
+.theme-loader.bauhaus p { color: #625e57; }
+.ld-shapes { display: flex; align-items: flex-end; gap: 14px; height: 56px; }
+.ld-shapes i { display: block; width: 48px; height: 48px; animation: ld-drop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) backwards; }
+.ld-shapes .c { border-radius: 50%; background: #1e4d9b; }
+.ld-shapes .s { background: #c4321e; animation-delay: 0.14s; }
+.ld-shapes .t { width: 54px; background: #edb200; clip-path: polygon(50% 0, 100% 100%, 0 100%); animation-delay: 0.28s; }
+@keyframes ld-drop { from { transform: translateY(-60px) rotate(-90deg); opacity: 0; } }
+.ld-word { font-family: 'Jost Variable', Jost, sans-serif; font-size: 34px; font-weight: 600; letter-spacing: -0.01em; animation: ld-in 0.4s 0.4s backwards; }
+.ld-bar { width: 180px; height: 4px; background: #eeece7; position: relative; overflow: hidden; }
+.ld-bar::after { content: ''; position: absolute; inset: 0; background: #141414; transform-origin: left; animation: ld-fill 1.3s cubic-bezier(0.6, 0, 0.3, 1) both; }
+@keyframes ld-fill { from { transform: scaleX(0); } }
+
+/* 입자 */
+.theme-loader.nine { background: #040406; color: #fff; font-family: Inter, 'Noto Sans KR', 'Pretendard Variable', Pretendard, sans-serif; }
+.theme-loader.nine.day { background: #f3efe6; color: #1d1b22; }
+.theme-loader.nine p { color: color-mix(in srgb, currentColor 58%, transparent); font-weight: 300; }
+.ld-ring { position: relative; width: 220px; aspect-ratio: 1; }
+.ld-ring i { position: absolute; width: 4px; height: 4px; margin: -2px; border-radius: 50%; background: var(--c); box-shadow: 0 0 6px var(--c); animation: ld-gather 0.9s var(--d) cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+.theme-loader.day .ld-ring i[style*='#fff'] { background: #1d1b22; box-shadow: none; }
+@keyframes ld-gather { from { transform: translate(var(--fx), var(--fy)) scale(0.4); opacity: 0; } }
+.ld-ty { position: absolute; inset: -6%; border-radius: 50%; animation: ld-spin 1.4s linear infinite reverse; }
+.ld-ty::before { content: ''; position: absolute; left: 50%; top: 0; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px 3px #8f7bff; }
+.ld-ty::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(currentColor, transparent 70deg, transparent); opacity: 0.7; mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #000 calc(100% - 1px)); }
+@keyframes ld-spin { to { transform: rotate(360deg); } }
+.ld-name { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 18px; font-weight: 300; letter-spacing: -0.02em; animation: ld-in 0.5s 0.5s backwards; }
+.ld-name::before { content: ''; width: 22px; height: 5px; border-radius: 5px; background: linear-gradient(90deg, currentColor 22%, #8f7bff 40%, transparent); }
+
+@media (prefers-reduced-motion: reduce) { .theme-loader, .theme-loader * { animation: none !important; } }
