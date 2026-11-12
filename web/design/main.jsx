@@ -1,5 +1,6 @@
-// 고리 시안 쪽(개발자용, 앱 화면과 따로). npm run dev → http://localhost:5173/design/
-// 같은 하루를 네 시안으로 나란히 그린다. 일정을 고르면 네 고리에서 같이 골라진다.
+// 테마 시안 쪽(개발자용, 앱 화면과 따로). npm run dev → http://localhost:5173/design/#solar
+// 사람 11-13 01:54: 레퍼런스 그림 다섯을 테마마다 적용, "단순히 고리만 바뀌는 게 아니라 전반적인 스타일이 다 바뀌어야".
+// 그래서 고리만이 아니라 지어낸 '오늘' 화면 전체를 그린다. 자리와 기능(머리줄 · 메모 칸 · 일정 · 고리 · 할 일 · 알림)은 모든 테마가 같고 모양만 바뀐다.
 import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
@@ -8,8 +9,15 @@ import './design.css';
 import { RINGS } from './rings/index.js';
 import { DAYS } from './days.js';
 import { KIND_NAME, hm, look } from './rings/common.jsx';
+import Backdrop from './backdrop.jsx';
 
 const START = 14 * 60 + 40; // 처음 보이는 '지금'(오후, 지난 일정과 남은 일정이 같이 보이게)
+const TASKS = [
+  { id: 't1', title: '선형대수 과제 3', due: '오늘 23:59' },
+  { id: 't2', title: '실험 보고서 그래프', due: '내일' },
+  { id: 't3', title: '동아리 회비 보내기', due: '11/15' },
+];
+const themeOf = () => RINGS.find((r) => `#${r.id}` === location.hash)?.id ?? RINGS[0].id;
 
 function Mid({ day, sel, nowMin }) {
   const a = day.arcs.find((x) => x.key === sel);
@@ -17,7 +25,7 @@ function Mid({ day, sel, nowMin }) {
     return (
       <>
         <b className="mid-title">{a.title}</b>
-        <span>
+        <span className="num">
           {hm(a.from)}–{hm(a.to)}
         </span>
         <span className="mid-kind">{KIND_NAME[look(a.kind)]}</span>
@@ -33,17 +41,24 @@ function Mid({ day, sel, nowMin }) {
 }
 
 function Page() {
+  const [theme, setTheme] = useState(themeOf);
   const [dayKey, setDayKey] = useState('many');
   const [nowMin, setNow] = useState(START);
   const [sel, setSel] = useState(null);
   const [playing, setPlaying] = useState(false);
-  const [dark, setDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
   const [still, setStill] = useState(false);
+  const [done, setDone] = useState({ t3: true });
   const day = DAYS[dayKey];
+  const { name, idea, Ring, legend } = RINGS.find((r) => r.id === theme);
 
   useEffect(() => {
-    document.documentElement.dataset.mode = dark ? 'dark' : 'light';
-  }, [dark]);
+    const on = () => setTheme(themeOf());
+    addEventListener('hashchange', on);
+    return () => removeEventListener('hashchange', on);
+  }, []);
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
   useEffect(() => {
     document.documentElement.dataset.still = still ? '1' : '0';
   }, [still]);
@@ -56,13 +71,17 @@ function Page() {
   const pick = (key) => setSel((s) => (s === key ? null : key));
 
   return (
-    <main>
-      <header className="head">
-        <h1>하루 고리 시안</h1>
-        <p>개발자용 쪽이다. 앱 화면에는 들어가 있지 않다. 같은 지어낸 하루를 네 시안으로 그렸고, 고리를 누르거나 아래 일정을 고르면 네 고리에서 같이 골라진다.</p>
-      </header>
+    <div className={`screen t-${theme}`}>
+      <Backdrop theme={theme} />
 
-      <section className="controls" aria-label="보기 조절">
+      <section className="dev" aria-label="시안 조절(개발자용)">
+        <nav className="themes" aria-label="테마">
+          {RINGS.map((r) => (
+            <a key={r.id} href={`#${r.id}`} aria-current={r.id === theme ? 'page' : undefined}>
+              {r.name}
+            </a>
+          ))}
+        </nav>
         <div className="seg" role="group" aria-label="예시 하루">
           {Object.entries(DAYS).map(([k, d]) => (
             <button key={k} type="button" aria-pressed={k === dayKey} onClick={() => (setDayKey(k), setSel(null))}>
@@ -77,57 +96,99 @@ function Page() {
         <button type="button" onClick={() => setPlaying((p) => !p)}>
           {playing ? '멈추기' : '하루 돌려 보기'}
         </button>
-        <button type="button" onClick={() => setDark((d) => !d)}>
-          {dark ? '밝게' : '어둡게'}
-        </button>
         <label className="check" htmlFor="still">
           <input id="still" type="checkbox" checked={still} onChange={(e) => setStill(e.target.checked)} /> 움직임 끄기
         </label>
+        <small>개발자용 시안 · 앱에는 안 들어감 · 일정은 지어낸 것</small>
       </section>
 
-      <ul className="events" aria-label="이날 일정">
-        {day.arcs.map((a) => (
-          <li key={a.key}>
-            <button type="button" aria-pressed={a.key === sel} onClick={() => pick(a.key)}>
-              <span className={`kind k-${look(a.kind)}`}>{KIND_NAME[look(a.kind)]}</span> {a.title} <span className="num">{hm(a.from)}–{hm(a.to)}</span>
+      <header className="bar">
+        <div className="brand">
+          <b>Tachyon</b>
+          <span className="theme-name">
+            {name} 테마 <small>{idea}</small>
+          </span>
+        </div>
+        <nav className="tabs" aria-label="화면">
+          {['오늘', '달력', '할 일', '같이'].map((t) => (
+            <button key={t} type="button" aria-current={t === '오늘' ? 'page' : undefined}>
+              {t}
             </button>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </nav>
+      </header>
 
-      <div className="grid">
-        {RINGS.map(({ id, name, idea, Ring, legend }) => (
-          <article key={id} className="card">
-            <h2>
-              {name} <small>{idea}</small>
-            </h2>
-            <Ring arcs={day.arcs} nowMin={nowMin} sel={sel} onPick={pick}>
-              <Mid day={day} sel={sel} nowMin={nowMin} />
-            </Ring>
-            <dl className="legend">
-              {legend.map(([k, v]) => (
-                <div key={k}>
-                  <dt>{k}</dt>
-                  <dd>{v}</dd>
-                </div>
-              ))}
-            </dl>
-          </article>
-        ))}
+      <form className="memo" onSubmit={(e) => e.preventDefault()}>
+        <label htmlFor="memo" className="sr">
+          메모
+        </label>
+        <input id="memo" placeholder="적기만 하세요 (예: 내일 3시 팀플)" autoComplete="off" />
+        <button className="primary" type="submit">
+          넣기
+        </button>
+      </form>
+
+      <div className="cols">
+        <section className="panel day" aria-labelledby="h-day">
+          <h2 id="h-day">오늘 일정</h2>
+          <p className="sub">11월 13일 금요일 · {day.label}</p>
+          <ol className="ev-list">
+            {day.arcs.map((a) => {
+              const k = look(a.kind);
+              const past = a.to <= nowMin ? ' past' : a.from <= nowMin ? ' now' : '';
+              return (
+                <li key={a.key}>
+                  <button type="button" className={`ev-row${past}`} aria-pressed={a.key === sel} onClick={() => pick(a.key)}>
+                    <span className="time num">{hm(a.from)}</span>
+                    <span className={`mark k-${k}`} aria-hidden="true" />
+                    <span className="title">{a.title}</span>
+                    <span className="kind">{KIND_NAME[k]}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+
+        <section className="panel ring-panel" aria-labelledby="h-ring">
+          <h2 id="h-ring">하루 고리</h2>
+          <Ring arcs={day.arcs} nowMin={nowMin} sel={sel} onPick={pick}>
+            <Mid day={day} sel={sel} nowMin={nowMin} />
+          </Ring>
+          <dl className="legend">
+            {legend.map(([k, v]) => (
+              <div key={k}>
+                <dt>{k}</dt>
+                <dd>{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <section className="panel tasks" aria-labelledby="h-tasks">
+          <h2 id="h-tasks">할 일</h2>
+          <p className="sub">빈 시간에 넣어 볼 것</p>
+          <ul className="task-list">
+            {TASKS.map((t) => (
+              <li key={t.id} className={done[t.id] ? 'done' : ''}>
+                <label htmlFor={t.id}>
+                  <input id={t.id} type="checkbox" checked={!!done[t.id]} onChange={(e) => setDone((d) => ({ ...d, [t.id]: e.target.checked }))} />
+                  <span className="title">{t.title}</span>
+                  <span className="due">{t.due}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+          <button type="button" className="ghost">
+            + 할 일
+          </button>
+        </section>
       </div>
 
-      <section className="promise">
-        <h2>모든 시안이 지키는 것(자리 · 기능)</h2>
-        <ul>
-          <li>한 바퀴 = 오늘 하루, 0시가 맨 위, 시계 방향. 3시간마다 시각 글자.</li>
-          <li>종류 셋(수업 · 내 일정 · 할 일 자리)은 모양으로도 가른다. 색만으로 가르지 않는다.</li>
-          <li>지금 시각 표시와 글자, 지난 시간은 흐리게.</li>
-          <li>붙어 있는 두 일정은 눈으로 갈라진다(틈 · 겹세로줄 · 따로 뜬 무리).</li>
-          <li>일정을 누르면 그 일정이 골라지고 나머지는 옅어진다. 누르는 띠는 모든 시안이 같다.</li>
-          <li>가운데(반지름 56)는 날짜 · 다음 일정 · 고른 일정 글자 칸이다.</li>
-        </ul>
-      </section>
-    </main>
+      <div className="snack" role="status">
+        메모를 일정으로 넣었어요 <button type="button">되돌리기</button>
+      </div>
+    </div>
   );
 }
 
