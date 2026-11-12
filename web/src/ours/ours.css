@@ -479,3 +479,9 @@
 .ty9 .y-later .y-ti { cursor: pointer; }
 /* 폰: 고리는 화면 너비에 맞춰 키운다(폴드처럼 넓은 폰에서 고리만 작아 보이지 않게), 키가 낮으면 높이에 맞춘다 */
 .ty9.y-ph .y-hx .y-rw { width: clamp(196px, min(56vw, 34vh), 340px); }
+/* 넓은 화면: 같은 너비 3칸. 고리를 끌어 세 칸 중 하나로 옮긴다(OursToday, 11-13 사람). 칸 자리는 grid-area를 화면이 정한다 */
+.ty9:not(.y-ph) .y-hx { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); }
+.ty9:not(.y-ph) .y-hx .y-rw { cursor: grab; touch-action: none; user-select: none; }
+.ty9 .y-hc.y-drag { position: relative; z-index: 5; }
+.ty9 .y-hc.y-drag .y-rw { cursor: grabbing; filter: drop-shadow(0 12px 28px rgb(0 0 0 / .35)); }
+.ty9 .y-zone { grid-row: 1; border: 1.5px dashed color-mix(in srgb, var(--ink) 45%, transparent); border-radius: 18px; pointer-events: none; }

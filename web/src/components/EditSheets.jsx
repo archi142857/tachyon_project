@@ -5,7 +5,8 @@
 // 지우기는 한 번 더 눌러야 지운다.
 import { useState } from 'react';
 import { fromFeed } from '../api.js';
-import { dateInput, isoFromInputs, timeInput } from '../time.js';
+import { isAllDay } from '../layout.js';
+import { dateInput, dayLabel, isoFromInputs, popupTime, timeInput } from '../time.js';
 import EventForm, { eventToForm, formToEvent } from './EventForm.jsx';
 import RouteInfo from './RouteInfo.jsx';
 import Sheet from './Sheet.jsx';
@@ -74,6 +75,34 @@ export function EventEditSheet({ event, leg, campus, events, onSave, onDelete, o
         {!feed && onDelete && <DeleteButton busy={busy} onDelete={() => run(onDelete)} />}
         <button type="button" className="btn" disabled={busy || !ready} onClick={() => run(() => onSave(feed && !dirty ? { important } : { ...formToEvent(form), important }))}>
           저장
+        </button>
+      </div>
+    </Sheet>
+  );
+}
+
+// 일정을 누르면 먼저 보는 창: 언제 · 어디 · 어디서 왔나 · 동선. '고치기'를 누르면 고치는 창으로(11-13 사람 "달력에서 일정을 클릭하면 정보가 나오도록")
+const SOURCE_NAME = { ...FEED_NAME, timetable: '시간표', memo: '메모' };
+export function EventInfoSheet({ event, leg, campus, events, onEdit, onClose }) {
+  const when = isAllDay(event) ? `${dayLabel(event.start)} · 하루 종일` : popupTime(event.start, event.end);
+  return (
+    <Sheet title="일정 정보" onClose={onClose}>
+      <p className="info-title">{event.title}</p>
+      <dl className="info-list">
+        <dt>언제</dt>
+        <dd className="num">{when}</dd>
+        <dt>어디</dt>
+        <dd>{event.place || '장소 없음'}</dd>
+        <dt>온 곳</dt>
+        <dd>
+          {SOURCE_NAME[event.source] ?? '직접 넣음'}
+          {event.important ? ' · 중요' : ''}
+        </dd>
+      </dl>
+      <RouteInfo event={event} leg={leg} campus={campus} events={events} />
+      <div className="sheet-actions">
+        <button type="button" className="btn" onClick={onEdit}>
+          고치기
         </button>
       </div>
     </Sheet>

@@ -1,18 +1,31 @@
 // 오늘(시연 9판): 하루 고리 · 오늘 타임라인 · 해야 할 일을 한 화면에. 고리의 색 구간, 타임라인의 칸, 할 일 줄이 같이 골라진다.
 // 자리 넣기 계산은 원래 화면(TodayView)과 같다: slots.js. 저장하지 않는다.
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { dayEvents, daySlots, freeMinutes, hm } from '../slots.js';
 import { minutesLabel, readyLabel, slackLabel } from '../tasks.js';
 import { daysUntil, deadlineLabel, deadlineShort, minuteOfDay } from '../time.js';
 import { TimeGrid } from './OursCal.jsx';
 import OursRing from './OursRing.jsx';
-import { CHECK, PAL, colorOf } from './skin.jsx';
+import { CHECK, PAL, colorOf, usePhone } from './skin.jsx';
 
 // 할 일을 오늘 못 넣은 까닭
 function noSlot(task) {
   if (!task.minutes) return '걸리는 시간을 몰라 자리를 못 잡았어요';
   if (task.ready === 0) return '수업·자료 뒤에 할 수 있어요';
   return '오늘은 넣을 빈 시간이 없어요';
+}
+
+// 넓은 화면은 3칸. 고리를 끌어 세 칸 중 하나로 옮기면 나머지가 차례대로 비켜선다(11-13 사람 "고리가 커서를 따라와야").
+// 고른 차례는 이 기기에만 둔다.
+const CARDS = ['ring', 'time', 'tasks']; // 기본 = 시연 9판 처음 3칸
+const ORDER_KEY = 'tachyon_today_order';
+function loadOrder() {
+  try {
+    const o = JSON.parse(localStorage.getItem(ORDER_KEY));
+    return Array.isArray(o) && o.length === 3 && CARDS.every((k) => o.includes(k)) ? o : CARDS;
+  } catch {
+    return CARDS;
+  }
 }
 
 // 줄 아래 글: 예상 시간 · 추천 시간(오늘 빈 시간에 넣어 본 자리, 시연 9판처럼) · 지금 가능 (11-12 사람 "예상 시간과 추천시간 띄워줘")
@@ -64,10 +77,75 @@ export default function OursToday({ app }) {
   const free = freeMinutes(busy, nowMin);
   const later = busy.filter((b) => b.to > nowMin); // 오늘 남은 일정(폰: 타임라인 대신 목록으로)
 
+  // 고리 끌기: 6px 넘게 움직이면 고리 칸이 커서를 따라오고, 놓으면 그 아래 칸으로 미끄러져 들어간다(FLIP)
+  const phone = usePhone();
+  const [order, setOrder] = useState(loadOrder);
+  const [over, setOver] = useState(null); // 끄는 동안 고리가 들어갈 칸(0~2)
+  const grid = useRef(null);
+  const cards = useRef({});
+  const before = useRef(null); // 옮기기 직전 칸들의 자리
+  useLayoutEffect(() => {
+    const first = before.current;
+    if (!first) return;
+    before.current = null;
+    for (const [k, r] of Object.entries(first)) {
+      const el = cards.current[k];
+      el.style.transition = 'none';
+      el.style.transform = ''; // 끌던 자리를 빼고 새 칸 자리를 잰다
+      const now = el.getBoundingClientRect();
+      el.style.transform = `translate(${r.left - now.left}px, ${r.top - now.top}px)`;
+      el.getBoundingClientRect(); // 시작 자리를 먼저 그리게
+      el.style.transition = 'transform .38s cubic-bezier(.2, .8, .2, 1)';
+      el.style.transform = '';
+    }
+  }, [order]);
+  const grab = (e) => {
+    if (phone || e.button !== 0) return;
+    const el = cards.current.ring;
+    const [x0, y0] = [e.clientX, e.clientY];
+    let moved = false;
+    const zoneAt = (x) => {
+      const r = grid.current.getBoundingClientRect();
+      return Math.min(2, Math.max(0, Math.floor(((x - r.left) / r.width) * 3)));
+    };
+    const move = (ev) => {
+      const [dx, dy] = [ev.clientX - x0, ev.clientY - y0];
+      if (!moved && Math.hypot(dx, dy) < 6) return;
+      moved = true;
+      el.style.transition = 'none';
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+      el.classList.add('y-drag');
+      setOver(zoneAt(ev.clientX));
+    };
+    const up = (ev) => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      if (!moved) return;
+      // 끈 뒤 손 뗄 때 생기는 누름(고리 구간 고르기)은 버린다
+      const eat = (c) => c.stopPropagation();
+      window.addEventListener('click', eat, true);
+      setTimeout(() => window.removeEventListener('click', eat, true));
+      el.classList.remove('y-drag');
+      setOver(null);
+      before.current = Object.fromEntries(Object.entries(cards.current).map(([k, n]) => [k, n.getBoundingClientRect()]));
+      const next = order.filter((k) => k !== 'ring');
+      next.splice(zoneAt(ev.clientX), 0, 'ring');
+      setOrder(next);
+      try {
+        localStorage.setItem(ORDER_KEY, JSON.stringify(next));
+      } catch {
+        // 못 적어도 이번에는 옮겨진다
+      }
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+  const place = (k) => ({ ref: (el) => (cards.current[k] = el), style: { gridArea: `1 / ${order.indexOf(k) + 1}` } });
+
   return (
-    <div className="y-hx">
-      <div className="y-hc">
-        <div className="y-rw" style={{ '--sc': picked ? picked.color : PAL[0] }}>
+    <div className="y-hx" ref={grid}>
+      <div className="y-hc" {...place('ring')}>
+        <div className="y-rw" style={{ '--sc': picked ? picked.color : PAL[0] }} onPointerDown={grab} title={phone ? undefined : '끌어서 다른 칸으로 옮길 수 있어요'}>
           <OursRing items={items} nowMin={nowMin} sel={sel} onPick={pick} memos={memos.filter((m) => !m.handled).length} onMemos={() => setPage('memo')}>
             {picked ? (
               <>
@@ -92,7 +170,7 @@ export default function OursToday({ app }) {
         {picked ? (
           <div className="y-chips y-pick">
             <button type="button" className="y-gb" onClick={picked.edit}>
-              고치기
+              {picked.task ? '고치기' : '자세히'}
             </button>
             <button type="button" className="y-gb" onClick={() => setSel(null)}>
               고르기 풀기
@@ -103,7 +181,7 @@ export default function OursToday({ app }) {
         )}
       </div>
 
-      <div className="y-hc y-tc">
+      <div className="y-hc y-tc" {...place('time')}>
         <p className="y-lb">
           오늘 일정 · 고리를 누르면 여기서 같은 칸이 골라져요
           <button type="button" className="y-bk y-go" onClick={() => showWeekOf(today)}>
@@ -116,7 +194,7 @@ export default function OursToday({ app }) {
         </div>
       </div>
 
-      <div className="y-hc">
+      <div className="y-hc" {...place('tasks')}>
         <p className="y-lb">해야 할 일 · 남은 {openTasks.length}개</p>
         <div className="y-rows y-hr">
           {tasks.length === 0 && <p className="y-night">할 일이 없어요. 아래 메모 칸에 적으면 할 일로 넣어 드려요</p>}
@@ -176,6 +254,7 @@ export default function OursToday({ app }) {
           </div>
         </div>
       </div>
+      {over != null && <i className="y-zone" style={{ gridArea: `1 / ${over + 1}` }} aria-hidden="true" />}
     </div>
   );
 }

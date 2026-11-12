@@ -129,6 +129,11 @@ h1, h2, h3, p { margin: 0; }
 .input { height: 48px; width: 100%; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: var(--r-btn); background: var(--inset); font-size: 16px; color: var(--text); }
 .input::placeholder { color: var(--text3); }
 .hint { font-size: 13px; line-height: 18px; color: var(--text3); }
+/* 일정 정보 창(EditSheets EventInfoSheet) */
+.info-title { margin: 0; font-size: 18px; font-weight: 700; color: var(--heading); }
+.info-list { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0; font-size: 15px; }
+.info-list dt { color: var(--text3); }
+.info-list dd { margin: 0; color: var(--text); }
 /* 오류: 문장은 기본 글자색, 빨강은 앞의 동그라미에만(③ 빨강 = 지금과 시간 경고) */
 .error { display: flex; gap: 6px; align-items: flex-start; font-size: 13px; line-height: 18px; color: var(--text); }
 .error::before { content: '!'; content: '!' / ''; flex: none; width: 16px; height: 16px; margin-top: 1px; border-radius: 50%; background: var(--danger); color: var(--card); font-size: 11px; line-height: 16px; font-weight: 700; text-align: center; }

@@ -9,7 +9,7 @@ import CalendarSheet from '../components/CalendarSheet.jsx';
 import Composer from '../components/Composer.jsx';
 import DeleteAccount from '../components/DeleteAccount.jsx';
 import DoneSheet from '../components/DoneSheet.jsx';
-import { EventEditSheet, TaskEditSheet } from '../components/EditSheets.jsx';
+import { EventEditSheet, EventInfoSheet, TaskEditSheet } from '../components/EditSheets.jsx';
 import EtlSheet from '../components/EtlSheet.jsx';
 import FeedbackSheet from '../components/FeedbackSheet.jsx';
 import Icon from '../components/Icon.jsx';
@@ -546,7 +546,18 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
           }}
         />
       )}
-      {sheet?.event && (
+      {/* 일정을 누르면 정보 창부터, '고치기'로 고치는 창(sheet.edit) */}
+      {sheet?.event && !sheet.edit && (
+        <EventInfoSheet
+          event={sheet.event}
+          leg={legs.get(sheet.event.id)}
+          campus={campus}
+          events={allEvents}
+          onClose={() => setSheet(null)}
+          onEdit={() => setSheet({ event: sheet.event, edit: true })}
+        />
+      )}
+      {sheet?.event && sheet.edit && (
         <EventEditSheet
           event={sheet.event}
           leg={legs.get(sheet.event.id)}
