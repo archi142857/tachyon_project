@@ -1,8 +1,11 @@
 // 오늘 화면(하루 고리 · 오늘 타임라인)이 쓰는 계산. 하루는 0~1440분(한국 시간)으로 다룬다.
 // '넣어 본 자리' = 오늘 빈 시간에 할 일을 순서대로 넣어 본 것. 화면에서만 계산하고 저장하지 않는다.
 import { endOf, isAllDay } from './layout.js';
+import { readPrefs } from './prefs.js';
 
-export const WAKE = 7; // ponytail: 일어나는 시각을 7시로 고정했다. 첫 설정에서 묻게 되면 그 값으로 바꾼다
+// 일어나는 시각(시작 질문, prefs.js). 나 창에서 바꾸면 setWake로 바로 바뀐다
+export let WAKE = readPrefs().wake;
+export const setWake = (h) => (WAKE = h);
 const GAP = 10; // 일정 앞뒤로 비워 두는 분, 자리도 10분 단위로 잡는다
 
 // 620 → '10:20'

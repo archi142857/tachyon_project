@@ -23,7 +23,9 @@ function noSlot(task) {
 // today = 오늘 0시(ISO), tasks = 화면에 보일 할 일(순서대로), total = 안 끝낸 할 일 수
 // widget(id) = 넓은 화면 위젯 칸(WidgetGrid): { slot, lifted, grip } — 없으면 지금 그대로. editing이면 타임라인 카드를 눌러도 달력으로 가지 않는다
 const card = (base, w) => `card ${base}${w.lifted ? ' lifted' : ''}`;
-export default function TodayView({ today, events, tasks, total, now, onDone, onEvent, onTask, onAll, onWeek, widget = () => ({}), editing = false, layoutKey = '' }) {
+// fixed = { 할 일 id: { from, to } } 오늘 '이 시간에 넣기'로 정한 것(taskLocal.js) — 자리를 다시 잡지 않고 '정함'으로 보인다
+// onTask(task, slot) = 할 일 바로 다루기 창(slot = 추천 자리, 없으면 null)
+export default function TodayView({ today, events, tasks, total, now, fixed = {}, onDone, onEvent, onTask, onAll, onWeek, widget = () => ({}), editing = false, layoutKey = '' }) {
   const [sel, setSel] = useState(null);
   const w = { day: widget('day'), ring: widget('ring'), tasks: widget('tasks') };
   // 낮은 칸에서 타임라인이 카드 안에서 굴면(디자인 ②) 처음엔 지금 시각이 보이게 굴려 둔다
@@ -37,13 +39,13 @@ export default function TodayView({ today, events, tasks, total, now, onDone, on
   const particles = useParticles(); // 입자 테마면 하루 고리 범례도 입자 모양(DayRing과 같게)
   const nowMin = minuteOfDay(now);
   const busy = dayEvents(events, today);
-  const slots = daySlots(tasks, busy, nowMin);
+  const slots = daySlots(tasks.map((t) => (fixed[t.id] ? { ...t, minutes: 0 } : t)), busy, nowMin); // 정한 것은 자리를 잡지 않는다
   const placed = tasks.map((task, i) => ({ task, slot: slots[i], key: `t${task.id}` })).filter((p) => p.slot);
 
   // 고를 수 있는 것 모두: 일정 + 넣어 본 자리
   const items = [
     ...busy.map(({ ev, from, to }) => ({ key: `e${ev.id}`, from, to, kind: kindOf(ev), title: ev.title, sub: ev.place, edit: () => onEvent(ev) })),
-    ...placed.map(({ task, slot, key }) => ({ key, from: slot[0], to: slot[1], kind: 'slot', title: task.title, sub: `넣어 본 자리 · ${deadlineLabel(task.due, now)}`, edit: () => onTask(task) })),
+    ...placed.map(({ task, slot, key }) => ({ key, from: slot[0], to: slot[1], kind: 'slot', title: task.title, sub: `넣어 본 자리 · ${deadlineLabel(task.due, now)}`, edit: () => onTask(task, slot) })),
   ];
   const picked = items.find((x) => x.key === sel);
   const pick = (key) => setSel((s) => (s === key ? null : key));
@@ -171,8 +173,17 @@ export default function TodayView({ today, events, tasks, total, now, onDone, on
           const key = `t${task.id}`;
           return (
             <div key={key} className={sel === key ? 'pick on' : 'pick'} onClick={slots[i] ? () => setSel(key) : undefined}>
-              <TaskRow task={task} now={now} onDone={onDone} onEdit={onTask} />
-              <p className="slot-note num">{slots[i] ? `넣어 본 자리 ${hm(slots[i][0])}–${hm(slots[i][1])}` : noSlot(task)}</p>
+              <TaskRow task={task} now={now} onDone={onDone} onEdit={(t) => onTask(t, slots[i])} />
+              {fixed[task.id] ? (
+                <p className="slot-note fixed num">정함 {hm(fixed[task.id].from)}–{hm(fixed[task.id].to)}</p>
+              ) : slots[i] ? (
+                // 추천(점선 · '추천' 꼬리표, 디자인 ⑦) — 누르면 '이 시간에 넣기'
+                <button type="button" className="slot-note suggest num" onClick={() => onTask(task, slots[i])}>
+                  <span className="tag suggest">추천</span> {hm(slots[i][0])}–{hm(slots[i][1])} 어때요?
+                </button>
+              ) : (
+                <p className="slot-note num">{noSlot(task)}</p>
+              )}
             </div>
           );
         })}

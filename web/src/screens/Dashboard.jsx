@@ -12,12 +12,17 @@ import DoneSheet from '../components/DoneSheet.jsx';
 import { EventEditSheet, EventInfoSheet, TaskEditSheet } from '../components/EditSheets.jsx';
 import EtlSheet from '../components/EtlSheet.jsx';
 import FeedbackSheet from '../components/FeedbackSheet.jsx';
+import GuideSheet, { guideSeen } from '../components/GuideSheet.jsx';
 import Icon from '../components/Icon.jsx';
 import InstallSheet from '../components/InstallSheet.jsx';
 import JoinSheet from '../components/JoinSheet.jsx';
 import Logo from '../components/Logo.jsx';
 import MemoCard from '../components/MemoCard.jsx';
+import MeSheet from '../components/MeSheet.jsx';
 import MemoPopup from '../components/MemoPopup.jsx';
+import TaskActSheet from '../components/TaskActSheet.jsx';
+import { askedPrefs, readPrefs } from '../prefs.js';
+import { addFocus, arrange, fixTask, fixedOn, pinTask, snoozeTask } from '../taskLocal.js';
 import MonthCalendar from '../components/MonthCalendar.jsx';
 import Sheet from '../components/Sheet.jsx';
 import Snackbar from '../components/Snackbar.jsx';
@@ -59,7 +64,7 @@ function useNow() {
 }
 
 // 열린 창을 가리키는 짧은 이름(알림 막대가 그 창 안으로 옮겨 갈 때 쓴다)
-const sheetKey = (sheet) => (!sheet ? '' : typeof sheet === 'string' ? sheet : sheet.event ? `event-${sheet.event.id}` : `task-${sheet.task.id}`);
+const sheetKey = (sheet) => (!sheet ? '' : typeof sheet === 'string' ? sheet : sheet.event ? `event-${sheet.event.id}` : sheet.act ? `act-${sheet.act.id}` : `task-${sheet.task?.id}`);
 
 // 이미 홈 화면 앱이거나 Capacitor 앱이면 '홈 화면에 추가'를 숨긴다
 const standalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true || !!window.Capacitor?.isNativePlatform?.();
@@ -96,6 +101,34 @@ function mergeEvents(a, b) {
   return [...seen.values()];
 }
 
+// 집중 타이머 막대(9판 '집중 N분'): 머리 밑 한 줄. 1초마다 남은 시간, 끝나면 onEnd, '그만'은 지난 분만 적는다
+function FocusBar({ focus, onStop, onEnd }) {
+  const [left, setLeft] = useState(() => focus.end - Date.now());
+  useEffect(() => {
+    const id = setInterval(() => {
+      const ms = focus.end - Date.now();
+      if (ms <= 0) {
+        clearInterval(id);
+        onEnd();
+      } else setLeft(ms);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [focus]); // eslint-disable-line react-hooks/exhaustive-deps
+  const s = Math.max(0, Math.ceil(left / 1000));
+  return (
+    <div className="focus-bar" role="timer" aria-live="off">
+      <span className="focus-dot" aria-hidden="true" />
+      <span className="focus-title">집중 · {focus.task.title}</span>
+      <strong className="num">
+        {Math.floor(s / 60)}:{String(s % 60).padStart(2, '0')}
+      </strong>
+      <button type="button" className="btn-text quiet" onClick={() => onStop(Math.floor((focus.min * 60 - s) / 60))}>
+        그만
+      </button>
+    </div>
+  );
+}
+
 function Segmented({ label, items, value, onChange }) {
   return (
     <div className="segmented" role="group" aria-label={label}>
@@ -111,7 +144,8 @@ function Segmented({ label, items, value, onChange }) {
 export default function Dashboard({ example, installPrompt, ttwLink, joinCode, onOpenSetup, onLogout, onDeleted }) {
   const now = useNow();
   const today = dayStart(now).toISOString(); // 자정이 지나면 저절로 하루 밀린다
-  const [page, setPage] = useState('today');
+  const [page, setPage] = useState(() => readPrefs().first); // 시작 질문 '첫 화면'
+  const [guide, setGuide] = useState(() => !guideSeen()); // 처음 길잡이(이 기기에서 한 번)
   const [pane, setPane] = useState('ring'); // 폰의 오늘 쪽에서 보이는 한 칸
   const [join, setJoin] = useState(() => (joinCode && !example ? joinCode : null)); // 초대 링크(?join=)로 들어왔으면 받기 창
   const [togetherKey, setTogetherKey] = useState(0); // 받은 뒤 '같이' 쪽을 새로 불러오게
@@ -162,6 +196,8 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   const [busy, setBusy] = useState(false);
   const [sheet, setSheet] = useState(null); // 'menu' | 'done' | 'feedback' | 'install' | 'calendar' | 'etl' | 'theme' | 'delete' | { event } | { task }
   const [snack, setSnack] = useState(null);
+  const [focus, setFocus] = useState(null); // 집중 타이머 { task, min, end }
+  const [localTick, setLocalTick] = useState(0); // 이 기기에 적은 할 일 차례(taskLocal.js)가 바뀌면 다시 셈
   // TT Wizard의 'Tachyon으로 보내기'로 들어왔으면(App.jsx가 받아 둔 #ttw=…) 그 시간표 창을 바로 연다(11-11 컨셉)
   const [ttwFrom] = useState(ttwLink || null);
   useEffect(() => {
@@ -288,6 +324,10 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   const legs = useMemo(() => dayLegs(allEvents, campus), [allEvents, campus]);
 
   const openTasks = useMemo(() => rank.tasks.filter((t) => !t.done), [rank.tasks]);
+  const todayKey = dateKey(now);
+  // 오늘 목록: 미룬 것 빼고 당긴 것 먼저(taskLocal.js). 폰은 2~3개만(사람 결정 '오늘 화면 · 폰': "할 일은 2-3개 정도만 띄우고")
+  const todayTasks = useMemo(() => arrange(openTasks, todayKey), [openTasks, todayKey, localTick]); // eslint-disable-line react-hooks/exhaustive-deps
+  const fixedToday = useMemo(() => fixedOn(todayKey), [todayKey, localTick]); // eslint-disable-line react-hooks/exhaustive-deps
   const subjects = useMemo(() => [...new Set(allEvents.filter((e) => e.source === 'timetable').map((e) => e.title))], [allEvents]);
 
   // 날마다 밀도(오늘부터 6주). 서버 셈(AI 4_night planDays — 할 일 순서·경고와 같은 셈)을 그리고, 예시 모드나 못 받았을 때만 화면 셈.
@@ -333,8 +373,16 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   }
 
   // 띠를 누르면 '이 시간으로 모임 잡기'(11-13): 메모 하나를 남기고, 팝업은 고른 시각 그대로(서버가 읽은 것은 suggested로만 — 팝업 정확도)
-  async function planTogether(span) {
-    const title = `${overlayGroup.name} 모임`;
+  const planTogether = (span) => planAt(`${overlayGroup.name} 모임`, span, { together: overlayGroup.name });
+
+  // 추천 자리 → '이 시간에 넣기'(할 일 바로 다루기): 같은 길로 일정 팝업을 띄우고, 저장되면 그 할 일을 오늘 '정함'으로 적는다
+  function placeTask(task, slot) {
+    const d = new Date(today).getTime();
+    setSheet(null);
+    planAt(task.title, { start: new Date(d + slot[0] * 60000).toISOString(), end: new Date(d + slot[1] * 60000).toISOString() }, {}, { id: task.id, from: slot[0], to: slot[1] });
+  }
+
+  async function planAt(title, span, extra = {}, fix = null) {
     const text = `${shortDate(span.start)} ${hhmm(span.start)}–${hhmm(span.end)} ${title}`;
     const temp = { id: `tmp-${Date.now()}`, text, created_at: new Date().toISOString(), handled: 0, event_id: null };
     setMemos((m) => [...m, temp]);
@@ -343,10 +391,10 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
       const { memo, popup: found } = await api.sendMemo(text);
       setMemos((m) => m.map((x) => (x.id === temp.id ? memo : x)));
       const date = toKstIso(span.start).slice(0, 10);
-      setPopup({ memoId: memo.id, suggested: found ?? null, popup: { title, date, time: hhmm(span.start), end_time: hhmm(span.end), place: '?', together: overlayGroup.name } });
+      setPopup({ memoId: memo.id, suggested: found ?? null, fix, popup: { title, date, time: hhmm(span.start), end_time: hhmm(span.end), place: '?', ...extra } });
     } catch {
       setMemos((m) => m.filter((x) => x.id !== temp.id));
-      setSnack({ text: '모임을 잡지 못했어요. 다시 해 주세요' });
+      setSnack({ text: '일정을 띄우지 못했어요. 다시 해 주세요' });
     } finally {
       setWaiting(false);
     }
@@ -372,6 +420,10 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
       }
       const { event, repeat } = await api.savePopup(popup.memoId, fields, 'suggested' in popup ? popup.suggested : popup.popup, changeId, weekly);
       setMemos((m) => m.map((x) => (x.id === popup.memoId ? { ...x, handled: 1, event_id: event.id } : x)));
+      if (popup.fix) {
+        fixTask(popup.fix.id, todayKey, popup.fix.from, popup.fix.to);
+        setLocalTick((n) => n + 1);
+      }
       setPopup(null);
       const shown = api.normalizeEvent(event);
       if (changeId) {
@@ -567,7 +619,10 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
           <button type="button" className="btn-text" onClick={() => setSheet('feedback')}>
             의견
           </button>
-          <button type="button" className="icon-btn" aria-label="메뉴" onClick={() => setSheet('menu')}>
+          <button type="button" className="btn-text" onClick={() => setSheet('me')}>
+            나
+          </button>
+          <button type="button" className="icon-btn" aria-label="메뉴(설정)" onClick={() => setSheet('menu')}>
             <Icon name="menu" />
           </button>
         </header>
@@ -586,6 +641,21 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
           </section>
         )}
 
+        {focus && (
+          <FocusBar
+            focus={focus}
+            onStop={(spent) => {
+              if (spent > 0) addFocus(spent, todayKey);
+              setFocus(null);
+            }}
+            onEnd={() => {
+              addFocus(focus.min, todayKey);
+              const task = focus.task;
+              setFocus(null);
+              setSnack({ text: `집중 ${focus.min}분 끝 · ‘${task.title}’`, actionLabel: '끝냈어요', onAction: () => doneTask(task) });
+            }}
+          />
+        )}
         <main key={page} className={`page page-${page}`} data-pane={pane}>
           {page === 'today' && (
             <WidgetGrid wide={wide} layout={todayLayout.layout} order={todayLayout.order} editing={arranging} onSwap={swapWidgets}>
@@ -594,12 +664,13 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
               <TodayView
                 today={today}
                 events={planEvents}
-                tasks={openTasks.slice(0, 6)}
+                tasks={todayTasks.slice(0, wide ? 6 : 3)}
                 total={openTasks.length}
+                fixed={fixedToday}
                 now={now}
                 onDone={doneTask}
                 onEvent={(event) => setSheet({ event })}
-                onTask={(task) => setSheet({ task })}
+                onTask={(task, slot) => setSheet({ act: task, slot })}
                 onAll={() => setPage('tasks')}
                 onWeek={() => showWeekOf(today)}
                 widget={widget}
@@ -659,6 +730,50 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
         <Composer onSend={sendMemo} />
       </div>
 
+      {guide && !join && (
+        <GuideSheet
+          onClose={() => {
+            setGuide(false);
+            if (!askedPrefs()) setSheet('start'); // 처음이면 길잡이 뒤에 시작 질문 셋
+          }}
+        />
+      )}
+      {(sheet === 'me' || sheet === 'start') && <MeSheet start={sheet === 'start'} onClose={() => (setSheet(null), setLocalTick((n) => n + 1))} onDoneList={() => setSheet('done')} onSetup={onOpenSetup} />}
+      {sheet?.act && (
+        <TaskActSheet
+          task={sheet.act}
+          slot={sheet.slot}
+          fixed={fixedToday[sheet.act.id]}
+          now={now}
+          focusMin={readPrefs().focus}
+          onClose={() => setSheet(null)}
+          onPlace={(slot) => placeTask(sheet.act, slot)}
+          onFocus={() => {
+            const min = readPrefs().focus;
+            setFocus({ task: sheet.act, min, end: Date.now() + min * 60000 });
+            setSheet(null);
+          }}
+          onPin={() => {
+            pinTask(sheet.act.id);
+            setLocalTick((n) => n + 1);
+            setSheet(null);
+            setSnack({ text: `‘${sheet.act.title}’ 맨 앞으로 당겼어요` });
+          }}
+          onSnooze={() => {
+            const task = sheet.act;
+            const n = snoozeTask(task.id, dateKey(addDays(today, 1)));
+            setLocalTick((k) => k + 1);
+            setSheet(null);
+            setSnack({ text: n >= 3 ? `‘${task.title}’ 세 번째 미뤘어요. 안 해도 되면 지워도 돼요` : `‘${task.title}’ 내일로 미뤘어요` });
+          }}
+          onEdit={() => setSheet({ task: sheet.act })}
+          onDone={() => {
+            const task = sheet.act;
+            setSheet(null);
+            doneTask(task);
+          }}
+        />
+      )}
       {join && (
         <JoinSheet
           code={join}
@@ -672,11 +787,8 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
         />
       )}
       {sheet === 'menu' && (
-        <Sheet title="메뉴" onClose={() => setSheet(null)}>
+        <Sheet title="메뉴 · 설정" onClose={() => setSheet(null)}>
           <div className="menu-list">
-            <button type="button" onClick={() => setSheet('done')}>
-              끝낸 일
-            </button>
             <button type="button" onClick={onOpenSetup}>
               캘린더 연결·학과
             </button>
@@ -696,6 +808,15 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
             )}
             <button type="button" onClick={() => setSheet('theme')}>
               테마
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSheet(null);
+                setGuide(true);
+              }}
+            >
+              길잡이 다시 보기
             </button>
             <button type="button" onClick={() => setSheet('feedback')}>
               의견 보내기

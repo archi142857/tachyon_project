@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { normalizeEvent, popupToEvent } from './api.js';
 import { eventToForm, formToEvent, formToPopup, popupToForm } from './components/EventForm.jsx';
 import { subjectOf } from './components/TaskList.jsx';
+import { cleanPrefs } from './prefs.js';
 import { examplePopup, makeExample } from './example.js';
 import { endOf, hourRange, isAllDay, layoutDay } from './layout.js';
 import { FEEDS, detectFeed, feedResult, normalizeIcs, resultLine, unsavedErrors } from './setup.js';
@@ -213,5 +214,13 @@ describe('할 일 과목별 묶음', () => {
     expect(subjectOf({ title: '과제 5 미적분학' }, ['미적분학'])).toBe('미적분학');
     expect(subjectOf({ title: '영어 에세이 초안' }, ['미적분학'])).toBe('영어');
     expect(subjectOf({ title: '[실험] 보고서' }, [])).toBe('실험');
+  });
+});
+
+describe('시작 질문 셋(prefs.js)', () => {
+  it('모르는 값은 기본으로', () => {
+    expect(cleanPrefs({ wake: 8, focus: 50, first: 'cal' })).toEqual({ wake: 8, focus: 50, first: 'cal' });
+    expect(cleanPrefs({ wake: 3, focus: '25', first: 'x' })).toEqual({ wake: 7, focus: 25, first: 'today' });
+    expect(cleanPrefs(null)).toEqual({ wake: 7, focus: 25, first: 'today' });
   });
 });

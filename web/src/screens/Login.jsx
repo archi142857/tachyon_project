@@ -1,6 +1,7 @@
 // 로그인: 구글 로그인(이름·이메일만). 서버 없이 보려면 '예시로 둘러보기'.
 // 서울대 구글 계정(@snu.ac.kr)으로 하라고 안내만 한다(11-11 사람 요청). 막지는 않는다: 팀원 개인 계정과 구글 시험 사용자 목록이 걸려서.
 import { LOGIN_URL } from '../api.js';
+import pic1 from '../assets/guide/guide1.svg';
 import Logo from '../components/Logo.jsx';
 import { appLogin, inApp } from '../native.js';
 
@@ -14,7 +15,9 @@ export default function Login({ error, notice, onExample }) {
         <h1 className="wordmark">
           <Logo height={40} />
         </h1>
-        <p className="lead">메모하면 달력과 할 일로 정리해 줘요.</p>
+        {/* 앱 목적 한 줄 + 길잡이 그림 1(사람 피드백 8, 디자인 ⑩, 문구 docs/tachyon/앱_소개_문구.md) */}
+        <p className="lead">메모 한 줄이면 일정·할 일로 정리하고, 빈 시간에 할 일을 넣어 하루를 고르게 써요.</p>
+        <img className="guide-pic" src={pic1} alt="메모 칸에 적으면 일정과 할 일로 나뉘는 그림" />
         {notice && (
           <p className="hint" role="status">
             {notice}

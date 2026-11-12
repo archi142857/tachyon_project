@@ -1,0 +1,30 @@
+/* 11-13 사람 결정(docs/tachyon/합치기_결정.md)의 9판 기능을 기본 화면에 넣은 몫: 할 일 바로 다루기 · 집중 막대 · 정함/추천 줄 · 나 창.
+   모든 테마 공통, 색은 테마 값만. 입자 테마의 사용감은 particleFeel.css가 덮는다. main.jsx에서 feedback1113.css 다음에. */
+
+/* 추천 자리 줄 = 누르면 '이 시간에 넣기'(점선 꼬리표), 정한 자리 = 실선 */
+button.slot-note { display: block; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }
+button.slot-note:hover { color: var(--text); }
+.slot-note.fixed { color: var(--text); font-weight: 600; }
+.slot-note.fixed::before { content: ''; display: inline-block; width: 10px; height: 0; margin-right: 6px; border-top: 2px solid var(--accent-text); vertical-align: 3px; }
+
+/* 할 일 바로 다루기 창 */
+.act-slot { margin: 12px 0 8px; padding: 10px 12px; border: 1.5px dashed var(--text3); border-radius: var(--r-btn); color: var(--text); }
+.act-slot.fixed { border-style: solid; border-color: var(--accent-text); }
+.act-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.act-row .btn-text { flex: 1 1 auto; }
+
+/* 집중 막대: 머리 밑 한 줄 */
+.focus-bar { display: flex; align-items: center; gap: 10px; min-height: 44px; margin: 0 16px 8px; padding: 0 4px 0 14px; border-radius: var(--r-btn); background: var(--fill); color: var(--text); }
+.focus-bar .focus-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.focus-bar strong { font-size: 18px; }
+.focus-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--now); animation: focus-blink 1.2s ease-in-out infinite alternate; }
+@keyframes focus-blink { to { opacity: 0.3; } }
+
+/* 나 창: 질문마다 한 줄 */
+dialog.sheet .field + .field { margin-top: 12px; }
+dialog.sheet .field .seg button { min-height: 40px; font-size: 14px; }
+
+@media (prefers-reduced-motion: reduce) { .focus-dot { animation: none; } }
+
+/* 폰 머리 줄: '의견' · '나'가 두 줄로 꺾이지 않게 */
+.shell .topbar .btn-text { white-space: nowrap; }

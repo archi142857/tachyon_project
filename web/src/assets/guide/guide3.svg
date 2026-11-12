@@ -1,0 +1,174 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 240" role="img" aria-label="하루 고리: 수업은 파란 점, 내 일정은 네모, 할 일을 넣어 본 자리는 노란 세모, 빨간 선이 지금">
+  <rect width="360" height="240" fill="#f3f2ee"/>
+  <circle cx="180" cy="122" r="98" fill="#ffffff" stroke="#141414" stroke-width="1.3"/>
+  <line x1="180" y1="30" x2="180" y2="26" stroke="#141414" stroke-width="1"/>
+  <line x1="203.8" y1="33.1" x2="204.8" y2="29.3" stroke="#141414" stroke-width="1"/>
+  <line x1="226" y1="42.3" x2="228" y2="38.9" stroke="#141414" stroke-width="1"/>
+  <line x1="245.1" y1="56.9" x2="247.9" y2="54.1" stroke="#141414" stroke-width="1"/>
+  <line x1="259.7" y1="76" x2="263.1" y2="74" stroke="#141414" stroke-width="1"/>
+  <line x1="268.9" y1="98.2" x2="272.7" y2="97.2" stroke="#141414" stroke-width="1"/>
+  <line x1="272" y1="122" x2="276" y2="122" stroke="#141414" stroke-width="1"/>
+  <line x1="268.9" y1="145.8" x2="272.7" y2="146.8" stroke="#141414" stroke-width="1"/>
+  <line x1="259.7" y1="168" x2="263.1" y2="170" stroke="#141414" stroke-width="1"/>
+  <line x1="245.1" y1="187.1" x2="247.9" y2="189.9" stroke="#141414" stroke-width="1"/>
+  <line x1="226" y1="201.7" x2="228" y2="205.1" stroke="#141414" stroke-width="1"/>
+  <line x1="203.8" y1="210.9" x2="204.8" y2="214.7" stroke="#141414" stroke-width="1"/>
+  <line x1="180" y1="214" x2="180" y2="218" stroke="#141414" stroke-width="1"/>
+  <line x1="156.2" y1="210.9" x2="155.2" y2="214.7" stroke="#141414" stroke-width="1"/>
+  <line x1="134" y1="201.7" x2="132" y2="205.1" stroke="#141414" stroke-width="1"/>
+  <line x1="114.9" y1="187.1" x2="112.1" y2="189.9" stroke="#141414" stroke-width="1"/>
+  <line x1="100.3" y1="168" x2="96.9" y2="170" stroke="#141414" stroke-width="1"/>
+  <line x1="91.1" y1="145.8" x2="87.3" y2="146.8" stroke="#141414" stroke-width="1"/>
+  <line x1="88" y1="122" x2="84" y2="122" stroke="#141414" stroke-width="1"/>
+  <line x1="91.1" y1="98.2" x2="87.3" y2="97.2" stroke="#141414" stroke-width="1"/>
+  <line x1="100.3" y1="76" x2="96.9" y2="74" stroke="#141414" stroke-width="1"/>
+  <line x1="114.9" y1="56.9" x2="112.1" y2="54.1" stroke="#141414" stroke-width="1"/>
+  <line x1="134" y1="42.3" x2="132" y2="38.9" stroke="#141414" stroke-width="1"/>
+  <line x1="156.2" y1="33.1" x2="155.2" y2="29.3" stroke="#141414" stroke-width="1"/>
+  <circle cx="184.1" cy="70.2" r="1.1" fill="#b4b0a8"/>
+  <circle cx="192.1" cy="71.4" r="1.1" fill="#b4b0a8"/>
+  <circle cx="199.9" cy="74" r="1.1" fill="#b4b0a8"/>
+  <circle cx="207.2" cy="77.7" r="1.1" fill="#b4b0a8"/>
+  <circle cx="213.8" cy="82.5" r="1.1" fill="#b4b0a8"/>
+  <circle cx="219.5" cy="88.2" r="1.1" fill="#b4b0a8"/>
+  <circle cx="224.3" cy="94.8" r="1.1" fill="#b4b0a8"/>
+  <circle cx="228" cy="102.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="230.6" cy="109.9" r="1.1" fill="#b4b0a8"/>
+  <circle cx="231.8" cy="117.9" r="1.1" fill="#b4b0a8"/>
+  <circle cx="231.8" cy="126.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="230.6" cy="134.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="228" cy="141.9" r="1.1" fill="#b4b0a8"/>
+  <circle cx="224.3" cy="149.2" r="1.1" fill="#b4b0a8"/>
+  <circle cx="219.5" cy="155.8" r="1.1" fill="#b4b0a8"/>
+  <circle cx="213.8" cy="161.5" r="3" fill="#1e4d9b"/>
+  <circle cx="207.2" cy="166.3" r="3" fill="#1e4d9b"/>
+  <circle cx="199.9" cy="170" r="3" fill="#1e4d9b"/>
+  <circle cx="192.1" cy="172.6" r="3" fill="#1e4d9b"/>
+  <circle cx="184.1" cy="173.8" r="3" fill="#1e4d9b"/>
+  <circle cx="175.9" cy="173.8" r="1.1" fill="#b4b0a8"/>
+  <circle cx="167.9" cy="172.6" r="1.1" fill="#b4b0a8"/>
+  <circle cx="160.1" cy="170" r="1.1" fill="#b4b0a8"/>
+  <rect x="150.1" y="163.6" width="5.5" height="5.5" fill="#ffffff" stroke="#141414" stroke-width="1"/>
+  <rect x="143.5" y="158.8" width="5.5" height="5.5" fill="#ffffff" stroke="#141414" stroke-width="1"/>
+  <rect x="137.7" y="153" width="5.5" height="5.5" fill="#ffffff" stroke="#141414" stroke-width="1"/>
+  <rect x="132.9" y="146.4" width="5.5" height="5.5" fill="#ffffff" stroke="#141414" stroke-width="1"/>
+  <circle cx="132" cy="141.9" r="1.1" fill="#b4b0a8"/>
+  <circle cx="129.4" cy="134.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="128.2" cy="126.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="128.2" cy="117.9" r="1.1" fill="#b4b0a8"/>
+  <circle cx="129.4" cy="109.9" r="1.1" fill="#b4b0a8"/>
+  <polygon points="132,98.5 135.6,104.8 128.4,104.8" fill="#edb200" stroke="#141414" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="135.7,91.3 139.3,97.5 132.1,97.5" fill="#edb200" stroke="#141414" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="140.5,84.7 144.1,90.9 136.9,90.9" fill="#edb200" stroke="#141414" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="146.2,78.9 149.8,85.1 142.6,85.1" fill="#edb200" stroke="#141414" stroke-width="0.9" stroke-linejoin="round"/>
+  <circle cx="152.8" cy="77.7" r="1.1" fill="#b4b0a8"/>
+  <circle cx="160.1" cy="74" r="1.1" fill="#b4b0a8"/>
+  <circle cx="167.9" cy="71.4" r="1.1" fill="#b4b0a8"/>
+  <circle cx="175.9" cy="70.2" r="1.1" fill="#b4b0a8"/>
+  <circle cx="184.3" cy="56.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="192.9" cy="57.3" r="1.1" fill="#b4b0a8"/>
+  <circle cx="201.2" cy="59.5" r="1.1" fill="#b4b0a8"/>
+  <circle cx="209.2" cy="62.8" r="1.1" fill="#b4b0a8"/>
+  <circle cx="216.7" cy="67.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="223.5" cy="72.4" r="1.1" fill="#b4b0a8"/>
+  <circle cx="229.6" cy="78.5" r="1.1" fill="#b4b0a8"/>
+  <circle cx="234.9" cy="85.3" r="1.1" fill="#b4b0a8"/>
+  <circle cx="239.2" cy="92.8" r="1.1" fill="#b4b0a8"/>
+  <circle cx="242.5" cy="100.8" r="1.1" fill="#b4b0a8"/>
+  <circle cx="244.7" cy="109.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="245.9" cy="117.7" r="1.1" fill="#b4b0a8"/>
+  <circle cx="245.9" cy="126.3" r="1.1" fill="#b4b0a8"/>
+  <circle cx="244.7" cy="134.9" r="1.1" fill="#b4b0a8"/>
+  <circle cx="242.5" cy="143.2" r="1.1" fill="#b4b0a8"/>
+  <circle cx="239.2" cy="151.2" r="1.1" fill="#b4b0a8"/>
+  <circle cx="234.9" cy="158.7" r="1.1" fill="#b4b0a8"/>
+  <circle cx="229.6" cy="165.5" r="1.1" fill="#b4b0a8"/>
+  <circle cx="223.5" cy="171.6" r="3.5" fill="#1e4d9b"/>
+  <circle cx="216.7" cy="176.9" r="3.5" fill="#1e4d9b"/>
+  <circle cx="209.2" cy="181.2" r="3.5" fill="#1e4d9b"/>
+  <circle cx="201.2" cy="184.5" r="3.5" fill="#1e4d9b"/>
+  <circle cx="192.9" cy="186.7" r="3.5" fill="#1e4d9b"/>
+  <circle cx="184.3" cy="187.9" r="3.5" fill="#1e4d9b"/>
+  <circle cx="175.7" cy="187.9" r="1.1" fill="#b4b0a8"/>
+  <circle cx="167.1" cy="186.7" r="1.1" fill="#b4b0a8"/>
+  <circle cx="158.8" cy="184.5" r="1.1" fill="#b4b0a8"/>
+  <circle cx="150.8" cy="181.2" r="1.1" fill="#b4b0a8"/>
+  <rect x="140.1" y="173.7" width="6.4" height="6.4" fill="#ffffff" stroke="#141414" stroke-width="1"/>
+  <rect x="133.3" y="168.4" width="6.4" height="6.4" fill="#ffffff" stroke="#141414" stroke-width="1"/>
+  <rect x="127.2" y="162.3" width="6.4" height="6.4" fill="#ffffff" stroke="#141414" stroke-width="1"/>
+  <rect x="121.9" y="155.4" width="6.4" height="6.4" fill="#ffffff" stroke="#141414" stroke-width="1"/>
+  <rect x="117.6" y="148" width="6.4" height="6.4" fill="#ffffff" stroke="#141414" stroke-width="1"/>
+  <circle cx="117.5" cy="143.2" r="1.1" fill="#b4b0a8"/>
+  <circle cx="115.3" cy="134.9" r="1.1" fill="#b4b0a8"/>
+  <circle cx="114.1" cy="126.3" r="1.1" fill="#b4b0a8"/>
+  <circle cx="114.1" cy="117.7" r="1.1" fill="#b4b0a8"/>
+  <circle cx="115.3" cy="109.1" r="1.1" fill="#b4b0a8"/>
+  <polygon points="117.5,96.5 121.7,103.8 113.3,103.8" fill="#edb200" stroke="#141414" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="120.8,88.6 125,95.8 116.6,95.8" fill="#edb200" stroke="#141414" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="125.1,81.1 129.3,88.4 120.9,88.4" fill="#edb200" stroke="#141414" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="130.4,74.2 134.6,81.5 126.2,81.5" fill="#edb200" stroke="#141414" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="136.5,68.1 140.7,75.4 132.3,75.4" fill="#edb200" stroke="#141414" stroke-width="0.9" stroke-linejoin="round"/>
+  <circle cx="143.3" cy="67.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="150.8" cy="62.8" r="1.1" fill="#b4b0a8"/>
+  <circle cx="158.8" cy="59.5" r="1.1" fill="#b4b0a8"/>
+  <circle cx="167.1" cy="57.3" r="1.1" fill="#b4b0a8"/>
+  <circle cx="175.7" cy="56.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="184.5" cy="42.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="193.4" cy="43.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="202.1" cy="45.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="210.6" cy="48.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="218.7" cy="52" r="1.1" fill="#b4b0a8"/>
+  <circle cx="226.3" cy="56.8" r="1.1" fill="#b4b0a8"/>
+  <circle cx="233.3" cy="62.3" r="1.1" fill="#b4b0a8"/>
+  <circle cx="239.7" cy="68.7" r="1.1" fill="#b4b0a8"/>
+  <circle cx="245.2" cy="75.7" r="1.1" fill="#b4b0a8"/>
+  <circle cx="250" cy="83.3" r="1.1" fill="#b4b0a8"/>
+  <circle cx="253.9" cy="91.4" r="1.1" fill="#b4b0a8"/>
+  <circle cx="256.9" cy="99.9" r="1.1" fill="#b4b0a8"/>
+  <circle cx="258.9" cy="108.6" r="1.1" fill="#b4b0a8"/>
+  <circle cx="259.9" cy="117.5" r="1.1" fill="#b4b0a8"/>
+  <circle cx="259.9" cy="126.5" r="1.1" fill="#b4b0a8"/>
+  <circle cx="258.9" cy="135.4" r="1.1" fill="#b4b0a8"/>
+  <circle cx="256.9" cy="144.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="253.9" cy="152.6" r="1.1" fill="#b4b0a8"/>
+  <circle cx="250" cy="160.7" r="1.1" fill="#b4b0a8"/>
+  <circle cx="245.2" cy="168.3" r="1.1" fill="#b4b0a8"/>
+  <circle cx="239.7" cy="175.3" r="1.1" fill="#b4b0a8"/>
+  <circle cx="233.3" cy="181.7" r="4" fill="#1e4d9b"/>
+  <circle cx="226.3" cy="187.2" r="4" fill="#1e4d9b"/>
+  <circle cx="218.7" cy="192" r="4" fill="#1e4d9b"/>
+  <circle cx="210.6" cy="195.9" r="4" fill="#1e4d9b"/>
+  <circle cx="202.1" cy="198.9" r="4" fill="#1e4d9b"/>
+  <circle cx="193.4" cy="200.9" r="4" fill="#1e4d9b"/>
+  <circle cx="184.5" cy="201.9" r="4" fill="#1e4d9b"/>
+  <circle cx="175.5" cy="201.9" r="1.1" fill="#b4b0a8"/>
+  <circle cx="166.6" cy="200.9" r="1.1" fill="#b4b0a8"/>
+  <circle cx="157.9" cy="198.9" r="1.1" fill="#b4b0a8"/>
+  <circle cx="149.4" cy="195.9" r="1.1" fill="#b4b0a8"/>
+  <circle cx="141.3" cy="192" r="1.1" fill="#b4b0a8"/>
+  <rect x="130" y="183.6" width="7.4" height="7.4" fill="#ffffff" stroke="#141414" stroke-width="1"/>
+  <rect x="123" y="178" width="7.4" height="7.4" fill="#ffffff" stroke="#141414" stroke-width="1"/>
+  <rect x="116.7" y="171.6" width="7.4" height="7.4" fill="#ffffff" stroke="#141414" stroke-width="1"/>
+  <rect x="111.1" y="164.6" width="7.4" height="7.4" fill="#ffffff" stroke="#141414" stroke-width="1"/>
+  <rect x="106.3" y="157" width="7.4" height="7.4" fill="#ffffff" stroke="#141414" stroke-width="1"/>
+  <circle cx="106.1" cy="152.6" r="1.1" fill="#b4b0a8"/>
+  <circle cx="103.1" cy="144.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="101.1" cy="135.4" r="1.1" fill="#b4b0a8"/>
+  <circle cx="100.1" cy="126.5" r="1.1" fill="#b4b0a8"/>
+  <circle cx="100.1" cy="117.5" r="1.1" fill="#b4b0a8"/>
+  <circle cx="101.1" cy="108.6" r="1.1" fill="#b4b0a8"/>
+  <polygon points="103.1,94.9 107.9,103.2 98.3,103.2" fill="#edb200" stroke="#141414" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="106.1,86.4 110.9,94.8 101.3,94.8" fill="#edb200" stroke="#141414" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="110,78.4 114.8,86.7 105.2,86.7" fill="#edb200" stroke="#141414" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="114.8,70.8 119.6,79.1 110,79.1" fill="#edb200" stroke="#141414" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="120.3,63.7 125.1,72.1 115.5,72.1" fill="#edb200" stroke="#141414" stroke-width="0.9" stroke-linejoin="round"/>
+  <polygon points="126.7,57.4 131.5,65.7 121.9,65.7" fill="#edb200" stroke="#141414" stroke-width="0.9" stroke-linejoin="round"/>
+  <circle cx="133.7" cy="56.8" r="1.1" fill="#b4b0a8"/>
+  <circle cx="141.3" cy="52" r="1.1" fill="#b4b0a8"/>
+  <circle cx="149.4" cy="48.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="157.9" cy="45.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="166.6" cy="43.1" r="1.1" fill="#b4b0a8"/>
+  <circle cx="175.5" cy="42.1" r="1.1" fill="#b4b0a8"/>
+  <line x1="166.6" y1="159.7" x2="150" y2="206.8" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+  <line x1="166.6" y1="159.7" x2="150" y2="206.8" stroke="#ec4227" stroke-width="3" stroke-linecap="round"/>
+</svg>
