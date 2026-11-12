@@ -12,6 +12,7 @@
 //   /api/calendar*   → 8_calendar_feed.js    폰 달력에서 구독하는 Tachyon ICS
 //   /api/etl*        → 9_etl.js              eTL API(학생 개인 토큰, 선택): 과제·공지·강의자료·과목 일정
 //   /api/together*   → 10_together.js        친구·그룹·모임 시간표(표가 원격 D1에 생기기 전에는 503 '준비 중')
+//   /api/admin*      → 11_admin.js           개발자 보기: 사용자 활동 합계(ADMIN_EMAILS에 든 사람만, 아니면 404)
 //
 // 번호 파일 약속: `export async function handle(request, env, ctx, user)`
 //   user = 로그인한 사람의 users 행(로그인 안 했으면 null). Cron이 필요하면 `export async function scheduled(event, env, ctx)`.
@@ -39,6 +40,7 @@ export const ROUTES = [
   ["/api/calendar", "8_calendar_feed"],
   ["/api/etl", "9_etl"],
   ["/api/together", "10_together"],
+  ["/api/admin", "11_admin"],
 ];
 
 // wrangler.toml의 crons와 같아야 한다 (UTC)
@@ -132,6 +134,7 @@ const IMPORTERS = {
   8: (rest) => import(`./8_${rest}.js`),
   9: (rest) => import(`./9_${rest}.js`),
   10: (rest) => import(`./10_${rest}.js`),
+  11: (rest) => import(`./11_${rest}.js`),
 };
 
 /** 번호 파일(예: "3_memo_popup")을 불러온다. 아직 없으면 null. */

@@ -195,6 +195,19 @@
 - **화면(11-13, 겹쳐 보기):** 주 달력에 `together` 구간을 띠로 그린다(`WeekCalendar.jsx`). 주를 넘기거나 내 일정이 다시 오면 그 주 `from`으로 다시 받는다(7일, 기본 08:00~24:00). `known < members`면 칩에 'n/m명'. 404면 겹쳐 보기를 끈다. 띠를 누르면 메모 하나를 보내고(`POST /api/memo`) 팝업 칸은 고른 시각 그대로, 받은 popup은 `suggested`로만 저장에 보낸다.
 - **화면(11-11, `TogetherPage.jsx`·`MeetGrid.jsx`·`JoinSheet.jsx`):** 쪽 '같이' = 친구(초대 링크 복사·보내기, 끊기는 두 번) · 그룹(만들기, 멤버, 초대 링크, 친구 넣기, 나가기·내보내기는 두 번, 방장만 이름 바꾸기) · 모임 시간표(만들기 폼, 진하기 = `free / known`, 노란 점 = 내가 되는 칸, '보기'에서 칸을 누르면 되는 사람 이름, '내 칸 칠하기'에서 누르거나 끌어서 `PUT …/marks` 한 번, '달력대로 되돌리기'). 지난 칸은 옅게·칠하지 않고, 후보에 지난 시각이 섞이면 같은 규칙(`web/src/meet.js`)으로 지금부터 다시 고른다. 503이면 서버 문장만. `?join=<code>`는 로그인 전에 받아 두었다가(`sessionStorage`) 대시보드에서 '초대 받기' 창(미리 보기 → 받기, 404·410은 알아듣는 문장). 예시 모드는 `togetherExample.js`(지어낸 친구 둘·그룹·모임).
 
+## 11_admin (서버 세션, 11-13) — 있음, 개발자만 (`worker/11_admin.js`)
+
+사람 요청 11-13 01:03 '사용자 활동을 개발자가 보는 화면'. 화면은 메뉴 '개발자 보기'를 이 주소가 200일 때만 보인다.
+
+| 주소 | 보냄 | 받음 |
+|---|---|---|
+| `GET /api/admin/summary?days=14` | days 1~30(오늘 포함, 기본 14) | 아래 합계. **개발자가 아니면(로그인 안 함 포함) 404**. 개발자 = 런타임 비밀값 `ADMIN_EMAILS`(쉼표로 이은 이메일)에 든 로그인 이메일, 값이 없으면 아무도 못 봄 · days가 틀리면 400 |
+
+- 받음: `{ ok, from, to, days, activeUsers, daily: [{ day, users, newUsers, memos, actions }], actions: [{ action, total, days: { 'YYYY-MM-DD': n } }], popup: { memos, saved, edited, cancelled }, ai: { calls, failures, failuresByUse, input, output, costUsd, byModel: [{ model, use, calls, avgMs, input, output, costUsd }] }, collect: { ics: { ok, fail }, etl: { ok, fail }, device, night: { ok, fail } }, errors: { reports, feedback }, tables: { users, events, tasks, memos, log_about }, rowsRead }`
+- `users`·`activeUsers` = 무엇이든 한 사람 수(Cron·밤 정리·AI 호출·오류 보고 줄은 빼고). 사람 번호·이름·이메일·메모 글·일정 이름은 오지 않는다.
+- `costUsd`는 토큰 × 목록 가격(Claude 문서 11-13: Haiku 5.5 입력 $0.10·출력 $0.50, Sonnet 5.5 $2·$10 / 백만 토큰)으로 어림한 값이다. 캐시·10만 토큰 넘는 프롬프트 값은 따지지 않는다.
+- `tables.log_about`은 log 번호 끝이다(지운 줄도 세어 대략). `rowsRead`는 이 합계를 만드느라 D1이 읽은 줄이다. 기간 log 줄 × 2쯤 + 1천쯤이고, 무료 하루 읽기는 500만이다.
+
 ## 아직 화면이 없는 것 (2단계)
 
 - 아침 브리핑 카드: `GET /api/briefing` (AI, 있음). 시안 3개는 캔버스에 있고, 고르는 것은 디자인 결정과 같이 미뤄짐(컨셉 11-09 23:56).
