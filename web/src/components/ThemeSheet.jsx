@@ -1,6 +1,6 @@
 // 테마 고르기 · 새 테마 가져오기(메뉴 → 테마). 화면 구조는 그대로이고 색·모서리·글꼴 값만 바뀐다(themes.js).
 import { useState } from 'react';
-import { BUILT_IN, DEFAULT, MAX_MINE, applyTheme, currentTheme, loadThemes, parseTheme, saveThemes, themeText, SKINS } from '../themes.js';
+import { BUILT_IN, DEFAULT, MAX_MINE, applyTheme, currentTheme, loadThemes, parseTheme, saveThemes, themeText } from '../themes.js';
 import Sheet from './Sheet.jsx';
 
 // 색 견본: 바탕 위에 카드 · 강조 · 수업 색
@@ -55,14 +55,6 @@ export default function ThemeSheet({ onClose }) {
             <Swatch data-theme={name} />
             {name}
             {name === DEFAULT && <span className="tag">기본</span>}
-          </button>
-        ))}
-        {/* 화면까지 바뀌는 테마(시연 9판의 화면) */}
-        {Object.keys(SKINS).map((name) => (
-          <button key={name} type="button" className="theme" aria-pressed={now === name} onClick={() => use(name)}>
-            <Swatch data-theme={SKINS[name]} />
-            {name}
-            <span className="tag">화면까지 바뀜</span>
           </button>
         ))}
         {mine.map((t) => (

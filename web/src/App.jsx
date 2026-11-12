@@ -5,11 +5,8 @@ import Dashboard from './screens/Dashboard.jsx';
 import { inApp, listenAppLogin, listenAppResume, pushToDevice, syncDevice } from './native.js';
 import Login from './screens/Login.jsx';
 import Setup from './screens/Setup.jsx';
-import { OursLogin, OursSetup } from './ours/OursStart.jsx';
-import { useSkin } from './ours/skin.jsx';
 
 export default function App() {
-  const skin = useSkin(); // '입자' · '종이' 테마면 시작 화면도 그 모양(ours/)
   const [screen, setScreen] = useState('loading'); // loading | login | setup | dashboard
   const screenRef = useRef(screen);
   const ttwRef = useRef(undefined); // TT Wizard에서 보낸 시간표 링크(대시보드에 한 번만)
@@ -82,11 +79,9 @@ export default function App() {
   if (screen === 'dashboard' && joinRef.current === undefined) joinRef.current = api.takeJoinLink();
 
   if (screen === 'loading') return null;
-  const LoginScreen = skin ? OursLogin : Login;
-  const SetupScreen = skin ? OursSetup : Setup;
   if (screen === 'login')
     return (
-      <LoginScreen
+      <Login
         error={loginError}
         notice={notice}
         onExample={() => {
@@ -98,7 +93,7 @@ export default function App() {
     );
   if (screen === 'setup')
     return (
-      <SetupScreen
+      <Setup
         user={user}
         example={api.isExample()}
         again={again}
