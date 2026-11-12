@@ -1,7 +1,7 @@
 // '같이' 쪽(11-11 사람 "친구 추가·그룹 만들기·그룹별 when2meet", 서버 10_together.js).
 // 넓은 화면 = 왼쪽 친구·그룹, 오른쪽 고른 그룹이나 모임 시간표. 폰 = 목록 → 그룹 → 모임 차례로(뒤로).
 // 친구·그룹은 초대 링크로만 맺는다. 남에게는 빈/바쁨만 보인다. 표가 없으면(503) 서버 문장만 보인다.
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as api from '../api.js';
 import { addDays, dateInput, dayStart, shortDate, toKstIso } from '../time.js';
 import { bestTimes } from '../meet.js';
@@ -58,12 +58,24 @@ function InviteLink({ link, what }) {
   );
 }
 
-export default function TogetherPage({ example, now, onSnack }) {
+// startCreate: 달력의 '같이 보기'로 들어오면 true — 그룹이 없으면 만들기 칸을 바로 연다(한 번 쓰면 onStartUsed)
+export default function TogetherPage({ example, now, onSnack, startCreate = false, onStartUsed }) {
   const [data, setData] = useState(null); // { friends, groups }
   const [error, setError] = useState(null);
   const [view, setView] = useState({ kind: 'home' }); // home | group | meet
   const [friendLink, setFriendLink] = useState(null);
   const [newGroup, setNewGroup] = useState(null); // 만들 그룹 이름(null = 닫힘)
+  const nameRef = useRef(null);
+  // 만들기 칸을 열고 이름 칸에 커서(이미 열려 있으면 커서만)
+  const openCreate = useCallback(() => {
+    setNewGroup((v) => (v === null ? '' : v));
+    requestAnimationFrame(() => nameRef.current?.focus());
+  }, []);
+  useEffect(() => {
+    if (!startCreate || !data) return;
+    if (data.groups.length === 0) openCreate();
+    onStartUsed?.();
+  }, [startCreate, data, onStartUsed, openCreate]);
 
   const load = useCallback(() => {
     api
@@ -102,6 +114,56 @@ export default function TogetherPage({ example, now, onSnack }) {
 
   const side = (
     <div className="together-side">
+      <div className="t-create">
+        {newGroup === null ? (
+          <button type="button" className="btn t-create-btn" onClick={openCreate}>
+            <span aria-hidden="true">+ </span>그룹 만들기
+          </button>
+        ) : (
+          <form
+            className="t-form t-create-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!newGroup.trim()) return;
+              run(
+                () => api.createGroup(newGroup.trim()),
+                (res) => {
+                  setNewGroup(null);
+                  load();
+                  setView({ kind: 'group', id: res.group.id, groupId: res.group.id });
+                },
+              );
+            }}
+          >
+            <input ref={nameRef} className="input" value={newGroup} maxLength={40} placeholder="예: 화학 스터디" aria-label="그룹 이름" onChange={(e) => setNewGroup(e.target.value)} />
+            <button type="submit" className="btn" disabled={!newGroup.trim()}>
+              만들기
+            </button>
+            <button type="button" className="btn-text" onClick={() => setNewGroup(null)}>
+              닫기
+            </button>
+          </form>
+        )}
+      </div>
+      <section className="card t-card" aria-labelledby="t-groups">
+        <div className="tasks-head">
+          <h2 id="t-groups" className="card-title">
+            그룹
+          </h2>
+          <span className="tag num">{data.groups.length}</span>
+        </div>
+        {data.groups.length === 0 && <p className="empty">아직 그룹이 없어요. 위의 ‘그룹 만들기’로 만들고 초대 링크를 보내면 다 같이 되는 시간을 골라요.</p>}
+        <div className="t-list">
+          {data.groups.map((g) => (
+            <button key={g.id} type="button" className={`t-row${view.kind !== 'home' && view.groupId === g.id ? ' on' : ''}`} aria-current={view.kind !== 'home' && view.groupId === g.id ? 'true' : undefined} onClick={() => setView({ kind: 'group', id: g.id, groupId: g.id })}>
+              <span className="t-name">{g.name}</span>
+              <span className="hint num">
+                {g.members}명{g.owner ? ' · 방장' : ''}
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
       <section className="card t-card" aria-labelledby="t-friends">
         <div className="tasks-head">
           <h2 id="t-friends" className="card-title">
@@ -124,52 +186,6 @@ export default function TogetherPage({ example, now, onSnack }) {
         </ul>
         {data.friends.length === 0 && <p className="empty">초대 링크를 보내 받은 사람이 열면 친구가 돼요.</p>}
       </section>
-
-      <section className="card t-card" aria-labelledby="t-groups">
-        <div className="tasks-head">
-          <h2 id="t-groups" className="card-title">
-            그룹
-          </h2>
-          <span className="tag num">{data.groups.length}</span>
-          <span className="grow" />
-          <button type="button" className="btn-text" onClick={() => setNewGroup(newGroup === null ? '' : null)}>
-            {newGroup === null ? '그룹 만들기' : '닫기'}
-          </button>
-        </div>
-        {newGroup !== null && (
-          <form
-            className="t-form"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (!newGroup.trim()) return;
-              run(
-                () => api.createGroup(newGroup.trim()),
-                (res) => {
-                  setNewGroup(null);
-                  load();
-                  setView({ kind: 'group', id: res.group.id });
-                },
-              );
-            }}
-          >
-            <input className="input" value={newGroup} maxLength={40} placeholder="예: 화학 스터디" aria-label="그룹 이름" onChange={(e) => setNewGroup(e.target.value)} />
-            <button type="submit" className="btn" disabled={!newGroup.trim()}>
-              만들기
-            </button>
-          </form>
-        )}
-        <div className="t-list">
-          {data.groups.map((g) => (
-            <button key={g.id} type="button" className={`t-row${view.kind !== 'home' && view.groupId === g.id ? ' on' : ''}`} aria-current={view.kind !== 'home' && view.groupId === g.id ? 'true' : undefined} onClick={() => setView({ kind: 'group', id: g.id, groupId: g.id })}>
-              <span className="t-name">{g.name}</span>
-              <span className="hint num">
-                {g.members}명{g.owner ? ' · 방장' : ''}
-              </span>
-            </button>
-          ))}
-        </div>
-        {data.groups.length === 0 && <p className="empty">그룹을 만들고 초대 링크를 보내면 모임 시간을 같이 골라요.</p>}
-      </section>
     </div>
   );
 
@@ -179,7 +195,17 @@ export default function TogetherPage({ example, now, onSnack }) {
       <div className="together-main">
         {view.kind === 'home' && (
           <section className="card t-card together-empty">
-            <p className="hint">그룹을 고르면 멤버와 모임 시간표가 여기에 보여요. 남에게는 내 일정이 '바쁨'으로만 보이고 이름은 안 보여요.</p>
+            {data.groups.length === 0 ? (
+              <>
+                <p className="together-lead">그룹을 만들어 다 같이 되는 시간을 골라 보세요</p>
+                <p className="hint">만든 뒤 초대 링크를 보내면 멤버의 빈 시간이 모임 시간표에 모여요. 남에게는 내 일정이 '바쁨'으로만 보이고 이름은 안 보여요.</p>
+                <button type="button" className="btn-line" onClick={openCreate}>
+                  그룹 만들기
+                </button>
+              </>
+            ) : (
+              <p className="hint">그룹을 고르면 멤버와 모임 시간표가 여기에 보여요. 남에게는 내 일정이 '바쁨'으로만 보이고 이름은 안 보여요.</p>
+            )}
           </section>
         )}
         {view.kind === 'group' && (

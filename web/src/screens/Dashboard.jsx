@@ -87,6 +87,8 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   const [pane, setPane] = useState('ring'); // 폰의 오늘 쪽에서 보이는 한 칸
   const [join, setJoin] = useState(() => (joinCode && !example ? joinCode : null)); // 초대 링크(?join=)로 들어왔으면 받기 창
   const [togetherKey, setTogetherKey] = useState(0); // 받은 뒤 '같이' 쪽을 새로 불러오게
+  const [togetherStart, setTogetherStart] = useState(false); // 달력 '같이 보기'로 들어옴 → 그룹이 없으면 만들기 칸을 연다
+  const doneTogetherStart = useCallback(() => setTogetherStart(false), []);
   const [calMode, setCalMode] = useState('week');
   const [weekFrom, setWeekFrom] = useState(today); // 주간 달력 첫 칸(처음엔 오늘)
   const [month, setMonth] = useState(() => ({ y: kst(now).y, m: kst(now).m }));
@@ -331,15 +333,28 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
         <Segmented label="오늘 보기" items={PANES} value={pane} onChange={setPane} />
       </span>
     ) : page === 'cal' ? (
-      <Segmented
-        label="달력 보기"
-        items={[
-          ['week', '주'],
-          ['month', '월'],
-        ]}
-        value={calMode}
-        onChange={setCalMode}
-      />
+      <span className="cal-controls">
+        {/* 달력에서 '같이'로 들어가는 길(11-13 컨셉 쪽지: 그룹 만들기를 눈에 띄게) — 그룹이 없으면 만들기 칸이 열린 채로 간다 */}
+        <button
+          type="button"
+          className="chip-btn"
+          onClick={() => {
+            setTogetherStart(true);
+            setPage('together');
+          }}
+        >
+          같이 보기
+        </button>
+        <Segmented
+          label="달력 보기"
+          items={[
+            ['week', '주'],
+            ['month', '월'],
+          ]}
+          value={calMode}
+          onChange={setCalMode}
+        />
+      </span>
     ) : null;
 
   // '입자' · '종이' 테마: 같은 자료와 함수로 시연 9판의 화면(ours/)을 그린다. 아래 창들은 같이 쓴다.
@@ -449,7 +464,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
             </div>
           )}
           {page === 'memo' && <div className="memo-page">{memoCard}</div>}
-          {page === 'together' && <TogetherPage key={togetherKey} example={example} now={now} onSnack={(text) => setSnack({ text })} />}
+          {page === 'together' && <TogetherPage key={togetherKey} example={example} now={now} onSnack={(text) => setSnack({ text })} startCreate={togetherStart} onStartUsed={doneTogetherStart} />}
         </main>
 
         {popup && <MemoPopup key={popup.memoId} popup={popup.popup} plan={{ events: planEvents, tasks: openTasks, today, now }} busy={busy} onSave={savePopup} onCancel={cancelPopup} />}
