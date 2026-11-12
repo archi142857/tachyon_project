@@ -19,6 +19,18 @@
 - **시험**: `web/src/api.test.js` 다섯 개(로그인 글, 503 + code, 503 준비 중, 500·글 없는 503, 4xx) — web 129 통과.
 - **확인**: 로그인 화면에서 `?login_error=db_limit`·`server`, `/api/login/me` 503 db_limit 세 경우의 글, axe 위반 0(로그인·첫 설정), 네 크기 쪽 24곳 문서 스크롤 0·오류 없음.
 
+## 이어서: 문구 바꾸기(11-13 00:06)
+
+````text
+오늘 서버 사용량이 다 차서 오전 9시에 다시 돼요
+
+이거 문구 별로임.
+
+오늘 서버 사용량을 모두 소진했어요. 오전 9시부터 다시 이용할 수 있어요. 로 바꿔줘
+````
+
+- `db_limit` 글을 '오늘 서버 사용량을 모두 소진했어요. 오전 9시부터 다시 이용할 수 있어요'로(`DB_LIMIT_TEXT`, 앱의 다른 안내처럼 끝 마침표는 뺌). 로그인 화면뿐 아니라 쓰는 도중 503 `db_limit`(스낵바·창, 처음 열 때 `/api/login/me`)도 서버 글 대신 같은 글을 보이게 했다. `db_busy`는 서버 글 그대로. 시험 하나 더함(web 130).
+
 ## 관련 결과
 
 - [web/src/api.js](../web/src/api.js) · [web/src/api.test.js](../web/src/api.test.js) · [web/src/App.jsx](../web/src/App.jsx) · [web/API.md](../web/API.md)

@@ -13,6 +13,9 @@ let ex = null;
 
 export const SIGNED_OUT = 'tachyon:signed-out';
 
+// 서버 저장소 무료 하루 한도(db_limit)일 때 어디서나 같은 글(사람 11-13 00:06이 고른 문구). 로그인 화면·스낵바·창 모두
+export const DB_LIMIT_TEXT = '오늘 서버 사용량을 모두 소진했어요. 오전 9시부터 다시 이용할 수 있어요';
+
 export function startExample(now = new Date()) {
   ex = makeExample(now);
 }
@@ -33,7 +36,7 @@ async function call(method, path, body) {
     // 5xx는 서버가 스스로 오류를 보고한다. 화면은 한 줄 안내만(서버 문장은 4xx일 때만 그대로).
     // 503은 서버가 일부러 보내는 안내라 그 문장을 그대로 쓴다 — 저장소 사정 { error, code: 'db_limit' | 'db_busy' }(11-12),
     // 같이 쓰기·eTL 표 준비 중. code는 error.code로 넘긴다(web/API.md '공통').
-    const said = res.status === 503 && typeof data?.error === 'string' && data.error;
+    const said = res.status === 503 && (data?.code === 'db_limit' ? DB_LIMIT_TEXT : typeof data?.error === 'string' && data.error);
     const text = said || (res.status >= 500 ? '잠깐 문제가 생겼어요. 잠시 뒤에 다시 해 주세요' : data?.error || (res.status === 401 ? '로그인이 필요해요' : `요청을 처리하지 못했어요 (${res.status})`));
     const error = new Error(text);
     error.status = res.status;
@@ -77,7 +80,7 @@ export function loginErrorText(code) {
   if (!code) return null;
   if (code === 'denied') return '구글 로그인을 그만뒀어요. 다시 해 주세요';
   if (code === 'config') return '로그인 준비가 아직 안 됐어요(서버 설정). 잠시 뒤에 다시 해 주세요';
-  if (code === 'db_limit') return '오늘 서버 사용량이 다 차서 오전 9시에 다시 돼요';
+  if (code === 'db_limit') return DB_LIMIT_TEXT;
   if (code === 'server') return '서버에 잠깐 문제가 있어요. 잠시 뒤에 다시 해 주세요';
   return '로그인하지 못했어요. 다시 해 주세요';
 }
