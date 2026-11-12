@@ -148,3 +148,14 @@ html[data-theme='차분한 종이'], [data-theme='차분한 종이'] {
    조용한 갤러리:  --mark-class: #0c0c0c; --mark-task: #ffd6ea; --ev-mine-line: transparent; | --now: #d9003a; (전 #e6007a)
    호박색 터미널:  --mark-class: #ffd27a; --mark-task: #cf9020; --ev-mine-line: transparent; | --now: #ff4d3d; (전 #ff6a3d)
    (모양 색은 각 테마의 수업 칸·형광펜 색에서 골랐다. --mark-class는 그 테마 --card 위 3:1 넘김) */
+
+/* ── D. 11-13 더할 값(사람 '다 같이 되는 시간은 내 시간표에 … 다른 색으로'): 테마 일곱 개 모두에 두 줄 ──
+   --together = 다 같이 빈 시간의 선 · 글자(카드 위 3:1, 옅은 면 위 4.5:1), --together-bg = 그 옅은 면. 초록은 이 뜻 하나만.
+   KEYS에 --together --together-bg, themes.test.js PAIRS에 ['--together', '--card', 3], ['--together', '--together-bg', 4.5].
+   바우하우스(styles.css 맨 위):  --together: #1f7a4d; --together-bg: #e3f1e8;   (5.3 · 4.6)
+   차분한 종이:                  --together: #2f6b4f; --together-bg: #e0ecdf;   (6.0 · 5.2)
+   입자 밤:                      --together: #5ad6a8; --together-bg: #10342a;   (10.9 · 7.5)
+   입자 낮:                      --together: #1a7356; --together-bg: #def1e8;   (5.5 · 4.9)
+   벤토 위젯:                    --together: #117549; --together-bg: #e0f4e9;   (5.7 · 5.0)
+   조용한 갤러리:                --together: #167553; --together-bg: #e4f1ea;   (5.3 · 4.9)
+   호박색 터미널:                --together: #7ee787; --together-bg: #16260f;   (12.3 · 10.4) */
