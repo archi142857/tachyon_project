@@ -169,3 +169,18 @@ CREATE TABLE IF NOT EXISTS meet_marks (
   state   TEXT NOT NULL,
   PRIMARY KEY (meet_id, user_id, slot)
 );
+-- 친구 코드·별명(사람 11-13 '초대 쉽게', worker/10_together.js). 남에게는 별명(없으면 이름)만 보이고 이메일은 안 보인다.
+CREATE TABLE IF NOT EXISTS profiles (
+  user_id     INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  friend_code TEXT NOT NULL UNIQUE,        -- 8자(헷갈리는 0·O·1·I·L 뺀 대문자·숫자), '다시 만들기'로 바뀜
+  nickname    TEXT UNIQUE COLLATE NOCASE,  -- 2~20자, 사람이 정함. 찾기는 정확히 같은 것만
+  updated_at  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S+09:00', 'now', '+9 hours'))
+);
+-- 친구 요청: 코드·별명으로 보낸 것. 받으면 friends 두 줄, 거절·취소하면 지운다.
+CREATE TABLE IF NOT EXISTS friend_requests (
+  from_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  to_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S+09:00', 'now', '+9 hours')),
+  PRIMARY KEY (from_id, to_id)
+);
+CREATE INDEX IF NOT EXISTS friend_requests_to ON friend_requests (to_id);
