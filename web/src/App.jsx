@@ -33,7 +33,8 @@ export default function App() {
       setScreen(me.setup_done ? 'dashboard' : 'setup');
     } catch (err) {
       // 401 = 로그인 전. 그 밖(연결 끊김·서버 오류)은 로그인 화면에 까닭을 한 줄로
-      if (err.status !== 401) setLoginError('서버에 닿지 않아요. 인터넷을 확인하고 다시 열어 주세요');
+      // 서버가 저장소 사정(503 code: db_limit·db_busy)을 알리면 그 안내 글을, 아니면 연결 문제로 본다
+      if (err.status !== 401) setLoginError(err.code ? err.message : '서버에 닿지 않아요. 인터넷을 확인하고 다시 열어 주세요');
       setScreen('login');
     }
   }

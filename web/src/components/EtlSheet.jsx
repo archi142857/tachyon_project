@@ -18,7 +18,7 @@ function when(iso) {
 }
 
 function errorText(err) {
-  if (err && err.status === 503) return 'eTL 연결은 준비 중이에요. 곧 열려요';
+  if (err && err.status === 503 && !err.code) return 'eTL 연결은 준비 중이에요. 곧 열려요'; // code가 있으면 서버 저장소 사정(db_limit·db_busy) — 서버 안내 글 그대로
   return (err && err.message) || '하지 못했어요. 다시 해 주세요';
 }
 

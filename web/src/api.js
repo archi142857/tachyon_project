@@ -30,10 +30,14 @@ async function call(method, path, body) {
   });
   if (!res.ok) {
     const data = await res.json().catch(() => null);
-    // 5xx는 서버가 스스로 오류를 보고한다. 화면은 한 줄 안내만(서버 문장은 4xx일 때만 그대로)
-    const text = res.status >= 500 ? '잠깐 문제가 생겼어요. 잠시 뒤에 다시 해 주세요' : data?.error || (res.status === 401 ? '로그인이 필요해요' : `요청을 처리하지 못했어요 (${res.status})`);
+    // 5xx는 서버가 스스로 오류를 보고한다. 화면은 한 줄 안내만(서버 문장은 4xx일 때만 그대로).
+    // 503은 서버가 일부러 보내는 안내라 그 문장을 그대로 쓴다 — 저장소 사정 { error, code: 'db_limit' | 'db_busy' }(11-12),
+    // 같이 쓰기·eTL 표 준비 중. code는 error.code로 넘긴다(web/API.md '공통').
+    const said = res.status === 503 && typeof data?.error === 'string' && data.error;
+    const text = said || (res.status >= 500 ? '잠깐 문제가 생겼어요. 잠시 뒤에 다시 해 주세요' : data?.error || (res.status === 401 ? '로그인이 필요해요' : `요청을 처리하지 못했어요 (${res.status})`));
     const error = new Error(text);
     error.status = res.status;
+    error.code = data?.code ?? null;
     // 쓰는 도중 로그인이 끝나면(쿠키 30일) 화면 전체가 로그인으로 돌아간다(App.jsx가 듣는다)
     if (res.status === 401 && path !== '/api/login/me') window.dispatchEvent(new CustomEvent(SIGNED_OUT));
     throw error;
@@ -67,11 +71,14 @@ export function popupToEvent(f) {
 
 export const LOGIN_URL = `${BASE}/api/login?next=/`;
 
-// 실패해서 돌아오면 주소에 ?login_error=denied|state|google|email|config
+// 실패해서 돌아오면 주소에 ?login_error=denied|state|google|email|config|db_limit|server
+// (뒤 둘은 로그인 중 서버 저장소가 실패한 것 — db_limit = 무료 하루 한도, 한국 09:00에 풀림. 서버 쪽지 11-12 1104)
 export function loginErrorText(code) {
   if (!code) return null;
   if (code === 'denied') return '구글 로그인을 그만뒀어요. 다시 해 주세요';
   if (code === 'config') return '로그인 준비가 아직 안 됐어요(서버 설정). 잠시 뒤에 다시 해 주세요';
+  if (code === 'db_limit') return '오늘 서버 사용량이 다 차서 오전 9시에 다시 돼요';
+  if (code === 'server') return '서버에 잠깐 문제가 있어요. 잠시 뒤에 다시 해 주세요';
   return '로그인하지 못했어요. 다시 해 주세요';
 }
 
