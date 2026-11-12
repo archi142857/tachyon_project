@@ -30,7 +30,7 @@ import TodayView from '../components/TodayView.jsx';
 import TtwSheet from '../components/TtwSheet.jsx';
 import WeekCalendar from '../components/WeekCalendar.jsx';
 import { PLAN_DAYS, dateKey, eventOnlyDay, fromServerPlan, planDensity } from '../density.js';
-import { WEEKDAYS, addDays, dayStart, kst, monthGrid, sameDay, shiftMonth, shortDate } from '../time.js';
+import { WEEKDAYS, addDays, dayStart, hhmm, kst, monthGrid, sameDay, shiftMonth, shortDate, toKstIso } from '../time.js';
 
 function useNow() {
   const [now, setNow] = useState(() => new Date());
@@ -46,6 +46,18 @@ const sheetKey = (sheet) => (!sheet ? '' : typeof sheet === 'string' ? sheet : s
 
 // 이미 홈 화면 앱이거나 Capacitor 앱이면 '홈 화면에 추가'를 숨긴다
 const standalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true || !!window.Capacitor?.isNativePlatform?.();
+
+// 겹쳐 보기 고른 그룹 · 켜짐(이 기기, 11-13). 계정에 두려면 표를 바꿔야 해서 나중에
+const OVERLAY_KEY = 'tachyon_together_overlay';
+function readOverlay() {
+  try {
+    const v = JSON.parse(localStorage.getItem(OVERLAY_KEY) || 'null');
+    if (v && typeof v === 'object') return { groupId: Number.isInteger(v.groupId) ? v.groupId : null, on: v.on === true };
+  } catch {
+    /* 저장이 막혔거나 깨진 값 */
+  }
+  return { groupId: null, on: false };
+}
 
 const PAGES = [
   ['today', '오늘'],
@@ -89,6 +101,18 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   const [togetherKey, setTogetherKey] = useState(0); // 받은 뒤 '같이' 쪽을 새로 불러오게
   const [togetherStart, setTogetherStart] = useState(false); // 달력 '같이 보기'로 들어옴 → 그룹이 없으면 만들기 칸을 연다
   const doneTogetherStart = useCallback(() => setTogetherStart(false), []);
+  // 다 같이 빈 시간 겹쳐 보기(11-13 사람 "다 같이 되는 시간은 내 시간표에 오버레이해서 다른 색으로"): 고른 그룹 · 켜짐은 이 기기에
+  const [overlay, setOverlayState] = useState(readOverlay); // { groupId, on }
+  const setOverlay = useCallback((next) => {
+    setOverlayState(next);
+    try {
+      localStorage.setItem(OVERLAY_KEY, JSON.stringify(next));
+    } catch {
+      /* 저장이 막힌 브라우저면 이번에만 */
+    }
+  }, []);
+  const [groups, setGroups] = useState(null); // 내 그룹(달력 쪽에서 받는다. null = 아직 · 못 받음)
+  const [free, setFree] = useState(null); // { key, data } 고른 그룹의 그 주 '다 같이 빈' 구간
   const [calMode, setCalMode] = useState('week');
   const [weekFrom, setWeekFrom] = useState(today); // 주간 달력 첫 칸(처음엔 오늘)
   const [month, setMonth] = useState(() => ({ y: kst(now).y, m: kst(now).m }));
@@ -170,6 +194,55 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
 
   const allEvents = useMemo(() => mergeEvents(planEvents, calEvents), [planEvents, calEvents]);
 
+  // 달력 쪽에 들어오면 내 그룹을 받는다(겹쳐 보기 칩). '같이' 쪽에서 그룹을 만들거나 나간 뒤에도 달력으로 오면 다시
+  useEffect(() => {
+    if (page !== 'cal') return undefined;
+    let live = true;
+    api.getTogether().then(
+      (r) => live && setGroups(r.groups),
+      () => live && setGroups(null),
+    );
+    return () => {
+      live = false;
+    };
+  }, [page, togetherKey]);
+  const overlayGroup = groups?.find((g) => g.id === overlay.groupId) || groups?.[0] || null; // 고른 그룹이 없어졌으면 첫 그룹(꺼진 채)
+  const overlayOn = Boolean(overlay.on && overlayGroup && overlayGroup.id === overlay.groupId);
+  const showOverlay = overlayOn && page === 'cal' && calMode === 'week';
+  // 그 주 다 같이 빈 시간: 내 일정이 다시 오면(옮기기·고치기 뒤 포함) 다시 받는다. 서버는 읽기만
+  useEffect(() => {
+    if (!showOverlay) return undefined;
+    const from = toKstIso(weekFrom).slice(0, 10);
+    const key = `${overlayGroup.id}|${from}`;
+    let live = true;
+    api.getGroupFree(overlayGroup.id, from, 7).then(
+      (data) => live && setFree({ key, data }),
+      (err) => {
+        if (!live) return;
+        setFree(null);
+        if (err.status === 404) {
+          setOverlay({ groupId: null, on: false }); // 나간 그룹
+          setGroups((list) => list?.filter((g) => g.id !== overlayGroup.id) ?? null);
+        }
+        setSnack({ text: err.message || '다 같이 빈 시간을 불러오지 못했어요' });
+      },
+    );
+    return () => {
+      live = false;
+    };
+    // weekFrom이 바뀌면 calEvents도 다시 오니 calEvents 하나로 센다(두 번 받지 않게)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showOverlay, overlayGroup?.id, calEvents]);
+  const freeNow = showOverlay && free && free.key === `${overlayGroup.id}|${toKstIso(weekFrom).slice(0, 10)}` ? free.data : null;
+
+  // 켜고 끄기(달력 머리 칩 · '같이' 쪽 그룹 줄 칩). 다른 그룹을 켜면 그 그룹으로 바뀐다. → 켰으면 true
+  function toggleOverlay(groupId) {
+    const on = !(overlay.on && overlay.groupId === groupId && groups?.some((g) => g.id === groupId));
+    setOverlay({ groupId, on });
+    if (on && calMode !== 'week') setCalMode('week');
+    return on;
+  }
+
   // 수업 사이 동선(TT Wizard 걷는 시간): 장소가 있는 일정이 보이면 캠퍼스 표를 한 번 받아 둔다
   const [campus, setCampus] = useState(null);
   const hasPlace = allEvents.some((e) => e.place);
@@ -222,6 +295,26 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
     }
   }
 
+  // 띠를 누르면 '이 시간으로 모임 잡기'(11-13): 메모 하나를 남기고, 팝업은 고른 시각 그대로(서버가 읽은 것은 suggested로만 — 팝업 정확도)
+  async function planTogether(span) {
+    const title = `${overlayGroup.name} 모임`;
+    const text = `${shortDate(span.start)} ${hhmm(span.start)}–${hhmm(span.end)} ${title}`;
+    const temp = { id: `tmp-${Date.now()}`, text, created_at: new Date().toISOString(), handled: 0, event_id: null };
+    setMemos((m) => [...m, temp]);
+    setWaiting(true);
+    try {
+      const { memo, popup: found } = await api.sendMemo(text);
+      setMemos((m) => m.map((x) => (x.id === temp.id ? memo : x)));
+      const date = toKstIso(span.start).slice(0, 10);
+      setPopup({ memoId: memo.id, suggested: found ?? null, popup: { title, date, time: hhmm(span.start), end_time: hhmm(span.end), place: '?', together: overlayGroup.name } });
+    } catch {
+      setMemos((m) => m.filter((x) => x.id !== temp.id));
+      setSnack({ text: '모임을 잡지 못했어요. 다시 해 주세요' });
+    } finally {
+      setWaiting(false);
+    }
+  }
+
   function showWeekOf(date) {
     setPage('cal');
     setCalMode('week');
@@ -233,14 +326,14 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
     try {
       if (fields.kind === 'task') {
         // 할 일 팝업 → 할 일 목록에 바로(걸리는 시간은 팝업의 어림, 없으면 밤 정리가 채운다). 한 메모에 여럿이면 tasks
-        const { task, tasks = [task] } = await api.savePopup(popup.memoId, fields, popup.popup);
+        const { task, tasks = [task] } = await api.savePopup(popup.memoId, fields, 'suggested' in popup ? popup.suggested : popup.popup);
         setMemos((m) => m.map((x) => (x.id === popup.memoId ? { ...x, handled: 1, task_id: task.id } : x)));
         setPopup(null);
         loadRank();
         setSnack({ text: tasks.length > 1 ? `할 일 ${tasks.length}개를 넣었어요` : `‘${task.title}’ 할 일에 넣었어요` });
         return;
       }
-      const { event, repeat } = await api.savePopup(popup.memoId, fields, popup.popup, changeId, weekly);
+      const { event, repeat } = await api.savePopup(popup.memoId, fields, 'suggested' in popup ? popup.suggested : popup.popup, changeId, weekly);
       setMemos((m) => m.map((x) => (x.id === popup.memoId ? { ...x, handled: 1, event_id: event.id } : x)));
       setPopup(null);
       const shown = api.normalizeEvent(event);
@@ -334,17 +427,33 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
       </span>
     ) : page === 'cal' ? (
       <span className="cal-controls">
-        {/* 달력에서 '같이'로 들어가는 길(11-13 컨셉 쪽지: 그룹 만들기를 눈에 띄게) — 그룹이 없으면 만들기 칸이 열린 채로 간다 */}
-        <button
-          type="button"
-          className="chip-btn"
-          onClick={() => {
-            setTogetherStart(true);
-            setPage('together');
-          }}
-        >
-          같이 보기
-        </button>
+        {overlayGroup ? (
+          // 범례 겸 켜고 끄기(디자인 넷째 묶음 ① .together-key): 고른 그룹의 다 같이 빈 시간을 주 달력에 띠로
+          <button
+            type="button"
+            className="together-key"
+            aria-pressed={overlayOn}
+            title={freeNow && freeNow.known < freeNow.members ? `달력을 연결한 ${freeNow.known}명 기준(${freeNow.members}명 중)` : undefined}
+            onClick={() => toggleOverlay(overlayGroup.id)}
+          >
+            <span className="only-wide">다 같이 빈 시간 ·</span>
+            <span className="only-narrow">다 같이 ·</span>
+            <span className="tk-name">{overlayGroup.name}</span>
+            {freeNow && freeNow.known < freeNow.members && <span className="num">{`${freeNow.known}/${freeNow.members}명`}</span>}
+          </button>
+        ) : (
+          // 그룹이 없으면 '같이'로 들어가는 길(11-13 컨셉 쪽지: 그룹 만들기를 눈에 띄게) — 만들기 칸이 열린 채로 간다
+          <button
+            type="button"
+            className="chip-btn"
+            onClick={() => {
+              setTogetherStart(true);
+              setPage('together');
+            }}
+          >
+            같이 보기
+          </button>
+        )}
         <Segmented
           label="달력 보기"
           items={[
@@ -444,6 +553,8 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
                 onEvent={(event) => setSheet({ event })}
                 onTask={(task) => setSheet({ task })}
                 legs={legs}
+                together={freeNow ? { name: overlayGroup.name, spans: freeNow.together } : null}
+                onTogether={planTogether}
               />
             ) : (
               <MonthCalendar
@@ -464,7 +575,9 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
             </div>
           )}
           {page === 'memo' && <div className="memo-page">{memoCard}</div>}
-          {page === 'together' && <TogetherPage key={togetherKey} example={example} now={now} onSnack={(text) => setSnack({ text })} startCreate={togetherStart} onStartUsed={doneTogetherStart} />}
+          {page === 'together' && <TogetherPage key={togetherKey} example={example} now={now} onSnack={(text) => setSnack({ text })} startCreate={togetherStart} onStartUsed={doneTogetherStart} overlay={overlay.on ? overlay.groupId : null} onOverlay={(groupId) => {
+                if (toggleOverlay(groupId)) setSnack({ text: '주 달력에 다 같이 빈 시간을 겹쳐 보여요', actionLabel: '달력 보기', onAction: () => setPage('cal') });
+              }} />}
         </main>
 
         {popup && <MemoPopup key={popup.memoId} popup={popup.popup} plan={{ events: planEvents, tasks: openTasks, today, now }} busy={busy} onSave={savePopup} onCancel={cancelPopup} />}

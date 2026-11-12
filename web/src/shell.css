@@ -164,6 +164,7 @@ html.locked, html.locked body { height: 100%; overflow: hidden; overscroll-behav
 .together-side { min-height: 0; display: grid; gap: 12px; grid-template-rows: auto minmax(0, 1.2fr) minmax(0, 1fr); } /* 맨 위 '그룹 만들기' · 그룹 · 친구 */
 /* 그룹 만들기를 눈에 띄게(11-13): 맨 위 큰 단추, 누르면 그 자리에 이름 칸 */
 .t-create-btn { width: 100%; }
+.together .t-create .make-group { min-height: 48px; font-size: 16px; }
 .t-create-form { margin: 0; padding: 8px; border: 1px solid var(--line-strong); border-radius: var(--r-card); background: var(--card); }
 .together-lead { margin: 0 0 6px; font-family: var(--font-head); font-size: 17px; line-height: 24px; font-weight: 700; color: var(--heading); }
 .together-empty .btn-line { align-self: center; margin-top: 12px; }
@@ -171,6 +172,13 @@ html.locked, html.locked body { height: 100%; overflow: hidden; overscroll-behav
 .cal-controls { display: inline-flex; align-items: center; gap: 8px; }
 .chip-btn { height: 34px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: var(--r-btn); background: var(--card); color: var(--text); font-size: 14px; line-height: 20px; font-weight: 500; white-space: nowrap; cursor: pointer; }
 .chip-btn:hover { background: var(--fill); }
+/* 겹쳐 보기 칩(디자인 넷째 묶음 .together-key) 안: 그룹 이름이 길면 줄임, 폰 머리 줄에서 안 넘치게 */
+.together-key .tk-name { max-width: 10em; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 899.98px) { .together-key .tk-name { max-width: 6.5em; } }
+/* '같이' 쪽 그룹 줄: 이름(누르면 그룹) + '달력에 겹쳐 보기' 칩 */
+.t-group { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--line); }
+.t-group > .t-row { flex: 1; min-width: 0; border-top: 0; }
+.t-group > .together-key { flex: none; }
 .together-main { min-height: 0; display: flex; flex-direction: column; }
 .together-main > .card { flex: 1; min-height: 0; }
 @media (max-width: 899.98px) {

@@ -59,7 +59,8 @@ function InviteLink({ link, what }) {
 }
 
 // startCreate: 달력의 '같이 보기'로 들어오면 true — 그룹이 없으면 만들기 칸을 바로 연다(한 번 쓰면 onStartUsed)
-export default function TogetherPage({ example, now, onSnack, startCreate = false, onStartUsed }) {
+// overlay = 주 달력에 겹쳐 보는 그룹 id(꺼졌으면 null), onOverlay(groupId) = 그 그룹 겹쳐 보기 켜고 끄기(11-13, 디자인 넷째 묶음 ①)
+export default function TogetherPage({ example, now, onSnack, startCreate = false, onStartUsed, overlay = null, onOverlay }) {
   const [data, setData] = useState(null); // { friends, groups }
   const [error, setError] = useState(null);
   const [view, setView] = useState({ kind: 'home' }); // home | group | meet
@@ -116,7 +117,7 @@ export default function TogetherPage({ example, now, onSnack, startCreate = fals
     <div className="together-side">
       <div className="t-create">
         {newGroup === null ? (
-          <button type="button" className="btn t-create-btn" onClick={openCreate}>
+          <button type="button" className="make-group t-create-btn" onClick={openCreate}>
             <span aria-hidden="true">+ </span>그룹 만들기
           </button>
         ) : (
@@ -155,12 +156,19 @@ export default function TogetherPage({ example, now, onSnack, startCreate = fals
         {data.groups.length === 0 && <p className="empty">아직 그룹이 없어요. 위의 ‘그룹 만들기’로 만들고 초대 링크를 보내면 다 같이 되는 시간을 골라요.</p>}
         <div className="t-list">
           {data.groups.map((g) => (
-            <button key={g.id} type="button" className={`t-row${view.kind !== 'home' && view.groupId === g.id ? ' on' : ''}`} aria-current={view.kind !== 'home' && view.groupId === g.id ? 'true' : undefined} onClick={() => setView({ kind: 'group', id: g.id, groupId: g.id })}>
-              <span className="t-name">{g.name}</span>
-              <span className="hint num">
-                {g.members}명{g.owner ? ' · 방장' : ''}
-              </span>
-            </button>
+            <div key={g.id} className="t-group">
+              <button type="button" className={`t-row${view.kind !== 'home' && view.groupId === g.id ? ' on' : ''}`} aria-current={view.kind !== 'home' && view.groupId === g.id ? 'true' : undefined} onClick={() => setView({ kind: 'group', id: g.id, groupId: g.id })}>
+                <span className="t-name">{g.name}</span>
+                <span className="hint num">
+                  {g.members}명{g.owner ? ' · 방장' : ''}
+                </span>
+              </button>
+              {onOverlay && (
+                <button type="button" className="together-key" aria-pressed={overlay === g.id} aria-label={`${g.name} 다 같이 빈 시간을 달력에 겹쳐 보기`} onClick={() => onOverlay(g.id)}>
+                  달력에 겹쳐 보기
+                </button>
+              )}
+            </div>
           ))}
         </div>
       </section>

@@ -1,0 +1,82 @@
+/* 11-13 사람 요청 층 — docs/tachyon/디자인/components.css '11-13 넷째 묶음'을 그대로 옮겼다(디자인 f6be900).
+   ① 다 같이 빈 시간 겹쳐 보기(주 달력 띠 · 범례 칩 · '같이' 쪽 그룹 만들기) ② 오늘 쪽 위젯 · 배치 넷 ③ 일정 끌기 ④ 하루 고리 금.
+   main.jsx에서 shape.css 다음, particles.css 앞에 부른다. 고칠 때는 디자인 세션의 components.css와 같이 고친다.
+   화면 쪽 더한 것(번갈아 속 뒤집기 ○ ■ △ 등)은 styles.css · particles.css · shell.css에 따로 둔다. */
+
+/* ════ 11-13 넷째 묶음: 사람 요청(11-13 00:01~00:04, 컨셉 소통판 00:06) ════
+   ① 다 같이 빈 시간 겹쳐 보기 ② 오늘 쪽 위젯 · 기본 배치 넷 ③ 일정 끌기 ④ 하루 고리에서 붙은 일정 가르기.
+   색은 var(--…)만. 새 값 이름 둘(--together, --together-bg)은 tokens.css D. */
+
+/* ── ① 다 같이 빈 시간 겹쳐 보기(주 달력) ──
+   초록 = '다 같이 빈 시간' 하나만이다(빨강 지금·경고, 파랑 수업, 노랑 할 일, 먹 내 일정과 안 겹친다).
+   주 달력 `.col` 안에서 일정 버튼들보다 앞(DOM 먼저)에 띠 하나. 누르면 모임 잡기로 가면 `<button class="together-band" aria-label="다 같이 빈 시간 12:00–13:00, 모임 잡기">`,
+   그림만이면 `<i class="together-band" aria-hidden="true">`. 자리는 style="top: calc(var(--hour) * 시작); height: calc(var(--hour) * 길이)". 구간은 서버 `GET /api/together/groups/:id/free`의 '다 같이 빈' 구간.
+   면은 옅게, 위·아래 끝은 점선 — 실선 칸인 일정과 모양으로도 갈린다. 폰 칸이 좁아 띠 안에는 글을 쓰지 않는다. */
+.cal-grid .col .together-band { position: absolute; left: 0; right: 0; display: block; margin: 0; padding: 0; border: 0; border-radius: 0; background: var(--together-bg); border-top: 1.5px dashed var(--together); border-bottom: 1.5px dashed var(--together); }
+.cal-grid .col i.together-band { pointer-events: none; }
+.cal-grid .col button.together-band { cursor: pointer; }
+.cal-grid .col button.together-band:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+/* 범례 겸 켜고 끄기: 달력 머리(쪽 머리) 오른쪽의 칩 하나 `<button class="together-key" aria-pressed="true">다 같이 빈 시간 · 〈그룹 이름〉</button>` */
+.together-key { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px 0 10px; border: 1.5px solid var(--together); border-radius: var(--r-btn); background: var(--card); color: var(--together); font-size: 13px; line-height: 18px; font-weight: 700; white-space: nowrap; }
+.together-key::before { content: ''; flex: none; width: 14px; height: 10px; background: var(--together-bg); border-top: 1.5px dashed var(--together); border-bottom: 1.5px dashed var(--together); }
+.together-key[aria-pressed='false'] { border-color: var(--line); color: var(--text2); }
+.together-key[aria-pressed='false']::before { opacity: 0.4; }
+/* '같이' 쪽: 그룹 만들기를 맨 위 검은 알약으로(사람 "그룹 만드는 기능은 눈에 잘 안 들어와"), 그룹 줄마다 '달력에 겹쳐 보기' 칩(같은 .together-key) */
+.together .make-group { min-height: var(--tap); padding: 0 20px; border: 0; border-radius: var(--r-btn); background: var(--accent); color: var(--on-accent); font-size: 15px; font-weight: 700; }
+
+/* ── ② 오늘 쪽 위젯 · 기본 배치(넓은 화면) ──
+   평소에는 지금 카드 그대로 둔다(손잡이를 늘 보이면 난잡하다). 쪽 머리의 '배치 바꾸기'를 누르면 `.today-grid.editing`:
+   카드마다 오른쪽 위에 손잡이(⋮⋮, 누르는 영역 44), 카드 테두리 점선, 쪽 머리에 기본 배치 넷 고르기(`.layout-pick`)와 '다 됨'.
+   카드를 손잡이로 끌어 다른 칸에 놓으면 둘이 자리를 바꾼다. 키보드: 손잡이에 초점 → ←/→ 로 앞·뒤 칸과 바꾼다.
+   차례는 이 기기에(localStorage, 예 `tachyon_today_layout` = { layout, order }) — dhsrua555 `tachyon_today_order`와 같은 방식. */
+.today-grid.editing > .card { position: relative; outline: 1.5px dashed var(--line-strong); outline-offset: -1.5px; }
+.widget-grip { display: none; }
+.today-grid.editing .widget-grip { position: absolute; top: 4px; right: 4px; z-index: 3; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: var(--r-btn); background: var(--card); color: var(--text2); cursor: grab; touch-action: none; }
+.widget-grip::before { content: ''; width: 10px; height: 16px; background: radial-gradient(circle, currentColor 1.5px, transparent 1.9px) 0 0 / 5px 5.4px; } /* 점 2 × 3 */
+.today-grid.editing .widget-grip:hover { background: var(--fill); color: var(--text); }
+/* 집은 카드: 먹 실선 2px + 떠 있는 그림자, 반듯하게(기울이지 않는다) */
+.today-grid > .card.lifted { z-index: 4; outline: 2px solid var(--accent); outline-offset: -2px; box-shadow: 0 14px 32px color-mix(in srgb, var(--text) 22%, transparent); cursor: grabbing; }
+/* 놓을 자리: 점선 2px + 옅은 면 + 가운데 '여기에 놓기'. dhsrua555 `.y-zone`과 같은 말 */
+.today-grid .drop-zone { position: relative; z-index: 2; display: grid; place-items: center; border: 2px dashed var(--line-strong); background: var(--today-wash); color: var(--text2); font-size: 13px; line-height: 18px; font-weight: 700; pointer-events: none; } /* 놓을 칸 위에 덮는다(그 칸의 grid-area) */
+/* 놓은 뒤 미끄러지기는 FLIP 200ms var(--ease-out) — 동작 줄이기면 바로(토큰의 --dur-in이 0) */
+/* 기본 배치 고르기: 작은 그림 넷(버튼, aria-pressed). 그림은 칸만 먹 선으로 */
+.layout-pick { display: flex; gap: 6px; }
+.layout-pick button { display: grid; gap: 2px; width: 56px; height: 44px; padding: 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); }
+.layout-pick button[aria-pressed='true'] { outline: 2px solid var(--accent); outline-offset: -2px; }
+.layout-pick i { display: block; min-width: 0; min-height: 0; background: var(--fill); box-shadow: inset 0 0 0 1px var(--text3); }
+.layout-pick .three { grid-template: 'a b d' 'a c d' / 1fr 1fr 1fr; }
+.layout-pick .four { grid-template: 'a b c d' / 1fr 1fr 1fr 1fr; }
+.layout-pick .ring { grid-template: 'a b c' 'a b d' / 1.4fr 1fr 1fr; }
+.layout-pick .grid { grid-template: 'a b' 'c d' / 1fr 1fr; }
+.layout-pick i:nth-child(1) { grid-area: a; } .layout-pick i:nth-child(2) { grid-area: b; } .layout-pick i:nth-child(3) { grid-area: c; } .layout-pick i:nth-child(4) { grid-area: d; }
+/* 배치 넷: 칸 a~d에 위젯을 `data-slot`으로 넣는다(카드에 data-slot="a" 등). 1200px부터. 900~1199는 어느 배치든 2 × 2.
+   기본 차례(위젯 → 칸): 세 칸 = 오늘 일정 a · 하루 고리 b · 할 일 c · 메모 d(지금 화면과 같다) / 네 칸 · 고리 크게 · 2×2 = 하루 고리 a · 오늘 일정 b · 할 일 c · 메모 d.
+   shell.css의 `.today-grid > .day { grid-area: day }` 같은 줄은 이것으로 바꾼다. */
+.today-grid > [data-slot='a'] { grid-area: a; } .today-grid > [data-slot='b'] { grid-area: b; } .today-grid > [data-slot='c'] { grid-area: c; } .today-grid > [data-slot='d'] { grid-area: d; }
+/* 고리 크게: 큰 칸의 고리는 400px 너머 칸에 맞춰 640px까지 */
+.today-grid[data-layout='ring'] > .ring-card[data-slot='a'] .ring-wrap { width: max(160px, min(640px, 100cqw - 48px, 100cqh - 80px)); }
+/* 낮은 칸(2 × 2, 900~1199)의 오늘 일정은 시간을 누르지 않고 카드 안에서 굴린다(약 시간당 25px, 처음엔 지금 시각으로 굴려 둔다) */
+.today-grid[data-layout='grid'] > .day { --day-h: max(560px, calc(100cqh - 58px)); overflow-y: auto; overscroll-behavior: contain; }
+@media (min-width: 900px) and (max-width: 1199.98px) { .today-grid[data-layout] > .day { --day-h: max(560px, calc(100cqh - 58px)); overflow-y: auto; overscroll-behavior: contain; } }
+@media (min-width: 900px) and (max-width: 1199.98px) {
+  .today-grid[data-layout] { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); grid-template-areas: 'a b' 'c d'; }
+}
+@media (min-width: 1200px) {
+  .today-grid[data-layout='three'] { grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.1fr) minmax(260px, 0.9fr); grid-template-rows: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-areas: 'a b d' 'a c d'; }
+  .today-grid[data-layout='four'] { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); grid-template-areas: 'a b c d'; }
+  .today-grid[data-layout='ring'] { grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.9fr) minmax(240px, 0.9fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: 'a b c' 'a b d'; }
+  .today-grid[data-layout='grid'] { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); grid-template-areas: 'a b' 'c d'; }
+}
+
+/* ── ③ 일정 끌기(주 달력 · 오늘 일정) ──
+   일정을 끌면(폰은 0.4초 길게 누른 뒤) 제자리 칸은 흐리게 남고, 손가락 밑에 '그림자 칸'이 15분 눈금(계획)으로 따라오며 새 시각을 보인다.
+   놓으면 옮기고 스낵바 '옮겼어요 · 되돌리기'. 가져온 달력(eTL 등) 일정은 지금처럼 '사본'으로 옮겨진다(서버 규칙). */
+.cal-grid .ev.lifting { opacity: 0.35; }
+.cal-grid .ev-ghost { position: absolute; left: 2px; right: 2px; z-index: 3; border: 2px dashed var(--accent); border-radius: var(--r-chip); background: color-mix(in srgb, var(--card) 72%, transparent); pointer-events: none; }
+.cal-grid .ev-ghost .when { position: absolute; left: -2px; bottom: 100%; margin-bottom: 3px; padding: 1px 6px; border-radius: var(--r-chip); background: var(--accent); color: var(--on-accent); font-size: 12px; line-height: 18px; font-weight: 700; white-space: nowrap; }
+
+/* ── ④ 하루 고리에서 붙은 일정 가르기(사람 "같은 모양이나 색깔로 연속된 일정이 … 분간이 안 됨") ──
+   규칙: 일정 두 개 사이가 30분보다 짧으면(바깥 고리 점 하나 ≈ 22분이라 그보다 좁으면 붙어 보인다) 뒤 일정 시작 각도에
+   바탕색 가는 금 하나를 반지름 60 → 108로 긋는다(입자 · 띠를 그린 뒤, 눈금 앞). 지금 선의 흰 테(now-halo)와 같은 방식이다.
+   모양 · 색이 같든 다르든 같은 규칙(하나만 기억하면 된다). 입자 테마는 그 금 자리의 입자 하나를 빼는 것으로 같은 뜻. */
+.ring line.sep { stroke: var(--card); stroke-width: 2.4; }

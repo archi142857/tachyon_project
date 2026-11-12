@@ -49,6 +49,8 @@
   /* 모양의 색 [새]: 모든 테마에 있다 */
   --mark-class: #1e4d9b; /* ● 수업 */
   --mark-task: #edb200; /* ▲ 할 일. 흰 바탕에서 옅으니 늘 --accent-text 테두리와 같이 쓴다 */
+  --together: #1f7a4d; /* 다 같이 빈 시간(11-13, 디자인 tokens.css D): 선·글자. 초록은 이 뜻 하나만 */
+  --together-bg: #e3f1e8; /* 그 옅은 면 */
   --ev-mine-line: #141414; /* 내 일정 칸 테두리. 칸에 색이 있는 테마는 transparent */
   /* 스낵바·막 */
   --snack-bg: #141414;
@@ -422,9 +424,8 @@ select.input { padding-right: 36px; }
 .ring line.now { stroke: var(--now); stroke-width: 1.6; }
 .ring text.now { fill: var(--now); font-weight: 700; }
 .ring .hit { fill: none; stroke: transparent; stroke-width: 48; pointer-events: stroke; cursor: pointer; }
-/* 붙어 보이는 구간(사람 11-13 "분간이 안 됨"): 뒤 구간 시작에 바탕색 금(디자인 넷째 묶음 ④ 그대로),
-   같은 모양끼리는 둘째 속을 뒤집는다 — ● → ○, □ → ■, ▲ → △, 띠는 옅게(화면, 소통판에 적음) */
-.ring line.sep { stroke: var(--card); stroke-width: 2.4; }
+/* 붙어 보이는 구간(사람 11-13 "분간이 안 됨"): 뒤 구간 시작의 바탕색 금은 request1113.css(디자인 ④),
+   여기는 화면이 더한 것 — 같은 모양끼리 둘째 속을 뒤집는다: ● → ○, □ → ■, ▲ → △, 띠는 옅게(소통판에 적음) */
 .ring .band.alt { opacity: 0.55; }
 .ring circle.ev.timetable.alt { fill: var(--card); stroke: var(--mark-class); stroke-width: 1.1; }
 .ring rect.ev.alt { fill: var(--accent-text); }

@@ -31,6 +31,7 @@ const PAIRS = [
   ['--snack-text', '--snack-bg', 4.5], ['--snack-action', '--snack-bg', 4.5],
   ['--map-pin-text', '--map-pin', 4.5], ['--map-label', '--map-bg', 4.5],
   ['--line-strong', '--card', 3], ['--focus', '--card', 3], ['--now', '--card', 4.5], ['--mark-class', '--card', 3],
+  ['--together', '--card', 3], ['--together', '--together-bg', 4.5], // 다 같이 빈 시간(11-13 디자인 D): 칩 글자·띠 점선
 ];
 
 describe('테마 값', () => {

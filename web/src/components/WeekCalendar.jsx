@@ -6,7 +6,7 @@ import { useRef } from 'react';
 import { arriveText, lateOf } from '../campus.js';
 import { hoursText } from '../density.js';
 import { endOf, hourRange, isAllDay, layoutDay } from '../layout.js';
-import { addDays, dayIndex, deadlineLabel, endOrHour, hhmm, kst, minuteOfDay, WEEKDAYS, weekTitle } from '../time.js';
+import { addDays, dayIndex, deadlineLabel, endOrHour, hhmm, kst, minuteOfDay, toKstIso, WEEKDAYS, weekTitle } from '../time.js';
 import DensityRing from './DensityRing.jsx';
 import Icon from './Icon.jsx';
 
@@ -21,14 +21,19 @@ function eventLabel(ev, leg) {
 
 const used = (d) => (d ? d.eventMin + d.taskMin + d.over : 0);
 
+// 다 같이 빈 시간 띠(11-13, 디자인 넷째 묶음 ①)의 끝 글자: 자정이면 24:00
+const spanEnd = (sp) => (sp.end.slice(0, 10) !== sp.start.slice(0, 10) && hhmm(sp.end) === '00:00' ? '24:00' : hhmm(sp.end));
+
 // density(date) → 그날 밀도(density.js) 또는 null
-export default function WeekCalendar({ start, events, tasks, now, density, isCurrent, onPrev, onNext, onToday, onEvent, onTask, legs }) {
+// together = { name, spans: [{ start, end }] } 고른 그룹의 다 같이 빈 시간(없으면 null) → 칸마다 일정 뒤에 띠.
+// 띠를 누르면 onTogether({ start, end }) — 누른 30분부터 1시간(띠 끝까지), 키보드로는 띠 처음부터
+export default function WeekCalendar({ start, events, tasks, now, density, isCurrent, onPrev, onNext, onToday, onEvent, onTask, legs, together, onTogether }) {
   const touch = useRef(null);
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
   const todayIdx = dayIndex(start, now);
   const timed = events.filter((e) => !isAllDay(e));
   const allDay = events.filter(isAllDay);
-  const { first, last } = hourRange(start, timed);
+  const { first, last } = hourRange(start, together ? [...timed, ...together.spans] : timed); // 겹쳐 보면 다 같이 빈 시간도 보이게 넓힌다
   const hourAt = (date) => minuteOfDay(date) / 60 - first;
   const nowTop = hourAt(now);
 
@@ -124,6 +129,36 @@ export default function WeekCalendar({ start, events, tasks, now, density, isCur
           </div>
           {days.map((day, i) => (
             <div className={i === todayIdx ? 'col today' : 'col'} key={i}>
+              {together?.spans
+                .filter((sp) => dayIndex(start, sp.start) === i)
+                .map((sp) => {
+                  const s0 = hourAt(sp.start);
+                  const top = Math.max(s0, 0);
+                  const bottom = Math.min(s0 + (Date.parse(sp.end) - Date.parse(sp.start)) / 3600000, last - first);
+                  if (bottom <= top) return null;
+                  const style = { top: `calc(var(--hour) * ${top})`, height: `calc(var(--hour) * ${bottom - top})` };
+                  const label = `다 같이 빈 시간 ${hhmm(sp.start)}–${spanEnd(sp)}`;
+                  if (!onTogether) return <i key={sp.start} className="together-band" style={style} aria-hidden="true" />;
+                  return (
+                    <button
+                      key={sp.start}
+                      type="button"
+                      className="together-band"
+                      style={style}
+                      aria-label={`${label}, 모임 잡기`}
+                      title={`${label} · ${together.name} — 누르면 이 시간으로 모임 잡기`}
+                      onClick={(e) => {
+                        const box = e.currentTarget.getBoundingClientRect();
+                        const at = e.detail && box.height ? (e.clientY - box.top) / box.height : 0; // 키보드(detail 0)는 처음부터
+                        const startMs = Date.parse(sp.start);
+                        const endMs = Date.parse(sp.end);
+                        const pickedMin = (top - s0) * 60 + at * (bottom - top) * 60;
+                        const from = Math.min(startMs + Math.floor(pickedMin / 30) * 30 * 60000, endMs - 30 * 60000);
+                        onTogether({ start: toKstIso(new Date(from)), end: toKstIso(new Date(Math.min(from + 60 * 60000, endMs))) });
+                      }}
+                    />
+                  );
+                })}
               {layoutDay(timed.filter((e) => dayIndex(start, e.start) === i)).map(({ ev, col, cols }) => {
                 const s = hourAt(ev.start);
                 const len = Math.min((endOf(ev) - Date.parse(ev.start)) / 3600000, last - first - s);

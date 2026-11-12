@@ -2,7 +2,7 @@
 // '예시로 둘러보기'(또는 주소 끝 ?example)일 때는 서버 대신 example.js의 지어낸 자료를 쓴다.
 // 시각은 schema.sql 머리말대로 '…T15:00:00+09:00', 종일 일정은 날짜만('2026-11-13').
 import { examplePopup, makeExample } from './example.js';
-import { groupDetail, makeTogether, meetView, summary } from './togetherExample.js';
+import { groupDetail, groupFree, makeTogether, meetView, summary } from './togetherExample.js';
 import { CROWDED, dueThisWeek, topThree } from './tasks.js';
 import { addDays, dayStartKst, endOrHour, isDateOnly, toKstIso, weekStart } from './time.js';
 
@@ -471,6 +471,12 @@ export const createGroup = (name) =>
       })
     : call('POST', '/api/together/groups', { name });
 export const getGroup = (id) => (ex ? exT((t) => groupDetail(t, id)) : call('GET', `/api/together/groups/${encodeURIComponent(id)}`));
+// 내 달력에 겹쳐 그릴 '다 같이 빈 시간'(11-13, 서버 3830ac1): from = 'YYYY-MM-DD'부터 days일, 08:00~24:00, 30분 칸
+// → { group, members, known, slots: [{ start, free }], together: [{ start, end }] } — 사람 수만 온다(이름·일정 없음)
+export const getGroupFree = (id, from, days = 7) =>
+  ex
+    ? exT((t) => groupFree(t, id, { from, days, mine: ex.events }))
+    : call('GET', `/api/together/groups/${encodeURIComponent(id)}/free?from=${encodeURIComponent(from)}&days=${days}`);
 export const renameGroup = (id, name) =>
   ex ? exT((t) => ((t.groups.find((g) => g.id === id).name = name), { ok: true })) : call('PATCH', `/api/together/groups/${encodeURIComponent(id)}`, { name });
 export const inviteToGroup = (id) => (ex ? exT(exLink) : call('POST', `/api/together/groups/${encodeURIComponent(id)}/invite`));

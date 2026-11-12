@@ -11,7 +11,7 @@ export const SKINS = { 입자: '입자 밤', 종이: '입자 낮' };
 export const KEYS = `--bg --card --inset --raised --heading --text --text2 --text3 --line --grid --line-strong --fill --bubble
   --accent --accent-press --accent-text --on-accent --focus --warn --warn-bg --danger
   --stamp --highlight --postit --postit-text2 --postit-unknown --now --dot-off --today-wash
-  --ev-class --ev-ics --ev-memo --ev-deadline --ev-text --ev-important --mark-class --mark-task --ev-mine-line
+  --ev-class --ev-ics --ev-memo --ev-deadline --ev-text --ev-important --mark-class --mark-task --ev-mine-line --together --together-bg
   --snack-bg --snack-text --snack-action --scrim --shadow
   --r-chip --r-postit --r-card --r-btn --r-bubble --r-sheet --font --font-head
   --map-bg --map-dot --map-halo --map-route --map-pin --map-pin-text --map-label`.split(/\s+/);

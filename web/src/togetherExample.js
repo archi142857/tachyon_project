@@ -1,7 +1,7 @@
 // '같이' 쪽 예시 자료(?example): 서버 10_together.js와 같은 모양을 흉내 낸다. 사람·모임 이름은 모두 지어낸 예시.
 // 남에게는 빈/바쁨만 가는 규칙도 같다(일정 이름 없음).
 import { bestTimes } from './meet.js';
-import { addDays, dayStart, toKstIso } from './time.js';
+import { addDays, dayStart, endOrHour, isDateOnly, kst, toKstIso } from './time.js';
 
 const ME = 1;
 const ymd = (d) => toKstIso(d).slice(0, 10);
@@ -77,5 +77,53 @@ export function meetView(t, id) {
     unknown: 0,
     slots,
     best: best.map((b) => ({ start: b.start, end: toKstIso(b.end), free: b.free, who: b.who })),
+  };
+}
+
+// 겹쳐 보기 예시(11-13): 다른 사람의 바쁨 무늬(지어낸 것, 요일 wd 0=월 … 6=일 · 분 min). 점심·저녁에 다 같이 빈 시간이 생기게
+function overlayBusy(memberId, wd, min) {
+  const weekday = wd <= 4;
+  const h = min / 60;
+  if (memberId === 101) return (weekday && ((h >= 9 && h < 12) || (h >= 14 && h < 16))) || h >= 21;
+  if (memberId === 102) return (weekday && ((h >= 10 && h < 11.5) || (h >= 15.5 && h < 18))) || (wd === 5 && h >= 13 && h < 17) || h >= 22;
+  return false;
+}
+
+// 내 달력에 겹쳐 그릴 '다 같이 빈 시간'(서버 10_together.js groupFree와 같은 모양, 30분 칸). mine = 내 예시 일정(시각 있는 것만 바쁨)
+export function groupFree(t, id, { from, days = 7, start = '08:00', end = '24:00', mine = [] }) {
+  const g = t.groups.find((x) => x.id === id);
+  if (!g) throw Object.assign(new Error('없는 그룹이에요'), { status: 404 });
+  const SLOT = 30;
+  const minOf = (hm) => Number(hm.slice(0, 2)) * 60 + Number(hm.slice(3, 5));
+  const busy = mine.filter((e) => !isDateOnly(e.start)).map((e) => [Date.parse(e.start), Date.parse(endOrHour(e.start, e.end))]);
+  const slots = [];
+  const spans = [];
+  for (let d = 0; d < days; d++) {
+    const day0 = Date.parse(`${from}T00:00:00+09:00`) + d * 86400000;
+    const wd = kst(new Date(day0)).wd;
+    for (let min = minOf(start); min < minOf(end); min += SLOT) {
+      const s = day0 + min * 60000;
+      const e = s + SLOT * 60000;
+      const meFree = !busy.some(([x, y]) => x < e && y > s);
+      const free = g.members.filter((mid) => (mid === ME ? meFree : !overlayBusy(mid, wd, min))).length;
+      slots.push({ start: toKstIso(new Date(s)), free });
+      if (free !== g.members.length) continue;
+      const last = spans[spans.length - 1];
+      if (last && last.e === s) last.e = e;
+      else spans.push({ s, e });
+    }
+  }
+  return {
+    ok: true,
+    group: { id: g.id, name: g.name },
+    from,
+    days,
+    dayStart: start,
+    dayEnd: end,
+    slot: SLOT,
+    members: g.members.length,
+    known: g.members.length,
+    slots,
+    together: spans.map((x) => ({ start: toKstIso(new Date(x.s)), end: toKstIso(new Date(x.e)) })),
   };
 }

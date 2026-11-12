@@ -15,6 +15,7 @@ html[data-theme='차분한 종이'], [data-theme='차분한 종이'] {
   --now: #c62f2f; --dot-off: #b3aa98; --today-wash: #faf5e2;
   --ev-class: #cbddee; --ev-ics: #cdb4eb; --ev-memo: #eda9a8;
   --mark-class: #3d6fa5; --mark-task: #f3d65f; --ev-mine-line: transparent;
+  --together: #2f6b4f; --together-bg: #e0ecdf;
   --snack-bg: #23305e; --snack-text: #fdf8e6; --snack-action: #c9d4f6;
   --scrim: #23305e66; --shadow: 0 6px 16px #23305e29;
   --r-chip: 3px; --r-postit: 4px; --r-card: 6px; --r-btn: 6px; --r-bubble: 8px; --r-sheet: 10px;
@@ -38,6 +39,7 @@ html[data-theme='입자 밤'], [data-theme='입자 밤'] {
   --r-chip: 6px; --r-postit: 8px; --r-card: 16px; --r-btn: 12px; --r-bubble: 14px; --r-sheet: 20px;
   --map-bg: #0f0f14; --map-dot: #2c2b38; --map-halo: #040406; --map-route: #8f7bff; --map-pin: #8f7bff; --map-pin-text: #0b0714; --map-label: #d6d3e4;
   --mark-class: #8f7bff; --mark-task: #f5c84c; --ev-mine-line: transparent;
+  --together: #5ad6a8; --together-bg: #10342a;
   color-scheme: dark;
 }
 
@@ -57,6 +59,7 @@ html[data-theme='입자 낮'], [data-theme='입자 낮'] {
   --r-chip: 6px; --r-postit: 8px; --r-card: 16px; --r-btn: 12px; --r-bubble: 14px; --r-sheet: 20px;
   --map-bg: #f1ede3; --map-dot: #d2ccbf; --map-halo: #ffffff; --map-route: #5f49dc; --map-pin: #5f49dc; --map-pin-text: #ffffff; --map-label: #3a3740;
   --mark-class: #5f49dc; --mark-task: #f2c94c; --ev-mine-line: transparent;
+  --together: #1a7356; --together-bg: #def1e8;
   color-scheme: light;
 }
 
@@ -76,6 +79,7 @@ html[data-theme='벤토 위젯'], [data-theme='벤토 위젯'] {
   --r-chip: 8px; --r-postit: 10px; --r-card: 22px; --r-btn: 14px; --r-bubble: 16px; --r-sheet: 26px;
   --map-bg: #eef0f3; --map-dot: #cfd3da; --map-halo: #ffffff; --map-route: #2f6bff; --map-pin: #182033; --map-pin-text: #ffffff; --map-label: #2c313b;
   --mark-class: #2f6bff; --mark-task: #d7f36a; --ev-mine-line: transparent;
+  --together: #117549; --together-bg: #e0f4e9;
   color-scheme: light;
 }
 
@@ -95,6 +99,7 @@ html[data-theme='조용한 갤러리'], [data-theme='조용한 갤러리'] {
   --r-chip: 2px; --r-postit: 2px; --r-card: 2px; --r-btn: 2px; --r-bubble: 4px; --r-sheet: 4px;
   --map-bg: #f2f2f2; --map-dot: #d0d0d0; --map-halo: #ffffff; --map-route: #e6007a; --map-pin: #0c0c0c; --map-pin-text: #ffffff; --map-label: #333333;
   --mark-class: #0c0c0c; --mark-task: #ffd6ea; --ev-mine-line: transparent;
+  --together: #167553; --together-bg: #e4f1ea;
   color-scheme: light;
 }
 
@@ -116,5 +121,6 @@ html[data-theme='호박색 터미널'], [data-theme='호박색 터미널'] {
   --font-head: ui-monospace, 'SF Mono', 'D2Coding', 'Nanum Gothic Coding', Menlo, Consolas, monospace;
   --map-bg: #171005; --map-dot: #3a2805; --map-halo: #100b03; --map-route: #ffb000; --map-pin: #ffb000; --map-pin-text: #100b03; --map-label: #ffd27a;
   --mark-class: #ffd27a; --mark-task: #cf9020; --ev-mine-line: transparent;
+  --together: #7ee787; --together-bg: #16260f;
   color-scheme: dark;
 }
