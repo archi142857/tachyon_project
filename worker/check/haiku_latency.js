@@ -69,8 +69,15 @@ for (const { c, r, wall, error, popup } of rows) {
     check("이름", popup?.title, c.want.title);
     check("마감", popup?.date, c.want.date);
   }
-  const shown = popup ? `${popup.title} · ${popup.date} ${popup.time} · ${popup.place}` : "팝업 없음";
-  console.log(`${c.text} | ${wall} | ${r.usage.input}/${r.usage.output} | ${JSON.stringify(ai)} | ${shown} | ${marks.join(" ")}`);
+  console.log(`${c.text} | ${wall} | ${r.usage.input}/${r.usage.output} | ${JSON.stringify(ai)} | ${shownOf(popup)} | ${marks.join(" ")}`);
+}
+
+/** 최종 팝업 한 칸. 할 일은 11-12부터 걸릴 분(minutes)·같은 메모의 나머지 할 일(also)도 보인다 */
+function shownOf(popup) {
+  if (!popup) return "팝업 없음";
+  if (popup.kind !== "task") return `${popup.title} · ${popup.date} ${popup.time} · ${popup.place}`;
+  const one = (t) => `${t.title}${t.minutes ? ` ${t.minutes}분` : ""}`;
+  return `할 일 ${one(popup)} · 마감 ${popup.date} ${popup.time}${popup.also?.length ? ` · 그 밖 ${popup.also.map(one).join(", ")}` : ""}`;
 }
 
 const times = rows.filter((x) => !x.error).map((x) => x.wall).sort((a, b) => a - b);
@@ -81,6 +88,9 @@ if (!times.length) {
 const median = times.length % 2 ? times[(times.length - 1) / 2] : Math.round((times[times.length / 2 - 1] + times[times.length / 2]) / 2);
 const p90 = times[Math.min(times.length - 1, Math.ceil(times.length * 0.9) - 1)];
 const model = rows.find((x) => x.r)?.r.model;
+// 출력 토큰: 답 칸이 늘면(11-12 minutes·also, maxTokens 320) 출력과 지연이 같이 는다 — 11-10은 4칸에 약 157
+const outs = rows.filter((x) => x.r).map((x) => x.r.usage.output).sort((a, b) => a - b);
+const outMedian = outs.length % 2 ? outs[(outs.length - 1) / 2] : Math.round((outs[outs.length / 2 - 1] + outs[outs.length / 2]) / 2);
 // 11-10 결정: 배포본 실측 중앙값 1.26초 → 날짜·시각은 정규식 먼저(3_memo_popup.js findWhen). 메모 말풍선은 화면에 바로 뜨고
 // 팝업만 AI를 기다린다. POPUP_AI_MS(기본 2500)는 그 한도라, 1초로 줄이면 AI 답 대부분을 버리게 돼서 그대로 둔다.
 const verdict =
@@ -89,7 +99,7 @@ const verdict =
     : `1초 넘음 → 날짜·시각은 정규식 먼저(이미 들어 있음). AI 답은 POPUP_AI_MS(2500) 안에 오면 쓴다 — p90 ${p90}ms가 그보다 크면 한도를 다시 볼 것`;
 console.log(
   `\n요약: ${new Date().toISOString().slice(0, 10)} · ${model} · 성공 ${times.length}/${rows.length} · ` +
-    `중앙값 ${median} ms · 최소 ${times[0]} · p90 ${p90} · 최대 ${times.at(-1)} · 맞은 칸 ${fieldsOk}/${fieldsAll} → ${verdict}`,
+    `중앙값 ${median} ms · 최소 ${times[0]} · p90 ${p90} · 최대 ${times.at(-1)} · 출력 토큰 중앙값 ${outMedian} · 맞은 칸 ${fieldsOk}/${fieldsAll} → ${verdict}`,
 );
 
 /** 화면에 안 보이게 한 줄 입력받기 (터미널이면 raw 모드로 글자를 받기만 하고 되찍지 않는다) */
