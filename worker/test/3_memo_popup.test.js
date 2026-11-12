@@ -3,7 +3,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { handle, findWhen, mergePopup, suggestEvent, isoKst, nowLabel, looksLikeTodo } from "../3_memo_popup.js";
+import { handle, findWhen, mergePopup, suggestEvent, isoKst, nowLabel, looksLikeTodo, withHour } from "../3_memo_popup.js";
 import { CASES, NOW } from "./fixtures/memo_cases.js";
 import { fakeD1, addUser, fakeCtx } from "./helpers/d1.js";
 
@@ -260,7 +260,7 @@ test("AI에게 지금 시각과 메모를 보내고, 답으로 팝업을 만들�
 
   assert.equal(sent.messages[0].content, "지금: 2026-11-09 (월) 17:00\n메모: 내일 3시 301동 스터디");
   assert.equal(sent.model, "claude-haiku-5-5");
-  assert.deepEqual(p, { title: "스터디", date: "2026-11-10", time: "15:00", end_time: "?", place: "301동", by: "ai" });
+  assert.deepEqual(p, { title: "스터디", date: "2026-11-10", time: "15:00", end_time: "16:00", place: "301동", by: "ai" }); // 끝을 안 썼으면 1시간(11-13)
   const log = DB.sqlite.prepare("SELECT action, detail FROM log").all();
   assert.equal(log.length, 1);
   assert.equal(log[0].action, "llm");
@@ -293,6 +293,31 @@ test("로그인 안 하면 401", async () => {
   assert.equal(r.status, 401);
 });
 
+test("끝을 안 정한 일정은 1시간(11-13 사람 요청): 팝업 끝 칸을 채우고, 끝 없이 저장해도 시작 + 1시간", async () => {
+  const p = { title: "[예시] 스터디", date: "2026-11-20", time: "14:00", end_time: "?", place: "?", by: "ai" };
+  assert.equal(withHour(p).end_time, "15:00");
+  assert.equal(withHour({ ...p, time: "23:30" }).end_time, "23:59"); // 팝업은 날짜 칸이 하나라 자정 앞에서 멈춘다(useLength와 같게)
+  assert.equal(withHour({ ...p, end_time: "16:30" }).end_time, "16:30"); // 쓴 끝·쓴 길이·내 일정의 끝이 먼저
+  assert.equal(withHour({ ...p, time: "?" }).end_time, "?"); // 시각이 없으면 종일 그대로
+  assert.deepEqual(withHour({ kind: "task", title: "[예시] 보고서", date: "2026-11-20", time: "?" }), { kind: "task", title: "[예시] 보고서", date: "2026-11-20", time: "?" });
+  assert.equal(withHour(null), null);
+
+  // 저장: 끝을 안 보내거나 시작보다 이른 끝 → 시작 + 1시간, 자정을 넘으면 다음 날
+  const DB = fakeD1();
+  const user = addUser(DB);
+  const env = { DB };
+  const save = async (fields) => {
+    const { body } = await call(env, user, "POST", "/api/memo", { text: "[예시] 메모" });
+    return (await call(env, user, "POST", `/api/memo/${body.memo.id}/save`, { title: "[예시] 일정", date: "2026-11-20", place: "?", ...fields })).body.event;
+  };
+  assert.equal((await save({ time: "14:00", end_time: "?" })).end, "2026-11-20T15:00:00+09:00");
+  assert.equal((await save({ time: "14:00" })).end, "2026-11-20T15:00:00+09:00");
+  assert.equal((await save({ time: "14:00", end_time: "13:00" })).end, "2026-11-20T15:00:00+09:00");
+  assert.equal((await save({ time: "23:30", end_time: "?" })).end, "2026-11-21T00:30:00+09:00");
+  assert.equal((await save({ time: "14:00", end_time: "16:30" })).end, "2026-11-20T16:30:00+09:00");
+  assert.deepEqual(Object.values(await save({ time: "?", end_time: "?" })).slice(2, 4), ["2026-11-20", "2026-11-21"]); // 종일은 그대로
+});
+
 test("메모 쓰기 → 목록 → 팝업 저장 → 일정 생김 → 고쳐 저장 → 지우기", async () => {
   const DB = fakeD1();
   const env = { DB }; // 키 없음 → 규칙 팝업 (예시 메모는 날짜·시각을 다 써서 오늘 날짜와 상관없다)
@@ -302,7 +327,7 @@ test("메모 쓰기 → 목록 → 팝업 저장 → 일정 생김 → 고쳐 �
   assert.equal(added.status, 200);
   const { memo, popup } = added.body;
   assert.match(memo.created_at, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\+09:00$/);
-  assert.deepEqual(popup, { title: "발표 연습", date: "2026-11-20", time: "14:00", end_time: "?", place: "301동", by: "rule" });
+  assert.deepEqual(popup, { title: "발표 연습", date: "2026-11-20", time: "14:00", end_time: "15:00", place: "301동", by: "rule" });
 
   await call(env, user, "POST", "/api/memo", { text: "장보기 목록 정리" });
   const list = await call(env, user, "GET", "/api/memo");
@@ -312,7 +337,7 @@ test("메모 쓰기 → 목록 → 팝업 저장 → 일정 생김 → 고쳐 �
   const saved = await call(env, user, "POST", `/api/memo/${memo.id}/save`, { ...popup, suggested: popup });
   await saved.ctx.settle();
   assert.equal(saved.status, 200);
-  assert.deepEqual(saved.body.event, { id: saved.body.event.id, title: "발표 연습", start: "2026-11-20T14:00:00+09:00", end: null, place: "301동", source: "memo" });
+  assert.deepEqual(saved.body.event, { id: saved.body.event.id, title: "발표 연습", start: "2026-11-20T14:00:00+09:00", end: "2026-11-20T15:00:00+09:00", place: "301동", source: "memo" });
   assert.equal(DB.sqlite.prepare("SELECT handled FROM memos WHERE id = ?").get(memo.id).handled, 1);
   assert.equal(DB.sqlite.prepare("SELECT ext_id FROM events").get().ext_id, `memo:${memo.id}`);
 

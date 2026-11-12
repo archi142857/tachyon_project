@@ -212,11 +212,21 @@ export async function suggestEvent(env, text, now = new Date(), { ctx, userId, f
   const popup = mergePopup(text, when, ai, now);
   if (!popup || popup.kind === "task") return popup;
   const len = lengthOf(text); // '2시간'이라고 썼으면 그 길이로
-  const filled = useLength(suggestFree(useKnown(popup, text, known, isoKst(now).slice(0, 10)), text, busy, isoKst(now), len?.minutes), len);
+  const filled = withHour(useLength(suggestFree(useKnown(popup, text, known, isoKst(now).slice(0, 10)), text, busy, isoKst(now), len?.minutes), len));
   if (!WEEKLY.test(text) || NOT_WEEKLY.test(text)) return filled;
   // 매주 되풀이: 저장할 때 { repeat: true }를 보내면 학기 끝까지 같은 요일·시각으로 넣는다(savePopup). 화면에서 끌 수 있다
   const title = filled.title.replace(/매주|(?<![가-힣])마다(?![가-힣])/g, " ").replace(/\s+/g, " ").trim() || filled.title;
   return { ...filled, title, repeat: { until: semesterEnd(filled.date) } };
+}
+
+/**
+ * 끝을 안 정했으면 1시간(11-13 사람 요청 "일정이나 메모는 끝나는 시간을 따로 정하지 않았으면 1시간을 기본으로").
+ * 쓴 끝·쓴 길이('2시간', useLength)·내 일정에서 찾은 끝(useKnown)·빈 1시간(suggestFree)이 먼저고, 그래도 '?'일 때만.
+ * 시작을 모르면(종일) 그대로. 자정을 넘으면 23:59(useLength와 같게 — 팝업은 날짜 칸이 하나라서)
+ */
+export function withHour(popup) {
+  if (!popup || popup.kind === "task" || !popup.time || popup.time === "?" || (popup.end_time && popup.end_time !== "?")) return popup;
+  return { ...popup, end_time: hhmm(Math.min(toMin(popup.time) + 60, 24 * 60 - 1)) };
 }
 
 // ponytail: 매주만 읽는다('매주', '목요일마다'). 격주·'2주마다'·매일·매달은 한 번짜리로 남는다 → 필요해지면 되풀이 종류를 늘린다
@@ -741,7 +751,8 @@ const sameTask = (a, b) => ["title", "date", "time"].every((key) => a[key] === b
 function toStartEnd(f) {
   if (!f.time) return { start: f.date, end: addDays(f.date, 1) };
   const start = `${f.date}T${f.time}:00+09:00`;
-  const end = f.end_time && f.end_time > f.time ? `${f.date}T${f.end_time}:00+09:00` : null;
+  // 끝을 안 정했거나(시작보다 이르면 잘못 쓴 것으로 본다) → 시작 + 1시간(11-13 사람 요청, 자정을 넘으면 다음 날)
+  const end = f.end_time && f.end_time > f.time ? `${f.date}T${f.end_time}:00+09:00` : isoKst(new Date(Date.parse(start) + 3600000));
   return { start, end };
 }
 
