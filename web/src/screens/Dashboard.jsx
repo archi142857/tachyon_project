@@ -1,6 +1,6 @@
 // 대시보드 틀(11-11 사람 피드백 → 컨셉): 모든 기기에서 화면을 꽉 채우고, 전체 화면은 스크롤하지 않고 칸 안에서만 스크롤한다.
 // 넓은 화면(900px부터) = 왼쪽 메뉴(오늘 · 달력 · 할 일 · 메모) + 오른쪽 내용, 폰 = 위 막대 + 작은 탭 + 한 번에 한 칸(덜 복잡하게).
-// 모양은 dhsrua555 시연 9판(100dvh 앱 틀)을 차분한 종이 색으로. 메모 칸은 늘 맨 아래.
+// 모양은 dhsrua555 시연 9판(100dvh 앱 틀). 색은 테마(바우하우스 · 입자 밤 · 입자 낮). 메모 칸은 늘 맨 아래.
 // 일정처럼 보이는 메모를 보내면 메모 칸 바로 위에 '이대로 저장할까요?' 팝업이 뜬다. 설정은 햄버거 메뉴.
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as api from '../api.js';
@@ -30,6 +30,8 @@ import WidgetGrid from '../components/WidgetGrid.jsx';
 import { DEFAULT_ORDER, FIRST, LAYOUTS, readLayout, swapOrder, writeLayout } from '../todayLayout.js';
 import TtwSheet from '../components/TtwSheet.jsx';
 import WeekCalendar from '../components/WeekCalendar.jsx';
+import { useThemeName } from '../themeName.js';
+import { PARTICLE, applyTheme } from '../themes.js';
 import { PLAN_DAYS, dateKey, eventOnlyDay, fromServerPlan, planDensity } from '../density.js';
 import { WEEKDAYS, addDays, dayStart, hhmm, kst, monthGrid, sameDay, shiftMonth, shortDate, toKstIso } from '../time.js';
 
@@ -449,6 +451,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
     setSnack({ text: `‘${task.title}’ 지웠어요` });
   }
 
+  const themeName = useThemeName();
   const date = kst(now);
   const dateText = `${date.m}월 ${date.d}일 ${WEEKDAYS[date.wd]}요일`;
   const memoCard = <MemoCard memos={memos} now={now} activeId={popup?.memoId} waiting={waiting} onTidy={() => setSheet('tidy')} />;
@@ -554,6 +557,12 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
                 배치 바꾸기
               </button>
             ))}
+          {(themeName === PARTICLE.night || themeName === PARTICLE.day) && (
+            // 입자 테마의 밤 ↔ 낮(9판 해 · 달 단추). 색이 천천히 넘어간다
+            <button type="button" className="icon-btn theme-flip" aria-label={themeName === PARTICLE.night ? '낮으로' : '밤으로'} title={themeName === PARTICLE.night ? '낮으로' : '밤으로'} onClick={() => applyTheme(themeName === PARTICLE.night ? PARTICLE.day : PARTICLE.night)}>
+              <Icon name={themeName === PARTICLE.night ? 'sun' : 'moon'} />
+            </button>
+          )}
           <button type="button" className="btn-text" onClick={() => setSheet('feedback')}>
             의견
           </button>
@@ -576,7 +585,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
           </section>
         )}
 
-        <main className={`page page-${page}`} data-pane={pane}>
+        <main key={page} className={`page page-${page}`} data-pane={pane}>
           {page === 'today' && (
             <WidgetGrid wide={wide} layout={todayLayout.layout} order={todayLayout.order} editing={arranging} onSwap={swapWidgets}>
               {(widget) => (

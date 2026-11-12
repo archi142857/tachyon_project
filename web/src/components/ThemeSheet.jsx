@@ -1,6 +1,7 @@
-// 테마 고르기 · 새 테마 가져오기(메뉴 → 테마). 화면 구조는 그대로이고 색·모서리·글꼴 값만 바뀐다(themes.js).
+// 테마 고르기 · 새 테마 가져오기(메뉴 → 테마). 기능과 자리는 그대로, 색 · 글꼴 · 움직임이 바뀐다(themes.js).
+// 테마는 둘(사람 11-13 01:15): 바우하우스 · 입자. 입자는 밤 · 낮을 고른다(머리 줄 해 · 달 단추와 같음).
 import { useState } from 'react';
-import { BUILT_IN, DEFAULT, MAX_MINE, applyTheme, currentTheme, loadThemes, parseTheme, saveThemes, themeText } from '../themes.js';
+import { DEFAULT, MAX_MINE, PARTICLE, applyTheme, currentTheme, loadThemes, parseTheme, saveThemes, themeText } from '../themes.js';
 import Sheet from './Sheet.jsx';
 
 // 색 견본: 바탕 위에 카드 · 강조 · 수업 색
@@ -50,13 +51,25 @@ export default function ThemeSheet({ onClose }) {
   return (
     <Sheet title="테마" onClose={onClose}>
       <div className="theme-list">
-        {BUILT_IN.map((name) => (
-          <button key={name} type="button" className="theme" aria-pressed={now === name} onClick={() => use(name)}>
-            <Swatch data-theme={name} />
-            {name}
-            {name === DEFAULT && <span className="tag">기본</span>}
+        <button type="button" className="theme" aria-pressed={now === DEFAULT} onClick={() => use(DEFAULT)}>
+          <Swatch data-theme={DEFAULT} />
+          {DEFAULT}
+          <span className="tag">기본</span>
+        </button>
+        <div className="theme-row">
+          <button type="button" className="theme" aria-pressed={now === PARTICLE.night || now === PARTICLE.day} onClick={() => use(now === PARTICLE.day ? PARTICLE.day : PARTICLE.night)}>
+            <Swatch data-theme={now === PARTICLE.day ? PARTICLE.day : PARTICLE.night} />
+            입자
           </button>
-        ))}
+          <span className="seg" role="group" aria-label="입자 밤 · 낮">
+            <button type="button" aria-pressed={now === PARTICLE.night} onClick={() => use(PARTICLE.night)}>
+              밤
+            </button>
+            <button type="button" aria-pressed={now === PARTICLE.day} onClick={() => use(PARTICLE.day)}>
+              낮
+            </button>
+          </span>
+        </div>
         {mine.map((t) => (
           <div key={t.name} className="theme-row">
             <button type="button" className="theme" aria-pressed={now === t.name} onClick={() => use(t.name)}>

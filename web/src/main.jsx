@@ -11,6 +11,7 @@ import './shell.css'; // 앱 틀(꽉 찬 화면, 칸 안에서만 굴림) — st
 import './shape.css'; // ③ 모양 층(디자인 components.css 셋째 묶음) — shell.css 다음에
 import './request1113.css'; // 11-13 요청 층(디자인 components.css 넷째 묶음: 겹쳐 보기 · 위젯 · 일정 끌기 · 고리 금) — shape.css 다음에
 import './particles.css'; // 하루 고리 입자(팀원 시연 9판 모양) — shape.css 다음에
+import './particleFeel.css'; // 입자 테마의 사용감(가는 글씨 · 빛 · 움직임) — 맨 끝에
 import { applyTheme, currentTheme } from './themes.js';
 
 // 지난번에 고른 테마를 첫 화면이 그려지기 전에 입힌다(메뉴 → 테마). 여기서는 기억하지 않는다(고를 때만 적음).

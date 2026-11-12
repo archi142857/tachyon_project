@@ -1,7 +1,7 @@
 /* Tachyon 화면 스타일.
    색·크기는 아래 :root 한 곳에서만 정한다. 지금 값은 디자인 가이드 '③ 바우하우스'의 기본 블록이다
    (docs/tachyon/디자인/tokens.css 'A. 기본'을 그대로 옮김 — 11-11 22:42 사람이 ③을 앱 기본 옷으로 골랐다).
-   이 값이 기본 테마 '바우하우스'다. 다른 테마(11-11까지의 기본 '차분한 종이' 포함)는 themes.css에서 같은 이름의 값을 덮는다. */
+   이 값이 기본 테마 '바우하우스'다. 다른 테마는 themes.css에서 같은 이름의 값을 덮는다. */
 :root, [data-theme='바우하우스'] {
   /* 바탕·면: 흰 종이 한 장. 면은 가는 선으로 나눈다 */
   --bg: #ffffff;
@@ -289,6 +289,7 @@ h1, h2, h3, p { margin: 0; }
 .seg { display: flex; gap: 4px; }
 .seg button { flex: 1; min-height: 44px; border: 1px solid var(--line); border-radius: 8px; background: none; font-size: 15px; color: var(--text2); }
 .seg button.on { border-color: var(--accent); color: var(--accent-text); font-weight: 700; }
+.seg button[aria-pressed='true'] { border-color: var(--accent); color: var(--accent-text); font-weight: 700; }
 .etl-list { margin: 0; padding: 0; list-style: none; max-height: 50vh; overflow: auto; }
 .etl-list li + li { border-top: 1px solid var(--line); }
 .etl-list a { display: grid; gap: 2px; min-height: 44px; padding: 8px 2px; color: var(--text); text-decoration: none; }

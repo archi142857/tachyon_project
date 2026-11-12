@@ -2,10 +2,13 @@
 // 들어 있는 테마의 값은 styles.css(기본)와 themes.css에 있고, 여기서는 고르기 · 기억하기 · 가져오기만 한다.
 // 고른 테마와 가져온 테마는 이 기기(localStorage)에만 둔다. 서버에는 아무것도 안 보낸다.
 
-export const DEFAULT = '바우하우스'; // 11-11 22:42 사람이 ③을 기본으로. 그 전 기본 '차분한 종이'는 테마로 남는다
-export const BUILT_IN = [DEFAULT, '차분한 종이', '입자 밤', '입자 낮', '벤토 위젯', '조용한 갤러리', '호박색 터미널'];
-// 11-13까지 있던 '화면까지 바뀌는 테마'. 사람 11-13 '레이아웃을 통일' → 화면은 하나, 이 이름을 골라 둔 기기는 같은 색 테마로 옮긴다.
-const RENAMED = { 입자: '입자 밤', 종이: '입자 낮' };
+export const DEFAULT = '바우하우스'; // 11-11 22:42 사람이 ③을 기본으로
+// 사람 11-13 01:15 "친구꺼랑 내꺼 디자인 말고는 일단 다 없애주고, 내 시안의 라이트/다크 전환하는건 남겨줘"
+// → 테마는 둘: 바우하우스(친구) · 입자(dhsrua555 시연 9판). 입자는 밤 · 낮을 해·달 단추로 바꾼다.
+export const BUILT_IN = [DEFAULT, '입자 밤', '입자 낮'];
+export const PARTICLE = { night: '입자 밤', day: '입자 낮' };
+// 예전 이름을 골라 둔 기기: '화면까지 바뀌던 테마'는 같은 색으로, 뺀 테마는 기본으로
+const RENAMED = { 입자: '입자 밤', 종이: '입자 낮', '차분한 종이': DEFAULT, '벤토 위젯': DEFAULT, '조용한 갤러리': DEFAULT, '호박색 터미널': DEFAULT };
 
 // 테마가 바꿀 수 있는 값의 이름. 가져온 테마에서 이 밖의 이름은 버린다.
 export const KEYS = `--bg --card --inset --raised --heading --text --text2 --text3 --line --grid --line-strong --fill --bubble
@@ -17,8 +20,6 @@ export const KEYS = `--bg --card --inset --raised --heading --text --text2 --tex
   --map-bg --map-dot --map-halo --map-route --map-pin --map-pin-text --map-label`.split(/\s+/);
 
 const PICK = 'tachyon_theme'; // 고른 테마 이름(테마 창에서 고를 때만 적는다)
-const PICK_V = 'tachyon_theme_v'; // 기본 바꿈을 지나 온 기기 표시. '2' = 바우하우스가 기본이 된 뒤(11-11)
-const OLD_DEFAULT = '차분한 종이';
 const MINE = 'tachyon_themes'; // 가져온 테마 목록
 export const MAX_MINE = 20;
 
@@ -70,12 +71,6 @@ export function saveThemes(list) {
 
 export function currentTheme() {
   try {
-    // 11-11까지는 앱을 열 때마다 그때 기본('차분한 종이')을 적어 두었다. 그런 기기는 한 번만 새 기본으로 옮긴다.
-    // 테마 창에서 다시 고르면 그 이름이 남는다.
-    if (!localStorage.getItem(PICK_V)) {
-      if (localStorage.getItem(PICK) === OLD_DEFAULT) localStorage.removeItem(PICK);
-      localStorage.setItem(PICK_V, '2');
-    }
     const name = localStorage.getItem(PICK) || DEFAULT;
     return RENAMED[name] ?? name;
   } catch {
@@ -90,6 +85,12 @@ export function applyTheme(name, mine = loadThemes(), { save = true } = {}) {
   const own = mine.find((t) => t.name === name);
   if (!own && Object.hasOwn(RENAMED, name)) name = RENAMED[name];
   if (!own && !BUILT_IN.includes(name)) name = DEFAULT;
+  // 고를 때만 색이 천천히 넘어간다(9판의 밤 ↔ 낮 전환). 앱을 열 때는 바로
+  if (save && typeof window !== 'undefined' && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    root.classList.add('theme-fade');
+    clearTimeout(applyTheme.fade);
+    applyTheme.fade = setTimeout(() => root.classList.remove('theme-fade'), 700);
+  }
   for (const key of KEYS) root.style.removeProperty(key);
   root.style.colorScheme = '';
   if (own) {
