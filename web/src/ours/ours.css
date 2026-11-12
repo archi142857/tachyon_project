@@ -463,3 +463,11 @@
 .ty9.y-start .y-ob { min-height: 100dvh; }
 .ty9 .y-set > div { width: min(100%, 560px); }
 .ty9 .y-set .setup { padding: 0; max-width: none; }
+
+/* 오늘 타임라인은 하루가 한 화면에 눌려 들어가서 칸이 낮다: 이름은 한 줄, 둘째 줄은 칸이 높을 때만, 마감 줄 글은 뺀다(할 일 목록에 있다) */
+.ty9 .y-tw .y-eb { container-type: size; padding-block: 1px; }
+.ty9 .y-tw .y-eb b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@container (max-height: 34px) { .ty9 .y-tw .y-eb small { display: none; } }
+.ty9 .y-tw .y-dl span { display: none; }
+/* 폰: 오늘 쪽이 제 높이대로 놓여야 끝까지 굴렸을 때 할 일이 메모 칸 위로 올라온다 */
+.ty9.y-ph .y-hx { flex: none; }
