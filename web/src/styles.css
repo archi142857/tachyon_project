@@ -422,8 +422,9 @@ select.input { padding-right: 36px; }
 .ring line.now { stroke: var(--now); stroke-width: 1.6; }
 .ring text.now { fill: var(--now); font-weight: 700; }
 .ring .hit { fill: none; stroke: transparent; stroke-width: 48; pointer-events: stroke; cursor: pointer; }
-/* 붙어 있는 같은 모양 구간(사람 11-13): 경계에 바탕색 틈, 둘째는 속을 뒤집는다 — ● → ○, □ → ■, ▲ → △, 띠는 옅게 */
-.ring line.cut { stroke: var(--card); stroke-width: 2.2; }
+/* 붙어 보이는 구간(사람 11-13 "분간이 안 됨"): 뒤 구간 시작에 바탕색 금(디자인 넷째 묶음 ④ 그대로),
+   같은 모양끼리는 둘째 속을 뒤집는다 — ● → ○, □ → ■, ▲ → △, 띠는 옅게(화면, 소통판에 적음) */
+.ring line.sep { stroke: var(--card); stroke-width: 2.4; }
 .ring .band.alt { opacity: 0.55; }
 .ring circle.ev.timetable.alt { fill: var(--card); stroke: var(--mark-class); stroke-width: 1.1; }
 .ring rect.ev.alt { fill: var(--accent-text); }

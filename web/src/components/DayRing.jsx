@@ -3,7 +3,7 @@
 //    ▲ 할 일을 넣어 본 자리, 작은 점 = 빈 시간, 붉은 금 = 지금. 일정 뒤에는 달력과 같은 색 띠.
 //  - 입자 테마('입자 밤'·'입자 낮'): 팀원 시연 9판의 입자 모양 — 모두 동그라미, 구간마다 무리와 뜻 색, 고르면 커지고 빛남,
 //    지금 = 바깥 테를 도는 빨간 입자와 꼬리(사람 11-12 "플랫하게 바꾸지 말고 원 스타일을 살려봐" → 07:11 "입자 테마에서"). 모양은 particles.css.
-// 붙어 있는 같은 모양 구간(수업 둘, 넣어 본 자리 둘 …)은 경계에 틈을 내고 번갈아 속을 채우고 비운다(사람 11-13 "같은 모양이나 색깔로 연속된 일정이 표시되면 분간이 안 됨").
+// 붙어 보이는 구간은 경계에 바탕색 금(디자인 ④), 같은 모양끼리는 번갈아 속을 뒤집는다(ringRuns, 사람 11-13 "분간이 안 됨").
 // 색 구간을 누르면 onPick(key). 가운데 글자는 children으로 받는다.
 // 같은 내용이 옆의 타임라인·할 일 목록에 글자로 있어서 그림은 화면 읽기에서 뺀다(aria-hidden).
 import { useId } from 'react';
@@ -15,33 +15,32 @@ const f1 = (v) => v.toFixed(1);
 const MID = 84; // 누르는 띠의 가운데 반지름
 const FRAME = 114; // 바깥 테(사람 11-11 23:34 'B')
 
-// 겉모양이 같은 것끼리(● 수업 · □ 달력·메모 일정 · ▲ 넣어 본 자리) 앞 구간 끝에서 뒤 구간 시작까지 GAP분 안이면 붙어 보인다고 본다.
-// 고리의 입자 사이가 22~36분이라 15분 쉬는 시간(16:30–17:20, 17:35–18:25)도 한 덩어리로 보인다 → 30분.
-// → alt = 번갈아 다르게 그릴 구간 key, cuts = 경계(분, 틈 가운데). 많이(OVERLAP분 넘게) 겹치는 구간은 건드리지 않는다.
+// 붙어 보이는 구간 가르기(사람 11-13 "같은 모양이나 색깔로 연속된 일정이 표시되면 분간이 안 됨", 디자인 가이드 '11-13' ④).
+// 입자 사이가 22~36분이라 GAP(30)분보다 가까우면 이어져 보인다.
+//  - seps: 뒤 구간이 시작하는 분(디자인 `.ring line.sep` 바탕색 금). 모양·색이 같든 다르든. 앞 구간과 겹치면 앞 구간이 끝나는 분
+//    (겹친 곳 입자는 앞 구간 것이라 거기서 갈린다). 앞 구간 안에 다 들어간 구간은 건너뛴다.
+//  - alt: 같은 겉모양(● 수업 · □ 달력·메모 · ▲ 넣어 본 자리)끼리 붙어 있으면 번갈아 속을 뒤집어 그릴 구간 key(화면 몫, 소통판).
 const LOOK = { timetable: 'class', ics: 'mine', memo: 'mine', slot: 'slot' };
 const GAP = 30;
-const OVERLAP = 5;
+function runs(list, onTouch) {
+  let last = null;
+  for (const c of [...list].sort((x, y) => x.from - y.from || x.to - y.to)) {
+    if (last && c.to <= last.to) continue;
+    if (last && c.from - last.to < GAP) onTouch(last, c);
+    last = c;
+  }
+}
 export function ringRuns(arcs) {
+  const seps = [];
+  runs(arcs, (p, c) => seps.push(Math.max(c.from, p.to)));
   const alt = new Set();
-  const cuts = [];
-  const byLook = new Map();
-  for (const a of arcs) {
-    const look = LOOK[a.kind] || a.kind;
-    if (!byLook.has(look)) byLook.set(look, []);
-    byLook.get(look).push(a);
+  for (const look of new Set(arcs.map((a) => LOOK[a.kind] || a.kind))) {
+    runs(
+      arcs.filter((a) => (LOOK[a.kind] || a.kind) === look),
+      (p, c) => !alt.has(p.key) && alt.add(c.key),
+    );
   }
-  for (const list of byLook.values()) {
-    list.sort((x, y) => x.from - y.from || x.to - y.to);
-    for (let i = 1; i < list.length; i++) {
-      const p = list[i - 1];
-      const c = list[i];
-      const gap = c.from - p.to;
-      if (gap > GAP || gap < -OVERLAP) continue;
-      cuts.push(Math.round((p.to + c.from) / 2));
-      if (!alt.has(p.key)) alt.add(c.key);
-    }
-  }
-  return { alt, cuts };
+  return { alt, seps };
 }
 
 // 하루 가운데 f(0~1) 지점, 반지름 rad인 곳의 좌표
@@ -92,7 +91,7 @@ function Shape({ kind, cx, cy, r, className }) {
 
 function ShapeRing({ arcs, nowMin, sel, onPick, children }) {
   const now = nowMin / 1440;
-  const { alt, cuts } = ringRuns(arcs);
+  const { alt, seps } = ringRuns(arcs);
   return (
     <div className="ring-wrap">
       <svg className={sel ? 'ring has-sel' : 'ring'} viewBox="-136 -136 272 272" aria-hidden="true">
@@ -100,10 +99,6 @@ function ShapeRing({ arcs, nowMin, sel, onPick, children }) {
         <circle className="frame" r={FRAME} />
         {arcs.map((a) => (
           <path key={a.key} className={`band ${a.kind}${alt.has(a.key) ? ' alt' : ''}${a.key === sel ? ' on' : ''}`} d={arcPath(a)} />
-        ))}
-        {/* 붙어 있는 두 구간 사이 틈: 띠를 바탕색으로 끊는다(입자는 그 위에) */}
-        {cuts.map((m) => (
-          <line key={`cut${m}`} className="cut" x1={point(61, m / 1440)[0]} y1={point(61, m / 1440)[1]} x2={point(107, m / 1440)[0]} y2={point(107, m / 1440)[1]} />
         ))}
         {RINGS.flatMap(([rad, n, r]) =>
           Array.from({ length: n }, (_, j) => {
@@ -117,6 +112,10 @@ function ShapeRing({ arcs, nowMin, sel, onPick, children }) {
             return <Shape key={`${rad}-${j}`} kind={arc.kind} cx={cx} cy={cy} r={r} className={cls} />;
           }),
         )}
+        {/* 붙어 보이는 두 구간 사이 바탕색 금(디자인 ④): 띠·입자를 그린 뒤, 눈금 앞 */}
+        {seps.map((m) => (
+          <line key={`sep${m}`} className="sep" x1={point(60, m / 1440)[0]} y1={point(60, m / 1440)[1]} x2={point(108, m / 1440)[0]} y2={point(108, m / 1440)[1]} />
+        ))}
         <Ticks now={now} />
         {/* 지금 선: 같은 자리에 바탕색 테(now-halo)를 먼저 그어 어떤 띠·입자 위에서도 보이게 */}
         <line className="now-halo" x1={point(60, now)[0]} y1={point(60, now)[1]} x2={point(108, now)[0]} y2={point(108, now)[1]} />
@@ -142,7 +141,7 @@ function ParticleRing({ arcs, nowMin, sel, onPick, children }) {
   const now = nowMin / 1440;
   const glowId = `ring-glow-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const picked = arcs.find((a) => a.key === sel);
-  const { alt } = ringRuns(arcs); // 붙어 있는 같은 색 무리는 번갈아 속을 비운다(particles.css)
+  const { alt } = ringRuns(arcs); // 붙어 있는 같은 색 무리는 번갈아 속을 비운다(particles.css). 금은 입자 모양에 맞지 않아 이것으로 대신한다
 
   // 입자를 구간 무리와 나머지(빈 시간·잠)로 나눈다
   const groups = new Map(arcs.map((a) => [a.key, []]));
