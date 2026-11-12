@@ -344,6 +344,18 @@ dialog .snackbar { top: calc(12px + env(safe-area-inset-top)); bottom: auto; }
 .setup .card { padding: 16px; display: grid; gap: 14px; }
 .setup h2 { font-size: 17px; line-height: 24px; font-weight: 700; color: var(--heading); }
 .setup .feed { display: grid; gap: 6px; }
+/* 캘린더 연결: 한눈에 — 이름과 칸만, 찾는 법은 접어 둔다(11-13) */
+.feeds-head { display: flex; align-items: baseline; gap: 8px; }
+.feeds-sub { font-size: 13px; line-height: 20px; color: var(--text3); }
+.feed-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.feed-name { font-size: 15px; line-height: 22px; font-weight: 600; color: var(--text); }
+.how-toggle { margin: -12px -6px -12px 0; padding: 12px 6px; min-height: 44px; border: 0; background: none; font-size: 13px; line-height: 20px; font-weight: 500; color: var(--accent-text); cursor: pointer; } /* 보이는 크기는 작게, 누르는 자리는 44 */
+.how-toggle::after { content: ' ▾'; }
+.how-toggle[aria-expanded='true']::after { content: ' ▴'; }
+.how-panel { display: grid; gap: 8px; padding: 10px 12px; border-radius: var(--r-card); background: var(--fill); }
+.how-panel[hidden] { display: none; }
+.how-panel ol { margin: 0; padding-left: 18px; font-size: 13px; line-height: 20px; color: var(--text2); }
+.feeds-note { margin-top: 2px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 12px; line-height: 18px; color: var(--text3); }
 .feed-saved { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--r-btn); background: var(--fill); }
 .feed-saved .name { font-size: 15px; font-weight: 700; color: var(--text); white-space: nowrap; }
 .feed-saved .addr { min-width: 0; flex: 1; text-align: right; font-size: 13px; color: var(--text3); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }

@@ -1,4 +1,5 @@
-// 첫 설정: 학과·학번 + 캘린더(ICS) 주소 칸 3개(eTL·구글·애플, 찾는 법 한 줄씩과 '자세히'). 모두 건너뛸 수 있다.
+// 첫 설정: 학과·학번 + 캘린더(ICS) 주소 칸 3개(eTL·구글·애플). 모두 건너뛸 수 있다.
+// 캘린더 칸은 한눈에 보이게 이름과 칸만 두고, 찾는 법은 이름 옆 '찾는 법'을 눌러야 펼친다(11-13 사람 "설명이 너무 난잡").
 // 처음에는 두 장이다(11-11 사람 요청): ① 학과·학번만 있는 화면(학과는 칸 밑 목록에서 찾아 고르기, 학번은 목록) → ② 캘린더 연결.
 // 학번은 서버 칸(users.year = 학년)에 맞춰 학년으로 셈해 보낸다(setup.js gradeOf).
 // 메뉴에서 다시 열면(again) 한 장에 둘 다, '건너뛰기' 대신 '닫기'. 넣어 둔 학과·학번은 그대로 채워져 있고,
@@ -28,6 +29,7 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
   const [checked, setChecked] = useState(false); // 저장해서 받아 본 결과를 보이는 중
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState({}); // 연결된 캘린더의 '주소 바꾸기'를 누른 칸
+  const [howOpen, setHowOpen] = useState({}); // 칸마다 '찾는 법'을 펼쳤는지
   const feedOf = (kind) => feeds.find((f) => f.kind === kind);
 
   useEffect(() => {
@@ -244,14 +246,18 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
         {step === 'all' && profileCard}
 
         <section className="card" aria-labelledby="setup-feeds">
-          <h2 id="setup-feeds">캘린더 연결 (고를 것만)</h2>
+          <div className="feeds-head">
+            <h2 id="setup-feeds">캘린더 연결</h2>
+            <span className="feeds-sub">쓰는 것만</span>
+          </div>
           {inApp() && !example && <PhoneCalendar />}
-          <button type="button" className="btn-line" disabled={busy} onClick={paste}>
+          <button type="button" className="btn-line" disabled={busy} onClick={paste} aria-describedby="feeds-paste-how">
             복사한 주소 붙여넣기
           </button>
-          <p className="hint">캘린더에서 주소를 복사한 뒤 누르면, 어느 캘린더인지 알아서 맞춰 바로 연결해요.</p>
+          <p className="hint" id="feeds-paste-how">
+            주소를 복사해 두고 누르면 어느 캘린더인지 알아서 연결해요
+          </p>
           {errors.paste && <p className="error">{errors.paste}</p>}
-          <p className="hint">이 주소를 아는 사람은 누구나 그 일정을 볼 수 있어요. 다른 사람에게 보여 주지 마세요.</p>
           {FEEDS.map((feed) => {
             const saved = feedOf(feed.key);
             const line = lines[feed.key] !== undefined ? lines[feed.key] : feedResult(saved);
@@ -281,9 +287,14 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
               );
             return (
               <div className="feed" key={feed.key}>
-                <label className="field" htmlFor={`feed-${feed.key}`}>
-                  <span>{feed.label}</span>
-                </label>
+                <div className="feed-head">
+                  <label className="feed-name" htmlFor={`feed-${feed.key}`}>
+                    {feed.label}
+                  </label>
+                  <button type="button" className="how-toggle" aria-expanded={!!howOpen[feed.key]} aria-controls={`feed-${feed.key}-how`} onClick={() => setHowOpen({ ...howOpen, [feed.key]: !howOpen[feed.key] })}>
+                    찾는 법
+                  </button>
+                </div>
                 <input
                   id={`feed-${feed.key}`}
                   className="input"
@@ -295,25 +306,21 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
                   placeholder={saved?.set ? `저장됨 · ${saved.hint}` : 'https:// 주소 붙여넣기'}
                   value={urls[feed.key]}
                   onChange={(e) => setUrls({ ...urls, [feed.key]: e.target.value })}
-                  aria-describedby={`feed-${feed.key}-how`}
+                  aria-describedby={howOpen[feed.key] ? `feed-${feed.key}-how` : undefined}
                   aria-invalid={errors[feed.key] ? 'true' : undefined}
                 />
-                <p className="hint" id={`feed-${feed.key}-how`}>
-                  {feed.how}
-                </p>
-                {feed.open && (
-                  <a className="feed-open" href={feed.open} target="_blank" rel="noreferrer">
-                    주소 있는 곳 열기 ↗
-                  </a>
-                )}
-                <details className="how">
-                  <summary>자세히</summary>
+                <div className="how-panel" id={`feed-${feed.key}-how`} hidden={!howOpen[feed.key]}>
                   <ol>
                     {feed.steps.map((step) => (
                       <li key={step}>{step}</li>
                     ))}
                   </ol>
-                </details>
+                  {feed.open && (
+                    <a className="feed-open" href={feed.open} target="_blank" rel="noreferrer">
+                      주소 있는 곳 열기 ↗
+                    </a>
+                  )}
+                </div>
                 {errors[feed.key] && <p className="error">{errors[feed.key]}</p>}
                 {!errors[feed.key] && line && (
                   <p className={line.ok ? 'hint' : 'error'} role="status">
@@ -337,6 +344,7 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
               지금 다시 받기
             </button>
           )}
+          <p className="feeds-note">이 주소를 아는 사람은 누구나 그 일정을 볼 수 있어요. 다른 사람에게 보여 주지 마세요.</p>
         </section>
 
         {errors.form && <p className="error">{errors.form}</p>}
