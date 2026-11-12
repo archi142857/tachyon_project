@@ -63,6 +63,9 @@ button, a, label { cursor: pointer; }
 
 /* ── 1) 앱 틀(폰이 기본, 넓은 화면은 아래 @container) */
 .app { position: relative; isolation: isolate; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg); color: var(--ink); font-size: 14.5px; line-height: 1.5; }
+/* 글자도 테마의 일부: 제목 · 이름 · 숫자는 한 글꼴로(한 줄 안에서 한글과 숫자가 다른 글꼴이면 따로 논다), 효과(빛 · 그림자)는 테마 바탕과 같은 것 */
+.app :is(.tl-ev b, .task-list b, .side-nav button, .tabs button, .bubbles p) { font-family: var(--title, inherit); font-weight: var(--title-w, 600); }
+.app :is(.top .date, .subbar .date, .card h2, .ring-mid .mid-big, .ring-mid .mid-title) { text-shadow: var(--h-fx, none); }
 .app .backdrop { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 @container (max-width: 899px) { .app .only-wide { display: none; } }
 @container (min-width: 900px) { .app .only-phone { display: none; } }
@@ -184,7 +187,8 @@ html[data-still='1'] .app * { animation: none !important; }
   --ink: #e8ecff; --ink2: #a3acc9; --line: rgba(200, 212, 255, 0.14); --grid: rgba(200, 212, 255, 0.09); --accent: #ffc94a; --focus: #ffd66b; --now: #ff6f52;
   --r: 20px; --r-sm: 12px; --r-xs: 8px;
   --panel: rgba(10, 16, 38, 0.58); --panel-border: 1px solid rgba(190, 205, 255, 0.13); --panel-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-  --brand-font: 700 18px/1 'Cinzel', 'Hahmlet', serif; --brand-ls: 0.1em; --brand-ink: #f4dc9a; --h-font: 600 17px/1.2 'Cinzel', 'Hahmlet', serif; --h-ink: #f4dc9a; --mid-font: 600 22px/1.15 'Cinzel', 'Hahmlet', serif;
+  --brand-font: 700 18px/1 'Cinzel', 'Hahmlet', serif; --brand-ls: 0.1em; --brand-ink: #f4dc9a; --h-font: 700 17px/1.2 'Hahmlet', serif; --h-ink: #f4dc9a; --mid-font: 700 22px/1.15 'Hahmlet', serif;
+  --title: 'Hahmlet', serif; --num: 'Hahmlet', serif; --h-fx: 0 0 14px rgba(255, 190, 80, 0.35);
   --logo: linear-gradient(90deg, rgba(255, 255, 255, 0.15), #ffc94a 60%, #ff7a3c);
   --nav-on: rgba(255, 201, 74, 0.13); --nav-on-ink: #ffe3a0; --side-bg: rgba(5, 8, 20, 0.35);
   --seg-bg: rgba(255, 255, 255, 0.06); --seg-on: linear-gradient(160deg, #ffe08a, #ff9d2e); --seg-on-ink: #2a1600; --chip-bg: rgba(255, 255, 255, 0.08);
@@ -235,7 +239,8 @@ html[data-still='1'] .app * { animation: none !important; }
   --bg: #fbfbf7; --ink: #0d0d0d; --ink2: #55555c; --line: #0d0d0d; --grid: #dcdcd6; --accent: #0d0d0d; --focus: #d10f2f; --now: #d10f2f;
   --r: 0; --r-sm: 0; --r-xs: 0;
   --panel: #fff; --panel-border: 2.5px solid #0d0d0d; --panel-shadow: 6px 6px 0 #0d0d0d;
-  --brand-font: italic 400 24px/1 'DM Serif Display', 'Noto Serif KR', serif; --h-font: italic 400 19px/1.2 'DM Serif Display', 'Noto Serif KR', serif;
+  --brand-font: italic 400 24px/1 'DM Serif Display', 'Noto Serif KR', serif; --h-font: 900 19px/1.2 'Noto Serif KR', serif;
+  --title: 'Noto Serif KR', serif; --title-w: 700; --num: 'Noto Serif KR', serif;
   --logo: repeating-linear-gradient(#0d0d0d 0 1.5px, #fff 1.5px 3px); --nav-on: #0d0d0d; --nav-on-ink: #fff; --side-bg: #fff; --side-border: 2.5px solid #0d0d0d;
   --seg-bg: transparent; --seg-on: #0d0d0d; --seg-on-ink: #fff; --chip-bg: #0d0d0d;
   --ev-class-bg: #0d0d0d; --ev-class-ink: #fff;
@@ -253,16 +258,15 @@ html[data-still='1'] .app * { animation: none !important; }
 .t-staff .top { background: #fff; border-bottom: 2.5px solid #0d0d0d; }
 .t-staff .count { color: #fff; }
 .t-staff .tabs { background: #fff; border-bottom: 2.5px solid #0d0d0d; }
-.t-staff .tabs button { font: italic 400 14px/1.4 'DM Serif Display', 'Noto Serif KR', serif; }
+.t-staff .tabs button { font-size: 14px; }
 .t-staff .tabs button[aria-current] { background: #0d0d0d; color: #fff; transform: skewX(-12deg); border-bottom-color: #0d0d0d !important; padding-inline: 14px; }
-.t-staff .side-nav button { font: italic 400 16px/1.4 'DM Serif Display', 'Noto Serif KR', serif; }
+.t-staff .side-nav button { font-size: 16px; }
 .t-staff .side-nav button[aria-current] { transform: skewX(-10deg); }
 .t-staff .subbar { background: #fff; padding-bottom: 10px; border-bottom: 2.5px solid #0d0d0d; }
 .t-staff .seg { border: 2px solid #0d0d0d; border-radius: 0; }
 .t-staff .seg button { border-radius: 0; }
 .t-staff .seg button[aria-pressed='true'] { transform: skewX(-12deg); }
 .t-staff .card .plain.strong { background: #0d0d0d; color: #fff; padding: 4px 12px; transform: skewX(-12deg); font-style: italic; }
-.t-staff .tl-ev b { font-style: italic; }
 .t-staff .tl-ev.k-class::before { content: '♩'; font: 14px/16px 'Noto Music', serif; }
 .t-staff .tl-ev.k-mine::before { content: '♫'; font: 14px/16px 'Noto Music', serif; }
 .t-staff .tl-ev.k-slot::before { content: '◇'; font: 700 11px/16px var(--font); }
@@ -291,16 +295,16 @@ html[data-still='1'] .app * { animation: none !important; }
 .staff .dbar line { stroke: #fff; stroke-width: 1.1; }
 .staff .play line { stroke: var(--r-now); stroke-width: 1.8; }
 .staff .play polygon { fill: var(--r-now); }
-.t-staff { font-synthesis-style: none; } /* 한글은 가짜 기울임 없이 바로 선 세리프(로마자만 DM Serif Display 이탤릭) */
-.t-staff .ring-mid .mid-big, .t-staff .ring-mid .mid-title { font: italic 400 19px/1.2 'DM Serif Display', 'Noto Serif KR', serif; }
+.t-staff .ring-mid .mid-big, .t-staff .ring-mid .mid-title { font: 900 19px/1.2 'Noto Serif KR', serif; }
 
 /* ── 2-3) 원자 모형: 남색 위 주황 · 하늘색 네온. 빛나는 테두리 · 빛나는 단추 · 전자 표시 */
 .t-atom {
   --ink: #e3f3ff; --ink2: #8aa3c0; --line: rgba(70, 190, 255, 0.25); --grid: rgba(70, 190, 255, 0.1); --accent: #36d6ff; --focus: #36d6ff; --now: #ff5c7a;
   --r: 16px; --r-sm: 10px; --r-xs: 8px;
   --panel: rgba(12, 22, 48, 0.85); --panel-border: 1px solid rgba(70, 190, 255, 0.35); --panel-shadow: 0 0 28px rgba(40, 160, 255, 0.13), inset 0 0 24px rgba(40, 160, 255, 0.06);
-  --brand-font: 700 17px/1 'Orbitron', 'Orbit', var(--font); --brand-ls: 0.14em; --brand-ink: #ffb36b; --h-font: 500 16px/1.2 'Orbitron', 'Orbit', var(--font); --h-ink: #fff;
-  --num: 'Orbitron', 'Orbit', var(--font); --mid-font: 500 20px/1.15 'Orbitron', 'Orbit', var(--font);
+  --brand-font: 700 17px/1 'Orbitron', 'Orbit', var(--font); --brand-ls: 0.14em; --brand-ink: #ffb36b; --h-font: 400 17px/1.2 'Orbit', var(--font); --h-ink: #fff;
+  --num: 'Orbit', var(--font); --mid-font: 400 22px/1.15 'Orbit', var(--font);
+  --title: 'Orbit', var(--font); --title-w: 400; --h-fx: 0 0 10px rgba(54, 214, 255, 0.55);
   --logo: linear-gradient(90deg, #36d6ff, #ff8a1e); --nav-on: rgba(54, 214, 255, 0.1); --nav-on-ink: #36d6ff; --nav-on-shadow: inset 2px 0 0 #36d6ff, 0 0 14px rgba(54, 214, 255, 0.2); --side-bg: rgba(5, 10, 24, 0.5);
   --seg-bg: rgba(5, 10, 24, 0.7); --seg-on: rgba(54, 214, 255, 0.14); --seg-on-ink: #36d6ff; --seg-on-shadow: 0 0 10px rgba(54, 214, 255, 0.4), inset 0 0 0 1px #36d6ff; --chip-bg: rgba(54, 214, 255, 0.12);
   --ev-class-bg: linear-gradient(90deg, rgba(255, 138, 30, 0.3), rgba(255, 138, 30, 0.12)); --ev-class-ink: #ffd3ad;
@@ -317,6 +321,7 @@ html[data-still='1'] .app * { animation: none !important; }
 .t-atom .backdrop .orbits .cy { stroke: #36d6ff; }
 .t-atom .backdrop .dust { fill: #ff8a1e; opacity: 0.35; }
 .t-atom .backdrop .dust.cy { fill: #36d6ff; }
+.t-atom { font-synthesis-weight: none; } /* 오르빗은 굵기가 하나뿐 → 가짜 굵게 대신 빛으로 강조 */
 .t-atom .logo { text-shadow: 0 0 12px rgba(255, 138, 30, 0.7); }
 .t-atom .card h2::before { content: ''; display: inline-block; width: 7px; height: 7px; margin: 0 9px 2px 0; border-radius: 50%; background: #ff8a1e; box-shadow: 0 0 8px #ff8a1e; }
 .t-atom .tabs button[aria-current] { color: #36d6ff; text-shadow: 0 0 8px rgba(54, 214, 255, 0.8); border-bottom-color: #36d6ff !important; }
@@ -358,8 +363,8 @@ html[data-still='1'] .app * { animation: none !important; }
   --in: inset 5px 5px 10px #c6cdd8, inset -5px -5px 10px #ffffff; --in-sm: inset 3px 3px 6px #c6cdd8, inset -3px -3px 6px #ffffff;
   --blue: linear-gradient(145deg, #6e98f5, #3a63d8);
   --panel: #e3e7ee; --panel-border: 0; --panel-shadow: var(--up);
-  --brand-font: 900 19px/1 'Nunito', var(--font); --brand-ink: #3a63d8; --h-font: 700 16px/1.2 'Nunito', var(--font);
-  --num: 'Nunito', var(--font); --mid-font: 800 22px/1.15 'Nunito', var(--font); --h-ink: #2c3a52;
+  --brand-font: 900 19px/1 'Nunito', var(--font); --brand-ink: #3a63d8; --h-font: 700 16px/1.2 var(--font);
+  --mid-font: 800 22px/1.15 var(--font); --h-ink: #4a5670; --h-fx: 1px 1px 1px #ffffff, -1px -1px 1px rgba(163, 174, 194, 0.45);
   --logo: var(--blue); --nav-on: #e3e7ee; --nav-on-ink: #3a63d8; --nav-on-shadow: var(--in); --side-border: 0;
   --seg-bg: #e3e7ee; --seg-on: #e3e7ee; --seg-on-ink: #3a63d8; --seg-on-shadow: var(--up-sm); --chip-bg: #e3e7ee;
   --ev-class-bg: var(--blue); --ev-class-ink: #fff;
