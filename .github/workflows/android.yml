@@ -39,7 +39,16 @@ jobs:
           sed -i "0,\\|</intent-filter>|s||</intent-filter>\n            $filter|" "$manifest"
           grep -c 'android:scheme="tachyon"' "$manifest"
 
-      - name: 3. APK 만들기
+      - name: 3. 앱 아이콘·첫 화면을 Tachyon 것으로 (기본 Capacitor 그림 대신, app/android-res)
+        run: |
+          res=android/app/src/main/res
+          # 기본 첫 화면 그림(Capacitor 로고)을 지우고, 늘어나지 않는 splash.xml로 바꾼다
+          rm -f $res/drawable*/splash.png
+          cp -r android-res/res/. "$res/"
+          grep -c '#141414' "$res/values/ic_launcher_background.xml"
+          ls "$res/drawable/splash.xml" "$res/mipmap-xxxhdpi/ic_launcher_foreground.png"
+
+      - name: 4. APK 만들기
         working-directory: app/android
         run: |
           ./gradlew assembleDebug --no-daemon
@@ -50,7 +59,7 @@ jobs:
           name: tachyon-apk
           path: ${{ runner.temp }}/tachyon.apk
 
-      - name: 4. Releases '앱-시험판'에 올리기
+      - name: 5. Releases '앱-시험판'에 올리기
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

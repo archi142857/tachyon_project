@@ -14,7 +14,8 @@
 
 1. `npm install` → `npx cap add android` (안드로이드 프로젝트 생성 + 플러그인 연결)
 2. `AndroidManifest.xml`에 `tachyon://` 주소로 앱이 열리게 한 줄 넣기
-3. `./gradlew assembleDebug` → `app-debug.apk`
+3. 앱 아이콘·첫 화면을 Tachyon 것으로: [`android-res/res/`](android-res/res)를 덮어쓴다(기본 `splash.png`는 지움). 그림은 웹 아이콘(`web/public/icons/icon.svg`)과 같고, 바꾸려면 `python3 app/android-res/make_icons.py`로 다시 만든다(Pillow).
+4. `./gradlew assembleDebug` → `app-debug.apk`
 
 `app/`이나 그 워크플로를 고쳐 main에 올리면 돌고, GitHub Actions 화면에서 손으로 돌릴 수도 있다.
 APK는 그 실행의 Artifacts와 Releases의 `앱-시험판`에 올라간다.
@@ -26,6 +27,5 @@ APK는 그 실행의 Artifacts와 Releases의 `앱-시험판`에 올라간다.
 ## 아직 안 되는 것
 
 - 새 APK로 바꿀 때는 앱을 지우고 다시 깐다(시험용 서명 열쇠가 만들 때마다 달라서). 화면만 바뀐 것은 다시 깔 필요가 없다.
-- 아이콘은 Capacitor 기본 그림이다.
 - 아이폰·아이패드: 같은 설정으로 `npx cap add ios`는 되지만, 기기에 깔려면 맥과 애플 개발자 서명이 필요하다. 그 전에는 사파리 '홈 화면에 추가' + 캘린더 주소 연결을 쓴다.
 - 캘린더 종류별(구글·삼성·iCloud) 실기기 확인은 아직 안 했다 → `docs/tachyon/계획.md`.
