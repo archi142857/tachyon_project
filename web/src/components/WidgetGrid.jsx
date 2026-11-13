@@ -5,9 +5,11 @@
 //  3. 손잡이에 초점을 두고 ← · → 로 앞 · 뒤 칸과 바꾸기(키보드)
 // 놓으면 두 위젯이 자리를 바꾸고 FLIP으로 200ms 미끄러진다(동작 줄이기면 바로).
 // children(widget): widget(id) → { slot, lifted, grip } — 카드에 data-slot · data-widget을 달고 grip을 카드 안에 넣는다.
+// 칸 사이 경계를 끌면 칸 크기가 바뀐다(GridSplit, 늘 — 배치 바꾸기와 따로).
 // wide가 아니면(폰) 칸 · 배치를 달지 않아 지금 탭 그대로다.
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { SLOTS, WIDGET_NAME, slotsOf } from '../todayLayout.js';
+import GridSplit from './GridSplit.jsx';
 
 const OBJECT = { day: '오늘 일정을', ring: '하루 고리를', tasks: '할 일을', memo: '메모를' };
 const objectOf = (w) => OBJECT[w] || WIDGET_NAME[w];
@@ -159,6 +161,7 @@ export default function WidgetGrid({ wide, layout, order, editing, onSwap, child
       }}
     >
       {children(widget)}
+      <GridSplit layout={wide ? layout : null} names={Object.fromEntries(order.map((w, i) => [SLOTS[i], WIDGET_NAME[w]]))} />
       {/* 끄는 동안: 놓을 칸 하나에 그림만. 눌러서 집었으면: 다른 칸마다 누르는 '여기에 놓기' */}
       {on && picked?.by === 'drag' && over && (
         <div className="drop-zone" style={{ gridArea: slots[over] }} aria-hidden="true">

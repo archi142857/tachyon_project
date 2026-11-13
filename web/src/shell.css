@@ -66,6 +66,23 @@ html.locked, html.locked body { height: 100%; overflow: hidden; overscroll-behav
 .today-grid.editing > .day { cursor: default; }
 .today-grid button.drop-zone { pointer-events: auto; cursor: pointer; font-family: inherit; } /* 눌러서 집은 뒤 누르는 '여기에 놓기' */
 .today-grid button.drop-zone:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+/* 칸 경계 손잡이(GridSplit): 칸 사이 틈 가운데 14px 띠. 칸 위에 손을 올리면 가운데 짧은 금, 경계에 올리거나 끌면 긴 선 */
+.today-grid[data-layout] { position: relative; }
+.grid-split { position: absolute; z-index: 3; touch-action: none; }
+.grid-split.col { width: 14px; transform: translateX(-50%); cursor: col-resize; }
+.grid-split.row { height: 14px; transform: translateY(-50%); cursor: row-resize; }
+.grid-split::before, .grid-split::after { content: ''; position: absolute; border-radius: 2px; transition: opacity 0.15s; }
+.grid-split::before { background: var(--line-strong); opacity: 0; }
+.grid-split.col::before { left: 6px; top: calc(50% - 16px); width: 2px; height: 32px; }
+.grid-split.row::before { top: 6px; left: calc(50% - 16px); width: 32px; height: 2px; }
+.today-grid:hover > .grid-split::before { opacity: 0.6; }
+.grid-split::after { background: var(--accent); opacity: 0; }
+.grid-split.col::after { left: 6px; top: 6px; bottom: 6px; width: 2px; }
+.grid-split.row::after { top: 6px; left: 6px; right: 6px; height: 2px; }
+.grid-split:hover::after, .grid-split:focus-visible::after, .grid-split.on::after { opacity: 0.8; }
+.grid-split:focus-visible { outline: none; }
+html.resizing-col, html.resizing-col * { cursor: col-resize !important; user-select: none; }
+html.resizing-row, html.resizing-row * { cursor: row-resize !important; user-select: none; }
 .layout-tools { display: inline-flex; align-items: center; gap: 4px; }
 /* 초대 링크: 보내기를 크게(사람 피드백 6) */
 .invite-actions .invite-main { flex: 1; height: 44px; font-size: 15px; }

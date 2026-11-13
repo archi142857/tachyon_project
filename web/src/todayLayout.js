@@ -58,3 +58,38 @@ export function swapOrder(order, i, j) {
 
 // { day: 'a', … }
 export const slotsOf = (order) => Object.fromEntries(order.map((w, i) => [w, SLOTS[i]]));
+
+// 칸 크기(11-13 사람 "칸 크기를 마음대로 바꿀 수 있게 … 칸 사이 경계를 클릭하고 움직일 수 있게").
+// { 'three@3x2': { cols: [px…], rows: [px…] } } — 배치와 칸 모양(열 × 줄)마다 이 기기에. px는 비율로만 쓴다(fr).
+const SIZE_KEY = 'tachyon_today_sizes';
+
+export function readSizes() {
+  try {
+    const v = JSON.parse(localStorage.getItem(SIZE_KEY));
+    return v && typeof v === 'object' ? v : {};
+  } catch {
+    return {};
+  }
+}
+
+export function writeSizes(v) {
+  try {
+    localStorage.setItem(SIZE_KEY, JSON.stringify(v));
+  } catch {
+    /* 저장이 막힌 브라우저면 이번에만 */
+  }
+}
+
+// 경계 i(칸 i와 i+1 사이)를 d px 옮긴 새 크기. 두 칸의 합은 그대로, 어느 칸도 min보다 작아지지 않게
+export function resizeTracks(sizes, i, d, min) {
+  const total = sizes[i] + sizes[i + 1];
+  const lo = Math.min(min, total / 2);
+  const a = Math.min(Math.max(sizes[i] + d, lo), total - lo);
+  const next = [...sizes];
+  next[i] = a;
+  next[i + 1] = total - a;
+  return next;
+}
+
+// 계산된 grid-template-areas('"a b d" "a c d"') → [['a', 'b', 'd'], ['a', 'c', 'd']]
+export const areasOf = (text = '') => (text.match(/"[^"]*"/g) || []).map((row) => row.slice(1, -1).trim().split(/\s+/));
