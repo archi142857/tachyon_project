@@ -8,7 +8,8 @@
     "@capacitor/app": "8.1.2",
     "@capacitor/browser": "8.0.5",
     "@capacitor/calendar": "1.0.1",
-    "@capacitor/core": "8.6.0"
+    "@capacitor/core": "8.6.0",
+    "@capacitor/local-notifications": "8.3.1"
   },
   "devDependencies": {
     "@capacitor/cli": "8.6.0"

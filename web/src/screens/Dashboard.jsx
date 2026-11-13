@@ -22,6 +22,7 @@ import MemoCard from '../components/MemoCard.jsx';
 import MeSheet from '../components/MeSheet.jsx';
 import MemoPopup from '../components/MemoPopup.jsx';
 import TaskActSheet from '../components/TaskActSheet.jsx';
+import { planMorning } from '../native.js';
 import { askedPrefs, readPrefs } from '../prefs.js';
 import { addFocus, arrange, fixTask, fixedOn, pinTask, snoozeTask } from '../taskLocal.js';
 import MonthCalendar from '../components/MonthCalendar.jsx';
@@ -353,6 +354,9 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   const todayKey = dateKey(now);
   // 오늘 목록: 미룬 것 빼고 당긴 것 먼저(taskLocal.js). 폰은 2~3개만(사람 결정 '오늘 화면 · 폰': "할 일은 2-3개 정도만 띄우고")
   const todayTasks = useMemo(() => arrange(openTasks, todayKey), [openTasks, todayKey, localTick]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    planMorning(todayTasks.map((t) => t.title)).catch(() => null); // 아침 알림(켠 폰만): 첫 아침에 맨 위 할 일 3개
+  }, [todayTasks]);
   const fixedToday = useMemo(() => fixedOn(todayKey), [todayKey, localTick]); // eslint-disable-line react-hooks/exhaustive-deps
   const subjects = useMemo(() => [...new Set(allEvents.filter((e) => e.source === 'timetable').map((e) => e.title))], [allEvents]);
 

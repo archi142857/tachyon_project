@@ -10,7 +10,10 @@
 //   폰 안에 'Tachyon' 캘린더(이 폰에만 있음)를 만들고, 앱을 열거나 다시 볼 때마다 서버 목록(GET /api/calendar/items —
 //   구독 주소와 같은 줄)과 맞춘다. 짝은 폰 일정 메모 칸 끝 줄 'tachyon:event-12'로 찾고, 없어진 것은 지우고 바뀐 것은 지우고 다시 넣는다.
 //   폰 → 서버(syncDevice)는 이 캘린더를 뺀다(제자리 돌기 막기). 구독 주소와 달리 몇 시간씩 늦지 않는다.
+// 아침 알림(11-14 피드백 '매일 아침 알림'): 서버 푸시 없이 폰이 스스로 띄우는 알림(LocalNotifications). 하루 1번,
+//   일어나는 시각(나 → 몇 시에 일어나요) 정각. 앱을 열 때마다 앞으로 7일 치를 다시 잡는다(첫 아침은 지금 할 일 3개, 그 뒤는 짧은 말).
 import { getCalendarItems, sendDeviceEvents } from './api.js';
+import { readPrefs } from './prefs.js';
 
 const plugins = () => window.Capacitor?.Plugins;
 export const inApp = () => Boolean(plugins()?.Calendar);
@@ -160,4 +163,55 @@ function sameEvent(e, it) {
   if (e.title !== it.title || (e.location || null) !== (it.place || null) || Boolean(e.isAllDay) !== it.allDay) return false;
   if (it.allDay) return Math.abs(e.startDate - it.start) < HALF_DAY && Math.abs(e.endDate - it.end) < HALF_DAY;
   return e.startDate === it.start && e.endDate === it.end;
+}
+
+// ── 아침 알림 ─────────────────────────────────────────────
+const MORNING_KEY = 'tachyon_morning'; // '1'이면 켬
+const MORNING_IDS = [1, 2, 3, 4, 5, 6, 7].map((d) => 7000 + d);
+export const canMorning = () => Boolean(plugins()?.LocalNotifications); // 새 APK(플러그인 들어간 것)에서만
+export const morningOn = () => localStorage.getItem(MORNING_KEY) === '1';
+
+/** 앞으로 7번의 아침(wake시 정각) 알림. 첫 번째만 할 일 이름을 넣는다(그 뒤 날의 할 일은 지금 모름) */
+export function morningList(titles, wake, now = new Date()) {
+  const first = new Date(now);
+  first.setHours(wake, 0, 0, 0);
+  if (first <= now) first.setDate(first.getDate() + 1);
+  const top = titles.slice(0, 3);
+  return MORNING_IDS.map((id, i) => {
+    const at = new Date(first);
+    at.setDate(first.getDate() + i);
+    const body = i === 0 && top.length ? `오늘 할 일: ${top.join(' · ')}` : '오늘 일정과 할 일을 확인해요';
+    return { id, title: 'Tachyon 아침', body, schedule: { at, allowWhileIdle: true } };
+  });
+}
+
+let lastTitles = [];
+let lastPlan = '';
+/** 켜져 있으면 7일 치를 다시 잡는다. 할 일·시각이 그대로면 건너뜀 */
+export async function planMorning(titles = lastTitles) {
+  lastTitles = titles;
+  const ln = plugins()?.LocalNotifications;
+  if (!ln || !morningOn()) return;
+  const list = morningList(titles, readPrefs().wake);
+  const sign = JSON.stringify(list.map((n) => [n.body, +n.schedule.at]));
+  if (sign === lastPlan) return;
+  await ln.cancel({ notifications: MORNING_IDS.map((id) => ({ id })) });
+  await ln.schedule({ notifications: list });
+  lastPlan = sign;
+}
+
+/** 켜기: 알림 권한을 묻고 되면 잡는다 → true · 권한이 없으면 false */
+export async function turnMorningOn() {
+  const { display } = await plugins().LocalNotifications.requestPermissions();
+  if (display !== 'granted') return false;
+  localStorage.setItem(MORNING_KEY, '1');
+  lastPlan = '';
+  await planMorning();
+  return true;
+}
+
+export async function turnMorningOff() {
+  localStorage.removeItem(MORNING_KEY);
+  lastPlan = '';
+  await plugins().LocalNotifications.cancel({ notifications: MORNING_IDS.map((id) => ({ id })) });
 }

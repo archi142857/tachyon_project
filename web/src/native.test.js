@@ -151,3 +151,25 @@ describe('폰 캘린더에 쓰기 흐름(가짜 플러그인)', () => {
     expect(cal.calls).toEqual([]);
   });
 });
+
+// 아침 알림(morningList): 일어나는 시각 정각, 7번, 첫 아침만 할 일 이름. 할 일 이름은 지어낸 예시다.
+import { morningList } from './native.js';
+
+describe('morningList', () => {
+  it('일어나는 시각이 지났으면 내일부터, 첫 아침만 할 일 3개', () => {
+    const now = new Date(2026, 10, 14, 9, 30);
+    const list = morningList(['보고서 쓰기', '예매', '연락', '넷째'], 7, now);
+    expect(list).toHaveLength(7);
+    expect(list[0].schedule.at).toEqual(new Date(2026, 10, 15, 7, 0));
+    expect(list[6].schedule.at).toEqual(new Date(2026, 10, 21, 7, 0));
+    expect(list[0].body).toBe('오늘 할 일: 보고서 쓰기 · 예매 · 연락');
+    expect(list[1].body).toBe('오늘 일정과 할 일을 확인해요');
+    expect(new Set(list.map((n) => n.id)).size).toBe(7);
+  });
+
+  it('아직 안 지났으면 오늘부터, 할 일이 없으면 짧은 말', () => {
+    const list = morningList([], 8, new Date(2026, 10, 14, 2, 30));
+    expect(list[0].schedule.at).toEqual(new Date(2026, 10, 14, 8, 0));
+    expect(list[0].body).toBe('오늘 일정과 할 일을 확인해요');
+  });
+});

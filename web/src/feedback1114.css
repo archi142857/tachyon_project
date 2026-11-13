@@ -79,3 +79,9 @@ svg.backdrop.staff { opacity: 0.3; } /* 흰 종이 위 검은 띠는 특히 세�
 .cal-grid .ev-grip::after { content: ''; position: absolute; left: 50%; bottom: 2px; width: 16px; height: 3px; margin-left: -8px; border-radius: 2px; background: currentColor; opacity: 0; transition: opacity 0.15s; }
 .cal-grid .ev:hover .ev-grip::after, .cal-grid .ev:focus-visible .ev-grip::after { opacity: 0.45; }
 @media (hover: none) { .cal-grid .ev-grip::after { opacity: 0.3; } }
+
+/* G3 넓은 화면: 메모 입력 칸은 늘 오른쪽 아래(메모 칸 밑). 떠 있지 않고 맨 아래 줄에 붙어 있어 내용을 가리지 않는다 */
+@media (min-width: 900px) {
+  html .shell .composer form,
+  html[data-theme] .shell .composer form { width: min(100%, 460px); max-width: none; margin: 0 0 0 auto; }
+}

@@ -6,6 +6,7 @@ import { FIRSTS, FOCUSES, TEXTS, WAKES, applyText, readPrefs, savePrefs } from '
 import { setWake } from '../slots.js';
 import { dateKey } from '../density.js';
 import { focusWeek } from '../taskLocal.js';
+import { canMorning, morningOn, planMorning, turnMorningOff, turnMorningOn } from '../native.js';
 import Sheet from './Sheet.jsx';
 
 function Pick({ label, items, value, onChange }) {
@@ -25,12 +26,26 @@ function Pick({ label, items, value, onChange }) {
 
 export default function MeSheet({ start = false, onClose, onDoneList, onSetup }) {
   const [p, setP] = useState(readPrefs);
+  const [morning, setMorning] = useState(morningOn);
+  const [morningNote, setMorningNote] = useState('');
+  const toggleMorning = async (on) => {
+    if (on === morning) return;
+    if (!on) {
+      await turnMorningOff().catch(() => null);
+      setMorning(false);
+      return;
+    }
+    const ok = await turnMorningOn().catch(() => false);
+    setMorning(ok);
+    setMorningNote(ok ? '' : '알림 권한이 꺼져 있어요. 폰 설정 → 앱 → Tachyon → 알림에서 켜 주세요.');
+  };
   const change = (k, v) => {
     const next = { ...p, [k]: v };
     setP(next);
     savePrefs(next);
     if (k === 'wake') setWake(v);
     if (k === 'text') applyText(v);
+    if (k === 'wake' && morningOn()) planMorning().catch(() => null); // 아침 알림 시각도 같이 옮긴다
   };
   const week = focusWeek(dateKey(new Date()));
   const finish = () => {
@@ -46,6 +61,12 @@ export default function MeSheet({ start = false, onClose, onDoneList, onSetup })
       <Pick label="한 번에 몇 분 집중해요?" items={FOCUSES.map((m) => [m, `${m}분`])} value={p.focus} onChange={(v) => change('focus', v)} />
       <Pick label="앱을 열면 어디부터 볼까요?" items={FIRSTS} value={p.first} onChange={(v) => change('first', v)} />
       <Pick label="글자 크기" items={TEXTS} value={p.text} onChange={(v) => change('text', v)} />
+      {canMorning() && (
+        <>
+          <Pick label={`아침 알림(${p.wake}시, 하루 1번)`} items={[[false, '끔'], [true, '켬']]} value={morning} onChange={toggleMorning} />
+          {morningNote && <p className="hint">{morningNote}</p>}
+        </>
+      )}
       {!start && (
         <>
           <p className="hint num">이번 주 집중한 시간: {week ? `${week}분` : '아직 없어요'} (할 일을 눌러 ‘집중’을 시작하면 쌓여요)</p>
