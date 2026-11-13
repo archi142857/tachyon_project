@@ -1,4 +1,4 @@
-// 첫 설정: 학과·학번 + 캘린더(ICS) 주소 칸 3개(eTL·구글·애플). 모두 건너뛸 수 있다.
+// 첫 설정: 학과·학번 + 캘린더(ICS) 주소 칸 3개(eTL·구글·애플) + 네이버 캘린더(아이디·애플리케이션 비밀번호, components/NaverFeed.jsx). 모두 건너뛸 수 있다.
 // 캘린더 칸은 한눈에 보이게 이름과 칸만 두고, 찾는 법은 이름 옆 '찾는 법'을 눌러야 펼친다(11-13 사람 "설명이 너무 난잡").
 // 처음에는 두 장이다(11-11 사람 요청): ① 학과·학번만 있는 화면(학과는 칸 밑 목록에서 찾아 고르기, 학번은 목록) → ② 캘린더 연결.
 // 학번은 서버 칸(users.year = 학년)에 맞춰 학년으로 셈해 보낸다(setup.js gradeOf).
@@ -13,6 +13,7 @@ import { inApp, syncDevice } from '../native.js';
 import DeleteAccount from '../components/DeleteAccount.jsx';
 import TopBar from '../components/TopBar.jsx';
 import DeptPicker from '../components/DeptPicker.jsx';
+import NaverFeed from '../components/NaverFeed.jsx';
 import { FEEDS, detectFeed, entryOf, entryYears, feedResult, gradeOf, normalizeIcs, resultLine, unsavedErrors } from '../setup.js';
 
 const EMPTY = { etl: '', google: '', apple: '' };
@@ -339,6 +340,7 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
               </div>
             );
           })}
+          <NaverFeed saved={feedOf('naver')} line={lines.naver !== undefined ? lines.naver : feedResult(feedOf('naver'))} disabled={busy} onFeeds={setFeeds} />
           {anySaved && (
             <button type="button" className="btn-text" style={{ justifySelf: 'start' }} disabled={busy} onClick={collect}>
               지금 다시 받기

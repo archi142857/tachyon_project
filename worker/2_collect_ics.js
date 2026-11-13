@@ -33,8 +33,11 @@ import { seal, unseal } from './lib/secret.js';
 import { json, fail, readJson, UserError } from './lib/http.js';
 import { kstIso, kstDate, kstMidnight, DAY_MS } from './lib/time.js';
 import { logStatement } from './lib/log.js';
+import { fetchCalDav, CalDavError } from './lib/caldav.js';
 
-export const KINDS = ['etl', 'google', 'apple'];
+// naver = 네이버 캘린더(11-13 컨셉, 사람 요청). 구독 주소가 없어 CalDAV로 읽는다(lib/caldav.js):
+// PUT {"naver": {"id": "네이버 아이디", "password": "애플리케이션 비밀번호"}}. 둘을 JSON으로 묶어 주소처럼 잠가 feeds.url에 둔다.
+export const KINDS = ['etl', 'google', 'apple', 'naver'];
 
 
 const PAST_DAYS = 30;
@@ -182,6 +185,54 @@ export function normalizeUrl(raw, kind) {
   return url.toString();
 }
 
+/**
+ * 네이버 캘린더 칸: { id, password } → 다듬은 값. 아이디는 '…@naver.com'으로 넣어도 앞부분만 쓴다.
+ * 틀리면 UserError(화면에 그대로 보임). 비밀번호는 오류 문장에 넣지 않는다.
+ */
+export function normalizeNaver(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new UserError('네이버 아이디와 애플리케이션 비밀번호를 넣어 주세요');
+  const id = String(raw.id ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/@naver\.com$/, '');
+  const password = String(raw.password ?? '').replace(/\s+/g, '');
+  if (!/^[a-z0-9][a-z0-9_-]{2,29}$/.test(id)) throw new UserError('네이버 아이디를 넣어 주세요(…@naver.com의 앞부분)');
+  if (password.length < 8 || password.length > 64) {
+    throw new UserError('네이버에서 만든 ‘애플리케이션 비밀번호’를 넣어 주세요(네이버 로그인 비밀번호가 아니에요)');
+  }
+  return { id, password };
+}
+
+/** 잠가 둘 글(주소 칸이면 주소, 네이버면 아이디·비밀번호 JSON) → 화면 힌트 */
+function secretHint(kind, secret) {
+  if (kind !== 'naver') return urlHint(secret);
+  try {
+    const { id } = JSON.parse(secret);
+    return `네이버 · ${id.slice(0, 2)}${'*'.repeat(Math.max(2, Math.min(6, id.length - 2)))}`;
+  } catch {
+    return '?';
+  }
+}
+
+/** 칸 하나의 ICS 글을 받는다: 주소 칸은 주소에서, 네이버는 CalDAV로. 실패는 FeedError(permanent = 다시 넣어야 함). */
+async function fetchSource(kind, secret, now) {
+  if (kind !== 'naver') return fetchIcs(secret);
+  let cred;
+  try {
+    cred = JSON.parse(secret);
+  } catch {
+    throw new FeedError('저장된 네이버 연결을 열 수 없어요. 다시 넣어 주세요', true);
+  }
+  const window = syncWindow(now);
+  try {
+    const { text } = await fetchCalDav({ user: cred.id, password: cred.password, from: window.from, to: window.to, timeoutMs: FETCH_TIMEOUT_MS, maxChars: MAX_CHARS });
+    return text;
+  } catch (err) {
+    if (err instanceof CalDavError) throw new FeedError(err.message, err.permanent);
+    throw err;
+  }
+}
+
 /** 화면에 보여 줄 주소 힌트: 'myetl.snu.ac.kr/…a1b2' (주소 전체는 비밀이라 끝 4자만) */
 export function urlHint(url) {
   try {
@@ -205,7 +256,7 @@ export async function listFeeds(env, userId, now = Date.now()) {
     }
     let hint;
     try {
-      hint = urlHint(await unseal(env, row.url));
+      hint = secretHint(kind, await unseal(env, row.url));
     } catch {
       hint = '(다시 넣어 주세요)';
     }
@@ -221,7 +272,9 @@ export async function listFeeds(env, userId, now = Date.now()) {
       triedAt: row.last_try_at || null,
       stopped, // true면 '이 주소가 더 이상 열리지 않아요 → 다시 붙이기'
       error: stopped
-        ? '이 캘린더 주소가 더 이상 열리지 않아요. 캘린더에서 주소를 다시 복사해 붙여 주세요'
+        ? kind === 'naver'
+          ? '네이버 캘린더 연결이 끊겼어요. 네이버에서 애플리케이션 비밀번호를 새로 만들어 다시 넣어 주세요'
+          : '이 캘린더 주소가 더 이상 열리지 않아요. 캘린더에서 주소를 다시 복사해 붙여 주세요'
         : row.last_error || (stuck ? '받다가 멈췄어요(처리 시간 한도일 수 있어요)' : null),
     });
   }
@@ -232,7 +285,7 @@ async function saveFeeds(request, env, userId, now = Date.now()) {
   const body = await readJson(request);
   if (!body || typeof body !== 'object' || Array.isArray(body)) return fail(400, 'JSON 본문이 필요해요: {"etl": "주소"}');
   const kinds = KINDS.filter((kind) => kind in body);
-  if (!kinds.length) return fail(400, 'etl·google·apple 가운데 한 칸 이상 보내 주세요');
+  if (!kinds.length) return fail(400, 'etl·google·apple·naver 가운데 한 칸 이상 보내 주세요');
 
   const results = [];
   for (const kind of kinds) {
@@ -249,13 +302,18 @@ async function saveFeeds(request, env, userId, now = Date.now()) {
 
 /** 주소 한 칸: 모양 확인 → 한 번 받아 보기 → (이미 죽은 주소가 아니면) 잠가서 저장 → 받은 글로 바로 반영 */
 async function addFeed(env, userId, kind, raw, now) {
-  let url;
+  let url; // 잠가 둘 글: 주소, 네이버는 아이디·비밀번호 JSON
   let text = null;
   let transient = null;
   try {
-    if (typeof raw !== 'string') throw new UserError('주소를 글로 넣어 주세요');
-    url = normalizeUrl(raw, kind);
-    text = await fetchIcs(url);
+    if (kind === 'naver') {
+      const cred = normalizeNaver(raw);
+      url = JSON.stringify({ caldav: 'naver', id: cred.id, password: cred.password });
+    } else {
+      if (typeof raw !== 'string') throw new UserError('주소를 글로 넣어 주세요');
+      url = normalizeUrl(raw, kind);
+    }
+    text = await fetchSource(kind, url, now);
     assertIcs(text); // BEGIN:VCALENDAR가 없으면 IcsError
   } catch (err) {
     if (err instanceof UserError || (err instanceof FeedError && err.permanent) || err instanceof IcsError) {
@@ -354,7 +412,7 @@ export async function syncFeed(env, feed, { force = false, now = Date.now(), tex
       const url = await unseal(env, feed.url).catch(() => {
         throw new FeedError('저장된 주소를 열 수 없어요. 주소를 다시 넣어 주세요', true);
       });
-      text = await fetchIcs(url);
+      text = await fetchSource(kind, url, now);
     }
     const window = syncWindow(now);
     const pre = prefilter(text, window.from.getTime(), window.to.getTime());

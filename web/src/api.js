@@ -181,7 +181,7 @@ export async function collectFeeds() {
 // eTL·구글·애플·폰 캘린더에서 온 것은 그 캘린더가 원본이다.
 // 일정: 고치면 서버가 고친 사본(새 id, edited 1)을 넣고 원본을 가린다(Tachyon에서만 바뀜). 지우기는 409.
 // 할 일: 제목·마감 고치기와 지우기는 409, done·minutes·ready만 된다.
-export const FEED_SOURCES = ['etl', 'google', 'apple', 'device']; // device = 앱이 읽은 폰 캘린더
+export const FEED_SOURCES = ['etl', 'google', 'apple', 'naver', 'device']; // device = 앱이 읽은 폰 캘린더, naver = 네이버 캘린더(CalDAV)
 export const fromFeed = (item) => FEED_SOURCES.includes(item.source);
 
 // 그 주(월요일 0시부터 7일)의 일정. from·to는 한국 날짜, to는 빼고 센다.

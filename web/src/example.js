@@ -49,7 +49,7 @@ export function makeExample(now = new Date()) {
 
   return {
     user: { id: 0, email: 'example@example.com', name: '예시 사용자', dept: null, year: null, setup_done: false },
-    feeds: [{ kind: 'etl', set: false }, { kind: 'google', set: false }, { kind: 'apple', set: false }],
+    feeds: [{ kind: 'etl', set: false }, { kind: 'google', set: false }, { kind: 'apple', set: false }, { kind: 'naver', set: false }],
     events,
     tasks: [
       { id: id(), title: '유기화학 문제풀이 3장', due: at(2, 23, 59), minutes: 120, ready: 1, done: 0, source: 'etl' },

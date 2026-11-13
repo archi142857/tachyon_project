@@ -11,7 +11,7 @@ import EventForm, { eventToForm, formToEvent } from './EventForm.jsx';
 import RouteInfo from './RouteInfo.jsx';
 import Sheet from './Sheet.jsx';
 
-const FEED_NAME = { etl: 'eTL', google: '구글 캘린더', apple: '애플 캘린더', device: '폰 캘린더' };
+const FEED_NAME = { etl: 'eTL', google: '구글 캘린더', apple: '애플 캘린더', naver: '네이버 캘린더', device: '폰 캘린더' };
 
 function ImportantToggle({ value, onChange }) {
   return (

@@ -26,8 +26,8 @@ import { json, fail, readJson } from './lib/http.js';
 import { kstDate, kstIso, DAY_MS } from './lib/time.js';
 import { logStatement } from './lib/log.js';
 
-const FEED_SOURCES = new Set(['etl', 'google', 'apple', 'device']);
-const FEED_NAMES = { etl: 'eTL', google: '구글 캘린더', apple: '애플 캘린더', device: '폰 캘린더' };
+const FEED_SOURCES = new Set(['etl', 'google', 'apple', 'naver', 'device']);
+const FEED_NAMES = { etl: 'eTL', google: '구글 캘린더', apple: '애플 캘린더', naver: '네이버 캘린더', device: '폰 캘린더' };
 const MAX_RANGE_DAYS = 62;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const DATETIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+09:00$/;

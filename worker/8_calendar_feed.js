@@ -8,7 +8,7 @@
 //                                          안드로이드 앱이 폰 안 'Tachyon' 캘린더를 맞출 때 쓴다(web/src/native.js, 11-10 컨셉 — 사람 요청 '달력 자동 동기화')
 //
 // 들어가는 것
-// - 일정: 메모·시간표·eTL 등에서 온 것. 구글·애플·폰 캘린더에서 온 것(source google·apple·device)은 이미 폰에 있어서 뺀다.
+// - 일정: 메모·시간표·eTL 등에서 온 것. 구글·애플·네이버·폰 캘린더에서 온 것(source google·apple·naver·device)은 이미 그 캘린더에 있어서 뺀다.
 // - 할 일: 안 끝낸 것의 마감을 그날 하루 종일 일정으로('마감 23:59 · 과제 이름').
 // - 기간: 지난 30일 ~ 앞으로 6개월(수집기와 같음).
 // 주소의 서명은 APP_SECRET에서 사람마다 만든다(표가 필요 없다). 주소가 새면 지금은 APP_SECRET을 바꾸는 수밖에 없다
@@ -20,7 +20,7 @@ import { kstDate, DAY_MS } from './lib/time.js';
 import { logAction } from './lib/log.js';
 import { syncWindow } from './2_collect_ics.js';
 
-const SKIP_SOURCES = ['google', 'apple', 'device'];
+const SKIP_SOURCES = ['google', 'apple', 'naver', 'device'];
 const SIG_CHARS = 24; // 144비트
 
 export async function handle(request, env, ctx, user) {
