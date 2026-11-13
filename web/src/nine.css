@@ -66,7 +66,7 @@ html[data-theme^='입자'] .side-nav .count, html[data-theme^='입자'] .tabs .c
 html[data-theme^='입자'] .side-brand { height: auto; margin-bottom: 36px; padding: 0; gap: 10px; }
 html[data-theme^='입자'] .wordmark { margin: 0; font: inherit; }
 html[data-theme^='입자'] .nine-logo { display: inline-flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 400; letter-spacing: -0.02em; color: var(--ink); white-space: nowrap; }
-html[data-theme^='입자'] .nine-logo::before { content: ''; width: 22px; height: 5px; border-radius: 5px; background: linear-gradient(90deg, var(--ink) 22%, var(--vi) 40%, transparent); }
+html[data-theme^='입자'] .nine-logo::before { content: ''; width: 22px; height: 5px; border-radius: 5px; background: linear-gradient(270deg, var(--ink) 22%, var(--vi) 40%, transparent); } /* 11-14 피드백: 방향 반대로(머리가 오른쪽) */
 html[data-theme^='입자'] .side-nav { gap: 2px; }
 html[data-theme^='입자'] .side-nav button { height: 36px; padding: 0; border: 0; border-radius: 0; background: none; justify-content: flex-start; gap: 12px; font-size: 15px; font-weight: 400; color: var(--fa); transition: color 0.25s; }
 html[data-theme^='입자'] .side-nav button:hover { background: none; color: var(--mu); }

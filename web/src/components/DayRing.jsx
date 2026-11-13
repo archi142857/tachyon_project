@@ -1,7 +1,7 @@
 // 하루 고리: 한 바퀴가 오늘 하루(0–24시, 맨 위가 0시)이고 입자 하나하나가 시간 조각이다. 모양은 테마에 따라 셋(themeName.js).
 //  - 그림 테마(태양계 · 오선지 · 원자 모형 · 뉴모피즘): 테마마다 그린 고리(components/art, 맨 아래 DayRing).
-//  - 기본(③ 바우하우스와 나머지 테마): 모양이 뜻이다(색만으로 가르지 않음) — ● 수업, □ 내 일정(달력·메모),
-//    ▲ 할 일을 넣어 본 자리, 작은 점 = 빈 시간, 붉은 금 = 지금. 일정 뒤에는 달력과 같은 색 띠.
+//  - 기본(③ 바우하우스와 나머지 테마): 입자 없이 면(띠)으로만 가른다(11-14 피드백 "바우하우스 테마 고리는 입자 빼고 면으로만").
+//    파랑 면 = 수업, 먹 면 = 내 일정(달력·메모), 노랑 면 = 할 일을 넣어 본 자리, 옅은 바탕 = 빈 시간, 지난 시간은 흐리게, 붉은 금 = 지금.
 //  - 입자 테마('입자 밤'·'입자 낮'): 시연 9판의 하루 고리 그대로 — 과목 색 입자, 넣어 본 자리의 섬유, 흰 타키온(아래 ParticleRing, 모양은 nine.css).
 // 붙어 보이는 구간은 경계에 바탕색 금(디자인 ④), 같은 모양끼리는 번갈아 속을 뒤집는다(ringRuns, 사람 11-13 "분간이 안 됨").
 // 색 구간을 누르면 onPick(key). 가운데 글자는 children으로 받는다.
@@ -10,8 +10,6 @@ import { WAKE, hm } from '../slots.js';
 import { tint, useParticles, useThemeName } from '../themeName.js';
 import { RINGS as ART } from './art/index.js';
 
-const RINGS = [[66, 40, 1.6], [75, 46, 1.8], [84, 52, 2], [93, 58, 2.2], [102, 64, 2.4]]; // 반지름, 점 개수, 점 크기
-const f1 = (v) => v.toFixed(1);
 const MID = 84; // 누르는 띠의 가운데 반지름
 const FRAME = 114; // 바깥 테(사람 11-11 23:34 'B')
 
@@ -47,6 +45,12 @@ export function ringRuns(arcs) {
 function point(rad, f) {
   const a = f * 2 * Math.PI - Math.PI / 2;
   return [rad * Math.cos(a), rad * Math.sin(a)].map((v) => v.toFixed(1));
+}
+
+// 하루 경계: 0시(맨 위)와 낮 12시(맨 아래)에 진한 금(11-14 피드백 '12시 정각은 까만 선으로 경계', 사람 '둘 다').
+// 모양은 .ring line.day-edge — 바탕이 어두운 테마는 먹 대신 그 테마의 가장 진한 글자색.
+export function DayEdges({ r0 = 60, r1 = 112 }) {
+  return [0, 0.5].map((f) => <line key={f} className="day-edge" x1={point(r0, f)[0]} y1={point(r0, f)[1]} x2={point(r1, f)[0]} y2={point(r1, f)[1]} />);
 }
 
 // 바깥 점 = 아직 정리 안 된 메모(적은 시각 자리, 결정 '하루 고리' 11-13). 누르는 일은 고리 밑 글 단추가 한다(피드백 16 '고리를 딱히 누르지 않음')
@@ -88,19 +92,6 @@ function Ticks({ now }) {
   });
 }
 
-// ── 기본(③): 입자 하나는 종류에 따라 ●(수업) □(내 일정) ▲(넣어 본 자리). cx·cy는 숫자, r은 그 고리의 점 크기
-function Shape({ kind, cx, cy, r, className }) {
-  if (kind === 'timetable') return <circle cx={cx} cy={cy} r={f1(r * 1.25)} className={className} />;
-  if (kind === 'slot') {
-    const s = r * 3.2; // 위로 선 세모, 한 변 s, 무게중심이 (cx, cy)
-    const h = (s * Math.sqrt(3)) / 2;
-    const pts = [[cx, cy - (2 * h) / 3], [cx + s / 2, cy + h / 3], [cx - s / 2, cy + h / 3]];
-    return <polygon points={pts.map((p) => p.map(f1).join(',')).join(' ')} className={className} />;
-  }
-  const side = r * 2.3;
-  return <rect x={f1(cx - side / 2)} y={f1(cy - side / 2)} width={f1(side)} height={f1(side)} className={className} />;
-}
-
 function ShapeRing({ arcs, nowMin, sel, onPick, loose, children }) {
   const now = nowMin / 1440;
   const { alt, seps } = ringRuns(arcs);
@@ -109,26 +100,19 @@ function ShapeRing({ arcs, nowMin, sel, onPick, loose, children }) {
       <svg className={sel ? 'ring has-sel' : 'ring'} viewBox="-136 -136 272 272" aria-hidden="true">
         {/* 바깥 테: 눈금 바깥 가는 선 하나(사람 11-11 23:34 'B'), 입자보다 먼저 */}
         <circle className="frame" r={FRAME} />
+        <circle className="track" r={MID} />
+        <path className="sleep-band" d={arcPath({ from: 0, to: WAKE * 60 })} />
         {arcs.map((a) => (
           <path key={a.key} className={`band ${a.kind}${alt.has(a.key) ? ' alt' : ''}${a.key === sel ? ' on' : ''}`} d={arcPath(a)} />
         ))}
-        {RINGS.flatMap(([rad, n, r]) =>
-          Array.from({ length: n }, (_, j) => {
-            const f = (j + (n % 4) / 4) / n; // 고리마다 조금씩 어긋나게
-            const min = f * 1440;
-            const arc = arcs.find((a) => min >= a.from && min < a.to);
-            const [cx, cy] = point(rad, f).map(Number);
-            const past = min < nowMin ? ' past' : '';
-            if (!arc) return <circle key={`${rad}-${j}`} cx={cx} cy={cy} r={0.9} className={`${min < WAKE * 60 ? 'sleep' : 'free'}${past}`} />;
-            const cls = `${arc.kind === 'slot' ? 'slot' : `ev ${arc.kind}`}${alt.has(arc.key) ? ' alt' : ''}${arc.key === sel ? ' on' : ''}${past}`;
-            return <Shape key={`${rad}-${j}`} kind={arc.kind} cx={cx} cy={cy} r={r} className={cls} />;
-          }),
-        )}
+        {/* 지난 시간은 바탕색 덮개로 흐리게(입자 대신 면) */}
+        {nowMin > 0 && <path className="past-veil" d={arcPath({ from: 0, to: nowMin })} />}
         {/* 붙어 보이는 두 구간 사이 바탕색 금(디자인 ④): 띠·입자를 그린 뒤, 눈금 앞 */}
         {seps.map((m) => (
           <line key={`sep${m}`} className="sep" x1={point(60, m / 1440)[0]} y1={point(60, m / 1440)[1]} x2={point(108, m / 1440)[0]} y2={point(108, m / 1440)[1]} />
         ))}
         <Ticks now={now} />
+        <DayEdges />
         {/* 지금 선: 같은 자리에 바탕색 테(now-halo)를 먼저 그어 어떤 띠·입자 위에서도 보이게 */}
         <line className="now-halo" x1={point(60, now)[0]} y1={point(60, now)[1]} x2={point(108, now)[0]} y2={point(108, now)[1]} />
         <line className="now" x1={point(60, now)[0]} y1={point(60, now)[1]} x2={point(108, now)[0]} y2={point(108, now)[1]} />
@@ -206,6 +190,7 @@ function ParticleRing({ arcs, nowMin, sel, onPick, loose = [], children }) {
               </text>
             );
           })}
+        <DayEdges r0={58} r1={112} />
         <text className="nw" x={point(119, now)[0]} y={point(119, now)[1]}>
           {hm(nowMin).padStart(5, '0')}
         </text>

@@ -9,6 +9,7 @@
 //   DELETE /api/tasks/:id         → { ok }
 //   GET    /api/events?from=2026-11-09&to=2026-11-16
 //                                 그 기간과 겹치는 일정(to 날짜는 안 들어감, 최대 62일) → { events }. 없으면 오늘부터 7일
+//   POST   /api/events            { title, start, end?, place? } → { event } 달력 빈 칸을 눌러 바로 넣기(11-14 피드백, 메모를 거치지 않음, source memo)
 //   PATCH  /api/events/:id        { important, title, start, end, place } 가운데 바꿀 것만 → { event }
 //                                 시각 일정의 끝이 없으면(안 보냄·null·옛 끝이 안 맞음) 시작 + 1시간
 //   DELETE /api/events/:id        → { ok }
@@ -47,6 +48,7 @@ export async function handle(request, env, ctx, user) {
   }
   if (table === 'events') {
     if (id === null && method === 'GET') return listEvents(url, env, user);
+    if (id === null && method === 'POST') return createEvent(request, env, user);
     if (id !== null && method === 'PATCH') return patchItem(request, env, user, 'events', id);
     if (id !== null && method === 'DELETE') return deleteItem(env, user, 'events', id);
   }
@@ -150,6 +152,25 @@ async function patchItem(request, env, user, table, id) {
   const updated = res.results[0];
   const pick = table === 'tasks' ? ['id', 'title', 'due', 'minutes', 'ready', 'done', 'source'] : ['id', 'title', 'start', 'end', 'place', 'source', 'important'];
   return json({ ok: true, [table === 'tasks' ? 'task' : 'event']: Object.fromEntries(pick.map((k) => [k, updated[k] ?? null])) });
+}
+
+// 달력 빈 칸을 눌러 넣기(11-14 피드백 '달력에서 클릭해서 일정 넣기'). 칸 검사는 고치기와 같은 clean · eventEnd(끝이 없으면 1시간)
+async function createEvent(request, env, user) {
+  const body = await readJson(request);
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return fail(400, 'JSON 본문이 필요해요');
+  let e;
+  try {
+    e = { title: clean('events', 'title', body.title), start: clean('events', 'start', body.start), end: clean('events', 'end', body.end ?? null), place: clean('events', 'place', body.place ?? null) };
+    e.end = eventEnd(e, body.end != null);
+  } catch (err) {
+    if (err instanceof BadValue) return fail(400, err.message);
+    throw err;
+  }
+  const [res] = await env.DB.batch([
+    env.DB.prepare(`INSERT INTO events (user_id, title, start, "end", place, source) VALUES (?, ?, ?, ?, ?, 'memo') RETURNING ${EVENT_COLUMNS}`).bind(user.id, e.title, e.start, e.end, e.place),
+    logStatement(env, user.id, 'item_add', { table: 'events' }),
+  ]);
+  return json({ ok: true, event: res.results[0] }, 201);
 }
 
 /** 캘린더에서 온 일정을 고침: 고친 값으로 사본을 넣고(같은 원본을 또 고치면 그 사본을 덮는다) 원본은 가린다. e = 원본 줄에 고친 값을 덮은 것 */

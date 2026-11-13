@@ -32,12 +32,12 @@
 .ld-ring i { position: absolute; width: 4px; height: 4px; margin: -2px; border-radius: 50%; background: var(--c); box-shadow: 0 0 6px var(--c); animation: ld-gather 0.9s var(--d) cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
 .theme-loader.day .ld-ring i[style*='#fff'] { background: #1d1b22; box-shadow: none; }
 @keyframes ld-gather { from { transform: translate(var(--fx), var(--fy)) scale(0.4); opacity: 0; } }
-.ld-ty { position: absolute; inset: -6%; border-radius: 50%; animation: ld-spin 1.4s linear infinite reverse; }
+.ld-ty { position: absolute; inset: -6%; border-radius: 50%; animation: ld-spin 1.4s linear infinite; } /* 11-14 피드백: 입자 방향 반대로 — 시계 방향(하루 고리의 타키온과 같은 쪽), 꼬리는 ::after를 뒤집어 뒤에 */
 .ld-ty::before { content: ''; position: absolute; left: 50%; top: 0; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px 3px #8f7bff; }
-.ld-ty::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(currentColor, transparent 70deg, transparent); opacity: 0.7; mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #000 calc(100% - 1px)); }
+.ld-ty::after { content: ''; position: absolute; inset: 0; transform: scaleX(-1); border-radius: 50%; background: conic-gradient(currentColor, transparent 70deg, transparent); opacity: 0.7; mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #000 calc(100% - 1px)); }
 @keyframes ld-spin { to { transform: rotate(360deg); } }
 .ld-name { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 18px; font-weight: 300; letter-spacing: -0.02em; animation: ld-in 0.5s 0.5s backwards; }
-.ld-name::before { content: ''; width: 22px; height: 5px; border-radius: 5px; background: linear-gradient(90deg, currentColor 22%, #8f7bff 40%, transparent); }
+.ld-name::before { content: ''; width: 22px; height: 5px; border-radius: 5px; background: linear-gradient(270deg, currentColor 22%, #8f7bff 40%, transparent); } /* 머리(흰 점)가 오른쪽 = 오른쪽으로 날아감(11-14 반대로) */
 
 @media (prefers-reduced-motion: reduce) { .theme-loader, .theme-loader * { animation: none !important; } }
 

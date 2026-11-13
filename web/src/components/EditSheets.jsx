@@ -56,16 +56,16 @@ export function EventEditSheet({ event, leg, campus, events, onSave, onDelete, o
   }
 
   return (
-    <Sheet title="일정 고치기" onClose={onClose} front>
-      <EventForm form={form} onChange={setForm} idPrefix="edit-event" />
+    <Sheet title={event.id ? '일정 고치기' : '일정 넣기'} onClose={onClose} front>{/* id 없음 = 달력 빈 칸에서 새로(11-14) */}
+      <EventForm form={form} onChange={setForm} idPrefix="edit-event" autoFocus={!event.id} />
       {feed && (
         <p className="hint">
           {FEED_NAME[event.source]}에서 온 일정이에요. 여기서 고치면 Tachyon에서만 바뀌고 {FEED_NAME[event.source]}는 그대로예요. 지우기는 {FEED_NAME[event.source]}에서 해 주세요.
         </p>
       )}
       {!!event.edited && <p className="hint">캘린더에서 온 일정을 여기서 고친 거예요. 지우면 원래 일정이 다시 보여요.</p>}
-      <RouteInfo event={event} leg={leg} campus={campus} events={events} />
-      <ImportantToggle value={important} onChange={setImportant} />
+      {event.id && <RouteInfo event={event} leg={leg} campus={campus} events={events} />}
+      {event.id && <ImportantToggle value={important} onChange={setImportant} />}
       {error && (
         <p className="error" role="alert">
           {error}

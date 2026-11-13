@@ -211,3 +211,18 @@ test('내 일정 고치기: 시각 모양·순서 확인', async () => {
   assert.equal((await call(env, cookieA, '/api/events/abc', { method: 'PATCH', body: {} })).status, 404);
   assert.equal((await call(env, cookieA, `/api/events/${ids.fest}/x`)).status, 404);
 });
+
+test('달력 빈 칸에서 바로 넣기(POST /api/events): 끝이 없으면 1시간, 모양이 틀리면 400, 로그인 필요', async () => {
+  const { env, cookieA } = await setup();
+  const ok = await read(await call(env, cookieA, '/api/events', { method: 'POST', body: { title: ' 예시  합주 ', start: '2026-11-18T19:00:00+09:00' } }));
+  assert.equal(ok.status, 201);
+  assert.deepEqual([ok.data.event.title, ok.data.event.end, ok.data.event.source], ['예시 합주', '2026-11-18T20:00:00+09:00', 'memo']);
+  const two = await read(await call(env, cookieA, '/api/events', { method: 'POST', body: { title: '예시 둘째', start: '2026-11-18T09:00:00+09:00', end: '2026-11-18T10:30:00+09:00', place: '예시 301동' } }));
+  assert.equal(two.status, 201); // 같은 사람이 여러 개 넣어도 UNIQUE에 안 걸린다(ext_id 없음)
+  const week = await read(await call(env, cookieA, '/api/events?from=2026-11-18&to=2026-11-19'));
+  assert.deepEqual(week.data.events.map((e) => e.title), ['예시 둘째', '예시 합주']);
+  for (const body of [{ start: '2026-11-18T09:00:00+09:00' }, { title: '예시', start: '2026-11-18 9시' }, { title: '예시', start: '2026-11-18T09:00:00+09:00', end: '2026-11-18T08:00:00+09:00' }]) {
+    assert.equal((await call(env, cookieA, '/api/events', { method: 'POST', body })).status, 400, JSON.stringify(body));
+  }
+  assert.equal((await call(env, null, '/api/events', { method: 'POST', body: { title: '예시', start: '2026-11-18T09:00:00+09:00' } })).status, 401);
+});

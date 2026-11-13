@@ -9,6 +9,7 @@ export default function Sheet({ title, onClose, front = false, className = '', c
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog.open) dialog.showModal();
+    dialog.querySelector('[data-autofocus]')?.focus(); // showModal은 첫 단추(닫기)에 초점을 준다 — 바로 쓸 칸이 있으면 그리로(달력 빈 칸 → 일정 넣기 제목)
     return () => dialog.open && dialog.close();
   }, []);
 

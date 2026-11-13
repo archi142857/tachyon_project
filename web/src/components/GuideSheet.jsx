@@ -1,5 +1,5 @@
 // 처음 길잡이 4장(사람 피드백 9 '튜토리얼 다시 넣기', 8 '앱 사용 목적'). 문구 docs/tachyon/앱_소개_문구.md, 모양 디자인 ⑧, 그림 docs/tachyon/디자인/길잡이/.
-// 처음 대시보드를 열 때 한 번(이 기기), 메뉴 '길잡이 다시 보기'로 다시. 옆으로 밀어도 넘어간다.
+// 처음 대시보드를 열 때 한 번(이 기기), 메뉴 '길잡이 다시 보기'로 다시. 옆으로 밀면 카드가 손가락을 따라오다 넘어간다(11-14 피드백 '스와이프').
 import { useRef, useState } from 'react';
 import pic1 from '../assets/guide/guide1.svg';
 import pic2 from '../assets/guide/guide2.svg';
@@ -37,16 +37,31 @@ export default function GuideSheet({ onClose }) {
     onClose();
   };
   const go = (d) => setI((n) => Math.min(CARDS.length - 1, Math.max(0, n + d)));
+  const [dx, setDx] = useState(0); // 미는 중인 거리(px). 더 갈 카드가 없는 쪽은 1/3만 따라온다
+  const move = (e) => {
+    if (x0.current === null) return;
+    const d = e.clientX - x0.current;
+    setDx((d > 0 && i === 0) || (d < 0 && last) ? d / 3 : d);
+  };
+  const end = () => {
+    if (x0.current === null) return;
+    if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+    x0.current = null;
+    setDx(0);
+  };
 
   return (
     <Sheet title={`길잡이 ${i + 1}/${CARDS.length}`} onClose={close} front className="guide">
       <div
-        onPointerDown={(e) => (x0.current = e.clientX)}
-        onPointerUp={(e) => {
-          const dx = e.clientX - (x0.current ?? e.clientX);
-          if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
-          x0.current = null;
+        className={`guide-swipe${dx ? ' moving' : ''}`}
+        style={{ transform: `translateX(${dx}px)`, opacity: 1 - Math.min(0.5, Math.abs(dx) / 400) }}
+        onPointerDown={(e) => {
+          x0.current = e.clientX;
+          e.currentTarget.setPointerCapture?.(e.pointerId);
         }}
+        onPointerMove={move}
+        onPointerUp={end}
+        onPointerCancel={end}
       >
         <img className="guide-pic" src={pic} alt={title} draggable={false} />
         <h2>{title}</h2>

@@ -116,6 +116,9 @@ export function RingFrame({ name, sel, mid, loose = [], children }) {
     <div className={`ring-wrap ${name}`}>
       <svg className={sel ? 'art has-sel' : 'art'} viewBox={VIEW} aria-hidden="true">
         {children}
+        {/* 하루 경계 0시 · 12시(11-14, 앱 기본 고리와 같음) */}
+        <line className="day-edge" {...radial(60, 112, 0)} />
+        <line className="day-edge" {...radial(60, 112, 720)} />
         <g className="loose">
           {loose.map((m, i) => {
             const [x, y] = point(122, m);

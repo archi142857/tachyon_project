@@ -251,6 +251,16 @@ export function updateEvent(id, fields) {
   return call('PATCH', `/api/events/${encodeURIComponent(id)}`, fields);
 }
 
+// 달력 빈 칸을 눌러 바로 넣기(11-14): { title, start, end?, place? } → { event }. 끝이 없으면 서버가 1시간
+export function createEvent(fields) {
+  if (ex) {
+    const event = { id: Date.now(), place: null, end: null, ...fields, source: 'memo', important: 0 };
+    ex.events.push(event);
+    return reply({ event });
+  }
+  return call('POST', '/api/events', fields);
+}
+
 // 지우기: 메모·시간표에서 온 것과 고친 사본만 된다(캘린더에서 온 것은 서버가 409)
 export function deleteTask(id) {
   if (ex) {

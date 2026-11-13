@@ -71,9 +71,10 @@ export function minuteOfDay(dateOrIso) {
 }
 
 // 주 제목: '11월 9일 – 15일', 달이 바뀌면 '11월 30일 – 12월 6일'
-export function weekTitle(start) {
+export function weekTitle(start, n = 7) {
   const a = kst(start);
-  const b = kst(addDays(start, 6));
+  if (n === 1) return `${a.m}월 ${a.d}일 ${WEEKDAYS[a.wd]}요일`;
+  const b = kst(addDays(start, n - 1));
   return a.m === b.m ? `${a.m}월 ${a.d}일 – ${b.d}일` : `${a.m}월 ${a.d}일 – ${b.m}월 ${b.d}일`;
 }
 

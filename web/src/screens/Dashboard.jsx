@@ -83,6 +83,20 @@ function readOverlay() {
   return { groupId: null, on: false };
 }
 
+// 달력 보기(11-14 피드백 '달력도 하루 3일 (지정 가능)', '모바일 달력이 빡빡함'): 하루 · 3일 · 주 · 월. 고른 것은 이 기기에, 처음엔 폰 3일 · 넓은 화면 주
+const CAL_KEY = 'tachyon_cal_mode';
+const CAL_DAYS = { day: 1, three: 3, week: 7 };
+const gridMode = (wide) => (wide ? 'week' : 'three');
+function readCalMode(wide) {
+  try {
+    const v = localStorage.getItem(CAL_KEY);
+    if (v === 'month' || CAL_DAYS[v]) return v;
+  } catch {
+    /* 저장이 막힌 브라우저 */
+  }
+  return gridMode(wide);
+}
+
 const PAGES = [
   ['today', '오늘'],
   ['cal', '달력'],
@@ -185,7 +199,16 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   useEffect(() => {
     if (page !== 'today' || !wide) setArranging(false);
   }, [page, wide]);
-  const [calMode, setCalMode] = useState('week');
+  const [calMode, setCalModeState] = useState(() => readCalMode(wide));
+  const setCalMode = useCallback((m) => {
+    setCalModeState(m);
+    try {
+      localStorage.setItem(CAL_KEY, m);
+    } catch {
+      /* 이번에만 */
+    }
+  }, []);
+  const calDays = CAL_DAYS[calMode] || 0; // 0 = 월
   const [weekFrom, setWeekFrom] = useState(today); // 주간 달력 첫 칸(처음엔 오늘)
   const [month, setMonth] = useState(() => ({ y: kst(now).y, m: kst(now).m }));
 
@@ -221,7 +244,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
     if (weekFrom === lastToday) setWeekFrom(today);
   }
 
-  const calRange = useMemo(() => (calMode === 'week' ? [weekFrom, 7] : [monthGrid(month.y, month.m)[0].toISOString(), 42]), [calMode, weekFrom, month]);
+  const calRange = useMemo(() => (calDays ? [weekFrom, calDays] : [monthGrid(month.y, month.m)[0].toISOString(), 42]), [calMode, weekFrom, month]);
 
   const loadPlan = useCallback(
     () =>
@@ -283,7 +306,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   }, [page, togetherKey]);
   const overlayGroup = groups?.find((g) => g.id === overlay.groupId) || groups?.[0] || null; // 고른 그룹이 없어졌으면 첫 그룹(꺼진 채)
   const overlayOn = Boolean(overlay.on && overlayGroup && overlayGroup.id === overlay.groupId);
-  const showOverlay = overlayOn && page === 'cal' && calMode === 'week';
+  const showOverlay = overlayOn && page === 'cal' && calDays > 0;
   // 그 주 다 같이 빈 시간: 내 일정이 다시 오면(옮기기·고치기 뒤 포함) 다시 받는다. 서버는 읽기만
   useEffect(() => {
     if (!showOverlay) return undefined;
@@ -314,7 +337,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   function toggleOverlay(groupId) {
     const on = !(overlay.on && overlay.groupId === groupId && groups?.some((g) => g.id === groupId));
     setOverlay({ groupId, on });
-    if (on && calMode !== 'week') setCalMode('week');
+    if (on && !calDays) setCalMode(gridMode(wide));
     return on;
   }
 
@@ -405,7 +428,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
 
   function showWeekOf(date) {
     setPage('cal');
-    setCalMode('week');
+    if (!calDays) setCalMode(gridMode(wide)); // 하루 · 3일 · 주 가운데 고른 것은 그대로
     setWeekFrom(dayStart(date).toISOString());
   }
 
@@ -481,6 +504,30 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
     loadEvents();
   }
 
+  // 달력 빈 칸 → 일정 넣기 창 → 저장(11-14). 메모를 거치지 않는다
+  async function addEvent(fields) {
+    const { event } = await api.createEvent(fields);
+    setSheet(null);
+    loadEvents();
+    setSnack({ text: `‘${event.title}’ 넣었어요` });
+  }
+
+  // 일정 끌어 옮기기 · 길이 바꾸기(11-14): 바로 옮겨 보이고, 실패하면 되돌린다. '되돌리기'는 옛 시각으로 다시 보낸다
+  async function dropEvent(ev, to) {
+    const back = { start: ev.start, end: ev.end };
+    const put = (list) => list.map((e) => (e.id === ev.id ? { ...e, ...to } : e));
+    setCalEvents(put);
+    setPlanEvents(put);
+    try {
+      const { event } = await api.updateEvent(ev.id, to);
+      loadEvents();
+      setSnack({ text: `‘${ev.title}’ ${hhmm(to.start)}–${hhmm(to.end)}에 놓았어요`, actionLabel: '되돌리기', onAction: () => api.updateEvent(event.id, back).then(loadEvents) });
+    } catch (err) {
+      loadEvents();
+      setSnack({ text: err.message || '옮기지 못했어요. 다시 해 주세요' });
+    }
+  }
+
   async function saveTask(id, fields) {
     await api.updateTask(id, fields);
     setSheet(null);
@@ -518,7 +565,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   const memoCard = <MemoCard memos={memos} now={now} activeId={popup?.memoId} waiting={waiting} onTidy={() => setSheet('tidy')} />;
 
   // 메모 칸에 'M/D '(일정) 또는 'M/D까지 '(할 일)를 적어 두고 초점 — 나머지는 사람이 적고 보내면 메모 → 팝업 → 저장
-  const calDay = calMode === 'week' && weekFrom !== today ? weekFrom : today;
+  const calDay = calDays && weekFrom !== today ? weekFrom : today;
   const seedDay = (day, tail) => {
     const p = kst(new Date(day));
     setSeed({ text: `${p.m}/${p.d}${tail || ' '}` });
@@ -568,6 +615,8 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
         <Segmented
           label="달력 보기"
           items={[
+            ['day', '하루'],
+            ['three', '3일'],
             ['week', '주'],
             ['month', '월'],
           ]}
@@ -710,20 +759,23 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
             </WidgetGrid>
           )}
           {page === 'cal' &&
-            (calMode === 'week' ? (
+            (calDays ? (
               <WeekCalendar
                 start={weekFrom}
+                n={calDays}
                 events={calEvents}
                 tasks={openTasks}
                 now={now}
                 density={densityOf}
                 isCurrent={weekFrom === today}
-                onPrev={() => setWeekFrom(addDays(weekFrom, -7).toISOString())}
-                onNext={() => setWeekFrom(addDays(weekFrom, 7).toISOString())}
+                onPrev={() => setWeekFrom(addDays(weekFrom, -calDays).toISOString())}
+                onNext={() => setWeekFrom(addDays(weekFrom, calDays).toISOString())}
                 onToday={() => setWeekFrom(today)}
                 onEvent={(event) => setSheet({ event })}
                 onTask={(task) => setSheet({ task })}
                 onDay={(day) => seedDay(day, '')}
+                onAdd={(day, min) => setSheet({ newEvent: { title: '', start: toKstIso(new Date(day.getTime() + min * 60000)), end: toKstIso(new Date(day.getTime() + (min + 60) * 60000)) } })}
+                onDrop={dropEvent}
                 legs={legs}
                 together={freeNow ? { name: overlayGroup.name, spans: freeNow.together } : null}
                 onTogether={planTogether}
@@ -944,6 +996,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
           onDelete={() => deleteEvent(sheet.event)}
         />
       )}
+      {sheet?.newEvent && <EventEditSheet event={sheet.newEvent} events={allEvents} onClose={() => setSheet(null)} onSave={addEvent} />}
       {sheet?.task && <TaskEditSheet task={sheet.task} onClose={() => setSheet(null)} onSave={(fields) => saveTask(sheet.task.id, fields)} onDelete={() => deleteTask(sheet.task)} />}
       {snack && <Snackbar {...snack} layer={sheetKey(sheet)} onDone={closeSnack} />}
     </div>

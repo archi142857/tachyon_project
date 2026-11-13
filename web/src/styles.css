@@ -242,7 +242,7 @@ h1, h2, h3, p { margin: 0; }
 .cal { padding: 4px 12px 12px; min-width: 0; }
 .cal-head { display: flex; align-items: center; gap: 2px; padding-left: 2px; }
 .cal-head .card-title { flex: 1; }
-.cal-days, .cal-top, .cal-grid { display: grid; grid-template-columns: 24px repeat(7, minmax(0, 1fr)); }
+.cal-days, .cal-top, .cal-grid { display: grid; grid-template-columns: 24px repeat(var(--n, 7), minmax(0, 1fr)); } /* --n = 보이는 날 수(하루 · 3일 · 주, 11-14) */
 .cal-days { padding-bottom: 6px; text-align: center; }
 .cal-days .wd { display: block; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--text3); }
 .cal-days .dn { display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: var(--r-btn); font-size: 14px; font-weight: 500; }
@@ -303,7 +303,7 @@ h1, h2, h3, p { margin: 0; }
 @media (min-width: 1024px) {
   .cal { padding: 8px 16px 16px; }
   .cal .card-title { font-size: 20px; line-height: 28px; }
-  .cal-days, .cal-top, .cal-grid { grid-template-columns: 44px repeat(7, minmax(0, 1fr)); }
+  .cal-days, .cal-top, .cal-grid { grid-template-columns: 44px repeat(var(--n, 7), minmax(0, 1fr)); }
   .cal-grid .hline { left: 44px; }
   .cal-days .dn { width: 32px; height: 32px; font-size: 16px; }
   .cal-top .day { padding: 0 3px; }

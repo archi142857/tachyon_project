@@ -34,7 +34,7 @@ export function formToEvent(form) {
   return { title: form.title.trim(), start, end, place: form.place.trim() || null };
 }
 
-export default function EventForm({ form, onChange, idPrefix }) {
+export default function EventForm({ form, onChange, idPrefix, autoFocus = false }) {
   const set = (key) => (e) => onChange({ ...form, [key]: e.target.value });
   // 시작을 고르면 끝이 비었거나 시작보다 이를 때 +1시간을 미리 채운다(자정을 넘으면 비워 둔다 — 저장할 때 +1시간)
   const setStart = (e) => {
@@ -46,7 +46,7 @@ export default function EventForm({ form, onChange, idPrefix }) {
     <div className="form-grid">
       <label className="field" htmlFor={`${idPrefix}-title`}>
         <span>이름</span>
-        <input id={`${idPrefix}-title`} className="input" value={form.title} onChange={set('title')} autoComplete="off" />
+        <input id={`${idPrefix}-title`} className="input" value={form.title} onChange={set('title')} autoComplete="off" data-autofocus={autoFocus || undefined} />
       </label>
       <div className="form-row">
         <label className="field">
