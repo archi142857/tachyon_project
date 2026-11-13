@@ -263,7 +263,20 @@ async function applyPlan(env, userId, now, plan) {
     .run();
   const applied = { memos: data.memos.length, tasks: newTasks.length, minutes: blank.filter((t) => data.tasks.some((a) => a.id === t.id)).length };
   await writeLog(env, userId, "night_now_apply", JSON.stringify(applied));
-  return json({ briefing: card, applied, summary: summaryOf(planOf(memos, blank.filter((t) => data.tasks.some((a) => a.id === t.id)), data)) });
+  const notes = data.memos.filter((m) => !m.is_task).length;
+  return json({ briefing: card, applied, summary: doneSummaryOf(applied.tasks, notes, applied.minutes) });
+}
+
+/**
+ * 넣은 뒤 한 줄(화면 스낵바). 디자인 11-13 01:09 규칙: 정한 것은 '…넣었어요'·'…했어요', 추천은 '…어때요?'·'…해 보세요'.
+ * 정리 보기의 summary(summaryOf)는 넣기 전 안을 세는 말이라 '→'로만 쓴다.
+ */
+function doneSummaryOf(tasks, notes, minutes) {
+  const parts = [];
+  if (tasks) parts.push(`할 일 ${tasks}개를 넣었어요`);
+  if (notes) parts.push(`메모 ${notes}개는 메모로 뒀어요`);
+  if (minutes) parts.push(`걸리는 시간 ${minutes}개를 채웠어요`);
+  return parts.length ? parts.join(" · ") : "새로 넣은 것은 없어요";
 }
 
 const validDue = (d) => (typeof d === "string" && /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}\+09:00)?$/.test(d) ? d : null);

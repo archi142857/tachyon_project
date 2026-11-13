@@ -403,12 +403,13 @@ test("지금 정리: 이대로 정리하기는 받은 안(고친 이름·마감 
   assert.equal(r.body.briefing.by, "now");
   assert.deepEqual(r.body.briefing.new_tasks.map((t) => [t.title, t.memo]), [["유기화학 과제 마무리", "유기화학 과제 다음주 월요일까지"]]);
   assert.deepEqual(r.body.applied, { memos: 2, tasks: 1, minutes: 1 });
-  assert.equal(r.body.summary, "메모 2개 → 할 일 1개 · 그냥 메모 1개 · 걸리는 시간 1개 어림");
+  assert.equal(r.body.summary, "할 일 1개를 넣었어요 · 메모 1개는 메모로 뒀어요 · 걸리는 시간 1개를 채웠어요"); // 넣은 뒤는 '…넣었어요'(디자인 11-13)
   assert.ok(DB.sqlite.prepare("SELECT text FROM briefings WHERE user_id = ?").get(user.id).text.includes('"by":"now"'));
   assert.equal(DB.sqlite.prepare("SELECT count(*) AS n FROM log WHERE action = 'night_now_apply'").get().n, 1);
   // 다시 넣어도 두 번 생기지 않는다
-  await postNow(env, user, { apply: plan });
+  const again = await postNow(env, user, { apply: plan });
   assert.equal(DB.sqlite.prepare("SELECT count(*) AS n FROM tasks WHERE source = 'memo'").get().n, 1);
+  assert.equal(again.body.summary, "새로 넣은 것은 없어요");
   assert.equal((await postNow(env, user, { apply: { memos: [], tasks: [] } })).status, 400);
 });
 
