@@ -207,7 +207,8 @@ export async function suggestEvent(env, text, now = new Date(), { ctx, userId, f
   const askAi = async () => {
     if (!env.ANTHROPIC_API_KEY) return null;
     try {
-      const r = await askPopupAi(env, text, now, { fetch, timeoutMs: Number(env.POPUP_AI_MS) || 2500 });
+      const long = isLongMemo(text);
+      const r = await askPopupAi(env, text, now, { fetch, long, timeoutMs: long ? Number(env.POPUP_AI_LONG_MS) || 8000 : Number(env.POPUP_AI_MS) || 2500 });
       background(ctx, writeLog(env, userId, "llm", usageDetail("memo_popup", r)));
       return r.data;
     } catch (e) {
@@ -303,14 +304,20 @@ async function loadDay(env, userId, date) {
     .catch(() => []);
 }
 
-/** 빠른 모델에게 묻기 (위험 확인 스크립트 worker/check/haiku_latency.js도 이걸 쓴다) */
-export function askPopupAi(env, text, now, { fetch, timeoutMs = 2500 } = {}) {
+// 메모 길이로 모델 고르기(11-14 피드백 "메모 길이에 따라 작은 모델 / 긴 메모만 서버 큰 모델"):
+// 짧은 메모(대부분)는 빠른 모델 그대로 — 팝업이 바로 떠야 해서. 긴 메모(여러 줄·여러 일)는 똑똑한 모델이 더 잘 가르고, 기다리는 시간도 조금 더 준다.
+// ponytail: 글자 수 하나로만 가른다. 기기 안 작은 모델(SLM)은 웹앱에서 못 돌려 아직 없음 — 정식 앱이 생기면 그때
+export const LONG_MEMO = 120;
+export const isLongMemo = (text) => text.trim().length >= LONG_MEMO || text.trim().split(/\n/).length >= 3;
+
+/** 메모 팝업 AI 묻기 (위험 확인 스크립트 worker/check/haiku_latency.js도 이걸 쓴다). long = 긴 메모 → 똑똑한 모델 */
+export function askPopupAi(env, text, now, { fetch, timeoutMs = 2500, long = false } = {}) {
   return askJson(env, {
-    model: "fast",
+    model: long ? "smart" : "fast",
     system: SYSTEM,
     content: userMessage(text, nowLabel(now)),
     schema: SCHEMA,
-    maxTokens: 320, // 11-12: 할 일 여러 개(also)·minutes 칸이 늘어서 200 → 320
+    maxTokens: long ? 640 : 320, // 11-12: 할 일 여러 개(also)·minutes 칸이 늘어서 200 → 320, 긴 메모는 할 일이 더 많을 수 있어 두 배
     timeoutMs,
     fetch,
   });

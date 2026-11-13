@@ -3,7 +3,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { handle, findWhen, mergePopup, suggestEvent, isoKst, nowLabel, looksLikeTodo, withHour } from "../3_memo_popup.js";
+import { handle, findWhen, mergePopup, suggestEvent, isoKst, nowLabel, looksLikeTodo, withHour, isLongMemo } from "../3_memo_popup.js";
 import { CASES, NOW } from "./fixtures/memo_cases.js";
 import { fakeD1, addUser, fakeCtx } from "./helpers/d1.js";
 
@@ -703,4 +703,23 @@ test("일정 전에 끝낼 할 일(prep, 11-14 '여행 전 항공권·숙박은 
   assert.deepEqual((await save()).body.tasks.map((t) => t.due), ["2026-11-14T14:00:00+09:00"]);
   await save();
   assert.equal(DB.sqlite.prepare("SELECT count(*) AS n FROM tasks WHERE title = '2악장 연습'").get().n, 1);
+});
+
+test("메모 길이로 모델 고르기(11-14): 짧은 메모는 빠른 모델, 120자 넘거나 세 줄 넘는 메모는 똑똑한 모델", async () => {
+  const models = [];
+  const fetch = async (_u, init) => {
+    const b = JSON.parse(init.body);
+    models.push([b.model, b.max_tokens]);
+    return aiReply({ kind: "note", title: "?", time: "?", place: "?" });
+  };
+  const env = { ANTHROPIC_API_KEY: "k", DB: fakeD1() };
+  await suggestEvent(env, "내일 3시 스터디", NOW, { ctx: fakeCtx(), fetch });
+  await suggestEvent(env, `다음주 할 것 정리: ${"과제 하나씩 끝내기 ".repeat(12)}`, NOW, { ctx: fakeCtx(), fetch });
+  await suggestEvent(env, "장보기\n빨래\n방 청소", NOW, { ctx: fakeCtx(), fetch });
+  assert.deepEqual(models, [
+    ["claude-haiku-5-5", 320],
+    ["claude-sonnet-5-5", 640],
+    ["claude-sonnet-5-5", 640],
+  ]);
+  assert.equal(isLongMemo("짧은 메모"), false);
 });
