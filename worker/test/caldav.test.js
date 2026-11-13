@@ -227,3 +227,129 @@ test('PUT /api/feeds {naver}: 비밀번호가 틀리면 저장하지 않고 까�
     assert.match(bad.results[0].error, /애플리케이션 비밀번호/);
   });
 });
+
+// ── 질의가 일정 글을 안 줄 때(11-13 17:49 사람 "일정 0개를 받았어요" 뒤에 더함) ──
+// 서버마다 calendar-query 답이 달라서: 주소만 주거나, 빈 답을 주거나, multiget을 못 하거나, VEVENT만 주는 경우를 흉내 낸다.
+
+/** 캘린더 하나(/cal/1/)에 일정 셋(a·b·c.ics). mode로 질의 답을 바꾼다. */
+function fakeServer({ query = 'data', multiget = true, bare = false, empty = false } = {}) {
+  const calls = [];
+  const good = `Basic ${btoa(`${ID}:${PW}`)}`;
+  const xml = (body) => new Response(`<?xml version="1.0"?>${body}`, { status: 207, headers: { 'content-type': 'application/xml' } });
+  const objects = empty
+    ? {}
+    : {
+        'a.ics': calendar(vevent(['UID:obj-a@example', 'SUMMARY:예시 가', 'DTSTART;TZID=Asia/Seoul:20261117T100000', 'DTEND;TZID=Asia/Seoul:20261117T110000'])),
+        'b.ics': calendar(vevent(['UID:obj-b@example', 'SUMMARY:예시 나', 'DTSTART;TZID=Asia/Seoul:20261119T100000', 'DTEND;TZID=Asia/Seoul:20261119T110000'])),
+        'c.ics': calendar(vevent(['UID:obj-c@example', 'SUMMARY:예시 다', 'DTSTART;VALUE=DATE:20261125', 'DTEND;VALUE=DATE:20261126'])),
+      };
+  const body = (name) => {
+    const data = objects[name];
+    return bare ? data.replace(/^[\s\S]*?(BEGIN:VEVENT[\s\S]*END:VEVENT)[\s\S]*$/, '$1') : data;
+  };
+  const resp = (name, withData) =>
+    `<d:response><d:href>/cal/1/${name}</d:href><d:propstat><d:prop><d:getetag>"${name}"</d:getetag>${withData ? `<c:calendar-data>${esc(body(name))}</c:calendar-data>` : ''}</d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>`;
+  const fetchImpl = async (url, init = {}) => {
+    const u = new URL(url);
+    const method = init.method || 'GET';
+    const headers = new Headers(init.headers);
+    const reqBody = String(init.body || '');
+    const kind = method === 'REPORT' ? (reqBody.includes('calendar-multiget') ? 'multiget' : reqBody.includes('time-range') ? 'query-range' : 'query') : method;
+    calls.push(`${kind} ${u.pathname}`);
+    if (headers.get('authorization') !== good) return new Response('no', { status: 401 });
+    if (method === 'PROPFIND' && u.pathname === '/') {
+      return xml(`<d:multistatus xmlns:d="DAV:"><d:response><d:href>/</d:href><d:propstat><d:prop><d:current-user-principal><d:href>/p/</d:href></d:current-user-principal></d:prop></d:propstat></d:response></d:multistatus>`);
+    }
+    if (method === 'PROPFIND' && u.pathname === '/p/') {
+      return xml(`<d:multistatus xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav"><d:response><d:href>/p/</d:href><d:propstat><d:prop><c:calendar-home-set><d:href>/cal/</d:href></c:calendar-home-set></d:prop></d:propstat></d:response></d:multistatus>`);
+    }
+    if (method === 'PROPFIND' && u.pathname === '/cal/') {
+      return xml(`<d:multistatus xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav"><d:response><d:href>/cal/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype></d:prop></d:propstat></d:response><d:response><d:href>/cal/1/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/><c:calendar/></d:resourcetype></d:prop></d:propstat></d:response></d:multistatus>`);
+    }
+    if (method === 'PROPFIND' && u.pathname === '/cal/1/') {
+      const members = Object.keys(objects)
+        .map((n, i) => `<d:response><d:href>/cal/1/${n}</d:href><d:propstat><d:prop><d:resourcetype/><d:getlastmodified>Fri, 1${i} Nov 2026 01:00:00 GMT</d:getlastmodified></d:prop></d:propstat></d:response>`)
+        .join('');
+      return xml(`<d:multistatus xmlns:d="DAV:"><d:response><d:href>/cal/1/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype></d:prop></d:propstat></d:response>${members}</d:multistatus>`);
+    }
+    if (method === 'REPORT' && u.pathname === '/cal/1/') {
+      if (kind === 'multiget') {
+        if (!multiget) return new Response('no multiget', { status: 405 });
+        const names = [...reqBody.matchAll(/<d:href>\/cal\/1\/([^<]+)<\/d:href>/g)].map((m) => m[1]);
+        return xml(`<d:multistatus xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">${names.map((n) => resp(n, true)).join('')}</d:multistatus>`);
+      }
+      if (query === 'empty') return xml('<d:multistatus xmlns:d="DAV:"/>');
+      const withData = query === 'data';
+      return xml(`<d:multistatus xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">${Object.keys(objects).map((n) => resp(n, withData)).join('')}</d:multistatus>`);
+    }
+    if (method === 'GET' && u.pathname.startsWith('/cal/1/')) return new Response(body(u.pathname.split('/').pop()), { status: 200, headers: { 'content-type': 'text/calendar' } });
+    return new Response('not found', { status: 404 });
+  };
+  return { fetchImpl, calls };
+}
+
+const BASE = 'https://dav.example.invalid/';
+const run = (f) => fetchCalDav({ base: BASE, user: ID, password: PW, from: FROM, to: TO, fetchImpl: f.fetchImpl });
+
+test('질의가 주소만 주면(일정 글 없이) multiget으로 글을 받는다', async () => {
+  const f = fakeServer({ query: 'hrefs' });
+  const r = await run(f);
+  assert.equal(r.events, 3);
+  assert.deepEqual(f.calls.slice(3), ['query-range /cal/1/', 'multiget /cal/1/']);
+  assert.equal(r.trace, '1:q207/3/0·m207/3');
+});
+
+test('질의가 빈 답이면(기간 거르기를 못 함) 목록을 받아 multiget, 최근에 고친 것부터', async () => {
+  const f = fakeServer({ query: 'empty' });
+  const r = await run(f);
+  assert.equal(r.events, 3);
+  assert.deepEqual(f.calls.slice(3), ['query-range /cal/1/', 'query /cal/1/', 'PROPFIND /cal/1/', 'multiget /cal/1/']);
+  assert.equal(r.trace, '1:q207/0/0·q207/0/0·l3·m207/3');
+  const order = [...r.text.matchAll(/^UID:(obj-\w)@example/gm)].map((m) => m[1]);
+  assert.deepEqual(order, ['obj-c', 'obj-b', 'obj-a']); // getlastmodified 늦은 것부터
+});
+
+test('multiget을 못 하면 하나씩 GET(조금만), VEVENT만 온 글은 VCALENDAR로 싼다', async () => {
+  const f = fakeServer({ query: 'hrefs', multiget: false, bare: true });
+  const r = await run(f);
+  assert.equal(r.events, 3);
+  assert.equal(r.trace, '1:q207/3/0·m405·g3/3');
+  assert.ok(f.calls.filter((c) => c.startsWith('GET')).length === 3);
+  const window = { from: FROM, to: TO };
+  const { items } = expandCalendar(prefilter(r.text, FROM.getTime(), TO.getTime()), window);
+  assert.deepEqual(items.map((i) => i.title).sort(), ['예시 가', '예시 나', '예시 다']);
+
+  const g = fakeServer({ query: 'data', bare: true });
+  assert.equal((await run(g)).events, 3); // 질의 답의 VEVENT만 온 글도
+});
+
+test('정말 빈 캘린더면 오류 없이 0개, 진단에는 개수·상태 번호만(아이디·주소 없음)', async () => {
+  const f = fakeServer({ empty: true, query: 'empty' });
+  const r = await run(f);
+  assert.equal(r.events, 0);
+  assert.equal(r.trace, '1:q207/0/0·q207/0/0·l0');
+  assert.ok(!r.trace.includes(ID) && !r.trace.includes('/cal/'));
+});
+
+test('요청 수 한도를 넘으면 멈춘다(Workers 바깥 요청 한도 보호)', async () => {
+  const f = fakeServer({ query: 'empty' });
+  await assert.rejects(fetchCalDav({ base: BASE, user: ID, password: PW, from: FROM, to: TO, fetchImpl: f.fetchImpl, budget: 4 }), /요청이 너무 많아/);
+});
+
+test('PUT /api/feeds {naver}: 일정이 0개면 결과에 진단 한 줄(note)', async () => {
+  const fake = fakeServer({ empty: true, query: 'empty' });
+  globalThis.fetch = (url, init) => fake.fetchImpl(String(url).replace(NAVER_CALDAV, BASE), init);
+  Date.now = () => NOW;
+  try {
+    const env = makeEnv();
+    const user = await addTestUser(env);
+    const data = await (await handle(req('/api/feeds', { method: 'PUT', body: JSON.stringify({ naver: { id: ID, password: PW } }) }), env, makeCtx(), user)).json();
+    const [r] = data.results;
+    assert.equal(r.saved, true);
+    assert.equal(r.events, 0);
+    assert.equal(r.note, '네이버에서 받은 일정이 없어요(진단: 캘린더 1개 · 일정 글 0개 · 1:q207/0/0·q207/0/0·l0)');
+  } finally {
+    globalThis.fetch = realFetch;
+    Date.now = realNow;
+  }
+});

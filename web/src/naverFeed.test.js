@@ -34,3 +34,10 @@ describe('NAVER 안내', () => {
     expect(resultLine({ kind: 'naver', ok: true, saved: true, tasks: 0, events: 5 })).toEqual({ ok: true, text: '일정 5개를 찾았어요' });
   });
 });
+
+describe('진단 한 줄', () => {
+  it('네이버에서 0개면 서버가 준 note를 결과 줄 뒤에 붙인다', () => {
+    const r = { kind: 'naver', ok: true, saved: true, tasks: 0, events: 0, note: '네이버에서 받은 일정이 없어요(진단: 캘린더 1개 · 일정 글 0개 · 1:q207/0/0)' };
+    expect(resultLine(r).text).toBe('일정 0개를 찾았어요 — 네이버에서 받은 일정이 없어요(진단: 캘린더 1개 · 일정 글 0개 · 1:q207/0/0)');
+  });
+});

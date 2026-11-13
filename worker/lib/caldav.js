@@ -11,7 +11,11 @@
 
 export const NAVER_CALDAV = 'https://caldav.calendar.naver.com/';
 
-const MAX_CALENDARS = 20;
+const MAX_CALENDARS = 10;
+const MAX_REQUESTS = 30; // 한 번 받을 때 네이버로 보내는 요청 수 한도
+const MULTIGET_BATCH = 50;
+const MAX_OBJECTS = 500; // 목록으로 받을 때 한 캘린더에서 받는 일정 수 한도(최근에 고친 것부터)
+const MAX_GETS = 8; // multiget이 안 될 때 하나씩 받는 수(요청을 아끼려고 조금만)
 const DAV = '(?:[\\w.-]+:)?'; // 이름표 앞 접두어(d:, D:, cal:, ns0: …)는 서버마다 달라서 아무거나 받는다
 
 export class CalDavError extends Error {
@@ -30,9 +34,13 @@ export class CalDavError extends Error {
  *           fetchImpl?: typeof fetch, timeoutMs?: number, maxChars?: number }} opts
  * @returns {Promise<{ text: string, calendars: number }>}
  */
-export async function fetchCalDav({ base = NAVER_CALDAV, user, password, from, to, fetchImpl = fetch, timeoutMs = 15000, maxChars = 5_000_000 }) {
+export async function fetchCalDav({ base = NAVER_CALDAV, user, password, from, to, fetchImpl = fetch, timeoutMs = 15000, maxChars = 5_000_000, budget = MAX_REQUESTS }) {
   const auth = `Basic ${base64(`${user}:${password}`)}`;
-  const dav = (url, method, depth, body, extra) => request(fetchImpl, url, { method, depth, body, auth, timeoutMs, maxChars }, extra);
+  let used = 0; // Workers 무료 요금제는 한 번에 바깥 요청 50개까지라 아껴 쓴다(Cron은 다른 주소도 같이 받는다)
+  const dav = (url, method, depth, body, extra) => {
+    if (++used > budget) throw new CalDavError('네이버 캘린더 요청이 너무 많아 이번엔 멈췄어요. 다음에 이어서 받아요');
+    return request(fetchImpl, url, { method, depth, body, auth, timeoutMs, maxChars }, extra);
+  };
 
   // 1. 내 사람 주소(principal)
   let principal = null;
@@ -53,24 +61,97 @@ export async function fetchCalDav({ base = NAVER_CALDAV, user, password, from, t
   const calendars = calendarsIn(listRes.text, listRes.url).slice(0, MAX_CALENDARS);
   if (!calendars.length) throw new CalDavError('네이버 캘린더에서 일정 캘린더를 찾지 못했어요');
 
-  // 4. 캘린더마다 기간 안 일정. 기간 거르기를 못 하는 서버면 거르기 없이 한 번 더(펼칠 때 기간으로 거른다).
+  // 4. 캘린더마다 일정 글(readCalendar: 기간 질의 → 기간 없는 질의 → 목록 + multiget 순서로 될 때까지)
   const datas = [];
+  const trace = [];
   let size = 0;
   let read = 0;
-  for (const cal of calendars) {
-    let res = await dav(cal, 'REPORT', '1', calendarQuery(from, to), { allowFail: true });
-    if (!res.ok && !res.auth) res = await dav(cal, 'REPORT', '1', calendarQuery(null, null), { allowFail: true });
-    if (res.auth) throw new CalDavError(AUTH_TEXT, { status: res.status, auth: true });
-    if (!res.ok) continue; // 이 캘린더 하나만 건너뛴다(다른 캘린더는 받는다)
+  for (const [i, cal] of calendars.entries()) {
+    const r = await readCalendar(dav, cal, from, to);
+    trace.push(`${i + 1}:${r.trace.join('·')}`);
+    if (r.auth) throw new CalDavError(AUTH_TEXT, { auth: true });
+    if (!r.ok) continue; // 이 캘린더 하나만 건너뛴다(다른 캘린더는 받는다)
     read++;
-    for (const data of calendarDataIn(res.text)) {
+    for (const data of r.datas) {
       size += data.length;
       if (size > maxChars) throw new CalDavError('네이버 캘린더가 너무 커요(5MB 넘음)');
       datas.push(data);
     }
   }
-  if (!read) throw new CalDavError('네이버 캘린더에서 일정을 받지 못했어요. 잠시 뒤에 다시 받아요');
-  return { text: mergeCalendars(datas), calendars: calendars.length };
+  if (!read) throw new CalDavError(`네이버 캘린더에서 일정을 받지 못했어요. 잠시 뒤에 다시 받아요(진단 ${trace.join(' ')})`);
+  const text = mergeCalendars(datas);
+  return { text, calendars: calendars.length, events: (text.match(/^BEGIN:VEVENT\r?$/gm) || []).length, trace: trace.join(' ') };
+}
+
+/**
+ * 캘린더 하나의 일정 글들. 서버마다 되는 방법이 달라서 차례로 해 본다.
+ *  q = calendar-query(기간 있음 → 없음), l = 목록(PROPFIND Depth 1), m = calendar-multiget, g = 하나씩 GET(조금만)
+ * trace에는 상태 번호와 개수만 남긴다(주소·아이디·제목 없음) — 화면 '진단'으로 보여 줘도 되게.
+ */
+async function readCalendar(dav, cal, from, to) {
+  const trace = [];
+  const query = async (ranged) => {
+    const res = await dav(cal, 'REPORT', '1', calendarQuery(ranged ? from : null, ranged ? to : null), { allowFail: true });
+    if (!res.ok) {
+      trace.push(`q${res.status}`);
+      return { res, datas: [], hrefs: [] };
+    }
+    const datas = calendarDataIn(res.text);
+    const hrefs = objectHrefsIn(res.text, res.url, cal);
+    trace.push(`q${res.status}/${hrefs.length}/${datas.length}`);
+    return { res, datas, hrefs };
+  };
+
+  let q = await query(true);
+  if (q.res.auth) return { auth: true, trace };
+  if (q.datas.length) return { ok: true, datas: q.datas, trace };
+  let hrefs = q.hrefs;
+  let anyOk = q.res.ok;
+  if (!hrefs.length) {
+    q = await query(false); // 기간 거르기를 못 하거나(오류·빈 답) 일정이 정말 없는 경우
+    if (q.res.auth) return { auth: true, trace };
+    if (q.datas.length) return { ok: true, datas: q.datas, trace };
+    hrefs = q.hrefs;
+    anyOk = anyOk || q.res.ok;
+  }
+  if (!hrefs.length) {
+    const list = await dav(cal, 'PROPFIND', '1', PROPFIND_MEMBERS, { allowFail: true });
+    if (list.auth) return { auth: true, trace };
+    hrefs = list.ok ? objectHrefsIn(list.text, list.url, cal) : [];
+    trace.push(list.ok ? `l${hrefs.length}` : `l${list.status}`);
+    anyOk = anyOk || list.ok;
+    if (!anyOk) return { ok: false, trace };
+  }
+  if (!hrefs.length) return { ok: true, datas: [], trace }; // 정말 빈 캘린더
+
+  const datas = [];
+  let multigetOk = true;
+  for (let i = 0; i < hrefs.length && i < MAX_OBJECTS; i += MULTIGET_BATCH) {
+    const res = await dav(cal, 'REPORT', '1', multigetBody(hrefs.slice(i, Math.min(i + MULTIGET_BATCH, MAX_OBJECTS)).map((h) => h.raw)), { allowFail: true });
+    if (res.auth) return { auth: true, trace };
+    if (!res.ok) {
+      trace.push(`m${res.status}`);
+      multigetOk = false;
+      break;
+    }
+    const got = calendarDataIn(res.text);
+    trace.push(`m${res.status}/${got.length}`);
+    datas.push(...got);
+  }
+  if (!multigetOk || !datas.length) {
+    let n = 0;
+    for (const h of hrefs.slice(0, MAX_GETS)) {
+      const res = await dav(h.abs, 'GET', '0', undefined, { allowFail: true });
+      if (res.auth) return { auth: true, trace };
+      const data = res.ok ? asCalendar(res.text) : null;
+      if (data) {
+        datas.push(data);
+        n++;
+      }
+    }
+    trace.push(`g${n}/${Math.min(hrefs.length, MAX_GETS)}`);
+  }
+  return { ok: true, datas, trace };
 }
 
 const AUTH_TEXT = '네이버 아이디나 애플리케이션 비밀번호가 맞지 않아요. 네이버에서 애플리케이션 비밀번호를 새로 만들어 다시 넣어 주세요';
@@ -82,6 +163,20 @@ const PROPFIND_HOME =
 const PROPFIND_CALENDARS =
   '<?xml version="1.0" encoding="utf-8"?><d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">' +
   '<d:prop><d:resourcetype/><d:displayname/><c:supported-calendar-component-set/></d:prop></d:propfind>';
+
+const PROPFIND_MEMBERS =
+  '<?xml version="1.0" encoding="utf-8"?><d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype/><d:getetag/><d:getcontenttype/><d:getlastmodified/></d:prop></d:propfind>';
+
+/** calendar-multiget 본문(href는 서버가 준 모양 그대로) */
+export function multigetBody(hrefs) {
+  const esc = (h) => h.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return (
+    '<?xml version="1.0" encoding="utf-8"?><c:calendar-multiget xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">' +
+    '<d:prop><d:getetag/><c:calendar-data/></d:prop>' +
+    hrefs.map((h) => `<d:href>${esc(h)}</d:href>`).join('') +
+    '</c:calendar-multiget>'
+  );
+}
 
 /** REPORT 본문. from·to가 없으면 기간 거르기 없이 VEVENT 전부. */
 export function calendarQuery(from, to) {
@@ -201,11 +296,47 @@ export function calendarsIn(xml, base) {
   return out;
 }
 
-/** REPORT 결과의 calendar-data 글들(각각 VCALENDAR 하나) */
+/** REPORT 결과의 calendar-data 글들(각각 VCALENDAR 하나). VEVENT만 온 글은 VCALENDAR로 싼다. */
 export function calendarDataIn(xml) {
   return elements(xml, 'calendar-data')
-    .map((s) => unescapeXml(s).trim())
-    .filter((s) => /BEGIN:VCALENDAR/i.test(s));
+    .map((s) => asCalendar(unescapeXml(s).trim()))
+    .filter(Boolean);
+}
+
+/** 일정 글 하나 → VCALENDAR 글(없으면 null) */
+export function asCalendar(text) {
+  if (typeof text !== 'string') return null;
+  if (/BEGIN:VCALENDAR/i.test(text)) return text;
+  if (/BEGIN:VEVENT/i.test(text)) return `BEGIN:VCALENDAR\r\nVERSION:2.0\r\n${text.trim()}\r\nEND:VCALENDAR`;
+  return null;
+}
+
+/**
+ * 캘린더 안 일정 하나하나의 주소: [{ raw: 서버가 준 href, abs: 절대 주소 }].
+ * 캘린더 자신·하위 모음(collection)은 뺀다. 고친 시각(getlastmodified)이 있으면 최근 것부터.
+ */
+export function objectHrefsIn(xml, base, cal) {
+  const self = String(cal).replace(/\/+$/, '');
+  const out = [];
+  const seen = new Set();
+  for (const block of elements(xml, 'response')) {
+    const raw = firstHref(block);
+    if (!raw) continue;
+    const types = elements(block, 'resourcetype').join(' ');
+    if (new RegExp(`<${DAV}collection(?:\\s[^>]*)?\\/?>`, 'i').test(types)) continue;
+    let abs;
+    try {
+      abs = new URL(raw, base).toString();
+    } catch {
+      continue;
+    }
+    if (abs.replace(/\/+$/, '') === self || abs.endsWith('/') || seen.has(abs)) continue;
+    seen.add(abs);
+    const [mod] = elements(block, 'getlastmodified');
+    out.push({ raw, abs, at: mod ? Date.parse(unescapeXml(mod).trim()) || 0 : 0 });
+  }
+  out.sort((a, b) => b.at - a.at);
+  return out.map(({ raw, abs }) => ({ raw, abs }));
 }
 
 /** 여러 VCALENDAR에서 VTIMEZONE(TZID마다 하나)과 VEVENT를 모아 VCALENDAR 하나로 */

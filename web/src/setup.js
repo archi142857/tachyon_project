@@ -193,7 +193,7 @@ export function resultLine(r) {
     const extra = r.events ? `, 일정 ${r.events}개` : '';
     return { ok: true, text: `과제 ${r.tasks || 0}개${extra}를 찾았어요` };
   }
-  return { ok: true, text: `일정 ${r.events || 0}개를 찾았어요` };
+  return { ok: true, text: `일정 ${r.events || 0}개를 찾았어요${r.note ? ` — ${r.note}` : ''}` };
 }
 
 // saved: false인 칸 → { kind: 서버 문장 } (그 칸의 주소는 지우지 않고 남겨서 고치게 한다)

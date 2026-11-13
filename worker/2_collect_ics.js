@@ -214,9 +214,12 @@ function secretHint(kind, secret) {
   }
 }
 
-/** 칸 하나의 ICS 글을 받는다: 주소 칸은 주소에서, 네이버는 CalDAV로. 실패는 FeedError(permanent = 다시 넣어야 함). */
+/**
+ * 칸 하나의 ICS 글을 받는다: 주소 칸은 주소에서, 네이버는 CalDAV로. 실패는 FeedError(permanent = 다시 넣어야 함).
+ * diag = 네이버일 때 개수·상태 번호만 담은 진단 한 줄(주소·아이디·제목 없음). 일정이 0개면 결과 note로 화면에 보인다.
+ */
 async function fetchSource(kind, secret, now) {
-  if (kind !== 'naver') return fetchIcs(secret);
+  if (kind !== 'naver') return { text: await fetchIcs(secret), diag: null };
   let cred;
   try {
     cred = JSON.parse(secret);
@@ -225,8 +228,8 @@ async function fetchSource(kind, secret, now) {
   }
   const window = syncWindow(now);
   try {
-    const { text } = await fetchCalDav({ user: cred.id, password: cred.password, from: window.from, to: window.to, timeoutMs: FETCH_TIMEOUT_MS, maxChars: MAX_CHARS });
-    return text;
+    const r = await fetchCalDav({ user: cred.id, password: cred.password, from: window.from, to: window.to, timeoutMs: FETCH_TIMEOUT_MS, maxChars: MAX_CHARS });
+    return { text: r.text, diag: `캘린더 ${r.calendars}개 · 일정 글 ${r.events}개 · ${r.trace}` };
   } catch (err) {
     if (err instanceof CalDavError) throw new FeedError(err.message, err.permanent);
     throw err;
@@ -304,6 +307,7 @@ async function saveFeeds(request, env, userId, now = Date.now()) {
 async function addFeed(env, userId, kind, raw, now) {
   let url; // 잠가 둘 글: 주소, 네이버는 아이디·비밀번호 JSON
   let text = null;
+  let diag = null;
   let transient = null;
   try {
     if (kind === 'naver') {
@@ -313,7 +317,7 @@ async function addFeed(env, userId, kind, raw, now) {
       if (typeof raw !== 'string') throw new UserError('주소를 글로 넣어 주세요');
       url = normalizeUrl(raw, kind);
     }
-    text = await fetchSource(kind, url, now);
+    ({ text, diag } = await fetchSource(kind, url, now));
     assertIcs(text); // BEGIN:VCALENDAR가 없으면 IcsError
   } catch (err) {
     if (err instanceof UserError || (err instanceof FeedError && err.permanent) || err instanceof IcsError) {
@@ -336,7 +340,7 @@ async function addFeed(env, userId, kind, raw, now) {
     return { kind, ok: false, saved: true, error: `${transient} — 저장해 두고 15분 뒤에 다시 받아요` };
   }
   await env.DB.prepare('UPDATE feeds SET last_try_at = ? WHERE id = ?').bind(kstIso(now), feed.id).run();
-  return { ...(await syncFeed(env, feed, { force: true, now, text })), saved: true };
+  return { ...(await syncFeed(env, feed, { force: true, now, text, diag })), saved: true };
 }
 
 function removeFeedStatements(env, userId, kind) {
@@ -404,15 +408,16 @@ export async function collectDue(env, now = Date.now()) {
  * 주소 하나를 받아 DB에 반영한다. 오류는 feeds.last_error와 log에 남기고 결과로 돌려준다(던지지 않음).
  * text를 주면(방금 받아 본 글) 다시 받지 않는다.
  */
-export async function syncFeed(env, feed, { force = false, now = Date.now(), text: given = null } = {}) {
+export async function syncFeed(env, feed, { force = false, now = Date.now(), text: given = null, diag: givenDiag = null } = {}) {
   const { user_id: userId, kind } = feed;
   try {
     let text = given;
+    let diag = givenDiag;
     if (text == null) {
       const url = await unseal(env, feed.url).catch(() => {
         throw new FeedError('저장된 주소를 열 수 없어요. 주소를 다시 넣어 주세요', true);
       });
-      text = await fetchSource(kind, url, now);
+      ({ text, diag } = await fetchSource(kind, url, now));
     }
     const window = syncWindow(now);
     const pre = prefilter(text, window.from.getTime(), window.to.getTime());
@@ -444,7 +449,9 @@ export async function syncFeed(env, feed, { force = false, now = Date.now(), tex
     const changes = res.slice(0, -1).reduce((sum, r) => sum + ((r.meta && r.meta.changes) || 0), 0);
     if (changes > 0) await env.DB.batch([logStatement(env, userId, 'ics_sync', { kind, tasks: tasks.length, events: events.length, changes })]);
 
-    return { kind, ok: true, same: false, tasks: tasks.length, events: events.length, count: items.length, changes };
+    // 네이버에서 일정이 0개면 왜 그런지 볼 수 있게 진단 한 줄(개수·상태 번호만)
+    const note = kind === 'naver' && events.length === 0 && diag ? `네이버에서 받은 일정이 없어요(진단: ${diag})` : undefined;
+    return { kind, ok: true, same: false, tasks: tasks.length, events: events.length, count: items.length, changes, ...(note ? { note } : {}) };
   } catch (err) {
     const known = err instanceof FeedError || err instanceof IcsError;
     const message = known ? err.message : '처리하다 오류가 났어요';
