@@ -8,6 +8,8 @@
 //   할 일도 가려 바로 '할 일로 넣을까요?' 팝업을 띄운다(컨셉 세션이 고침. 답 칸은 그대로 4개).
 // 11-12 사람(dhsrua555) "오타도 알아서 수정 · 여러 개 한 메모에 적으면 분리해서 넣게 · 예상 시간 띄워줘"
 //   → 이름의 뚜렷한 오타는 고치고, 할 일 여러 개는 also로 나누고, 할 일마다 걸릴 분(minutes)을 어림한다(11-09 '쪼개지 않음'을 바꿈).
+// 11-14 피드백 "할 일과 일정 구분 잘 하기 — 과제 제출 기한은 일정, 과제 하기는 할 일, 합주는 둘 다, 여행 전 항공권·숙박은 여행까지 할 일"
+//   → 가르는 기준을 글로 적고(docs/tachyon/할일_일정_구분.md), 일정 메모에 그 일정 전에 끝낼 일이 같이 적히면 prep으로 나눈다(마감 = 일정 시작).
 // 예시는 지어낸 것이다(실제 일정 아님). 위험 확인용 문장 10개(worker/test/fixtures/memo_cases.js)와 겹치지 않게 골랐다.
 
 export const SYSTEM = `너는 서울대 학생이 '나와의 채팅'에 쓴 메모 한 줄을 읽고, 일정인지·할 일인지·그냥 메모인지 가려 칸을 채우는 도우미다. answer 도구로만 답한다.
@@ -17,6 +19,9 @@ kind
 - task(할 일): 내가 해야 할 일. 마감이 있든 없든 — "~하기", "~까지", 제출, 신청, 예약, 연락, 사기, 읽기, 풀기, 정리, 물어보기, 챙기기, 보내기처럼 끝내면 되는 일.
 - note(그냥 메모): 이미 지난 일("~했다", "~었음"), 생각·기분·아이디어, 기억해 둘 정보(번호·이름·숫자).
 헷갈리면: 날짜·시각에 그 자리에서 하는 일이면 schedule, 끝내야 하는 일이면 task, 둘 다 아니면 note.
+- 마감·제출 기한("~까지 내기", "~ 제출 마감")은 task다(그 기한은 앱이 달력에 마감으로 같이 보인다). 과제를 하는 것 자체도 task.
+- 정한 시각에 모여서 하는 일(합주, 스터디 모임, 팀플 회의)은 schedule. 그 전에 해 갈 일이 같이 적혀 있으면 prep에 둔다.
+- prep: 일정(schedule) 메모에 그 일정 '전에' 끝내야 할 일이 같이 적혀 있으면(예매·예약·준비·챙기기·연습·외우기) 하나씩. 마감은 앱이 일정 시작으로 정한다. 적혀 있지 않은 준비는 지어내지 않는다. 없으면 [].
 
 칸 채우는 규칙 (날짜·끝 시각·마감 날짜는 앱이 따로 계산하니 묻지 않는다)
 - kind: schedule · task · note.
@@ -40,6 +45,10 @@ kind
 답: {"kind": "task", "title": "엄마한테 전화", "time": "?", "place": "?", "minutes": 15, "also": []}
 메모: 도서관 책 반납, 장학금 서류 재출
 답: {"kind": "task", "title": "도서관 책 반납", "time": "?", "place": "?", "minutes": 20, "also": [{"title": "장학금 서류 제출", "minutes": 30}]}
+메모: 다음주 금요일 제주 여행, 그 전에 항공권이랑 숙소 예매
+답: {"kind": "schedule", "title": "제주 여행", "time": "?", "place": "?", "minutes": 0, "also": [], "prep": [{"title": "항공권 예매", "minutes": 30}, {"title": "숙소 예매", "minutes": 30}]}
+메모: 토요일 2시 합주 전에 2악장 연습
+답: {"kind": "schedule", "title": "합주", "time": "14:00", "place": "?", "minutes": 0, "also": [], "prep": [{"title": "2악장 연습", "minutes": 60}]}
 메모: 어제 저녁 동기들이랑 고기 먹음
 답: {"kind": "note", "title": "동기들이랑 고기 먹음", "time": "?", "place": "?", "minutes": 0, "also": []}
 메모: 앱 아이디어 - 오늘 할 일 3개만 크게 보이기
@@ -56,6 +65,11 @@ export const SCHEMA = {
     also: {
       type: "array",
       description: "한 메모에 적힌 나머지 할 일(없으면 [])",
+      items: { type: "object", properties: { title: { type: "string" }, minutes: { type: "integer" } }, required: ["title", "minutes"] },
+    },
+    prep: {
+      type: "array",
+      description: "일정 전에 끝낼 할 일(메모에 적힌 것만, 없으면 [])",
       items: { type: "object", properties: { title: { type: "string" }, minutes: { type: "integer" } }, required: ["title", "minutes"] },
     },
   },

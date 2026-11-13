@@ -219,8 +219,8 @@ describe('할 일 과목별 묶음', () => {
 
 describe('시작 질문 셋(prefs.js)', () => {
   it('모르는 값은 기본으로', () => {
-    expect(cleanPrefs({ wake: 8, focus: 50, first: 'cal' })).toEqual({ wake: 8, focus: 50, first: 'cal' });
-    expect(cleanPrefs({ wake: 3, focus: '25', first: 'x' })).toEqual({ wake: 7, focus: 25, first: 'today' });
-    expect(cleanPrefs(null)).toEqual({ wake: 7, focus: 25, first: 'today' });
+    expect(cleanPrefs({ wake: 8, focus: 50, first: 'cal', text: 1.2 })).toEqual({ wake: 8, focus: 50, first: 'cal', text: 1.2 });
+    expect(cleanPrefs({ wake: 3, focus: '25', first: 'x', text: 3 })).toEqual({ wake: 7, focus: 25, first: 'today', text: 1 }); // 글자 크기도 고른 값만(11-14)
+    expect(cleanPrefs(null)).toEqual({ wake: 7, focus: 25, first: 'today', text: 1 });
   });
 });

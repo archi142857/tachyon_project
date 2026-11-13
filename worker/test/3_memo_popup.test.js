@@ -679,3 +679,28 @@ test("매주 메모 → 팝업에 repeat, 저장하면 학기 끝까지 주마�
   assert.equal(one.body.repeat, undefined);
   assert.equal(DB.sqlite.prepare("SELECT count(*) AS n FROM events WHERE title = '독서'").get().n, 1);
 });
+
+test("일정 전에 끝낼 할 일(prep, 11-14 '여행 전 항공권·숙박은 여행까지 할 일'): 팝업에 실리고, 저장하면 마감 = 일정 시작(종일이면 전날 밤)", async () => {
+  const w = (t) => findWhen(t, NOW);
+  const text = "11월 20일 제주 여행, 그 전에 항공권이랑 숙소 예매";
+  const ai = { kind: "schedule", title: "제주 여행", time: "?", place: "?", prep: [{ title: "항공권 예매", minutes: 30 }, { title: " ", minutes: 5 }, { title: "숙소 예매", minutes: 30 }] };
+  const popup = mergePopup(text, w(text), ai, NOW);
+  assert.deepEqual(popup.prep, [{ title: "항공권 예매", minutes: 30 }, { title: "숙소 예매", minutes: 30 }]); // 빈 이름은 버림
+  assert.equal(mergePopup("내일 3시 스터디", w("내일 3시 스터디"), { kind: "schedule", title: "스터디", time: "15:00", place: "?" }, NOW).prep, undefined);
+
+  const DB = fakeD1();
+  const env = { DB };
+  const user = addUser(DB);
+  const { body } = await call(env, user, "POST", "/api/memo", { text });
+  const allDay = await call(env, user, "POST", `/api/memo/${body.memo.id}/save`, { title: "제주 여행", date: "2026-11-20", time: "?", end_time: "?", place: "?", prep: popup.prep });
+  assert.deepEqual(allDay.body.tasks.map((t) => [t.title, t.due, t.source]), [
+    ["항공권 예매", "2026-11-19T23:59:00+09:00", "memo"],
+    ["숙소 예매", "2026-11-19T23:59:00+09:00", "memo"],
+  ]);
+  // 시각 있는 일정(합주)은 시작 시각이 마감, 다시 저장해도 같은 줄
+  const band = await call(env, user, "POST", "/api/memo", { text: "토요일 2시 합주 전에 2악장 연습" });
+  const save = () => call(env, user, "POST", `/api/memo/${band.body.memo.id}/save`, { title: "합주", date: "2026-11-14", time: "14:00", place: "?", prep: [{ title: "2악장 연습", minutes: 60 }] });
+  assert.deepEqual((await save()).body.tasks.map((t) => t.due), ["2026-11-14T14:00:00+09:00"]);
+  await save();
+  assert.equal(DB.sqlite.prepare("SELECT count(*) AS n FROM tasks WHERE title = '2악장 연습'").get().n, 1);
+});

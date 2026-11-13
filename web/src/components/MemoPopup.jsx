@@ -6,6 +6,7 @@
 // 이름이나 날짜를 모르면 '저장' 대신 고치기 칸부터 연다(서버는 이름·날짜가 없으면 받지 않는다).
 // popup.from = 시각·장소를 가져온 내 일정 이름(알려 준다), popup.free = 빈 시간을 고른 시간대 말(알려 준다), popup.change = 옮길 일정(저장하면 그 일정은 달력에서 빠진다. 끌 수 있다).
 // popup.repeat = 매주 되풀이 메모({ until: 학기 끝 }). 켜 둔 채 저장하면 그날까지 주마다 넣는다. 끌 수 있다.
+// popup.prep = 일정 전에 끝낼 할 일([{ title, minutes }], 11-14 '여행 전 항공권·숙박은 여행까지 할 일'). 켜 둔 채 저장하면 마감 = 일정 시작인 할 일로. 끌 수 있다.
 // popup.together = 주 달력의 다 같이 빈 시간 띠에서 잡은 모임이면 그 그룹 이름(11-13). 내 달력에만 넣는다고 알려 준다.
 // popup.guessed = 사람이 안 썼는데 서버가 채운 칸 이름(AI b5fe7db: date · time · end_time · place) → 그 칸만 추천처럼 점선(사람 피드백 5, 모양은 디자인이 정하면 맞춘다).
 import { useState } from 'react';
@@ -141,6 +142,9 @@ function EventPopup({ popup, busy, onSave, onCancel }) {
   const [move, setMove] = useState(Boolean(popup.change));
   const changeId = move ? popup.change.id : undefined;
   const [weekly, setWeekly] = useState(Boolean(popup.repeat));
+  const prep = Array.isArray(popup.prep) ? popup.prep : [];
+  const [withPrep, setWithPrep] = useState(prep.length > 0);
+  const plus = (f) => (withPrep ? { ...f, prep } : f);
   const canSaveAsIs = popup.title !== '?' && popup.date !== '?';
   const formReady = form.title.trim() && form.date;
   const guess = new Set(Array.isArray(popup.guessed) ? popup.guessed : []);
@@ -184,6 +188,14 @@ function EventPopup({ popup, busy, onSave, onCancel }) {
           </span>
         </label>
       )}
+      {prep.length > 0 && (
+        <label className="hint popup-move">
+          <input type="checkbox" checked={withPrep} onChange={(e) => setWithPrep(e.target.checked)} />
+          <span>
+            일정 전에 할 일도 넣어요: {prep.map((t) => `‘${t.title}’`).join(', ')}. 일정이 시작할 때까지 할 일 목록에 있어요.
+          </span>
+        </label>
+      )}
       <div className="popup-actions">
         <button
           type="button"
@@ -191,8 +203,8 @@ function EventPopup({ popup, busy, onSave, onCancel }) {
           autoFocus
           disabled={busy || (editing && !formReady)}
           onClick={() => {
-            if (editing) onSave(formToPopup(form), changeId, weekly);
-            else if (canSaveAsIs) onSave(fields(popup), changeId, weekly);
+            if (editing) onSave(plus(formToPopup(form)), changeId, weekly);
+            else if (canSaveAsIs) onSave(plus(fields(popup)), changeId, weekly);
             else setEditing(true);
           }}
         >

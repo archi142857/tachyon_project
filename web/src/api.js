@@ -352,7 +352,11 @@ export function savePopup(memoId, fields, suggested, changeId, weekly) {
     ex.events.push(event);
     const memo = ex.memos.find((m) => m.id === memoId);
     if (memo) Object.assign(memo, { handled: 1, event_id: event.id });
-    return reply({ event });
+    // 일정 전에 할 일(prep): 마감 = 일정 시작(종일이면 전날 23:59) — 서버 3_memo_popup.js와 같은 셈
+    const due = event.start.length > 10 ? event.start : new Date(Date.parse(`${event.start}T23:59:00+09:00`) - 86400000).toISOString();
+    const tasks = (fields.prep ?? []).map((t, i) => ({ id: Date.now() + 1 + i, title: t.title, due, minutes: t.minutes ?? null, ready: 1, done: 0, source: 'memo' }));
+    ex.tasks.push(...tasks);
+    return reply({ event, ...(tasks.length ? { tasks } : {}) });
   }
   return call('POST', `/api/memo/${encodeURIComponent(memoId)}/save`, { ...fields, suggested, change_id: changeId, repeat: weekly || undefined });
 }

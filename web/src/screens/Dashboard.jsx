@@ -444,7 +444,8 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
         setSnack({ text: tasks.length > 1 ? `할 일 ${tasks.length}개를 넣었어요` : `‘${task.title}’ 할 일에 넣었어요` });
         return;
       }
-      const { event, repeat } = await api.savePopup(popup.memoId, fields, 'suggested' in popup ? popup.suggested : popup.popup, changeId, weekly);
+      const { event, repeat, tasks: prepTasks = [] } = await api.savePopup(popup.memoId, fields, 'suggested' in popup ? popup.suggested : popup.popup, changeId, weekly);
+      if (prepTasks.length) loadRank(); // 일정 전에 할 일(prep)도 넣었으면 할 일 목록을 다시
       setMemos((m) => m.map((x) => (x.id === popup.memoId ? { ...x, handled: 1, event_id: event.id } : x)));
       if (popup.fix) {
         fixTask(popup.fix.id, todayKey, popup.fix.from, popup.fix.to);
@@ -458,8 +459,10 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
       }
       if (sameDay(shown.start, now)) setPlanEvents((list) => [...list.filter((e) => e.id !== shown.id), shown]); // 바로 보이고, 서버 목록으로 다시 맞춘다
       loadEvents();
-      if (repeat) setSnack({ text: `매주 같은 요일로 ${repeat}번 넣었어요` });
-      else if (!sameDay(shown.start, now)) setSnack({ text: `${shortDate(shown.start)}에 넣었어요`, actionLabel: '달력에서 보기', onAction: () => showWeekOf(shown.start) });
+      const prepText = prepTasks.length ? ` · 그 전에 할 일 ${prepTasks.length}개도` : '';
+      if (repeat) setSnack({ text: `매주 같은 요일로 ${repeat}번 넣었어요${prepText}` });
+      else if (!sameDay(shown.start, now)) setSnack({ text: `${shortDate(shown.start)}에 넣었어요${prepText}`, actionLabel: '달력에서 보기', onAction: () => showWeekOf(shown.start) });
+      else if (prepTasks.length) setSnack({ text: `일정과 그 전에 할 일 ${prepTasks.length}개를 넣었어요` });
     } catch {
       setSnack({ text: '저장하지 못했어요. 다시 해 주세요' });
     } finally {

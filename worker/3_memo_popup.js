@@ -19,6 +19,7 @@
 //                                 suggested = 받았던 popup 그대로(고쳤는지 재려고). 모르는 칸은 '?'
 //                                 change_id = 옮길 일정(popup.change.id). 주면 그 일정은 달력에서 가려진다
 //                                 repeat = true면 매주 넣는다(학기 끝까지). 응답의 repeat = 넣은 횟수, event = 첫 주 일정
+//                                 prep = [{ title, minutes }] 일정 전에 끝낼 할 일(11-14) → 마감 = 일정 시작인 할 일로, 응답 tasks
 //                                 할 일: { kind: 'task', title, date, time, minutes, also, suggested } → { task, tasks }  (마감 날짜만 있으면 그날 23:59, 없으면 마감 없음)
 //                                 also = [{ title, minutes }] 같은 메모의 나머지 할 일(마감은 같게, ext_id 'memo:<id>:2' …), tasks = 넣은 할 일 모두
 //   POST   /api/memo/:id/cancel   { kind? }                   → { ok }            일정 팝업 취소: 메모는 남아서 밤 정리가 읽는다. 할 일 팝업 취소: 메모로만(handled = 1)
@@ -107,8 +108,18 @@ async function savePopup(request, env, ctx, user, memoId) {
        RETURNING id, title, start, "end", place, source`,
     ).bind(user.id, f.title, start, end, f.place, extId);
   };
-  const [saved] = await env.DB.batch([
+  // 일정 전에 끝낼 할 일(body.prep, 11-14 "여행 전 항공권·숙박은 여행까지 할 일"): 마감 = 일정 시작, ext_id 'memo:<id>:p1' …
+  const prep = alsoOf(body.prep);
+  const prepDue = f.time ? toStartEnd(f).start : `${addDays(f.date, -1)}T23:59:00+09:00`; // 하루 종일 일정이면 전날 밤까지
+  const prepInsert = (t, i) =>
+    env.DB.prepare(
+      `INSERT INTO tasks (user_id, title, due, minutes, source, ext_id) VALUES (?, ?, ?, ?, 'memo', ?)
+       ON CONFLICT (user_id, source, ext_id) DO UPDATE SET title = excluded.title, due = excluded.due, minutes = coalesce(excluded.minutes, tasks.minutes)
+       RETURNING id, title, due, minutes, ready, done, source`,
+    ).bind(user.id, t.title, prepDue, t.minutes, `memo:${memoId}:p${i + 1}`);
+  const [saved, ...rest] = await env.DB.batch([
     insert(f.date, `memo:${memoId}`),
+    ...prep.map(prepInsert),
     ...weeks.map((date, i) => insert(date, `memo:${memoId}:w${i + 1}`)),
     env.DB.prepare("UPDATE memos SET handled = 1 WHERE id = ? AND user_id = ?").bind(memoId, user.id),
     // 일정 변경: 옛 일정은 지우지 않고 가린다(캘린더에서 온 것은 못 고친다). 새 일정을 지우면 다시 보인다(7_items.js)
@@ -126,7 +137,8 @@ async function savePopup(request, env, ctx, user, memoId) {
   const edited = body.suggested ? !sameFields(f, popupFields(body.suggested)) : Boolean(body.edited);
   const detail = JSON.stringify({ memo_id: memoId, by: body.suggested?.by ?? null, known: Boolean(body.suggested?.from), moved: Boolean(changeId) });
   background(ctx, writeLog(env, user.id, edited ? "popup_edit" : "popup_save", detail));
-  return json({ event: saved.results[0], ...(weeks.length ? { repeat: weeks.length + 1 } : {}) }); // repeat = 넣은 횟수
+  const tasks = rest.slice(0, prep.length).map((r) => r.results[0]);
+  return json({ event: saved.results[0], ...(weeks.length ? { repeat: weeks.length + 1 } : {}), ...(tasks.length ? { tasks } : {}) }); // repeat = 넣은 횟수, tasks = 일정 전 할 일
 }
 
 /** 할 일 팝업 저장 → tasks(source 'memo', ext_id 'memo:<id>' — 밤 정리가 만드는 것과 같은 줄이라 두 번 생기지 않는다).
@@ -322,6 +334,7 @@ export function mergePopup(text, when, ai, now = new Date()) {
     time: time ?? "?",
     end_time: end ?? "?",
     place: clean(ai?.place) ?? guess.place ?? "?",
+    ...(alsoOf(ai?.prep).length ? { prep: alsoOf(ai?.prep) } : {}), // 일정 전에 끝낼 할 일(11-14) — 저장하면 마감 = 일정 시작
     by: ai ? "ai" : "rule",
   };
 }

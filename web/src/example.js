@@ -129,6 +129,12 @@ export function examplePopup(text, now = new Date()) {
     place = m[0];
     rest = rest.replace(m[0], ' ');
   }
+  // 일정 전에 할 일(11-14, 서버는 AI의 prep): '… 전에 A, B' → A·B. ponytail: 예시에서는 쉼표·'랑'·'하고'로만 나눈다
+  let prep = [];
+  if ((m = rest.match(/^(.*?)[,，]?\s*(?:그\s*)?전에\s+(.+)$/))) {
+    prep = m[2].split(/\s*(?:[,，]|이랑|랑|하고)\s*/).filter((x) => x.trim().length >= 2).map((t) => ({ title: t.trim(), minutes: 30 }));
+    rest = ` ${m[1]} `;
+  }
   // 서버(AI b5fe7db)처럼 적지 않았는데 채운 칸을 guessed로: 날짜를 안 쓰면 오늘, 끝을 안 쓰면 시작 + 1시간
   const end = time === '?' ? '?' : plusHourText(time) || '?';
   const guessed = [offset === null && 'date', end !== '?' && 'end_time'].filter(Boolean);
@@ -139,6 +145,7 @@ export function examplePopup(text, now = new Date()) {
     end_time: end,
     place,
     by: 'rule',
+    ...(prep.length ? { prep } : {}),
     ...(guessed.length ? { guessed } : {}),
   };
 }
