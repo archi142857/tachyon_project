@@ -18,9 +18,11 @@ dialog.sheet.front .sheet-head h2 { font-size: 20px; line-height: 28px; }
 .popup.front .popup-title { font-size: 20px; line-height: 28px; }
 .popup-scrim { position: fixed; inset: 0; z-index: 29; background: var(--scrim); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
 dialog.sheet.front::backdrop { background: var(--scrim); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+/* 화면 11-13 13:2x 고침: 위로 올리는 때를 `:has(.input:focus)`에서 `.lifted`(lift.js)로 — 글자판 뜨는 칸에 처음 초점이 갈 때만 올리고
+   창이 열린 동안 그대로 둔다. 날짜 · 시각 칸에 초점만 가도 창이 움직여 처음 누를 때 고르기 창이 안 떴다(사람 11-13 13:20, 폰) */
 @media (max-width: 599px) {
-  .popup.front:has(.input:focus) { top: 16px; transform: translateX(-50%); animation: none; }
-  dialog.sheet.front:has(.input:focus) { margin: 16px auto auto; }
+  .popup.front.lifted { top: 16px; transform: translateX(-50%); animation: none; }
+  dialog.sheet.front.lifted { margin: 16px auto auto; }
 }
 
 /* ── ⑥ 마감 선형(사람 "마감 시간 선형으로 보이게") ──

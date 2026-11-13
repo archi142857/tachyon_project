@@ -9,6 +9,7 @@
 // popup.together = 주 달력의 다 같이 빈 시간 띠에서 잡은 모임이면 그 그룹 이름(11-13). 내 달력에만 넣는다고 알려 준다.
 // popup.guessed = 사람이 안 썼는데 서버가 채운 칸 이름(AI b5fe7db: date · time · end_time · place) → 그 칸만 추천처럼 점선(사람 피드백 5, 모양은 디자인이 정하면 맞춘다).
 import { useState } from 'react';
+import { useLift } from '../lift.js';
 import { dayEvents, daySlots, hm } from '../slots.js';
 import { minutesLabel } from '../tasks.js';
 import { WEEKDAYS, dayStartKst, isDateOnly, kst, minuteOfDay, plusHourText, timeInput } from '../time.js';
@@ -53,6 +54,7 @@ function planText(items, plan) {
 
 function TaskPopup({ popup, plan, busy, onSave, onCancel }) {
   const [editing, setEditing] = useState(popup.title === '?');
+  const [lifted, onFocus] = useLift(); // 폰: 글자판 뜨는 칸에 초점이 가면 위로(날짜 · 시각 칸은 그대로, lift.js)
   const [form, setForm] = useState(() => ({
     titles: [popup.title === '?' ? '' : popup.title, ...(popup.also ?? []).map((t) => t.title)],
     date: popup.date === '?' ? '' : popup.date,
@@ -68,7 +70,7 @@ function TaskPopup({ popup, plan, busy, onSave, onCancel }) {
     return { kind: 'task', title: first?.title || '?', minutes: first?.minutes ?? null, also, date: f.date || '?', time: f.date && f.time ? f.time : '?' };
   };
   return (
-    <div className="popup front" role="dialog" aria-modal="true" aria-label="할 일로 넣을까요?">
+    <div className={lifted ? 'popup front lifted' : 'popup front'} onFocus={onFocus} role="dialog" aria-modal="true" aria-label="할 일로 넣을까요?">
       <p className="popup-title">{editing ? '고쳐서 할 일로' : items.length > 1 ? `할 일 ${items.length}개로 넣을까요?` : '할 일로 넣을까요?'}</p>
       {editing ? (
         <div className="form-grid">
@@ -134,6 +136,7 @@ export default function MemoPopup({ popup, plan, busy, onSave, onCancel }) {
 
 function EventPopup({ popup, busy, onSave, onCancel }) {
   const [editing, setEditing] = useState(false);
+  const [lifted, onFocus] = useLift(); // 폰: 글자판 뜨는 칸에 초점이 가면 위로(날짜 · 시각 칸은 그대로, lift.js)
   const [form, setForm] = useState(() => popupToForm(popup));
   const [move, setMove] = useState(Boolean(popup.change));
   const changeId = move ? popup.change.id : undefined;
@@ -144,7 +147,7 @@ function EventPopup({ popup, busy, onSave, onCancel }) {
   const fields = ({ title, date, time, end_time, place }) => ({ title, date, time, end_time, place });
 
   return (
-    <div className="popup front" role="dialog" aria-modal="true" aria-label="일정으로 저장할까요?">
+    <div className={lifted ? 'popup front lifted' : 'popup front'} onFocus={onFocus} role="dialog" aria-modal="true" aria-label="일정으로 저장할까요?">
       <p className="popup-title">{editing ? '고쳐서 저장' : '이대로 저장할까요?'}</p>
       {editing ? (
         <EventForm form={form} onChange={setForm} idPrefix="popup" />
