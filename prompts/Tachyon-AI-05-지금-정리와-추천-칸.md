@@ -30,3 +30,9 @@
 
 - 고침: `worker/4_night.js`, `worker/3_memo_popup.js`, `worker/test/4_night.test.js`, `worker/test/3_memo_popup.test.js`, `web/API.md`, `docs/tachyon/계획.md`, `docs/tachyon/소통.md`
 - 새로: 이 기록
+
+## 이어서: 11-13 아침 체크인 (AI 세션이 스스로 예약한 확인)
+
+- 디자인 01:09 규칙(정한 것은 '…넣었어요', 추천은 '…어때요?')에 맞춰 이대로 정리하기의 한 줄을 '할 일 1개를 넣었어요 · 메모 1개는 메모로 뒀어요 · 걸리는 시간 1개를 채웠어요'로(c99c78a). worker 190 통과.
+- 화면이 지금 정리 단추·추천 칸을 붙인 것(f059d2a), 팀원이 고른 마감 날을 `keepDue`로 보내는 것 확인. D1은 읽기 한도였다(AI 파일 고칠 것 없음). B-13·밤 정리 log는 아직.
+- 쓴 도구: Claude Code(Claude Opus 5.5), git, node 시험, 구글 드라이브.
