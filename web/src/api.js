@@ -45,7 +45,19 @@ async function call(method, path, body) {
     if (res.status === 401 && path !== '/api/login/me') window.dispatchEvent(new CustomEvent(SIGNED_OUT));
     throw error;
   }
+  if (method !== 'GET' && WIDGET_PATHS.test(path)) widgetsChanged();
   return res.status === 204 ? null : res.json();
+}
+
+// 안드로이드 앱 홈 화면 위젯(app/android-native, 11-15): 할 일·일정을 바꾸거나 로그인·로그아웃하면 위젯도 다시 받게 한다.
+// 잇따라 바꾸면 마지막 것 뒤 1.5초에 한 번. 앱 밖(브라우저)에는 TachyonWidget이 없어 아무것도 안 한다.
+const WIDGET_PATHS = /^\/api\/(tasks|events|memo|briefing|timetable|feeds|etl|login)/;
+let widgetTimer = null;
+export function widgetsChanged() {
+  const widget = window.Capacitor?.Plugins?.TachyonWidget;
+  if (!widget) return;
+  clearTimeout(widgetTimer);
+  widgetTimer = setTimeout(() => widget.refresh().catch(() => {}), 1500);
 }
 
 // 예시 모드: 서버처럼 잠깐 기다렸다가 복사본을 돌려준다

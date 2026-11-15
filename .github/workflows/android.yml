@@ -48,7 +48,11 @@ jobs:
           grep -c '#141414' "$res/values/ic_launcher_background.xml"
           ls "$res/drawable/splash.xml" "$res/mipmap-xxxhdpi/ic_launcher_foreground.png"
 
-      - name: 4. APK 만들기
+      - name: 4. Kotlin 층 · 홈 화면 위젯 붙이기 (app/android-native)
+        # Kotlin 코드·위젯 res·manifest 조각을 넣고 Gradle에 Kotlin을 켠다. 하는 일은 apply.py 맨 위 설명
+        run: python3 android-native/apply.py android
+
+      - name: 5. APK 만들기
         working-directory: app/android
         run: |
           ./gradlew assembleDebug --no-daemon
@@ -59,7 +63,9 @@ jobs:
           name: tachyon-apk
           path: ${{ runner.temp }}/tachyon.apk
 
-      - name: 5. Releases '앱-시험판'에 올리기
+      - name: 6. Releases '앱-시험판'에 올리기
+        # main에서만: 다른 가지에서 손으로 돌린 APK가 팀 시험판을 덮지 않게
+        if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

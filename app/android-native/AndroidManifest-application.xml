@@ -1,0 +1,39 @@
+        <!-- 홈 화면 위젯 2개(할 일 · 오늘 일정)와 그 목록을 채우는 서비스. apply.py가 application 닫는 태그 바로 앞에 넣는다 -->
+        <receiver
+            android:name="com.tachyonproject.app.widget.TasksWidget"
+            android:exported="false"
+            android:label="@string/widget_tasks_title">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_tasks_info" />
+        </receiver>
+        <receiver
+            android:name="com.tachyonproject.app.widget.TodayWidget"
+            android:exported="false"
+            android:label="@string/widget_today_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_today_info" />
+        </receiver>
+        <service
+            android:name="com.tachyonproject.app.widget.TasksWidgetService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+        <service
+            android:name="com.tachyonproject.app.widget.TodayWidgetService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+        <!-- 할 일 위젯 줄을 누르면 잠깐 거치는 화면 없는 Activity(끝내기 또는 앱 열기) -->
+        <activity
+            android:name="com.tachyonproject.app.widget.WidgetTapActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.NoDisplay" />

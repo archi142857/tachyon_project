@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 위젯 색(밝은 카드) = 웹 기본 테마 '바우하우스'(web/src/styles.css 맨 위 :root). 어두운 카드는 values-night -->
+<resources>
+    <color name="widget_bg">#FFFFFF</color>        <!-- card -->
+    <color name="widget_line">#E6E3DD</color>      <!-- line -->
+    <color name="widget_heading">#141414</color>   <!-- heading -->
+    <color name="widget_text">#141414</color>      <!-- text -->
+    <color name="widget_text2">#45423D</color>     <!-- text2 -->
+    <color name="widget_text3">#625E57</color>     <!-- text3 -->
+    <color name="widget_past">#9A968F</color>      <!-- 끝난 일정(흐리게) -->
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 위젯 색(어두운 카드): 바우하우스의 먹·종이를 뒤집은 값 -->
+<resources>
+    <color name="widget_bg">#1A1917</color>
+    <color name="widget_line">#34322E</color>
+    <color name="widget_heading">#F3F2EE</color>
+    <color name="widget_text">#F3F2EE</color>
+    <color name="widget_text2">#C9C5BD</color>
+    <color name="widget_text3">#A19D95</color>
+    <color name="widget_past">#6F6B64</color>
+</resources>

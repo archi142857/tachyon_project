@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 홈 화면 위젯 글자(할 일 · 오늘 일정). 쓰는 곳: kotlin/…/widget, layout/widget_*.xml, xml/widget_*_info.xml -->
+<resources>
+    <string name="widget_tasks_title">할 일</string>
+    <string name="widget_tasks_desc">끝나지 않은 할 일을 여유 적은 순으로 보고, 동그라미를 눌러 끝내요</string>
+    <string name="widget_tasks_empty">할 일이 없어요</string>
+
+    <string name="widget_today_label">오늘 일정</string>
+    <string name="widget_today_title">오늘 %1$d월 %2$d일 (%3$s)</string>
+    <string name="widget_today_desc">오늘 일정을 시각 순으로 봐요</string>
+    <string name="widget_today_empty">오늘 일정이 없어요</string>
+    <string name="widget_weekdays">일월화수목금토</string>
+    <string name="widget_all_day">종일</string>
+
+    <string name="widget_login">앱을 열어 로그인해 주세요</string>
+    <string name="widget_saved_at">%1$s에 받음</string>
+    <string name="widget_offline">아직 받지 못했어요</string>
+    <string name="widget_refresh">새로고침</string>
+    <string name="widget_check">끝내기</string>
+
+    <string name="widget_due_past">지남</string>
+    <string name="widget_due_today">오늘</string>
+    <string name="widget_due_tomorrow">내일</string>
+    <string name="widget_due_days">%1$d일 남음</string>
+</resources>

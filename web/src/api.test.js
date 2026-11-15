@@ -44,3 +44,23 @@ describe('API 오류 글', () => {
     await expect(getTogether()).rejects.toMatchObject({ status: 400, message: '그룹 이름을 적어 주세요' });
   });
 });
+
+describe('앱 위젯 다시 받기(11-15)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it('할 일을 바꾸면 잇따라 바꿔도 1.5초 뒤 한 번, 읽기만 하면 안 부른다', async () => {
+    vi.useFakeTimers();
+    const refresh = vi.fn(async () => {});
+    vi.stubGlobal('window', { Capacitor: { Plugins: { TachyonWidget: { refresh } } } });
+    vi.stubGlobal('fetch', answer(200, { task: {}, tasks: [] }));
+    const api = await import('./api.js');
+    await api.updateTask(1, { done: true });
+    await api.updateTask(2, { done: true });
+    await api.getTasks();
+    vi.advanceTimersByTime(1500);
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+});
