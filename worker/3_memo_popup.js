@@ -234,7 +234,7 @@ export async function suggestEvent(env, text, now = new Date(), { ctx, userId, f
   const popup = mergePopup(text, when, ai, now);
   if (!popup || popup.kind === "task") return popup;
   const len = lengthOf(text); // '2시간'이라고 썼으면 그 길이로
-  const filled = markGuessed(popup, withHour(useLength(suggestFree(useKnown(popup, text, known, isoKst(now).slice(0, 10)), text, busy, isoKst(now), len?.minutes), len)), when, len);
+  const filled = markGuessed(popup, withHour(useLength(suggestFree(useKnown(popup, text, known, isoKst(now).slice(0, 10)), text, busy, isoKst(now), len?.minutes, clean(ai?.part)), len)), when, len);
   if (!WEEKLY.test(text) || NOT_WEEKLY.test(text)) return filled;
   // 매주 되풀이: 저장할 때 { repeat: true }를 보내면 학기 끝까지 같은 요일·시각으로 넣는다(savePopup). 화면에서 끌 수 있다
   const title = filled.title.replace(/매주|(?<![가-힣])마다(?![가-힣])/g, " ").replace(/\s+/g, " ").trim() || filled.title;
@@ -441,7 +441,12 @@ const DATE_RULES = [
 ];
 const AFTER_DATE_WEEKDAY = /^\s*\(?\s*[월화수목금토일](?:요일|욜)?(?![가-힣])\s*\)?/; // 11/13(금) 의 (금). '11/13 수업'의 수는 아님
 
-const HOUR_RANGE = new RegExp(PERIOD + "(?<!\\d)(\\d{1,2})\\s*[~\\-–]\\s*(\\d{1,2})\\s*시(?![간작험])", "g"); // 3~5시
+// 3~5시, 그리고 시 없이 '7-9 합주'(11-15 사람). 시가 없으면 뒤에 단위 말('3-1반'·'2-3명'·'1-2주')이 오지 않고 6시간 안쪽일 때만(findTime)
+const NOT_HOUR = "일|월|년|주|번|쪽|장|명|개|층|호|반|강|과|회|교시|차|등|위|살|세|점|분|시간|학년|권|문제|페이지|%|[A-Za-z]";
+const HOUR_RANGE = new RegExp(
+  PERIOD + `(?<![\\d.:/~\\-A-Za-z])(\\d{1,2})\\s*[~\\-–]\\s*(\\d{1,2})(?:\\s*시(?![간작험])|(?![\\d.:/~\\-]|\\s*(?:${NOT_HOUR})))`,
+  "g",
+);
 const TIME_RULES = [
   new RegExp(PERIOD + "(?<!\\d)(\\d{1,2}):(\\d{2})", "g"), // 18:30
   new RegExp(PERIOD + "(?<!\\d)(\\d{1,2})\\s*시(?![간작험])(?:\\s*(반|\\d{1,2}\\s*분))?", "g"), // 3시, 3시 반, 3시 20분 (3시간·시험 아님)
@@ -591,6 +596,9 @@ function validDate(y, mo, d) {
 function findTime(text) {
   let best = null;
   for (const m of text.matchAll(HOUR_RANGE)) {
+    const [a, b] = [+m[2], +m[3]];
+    const span = a <= 12 && b <= 12 ? (b - a + 12) % 12 : b - a; // 11-1 = 2시간
+    if (!m[0].includes("시") && (a > 24 || b > 24 || span < 1 || span > 6)) continue; // '11-24'는 시각이 아님
     best = {
       start: { period: m[1], h: +m[2], min: 0 },
       end: { period: undefined, h: +m[3], min: 0 },

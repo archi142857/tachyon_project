@@ -50,6 +50,12 @@ test("여러 모양의 날짜·시각 (지금 = 11/9 월 17:00)", () => {
     ["다음주 금 오전 10시 면접", "2026-11-20", "10:00", null],
     ["내일모레 4시 회의", "2026-11-11", "16:00", null],
     ["15일 7시 동기 모임", "2026-11-15", "19:00", null],
+    // 11-15 사람 "7-9 합주라고 했는데 7-8": 시 없이 쓴 범위도 시각(오전·오후는 짐작 → AI가 그 일을 보고 바꿀 수 있다)
+    ["11월 24일 [예시] 합주 7-9", "2026-11-24", "19:00", "21:00"],
+    ["토요일 7~9 [예시] 스터디", "2026-11-14", "19:00", "21:00"],
+    ["내일 저녁 6-8 [예시] 밥약", "2026-11-10", "18:00", "20:00"],
+    ["내일 11-1 [예시] 봉사", "2026-11-10", "11:00", "13:00"],
+    ["내일 14-16 [예시] 실험", "2026-11-10", "14:00", "16:00"],
   ];
   for (const [text, date, time, end] of cases) {
     const w = findWhen(text, NOW);
@@ -126,7 +132,7 @@ test("AI 없이: 날짜 + 시간대 말이면 일정(빈 시간 채움), 할 일
 });
 
 test("날짜·시각이 아닌 말은 읽지 않는다", () => {
-  for (const text of ["3시간 공부", "3.5시간 걸림", "한시적으로 운영", "한 시점에서 보면", "메일 보낼 것", "저녁에 장보기", "과제 아이디어 정리", "다음 주 수업 자료 읽기", "토익 2시간 공부"]) {
+  for (const text of ["3시간 공부", "3.5시간 걸림", "한시적으로 운영", "한 시점에서 보면", "메일 보낼 것", "저녁에 장보기", "과제 아이디어 정리", "다음 주 수업 자료 읽기", "토익 2시간 공부", "3-1반 모임 공지", "2-3명 모일 듯", "1-2주 걸림", "11-24 메모", "ch3-4 풀기", "10-15분 걸림", "7-9시간 잠"]) {
     assert.equal(findWhen(text, NOW), null, text);
   }
 });
@@ -188,6 +194,10 @@ test("AI 답과 합치기: 일정 아님 → null, 오전·오후 짐작은 AI, 
   // 시각 없는 날짜 메모는 AI가 일정이라 하면 시각 '?'로 팝업
   const exam = mergePopup("12월 3일 기말 발표", w("12월 3일 기말 발표"), ai("기말 발표", "?"), NOW);
   assert.deepEqual([exam.date, exam.time, exam.title], ["2026-12-03", "?", "기말 발표"]);
+
+  // 11-15: '9-11 합주'는 규칙이 오전으로 짐작해도 AI가 저녁이라 하면 끝까지 같이 옮긴다
+  const band = mergePopup("토요일 [예시] 합주 9-11", w("토요일 [예시] 합주 9-11"), ai("[예시] 합주", "21:00"), NOW);
+  assert.deepEqual([band.time, band.end_time], ["21:00", "23:00"]);
 });
 
 // ── AI 부르기 ──
@@ -301,6 +311,23 @@ test("추천 칸(guessed): 쓰지 않았는데 채운 칸만 — 시각만 쓴 �
   assert.equal((await suggestEvent({}, "3시 스터디", at)).guessed?.join(), "date,end_time"); // 날짜 말이 없어 오늘로 짐작
   assert.equal((await suggestEvent({}, "내일 점심 밥약", at)).guessed?.join(), "time,end_time"); // 빈 시간에 넣어 봄
   assert.equal((await suggestEvent({}, "금요일까지 보고서 내기", at)).guessed, undefined); // 할 일 팝업은 그대로
+});
+
+test("시각 없는 일정(11-15 사람 '오전/오후에 할만한 일'): AI가 고른 보통 하는 때(part)의 빈 시간을 추천, 메모의 시간대 말이 먼저", async () => {
+  const at = new Date("2026-11-11T10:00:00+09:00"); // 예시 시각
+  const ask = (input) => ({ fetch: async () => aiReply(input) });
+  const env = { ANTHROPIC_API_KEY: "k" };
+  const band = await suggestEvent(env, "토요일 [예시] 합주", at, ask({ kind: "schedule", title: "[예시] 합주", time: "?", place: "?", part: "저녁" }));
+  assert.deepEqual([band.date, band.time, band.end_time, band.free, band.usual, band.title, band.guessed?.join()], ["2026-11-14", "18:00", "19:00", "저녁", true, "[예시] 합주", "time,end_time"]);
+  // 시간대 말을 썼으면 그 말대로(AI part는 안 봄)
+  const lunch = await suggestEvent(env, "토요일 점심 [예시] 합주", at, ask({ kind: "schedule", title: "[예시] 합주", time: "?", place: "?", part: "저녁" }));
+  assert.deepEqual([lunch.time, lunch.usual], ["12:00", undefined]);
+  // part가 '?'(여행 같은 종일 일)면 시각을 비워 둔다
+  const trip = await suggestEvent(env, "토요일 [예시] 여행", at, ask({ kind: "schedule", title: "[예시] 여행", time: "?", place: "?", part: "?" }));
+  assert.equal(trip.time, "?");
+  // 시 없는 범위 '7-9' + AI가 그 일을 저녁으로 봄 → 19:00~21:00, 쓴 시각이라 추천 칸 아님
+  const range = await suggestEvent(env, "토요일 [예시] 합주 7-9", at, ask({ kind: "schedule", title: "[예시] 합주", time: "19:00", place: "?" }));
+  assert.deepEqual([range.time, range.end_time, range.guessed], ["19:00", "21:00", undefined]);
 });
 
 test("끝을 안 정한 일정은 1시간(11-13 사람 요청): 팝업 끝 칸을 채우고, 끝 없이 저장해도 시작 + 1시간", async () => {

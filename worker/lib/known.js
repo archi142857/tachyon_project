@@ -133,12 +133,14 @@ const hhmm = (min) => (min >= 1440 ? "23:59" : `${String(Math.floor(min / 60)).p
  * @param busy   그날 걸친 내 일정 [{ start, end }] (종일 일정은 막지 않는다, 끝을 모르면 1시간으로 본다)
  * @param nowIso "2026-11-10T21:40:00+09:00" — 오늘이면 지금 뒤에서만 고른다
  * @param minutes 길이(분). 메모에 길이를 썼으면 그 값(lengthOf)
+ * @param part   메모에 시간대 말이 없을 때 AI가 고른 '그 일을 보통 하는 때'(합주 → 저녁, 11-15 사람 '오전/오후에 할만한 일')
  */
-export function suggestFree(popup, text, busy, nowIso, minutes = SLOT) {
+export function suggestFree(popup, text, busy, nowIso, minutes = SLOT, part) {
   if (popup.time !== "?") return popup;
-  const hit = PARTS.map(([re, from, to]) => [re.exec(text), from, to]).find(([m]) => m);
-  if (!hit) return popup;
-  const [[said], from, to] = hit;
+  const written = PARTS.find(([re]) => re.test(text));
+  const [re, from, to] = written ?? PARTS.find(([re]) => part && re.test(part)) ?? [];
+  if (!re) return popup;
+  const [said] = re.exec(written ? text : part);
   const day0 = Date.parse(`${popup.date}T00:00:00+09:00`);
   const spans = busy
     .filter((e) => e.start.length > 10)
@@ -146,8 +148,8 @@ export function suggestFree(popup, text, busy, nowIso, minutes = SLOT) {
   const nowMin = popup.date === nowIso.slice(0, 10) ? Number(nowIso.slice(11, 13)) * 60 + Number(nowIso.slice(14, 16)) : 0;
   for (let t = Math.max(from, Math.ceil(nowMin / 30) * 30); t + Math.min(minutes, SLOT) <= to && t + minutes <= 1440; t += 30) {
     if (spans.some(([s, e]) => s < t + minutes && e > t)) continue;
-    const title = popup.title.replace(new RegExp(`${said}(?:에|쯤에?)?\\s*`), "").trim() || popup.title; // AI 없이 뽑은 이름에 남은 '늦은 밤에'
-    return { ...popup, title, time: hhmm(t), end_time: hhmm(t + minutes), free: said };
+    const title = written ? popup.title.replace(new RegExp(`${said}(?:에|쯤에?)?\\s*`), "").trim() || popup.title : popup.title; // AI 없이 뽑은 이름에 남은 '늦은 밤에'
+    return { ...popup, title, time: hhmm(t), end_time: hhmm(t + minutes), free: said, ...(written ? {} : { usual: true }) }; // usual = 메모엔 없고 AI가 '보통 하는 때'로 고름
   }
   return popup;
 }

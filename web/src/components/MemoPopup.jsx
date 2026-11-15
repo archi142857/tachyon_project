@@ -4,7 +4,7 @@
 //   추천 시간 = 오늘 할 일 목록 뒤에 이어서 빈 시간에 넣어 본 자리(slots.js, 오늘 화면과 같은 계산). plan이 없으면 안 보인다.
 // 서버가 준 popup { title, date, time, end_time, place }의 모르는 칸('?')은 그대로 '?'로 보인다(앱 프롬프트 규칙).
 // 이름이나 날짜를 모르면 '저장' 대신 고치기 칸부터 연다(서버는 이름·날짜가 없으면 받지 않는다).
-// popup.from = 시각·장소를 가져온 내 일정 이름(알려 준다), popup.free = 빈 시간을 고른 시간대 말(알려 준다), popup.change = 옮길 일정(저장하면 그 일정은 달력에서 빠진다. 끌 수 있다).
+// popup.from = 시각·장소를 가져온 내 일정 이름(알려 준다), popup.free = 빈 시간을 고른 시간대 말(알려 준다, popup.usual이면 메모가 아니라 AI가 고른 '보통 하는 때' — 11-15), popup.change = 옮길 일정(저장하면 그 일정은 달력에서 빠진다. 끌 수 있다).
 // popup.repeat = 매주 되풀이 메모({ until: 학기 끝 }). 켜 둔 채 저장하면 그날까지 주마다 넣는다. 끌 수 있다.
 // popup.prep = 일정 전에 끝낼 할 일([{ title, minutes }], 11-14 '여행 전 항공권·숙박은 여행까지 할 일'). 켜 둔 채 저장하면 마감 = 일정 시작인 할 일로. 끌 수 있다.
 // popup.together = 주 달력의 다 같이 빈 시간 띠에서 잡은 모임이면 그 그룹 이름(11-13). 내 달력에만 넣는다고 알려 준다.
@@ -167,7 +167,7 @@ function EventPopup({ popup, busy, onSave, onCancel }) {
           </dl>
           {guess.size > 0 && !popup.free && !popup.from && <p className="hint" style={{ marginTop: 6 }}>점선 칸은 적지 않아서 채워 본 거예요. 다르면 고치기를 눌러요.</p>}
           {popup.time === '?' && popup.date !== '?' && <p className="hint" style={{ marginTop: 6 }}>시각을 모르면 하루 종일 일정으로 넣어요.</p>}
-          {popup.free && <p className="hint" style={{ marginTop: 6 }}>‘{popup.free}’에서 비어 있는 시간으로 골랐어요. 바꾸려면 고치기를 눌러요.</p>}
+          {popup.free && <p className="hint" style={{ marginTop: 6 }}>{popup.usual ? `보통 ${popup.free}에 하는 일이라 ${popup.free}의` : `‘${popup.free}’에서`} 비어 있는 시간으로 골랐어요. 바꾸려면 고치기를 눌러요.</p>}
           {popup.together && <p className="hint" style={{ marginTop: 6 }}>‘{popup.together}’ 모두가 비어 있는 시간이에요. 내 달력에 넣어요 — 멤버에게는 따로 알려 주세요.</p>}
           {popup.from && <p className="hint" style={{ marginTop: 6 }}>시간은 내 일정 ‘{popup.from}’에서 가져왔어요.</p>}
         </>
