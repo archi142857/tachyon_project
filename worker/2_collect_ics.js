@@ -197,9 +197,8 @@ export function normalizeNaver(raw) {
     .replace(/@naver\.com$/, '');
   const password = String(raw.password ?? '').replace(/\s+/g, '');
   if (!/^[a-z0-9][a-z0-9_-]{2,29}$/.test(id)) throw new UserError('네이버 아이디를 넣어 주세요(…@naver.com의 앞부분)');
-  if (password.length < 8 || password.length > 64) {
-    throw new UserError('네이버에서 만든 ‘애플리케이션 비밀번호’를 넣어 주세요(네이버 로그인 비밀번호가 아니에요)');
-  }
+  // 네이버 애플리케이션 비밀번호는 12자리(사람 11-15 16:45 캡처 'The password is 12 digits'). 로그인 비밀번호를 잘못 넣어 잠가 두지 않게 12자만 받는다
+  if (password.length !== 12) throw new UserError('네이버에서 만든 ‘애플리케이션 비밀번호’ 12자리를 넣어 주세요(네이버 로그인 비밀번호가 아니에요)');
   return { id, password };
 }
 

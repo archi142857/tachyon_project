@@ -54,8 +54,8 @@ export const NAVER = {
   steps: [
     '브라우저에서 nid.naver.com(네이버 내정보)에 로그인해요.',
     '‘보안설정’에서 ‘2단계 인증’을 켜요(폰에 네이버 앱이 있어야 해요). 이미 켰으면 ‘2단계 인증 관리’를 눌러요.',
-    '아래 ‘애플리케이션 비밀번호 관리’에서 종류를 고르고 ‘생성하기’를 눌러요(직접 입력이면 이름은 Tachyon).',
-    '나온 비밀번호를 복사해 아래 칸에 붙여 넣어요. 네이버 로그인 비밀번호가 아니에요.',
+    '아래 ‘애플리케이션 비밀번호 관리’에서 종류는 ‘직접 입력’, 이름은 Tachyon으로 하고 ‘생성하기’를 눌러요.',
+    '나온 12자리 비밀번호를 복사해 아래 칸에 붙여 넣어요. 네이버 로그인 비밀번호가 아니에요.',
     '그만 쓰려면 여기서 ‘연결 끊기’를 누르고, 네이버에서도 그 애플리케이션 비밀번호를 지워요.',
   ],
 };
@@ -69,7 +69,7 @@ export function checkNaver(rawId, rawPassword) {
   const password = String(rawPassword || '').replace(/\s+/g, '');
   if (!id && !password) return { empty: true };
   if (!/^[a-z0-9][a-z0-9_-]{2,29}$/.test(id)) return { error: '네이버 아이디를 넣어 주세요(…@naver.com의 앞부분)' };
-  if (password.length < 8 || password.length > 64) return { error: '네이버에서 만든 ‘애플리케이션 비밀번호’를 넣어 주세요(네이버 로그인 비밀번호가 아니에요)' };
+  if (password.length !== 12) return { error: '네이버에서 만든 ‘애플리케이션 비밀번호’ 12자리를 넣어 주세요(네이버 로그인 비밀번호가 아니에요)' }; // 네이버 애플리케이션 비밀번호는 12자리(11-15) — 로그인 비밀번호를 잘못 넣지 않게
   return { id, password };
 }
 

@@ -12,7 +12,7 @@ import { expandCalendar, prefilter } from '../lib/ics.js';
 
 const NOW = Date.parse('2026-11-13T05:00:00Z'); // 한국 14:00
 const ID = 'exampleuser';
-const PW = 'EXAMPLEAPPPW1234';
+const PW = 'EXAMPLEPW123'; // 네이버 애플리케이션 비밀번호처럼 12자리(지어낸 값)
 const FROM = new Date('2026-10-13T15:00:00Z');
 const TO = new Date('2027-05-14T15:00:00Z');
 
@@ -150,10 +150,11 @@ test('fetchCalDav: 기간 거르기를 못 하는 서버면 거르기 없이 다
 });
 
 test('normalizeNaver: 아이디는 @naver.com 앞부분, 로그인 비밀번호 같은 짧은 글은 받지 않는다', () => {
-  assert.deepEqual(normalizeNaver({ id: ' ExampleUser@naver.com ', password: 'EXAM PLEA PPPW 1234' }), { id: 'exampleuser', password: 'EXAMPLEAPPPW1234' });
+  assert.deepEqual(normalizeNaver({ id: ' ExampleUser@naver.com ', password: 'EXAM PLEP W123' }), { id: 'exampleuser', password: 'EXAMPLEPW123' });
   assert.throws(() => normalizeNaver({ id: '', password: PW }), /아이디/);
   assert.throws(() => normalizeNaver({ id: 'a b', password: PW }), /아이디/);
   assert.throws(() => normalizeNaver({ id: ID, password: 'short' }), /애플리케이션 비밀번호/);
+  assert.throws(() => normalizeNaver({ id: ID, password: 'EXAMPLEAPPPW1234' }), /12자리/); // 12자가 아니면(로그인 비밀번호 등) 안 받는다
   assert.throws(() => normalizeNaver('exampleuser'), /아이디와 애플리케이션 비밀번호/);
 });
 
