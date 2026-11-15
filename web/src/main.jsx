@@ -16,6 +16,7 @@ import './nine.css'; // 입자 테마 = 시연 9판 모양 그대로(바우하�
 import './components/art/fonts.js'; // 그림 테마 글꼴(앱에 실음: 함렛 · 본명조 · 오르빗 · 시네잇 · DM Serif · 오르비트론 · 누니토 · Noto Music)
 import './looks.css'; // 그림 테마 넷의 모양 층(칸 · 단추 · 바탕) — nine.css 다음에
 import './feedback1114.css'; // 11-14 피드백(앱다움 · 고리 면 · 달력 손조작 · 폰 첫 화면) — looks.css 다음에
+import './unify1115.css'; // 11-15 테마 통일(자리 · 기능은 모든 테마가 같게, 9판에만 있던 것의 기본 모양) — feedback1114.css 다음에
 import './loader.css'; // 테마를 바꿀 때 덮는 테마별 로딩 화면
 import { applyTheme, currentTheme } from './themes.js';
 import { applyText } from './prefs.js';

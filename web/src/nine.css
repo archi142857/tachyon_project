@@ -3,7 +3,11 @@
    내용과 위치만 같고, 테마를 바꾸면 마치 친구 시안에서 내 시안으로 확 넘어온 것 같은".
    그래서 자리 · 내용 · 기능은 바우하우스와 같고(같은 부품), 겉모습은 9판 규칙을 앱 부품 이름에 옮겨 적었다(주석의 .row · .eb 등 = 9판 이름).
    모든 규칙이 html[data-theme^='입자'] 안에서만 걸려 바우하우스(기본)는 그대로다. main.jsx 맨 끝에서 부른다.
-   밤 ↔ 낮은 9판처럼 --t(0 밤 → 1 낮) 하나가 0.9초 동안 움직이고, 색은 모두 그 값에서 나온다. */
+   밤 ↔ 낮은 9판처럼 --t(0 밤 → 1 낮) 하나가 0.9초 동안 움직이고, 색은 모두 그 값에서 나온다.
+   11-15 사람 "테마가 달라도 위치·레이아웃·기능은 같게 … 로고도 통일"(기준은 기본 테마 배치): 그사이 어긋났던 자리 — 이름표 · 메뉴 폭 ·
+   할 일 줄(체크 오른쪽 · 여유 칸) · 고리 자리와 크기 · 오늘/주간 눈금 · 마감 점선 · 월 달력 고리와 시각 · 메모 쪽 가운데 기둥 · 폰 탭 — 을
+   기본 테마 자리로 되돌리고(같은 부품 · 같은 JSX), 9판에만 있던 기능(메모 N 단추 · 지금 시각 글 · 일정 시각 · 오늘부터 · 하루 지난 줄)은
+   모든 테마에 넣었다(unify1115.css). 여기에는 겉모습만 남는다. */
 @property --t { syntax: '<number>'; inherits: true; initial-value: 0; }
 @property --sc { syntax: '<color>'; inherits: true; initial-value: #8f7bff; }
 
@@ -59,27 +63,20 @@ html[data-theme^='입자'] .segmented button[aria-pressed='true'] { background: 
 html[data-theme^='입자'] .side-nav .count, html[data-theme^='입자'] .tabs .count { display: inline-grid; place-items: center; min-width: 16px; height: 16px; margin-left: 6px; padding: 0 4px; border-radius: 8px; background: var(--vi); color: #fff; font-size: 10px; line-height: 16px; font-weight: 500; }
 
 /* ── 왼쪽 메뉴 · 이름표(9판 .side · .logo) ── */
+/* 11-15 테마 통일(사람 "테마가 달라도 위치·레이아웃·기능은 같게, 로고도"): 메뉴 폭 · 여백 · 줄 높이 · 이름표는 기본 테마 그대로, 테두리 · 색만 9판 */
 @media (min-width: 900px) {
-  html[data-theme^='입자'] .shell { grid-template-columns: 196px minmax(0, 1fr); }
-  html[data-theme^='입자'] .side { gap: 0; padding: 26px 22px; border: 0; background: var(--bg); }
+  html[data-theme^='입자'] .side { border: 0; background: var(--bg); }
 }
-html[data-theme^='입자'] .side-brand { height: auto; margin-bottom: 36px; padding: 0; gap: 10px; }
-html[data-theme^='입자'] .wordmark { margin: 0; font: inherit; }
-html[data-theme^='입자'] .nine-logo { display: inline-flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 400; letter-spacing: -0.02em; color: var(--ink); white-space: nowrap; }
-html[data-theme^='입자'] .nine-logo::before { content: ''; width: 22px; height: 5px; border-radius: 5px; background: linear-gradient(270deg, var(--ink) 22%, var(--vi) 40%, transparent); } /* 11-14 피드백: 방향 반대로(머리가 오른쪽) */
 html[data-theme^='입자'] .side-nav { gap: 2px; }
-html[data-theme^='입자'] .side-nav button { height: 36px; padding: 0; border: 0; border-radius: 0; background: none; justify-content: flex-start; gap: 12px; font-size: 15px; font-weight: 400; color: var(--fa); transition: color 0.25s; }
+html[data-theme^='입자'] .side-nav button { padding: 0 10px 0 12px; border: 0; border-radius: 0; background: none; justify-content: flex-start; gap: 12px; font-size: 15px; font-weight: 400; color: var(--fa); transition: color 0.25s; }
 html[data-theme^='입자'] .side-nav button:hover { background: none; color: var(--mu); }
 html[data-theme^='입자'] .side-nav button[aria-current='page'] { background: none; color: var(--ink); font-weight: 400; }
 html[data-theme^='입자'] .side-nav button::before { content: ''; flex: none; width: 1.5px; height: 12px; background: var(--ln); transition: background 0.25s, box-shadow 0.25s; }
 html[data-theme^='입자'] .side-nav button[aria-current='page']::before { background: var(--ink); box-shadow: 0 0 8px 1px var(--vi); }
-html[data-theme^='입자'] .side-nav .count { margin-left: 0; }
+html[data-theme^='입자'] .side-nav .count { margin-left: auto; } /* 숫자는 기본 테마처럼 오른쪽 끝 */
 
 /* ── 위 막대(9판 .top) ── */
 html[data-theme^='입자'] .shell .topbar { gap: 14px; background: var(--bg); color: var(--mu); }
-@media (min-width: 900px) {
-  html[data-theme^='입자'] .shell .topbar { height: 52px; margin-top: 10px; padding: 0 24px; }
-}
 html[data-theme^='입자'] .shell .topbar .date { font-family: var(--font); font-size: 15px; font-weight: 400; letter-spacing: 0; color: var(--mu); }
 html[data-theme^='입자'] .shell .topbar .btn-text { height: 36px; font-size: 14px; }
 /* 밤 ↔ 낮 스위치(9판 .sw): 달(파인 원)이 오른쪽으로 미끄러져 해(작은 원 + 빛살 여덟 점)가 된다. 모두 --t에서 */
@@ -89,14 +86,13 @@ html[data-theme^='입자'] .sw i::before { content: ''; position: absolute; inse
 html[data-theme^='입자'] .sw::after { content: ''; position: absolute; left: 13px; top: 13px; width: 2px; height: 2px; border-radius: 50%; translate: calc(24px * var(--t)) 0; opacity: var(--t); scale: calc(0.4 + 0.6 * var(--t)); rotate: calc(90deg * var(--t));
   box-shadow: 0 -10.5px 0 0.6px var(--ink), 7.4px -7.4px 0 0.6px var(--ink), 10.5px 0 0 0.6px var(--ink), 7.4px 7.4px 0 0.6px var(--ink), 0 10.5px 0 0.6px var(--ink), -7.4px 7.4px 0 0.6px var(--ink), -10.5px 0 0 0.6px var(--ink), -7.4px -7.4px 0 0.6px var(--ink); }
 /* 폰 위 탭(9판 .pnav): 가운데 모은 작은 글자, 고른 것만 진하게 */
-html[data-theme^='입자'] .tabs { justify-content: center; gap: 0; border: 0; background: color-mix(in srgb, var(--bg) 84%, transparent); backdrop-filter: blur(12px); }
-html[data-theme^='입자'] .tabs button { flex: none; height: 32px; padding: 0 10px; border: 0; font-size: 12px; font-weight: 400; color: var(--mu); box-shadow: none; transition: color 0.25s; }
+html[data-theme^='입자'] .tabs { border: 0; background: color-mix(in srgb, var(--bg) 84%, transparent); backdrop-filter: blur(12px); }
+html[data-theme^='입자'] .tabs button { border: 0; font-size: 14px; font-weight: 400; color: var(--mu); box-shadow: none; transition: color 0.25s; } /* 자리 · 높이는 기본 탭(고르게 펼침, 11-15 통일) */
 html[data-theme^='입자'] .tabs button[aria-current='page'] { color: var(--ink); font-weight: 500; border: 0; box-shadow: none; }
 html[data-theme^='입자'] .subbar { background: none; border: 0; }
 html[data-theme^='입자'] .subbar .date { font-family: var(--font); font-size: 15px; font-weight: 400; color: var(--mu); }
 
 /* ── 오늘 화면(9판 .hx): 칸 테두리 없이 타임라인 · 고리 · 할 일. 칸 이름은 왼쪽 가는 보라 막대가 붙은 작은 이름표(.lb) ── */
-html[data-theme^='입자'] .today-grid { gap: 14px 26px; }
 html[data-theme^='입자'] .card:not(.lifted) { border: 0; border-radius: 0; background: none; box-shadow: none; }
 html[data-theme^='입자'] .today-grid > .card:not(.lifted) { padding: 0 4px; } /* 테가 없으니 안쪽 여백도 9판처럼 거의 없이 */ /* 9판엔 카드 테두리가 없다: 칸은 lb 제목과 줄로만 나뉜다 */
 html[data-theme^='입자'] .make-group { height: 44px; border: 0; border-radius: 12px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 500; box-shadow: none; }
@@ -140,20 +136,11 @@ html[data-theme^='입자'] .cal-head .card-title { font-size: 22px; font-weight:
 html[data-theme^='입자'] .cal-head .card-title::before { content: none; }
 html[data-theme^='입자'] .cal-head .card-title em { margin-left: 4px; font-style: normal; font-size: 12px; font-weight: 400; letter-spacing: 0; color: var(--te); }
 html[data-theme^='입자'] .cal-head :is(.icon-btn, .btn-text) { width: auto; height: 32px; padding: 0 10px; font-size: 13px; border-radius: 10px; }
-html[data-theme^='입자'] .cal-days > button { padding: 4px 0 12px; }
-html[data-theme^='입자'] .cal-days .dn-ring { width: 48px; height: 48px; margin-top: 3px; }
-html[data-theme^='입자'] .cal-days .dn-ring .dn { width: 34px; height: 34px; font-size: 19px; }
-html[data-theme^='입자'] .cal-days .dh { display: none; } /* 9판 날짜 밑엔 숫자가 없다(쓰는 시간은 고리와 이름에) */
-/* 주간 달력 마감 = 그 시각의 점선(9판 .dl), 지금 = 칸을 가로지르는 옅은 점선과 왼쪽 시각(9판 .nl), 지난 일정은 옅게(9판 .eb.dn) */
-html[data-theme^='입자'] .cal-grid .dl { position: absolute; left: 3px; right: 3px; height: 0; z-index: 1; margin: 0; padding: 0; border: 0; border-top: 1px dashed var(--c); background: none; cursor: pointer; }
-html[data-theme^='입자'] .cal-grid .dl::before { content: ''; position: absolute; left: -1px; top: -4px; width: 7px; height: 7px; border-radius: 50%; background: color-mix(in srgb, var(--c) 40%, var(--ink)); box-shadow: 0 0 8px 1px var(--c); }
-html[data-theme^='입자'] .cal-grid .dl span { position: absolute; left: 10px; right: 0; bottom: 3px; font-size: 10px; line-height: 1.2; text-align: left; color: color-mix(in srgb, var(--c) 55%, var(--ink)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-html[data-theme^='입자'] .cal-grid .dl.dn { opacity: 0.4; }
-html[data-theme^='입자'] .cal-grid .dl.dn span { text-decoration: line-through; }
+/* 날짜 칸 크기 · 날짜 밑 쓰는 시간 숫자는 기본 테마와 같다(11-15 통일) */
+/* 지금 = 칸을 가로지르는 옅은 점선과 왼쪽 시각(9판 .nl, 11-15부터 모든 테마), 지난 일정은 옅게(9판 .eb.dn). 마감은 모든 테마가 위 '마감' 줄 */
 html[data-theme^='입자'] .cal-grid .nl { position: absolute; left: 0; right: 0; height: 0; z-index: 2; pointer-events: none; border-top: 1px dashed color-mix(in srgb, var(--ink) 20%, transparent); }
 html[data-theme^='입자'] .cal-grid .nl span { position: absolute; left: 0; top: -7px; width: 29px; text-align: right; font-size: 10px; line-height: 14px; color: var(--ink); background: var(--bg); }
 html[data-theme^='입자'] .cal-grid .ev.past { opacity: 0.45; }
-html[data-theme^='입자'] .page-cal > .cal .cal-scroll { --hour: max(22px, calc(100cqh / var(--hours, 12))); } /* 9판 .tg처럼 하루가 한 화면에 */
 html[data-theme^='입자'] .dz { overflow: visible; }
 html[data-theme^='입자'] .dn-ring .dz { position: absolute; inset: 0; width: 100%; height: 100%; } /* 9판 날짜 둘레 점 고리. 달력 날짜 칸 밖(할 일 쪽 '나눠 둔 몫')에서는 제 크기(11-15: 전체를 덮던 버그) */
 html[data-theme^='입자'] .dz circle { fill: var(--mu); opacity: 0.3; }
@@ -181,8 +168,7 @@ html[data-theme^='입자'] .month-grid .mline.deadline::before { width: 4px; hei
 html[data-theme^='입자'] .month-grid .mline.deadline::after { content: none; }
 html[data-theme^='입자'] .mline b { font-weight: 400; color: var(--mu); }
 html[data-theme^='입자'] .mcell { position: relative; overflow: hidden; } html[data-theme^='입자'] .month-grid .mline { flex: none; }
-html[data-theme^='입자'] .mmore { position: absolute; top: 9px; right: 10px; font-size: 10px; color: var(--fa); } /* 9판 .mo: '+N'은 날짜 줄 오른쪽 */
-html[data-theme^='입자'] .mcell .mtop .dring, html[data-theme^='입자'] .mcell .mtop .dring-empty, html[data-theme^='입자'] .mline b { display: none; } /* 9판 칸엔 고리와 시각이 없다(주간 달력에 있다) */
+html[data-theme^='입자'] .mmore { font-size: 10px; color: var(--fa); } /* 자리는 기본처럼 줄 밑(11-15 통일) */
 html[data-theme^='입자'] .mcell.past:not(.out) { opacity: 0.55; }
 html[data-theme^='입자'] .mcell .dp { position: absolute; left: 9px; right: 9px; bottom: 6px; height: 1px; background: color-mix(in srgb, var(--ink) 16%, transparent); }
 html[data-theme^='입자'] .mcell .dp::before { content: ''; position: absolute; left: 0; top: 0; width: var(--p); height: 1px; background: linear-gradient(90deg, transparent, var(--ink)); }
@@ -190,8 +176,7 @@ html[data-theme^='입자'] .mcell .dp::after { content: ''; position: absolute; 
 html[data-theme^='입자'] .mline:is(.timetable, .ics, .memo, .allday, .deadline) { background: none; }
 
 /* 하루 고리(9판 .rw · .ring.day · .ty · .mid) */
-html[data-theme^='입자'] .today-grid > .ring-card { padding: 0; justify-content: flex-start; }
-html[data-theme^='입자'] .today-grid > .ring-card .ring-wrap.nine, html[data-theme^='입자'] .ring-wrap.nine { width: max(160px, min(280px, 32vh, 100cqw - 70px, 100cqh - 70px)); aspect-ratio: 1; margin: 30px auto 0; transition: --sc 0.6s; }
+html[data-theme^='입자'] .ring-wrap.nine { aspect-ratio: 1; transition: --sc 0.6s; } /* 자리 · 크기는 기본 고리와 같다(shell.css, 11-15 통일) */
 html[data-theme^='입자'] .ring-wrap.nine .ring { width: 100%; height: 100%; overflow: visible; }
 .ring-wrap.nine .ring circle { fill: color-mix(in srgb, var(--c, var(--ink)) 62%, var(--ink)); opacity: 0.5; transform-box: fill-box; transform-origin: center; transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1), opacity 0.3s; }
 .ring-wrap.nine .ring g.on { filter: drop-shadow(0 0 2px var(--c)) drop-shadow(0 0 7px var(--c)); }
@@ -240,24 +225,21 @@ html[data-theme^='입자'] .loose-btn .key-loose { width: 6px; height: 6px; bord
 /* 할 일 줄(9판 .row): 과목 색 점 · 제목 · 오른쪽 여유와 마감 · 동그란 체크 */
 html[data-theme^='입자'] .today-grid > .tasks { display: flex; flex-direction: column; gap: 8px; scrollbar-width: thin; }
 html[data-theme^='입자'] .pick { display: grid; gap: 8px; }
-html[data-theme^='입자'] .task.row9 { display: flex; align-items: center; gap: 12px; min-height: 62px; padding: 11px 12px 11px 18px; border: 0; border-radius: 18px; background: var(--row); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 6%, transparent); transition: box-shadow 0.3s; }
-html[data-theme^='입자'] .pick.on .task.row9 { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 75%, transparent), 0 0 18px -8px var(--c); }
-html[data-theme^='입자'] .task.row9.dn { opacity: 0.45; }
-html[data-theme^='입자'] .row9 .dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); }
-html[data-theme^='입자'] .row9 .body { flex: 1; min-width: 0; }
-html[data-theme^='입자'] .row9 .title { font-size: 14px; line-height: 1.4; font-weight: 500; color: var(--ink); white-space: normal; overflow-wrap: anywhere; }
-html[data-theme^='입자'] .row9 .meta { display: block; font-size: 12px; line-height: 1.4; color: var(--mu); }
-html[data-theme^='입자'] .row9 .r { display: grid; justify-items: end; text-align: right; max-width: 46%; padding-right: 6px; word-break: keep-all; } /* 좁은 줄에선 제목 대신 오른쪽 글이 줄을 바꾼다 */
-html[data-theme^='입자'] .row9 .r b { font-size: 14px; font-weight: 500; color: var(--ink); }
-html[data-theme^='입자'] .row9 .r b.short { color: #ff9d5c; }
-html[data-theme^='입자'] .row9 .r small { display: block; font-size: 12px; color: var(--mu); }
-html[data-theme^='입자'] .row9 .r .late-due { color: #ff6f6f; }
-html[data-theme^='입자'] .row9 .r .soon { color: var(--ink); }
-html[data-theme^='입자'] .row9 .ck { appearance: none; flex: none; position: relative; width: 34px; height: 34px; margin: 0; border-radius: 50%; display: grid; place-items: center; background: none; box-shadow: inset 0 0 0 1px var(--fa); cursor: pointer; transition: background 0.2s, box-shadow 0.2s; }
-html[data-theme^='입자'] .row9 .ck:hover { box-shadow: inset 0 0 0 1px var(--ink); }
-html[data-theme^='입자'] .row9 .ck:checked { background: var(--ink); box-shadow: none; }
-html[data-theme^='입자'] .row9 .ck:checked::after { content: ''; width: 9px; height: 5px; margin-top: -3px; border: solid var(--bg); border-width: 0 0 1.5px 1.5px; rotate: -45deg; }
-html[data-theme^='입자'] .row9 .due-track { margin-top: 6px; }
+html[data-theme^='입자'] .task { align-items: center; gap: 12px; min-height: 62px; padding: 11px 18px 11px 12px; border: 0; border-radius: 18px; background: var(--row); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 6%, transparent); transition: box-shadow 0.3s; }
+html[data-theme^='입자'] .pick.on { background: none; }
+html[data-theme^='입자'] .pick.on .task { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 75%, transparent), 0 0 18px -8px var(--c); }
+html[data-theme^='입자'] .task.done { opacity: 0.45; }
+html[data-theme^='입자'] .task .title { font-size: 14px; line-height: 1.4; font-weight: 500; color: var(--ink); }
+html[data-theme^='입자'] .task .title::before { content: ''; display: inline-block; width: 7px; height: 7px; margin: 0 9px 1px 1px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); vertical-align: middle; } /* 과목 색 점(9판 .row .dot) */
+html[data-theme^='입자'] .task .meta { font-size: 12px; line-height: 1.4; color: var(--mu); }
+html[data-theme^='입자'] .task .meta .late-due { color: #ff6f6f; }
+html[data-theme^='입자'] .task .meta .soon { color: var(--ink); }
+html[data-theme^='입자'] .task .short { color: #ff9d5c; }
+html[data-theme^='입자'] .task > input[type='checkbox'] { appearance: none; flex: none; position: relative; width: 30px; height: 30px; margin: 0; border-radius: 50%; display: grid; place-items: center; background: none; box-shadow: inset 0 0 0 1px var(--fa); cursor: pointer; transition: background 0.2s, box-shadow 0.2s; } /* 9판 동그란 체크, 자리는 기본처럼 왼쪽(11-15 통일) */
+html[data-theme^='입자'] .task > input[type='checkbox']:hover { box-shadow: inset 0 0 0 1px var(--ink); }
+html[data-theme^='입자'] .task > input[type='checkbox']:checked { background: var(--ink); box-shadow: none; }
+html[data-theme^='입자'] .task > input[type='checkbox']:checked::after { content: ''; width: 9px; height: 5px; margin-top: -3px; border: solid var(--bg); border-width: 0 0 1.5px 1.5px; rotate: -45deg; }
+html[data-theme^='입자'] .task .due-track { margin-top: 6px; }
 /* 추천 자리 · 정한 자리(9판 .chips .gb · 청록 글자) */
 html[data-theme^='입자'] .slot-note { margin: 0 0 0 18px; font-size: 12px; color: var(--mu); }
 html[data-theme^='입자'] .slot-note.suggest { justify-self: start; height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: none; box-shadow: inset 0 0 0 1px var(--ln); color: var(--mu); font-size: 13px; cursor: pointer; }
@@ -265,7 +247,6 @@ html[data-theme^='입자'] .slot-note.suggest:hover { color: var(--ink); box-sha
 html[data-theme^='입자'] .slot-note .tag.suggest { padding: 0; box-shadow: none; color: var(--te); font-size: 12px; }
 html[data-theme^='입자'] .slot-note.fixed { color: var(--te); font-weight: 400; }
 html[data-theme^='입자'] .slot-note.fixed::before { border-top-color: var(--te); }
-html[data-theme^='입자'] .task:not(.row9) { border-top-color: var(--ln); }
 
 /* ── 메모 칸(9판 .md): 가운데 뜬 유리 막대, '메모 N ▴' · 입력 · 흰 '남기기 →' ── */
 html[data-theme^='입자'] .shell .composer, html[data-theme^='입자'] .composer { background: none; padding: 0 16px calc(14px + env(safe-area-inset-bottom)); }
@@ -328,9 +309,4 @@ html[data-theme^='입자'] .memo-log .bubble.on { box-shadow: inset 0 0 0 1px co
 html[data-theme^='입자'] .memo-log time { font-size: 11px; color: var(--fa); }
 html[data-theme^='입자'] .memo-day { font-size: 12px; color: var(--fa); }
 html[data-theme^='입자'] .memo-saved { font-size: 11px; color: var(--te); }
-/* 메모 쪽(9판 메모 화면): 메모 칸과 같은 폭(560px) 가운데 기둥, 메모 하나 = 9판 .row 한 줄(글은 왼쪽, 시각은 오른쪽) */
-html[data-theme^='입자'] .memo-page .memo-card { width: min(100%, 560px); margin: 0 auto; }
-html[data-theme^='입자'] .memo-page .bubble-row { align-self: stretch; max-width: none; flex-direction: row-reverse; align-items: center; gap: 12px; min-height: 62px; padding: 0 18px; border-radius: 18px; background: var(--row); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 6%, transparent); }
-html[data-theme^='입자'] .memo-page .bubble-row:has(.bubble.on) { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vi) 75%, transparent), 0 0 18px -8px var(--vi); }
-html[data-theme^='입자'] .memo-page .bubble { flex: 1; padding: 0; border-radius: 0; background: none; box-shadow: none; font-size: 14px; font-weight: 500; }
-html[data-theme^='입자'] .memo-page .memo-saved { text-align: right; }
+/* 메모 쪽: 자리는 기본 테마와 같다(칸 전체 폭, 말풍선은 오른쪽 — 11-15 통일). 예전 9판 가운데 560px 기둥은 뺐다 */

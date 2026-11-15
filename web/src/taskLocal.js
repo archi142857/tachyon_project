@@ -2,7 +2,7 @@
 // 서버의 할 일은 그대로 두고 이 기기(localStorage)에만 적는다. ponytail: 다른 기기와는 안 맞는다 — 실사용 뒤 쓰임을 보고 서버 칸으로.
 // 날짜는 'YYYY-MM-DD'(한국 시간, density.js dateKey)로 받는다.
 const KEY = 'tachyon_task_local';
-const empty = () => ({ pin: {}, snooze: {}, fixed: {}, focus: [] });
+const empty = () => ({ pin: {}, snooze: {}, fixed: {}, plan: {}, focus: [] });
 
 function read() {
   try {
@@ -43,6 +43,17 @@ export function fixTask(id, date, from, to) {
   write(s);
 }
 export const fixedOn = (date) => Object.fromEntries(Object.entries(read().fixed).filter(([, f]) => f.date === date));
+
+// 하기로 한 날·때(메모 '월요일 오전에 …' → 서버 popup.plan { date, from?, to?, said? }, 11-15 사람 "추천 시간대가 오전이 아닌 것 같은데").
+// 그날 전에는 오늘 자리를 잡지 않고 '그날 그때 하기로 함'만 보이고, 그날엔 그 시간대에서 먼저 자리를 찾는다(slots.js window).
+// 지난 것은 적을 때 같이 지운다
+export function planTask(id, plan, today) {
+  const s = read();
+  for (const [key, p] of Object.entries(s.plan)) if (!p || p.date < today) delete s.plan[key];
+  s.plan[id] = plan;
+  write(s);
+}
+export const plansFrom = (date) => Object.fromEntries(Object.entries(read().plan).filter(([, p]) => p && p.date >= date));
 
 // 집중한 분을 적는다(그날 몫). 최근 14일만 둔다
 export function addFocus(min, date) {

@@ -125,6 +125,14 @@ const PARTS = [
 ];
 const SLOT = 60;
 const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+
+/** 메모에 쓴 시간대 말 → { said, from, to }(분) 또는 null. 할 일을 언제 할지(3_memo_popup.js taskPlan, 11-15)에 쓴다 */
+export function partWindow(text) {
+  const hit = PARTS.find(([re]) => re.test(text));
+  if (!hit) return null;
+  const [re, from, to] = hit;
+  return { said: re.exec(text)[0].replace(/\s+/g, " "), from, to };
+}
 const hhmm = (min) => (min >= 1440 ? "23:59" : `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`);
 
 /**

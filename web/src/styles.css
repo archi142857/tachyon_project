@@ -236,6 +236,8 @@ h1, h2, h3, p { margin: 0; }
 .popup-actions .btn { flex: 1; }
 .form-grid { display: grid; gap: 10px; }
 .form-row { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.form-row.two { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); } /* 시작 날짜·시각 / 끝 날짜·시각(11-15 끝 날짜 따로) */
+dialog.sheet .form-row > .field + .field, .popup .form-row > .field + .field { margin-top: 0; } /* 한 줄에 나란한 칸은 위 여백 없이(날짜 칸과 시각 칸 이름이 어긋나던 것) */
 .form-row .input { padding: 0 8px; }
 
 /* 주간 달력 */

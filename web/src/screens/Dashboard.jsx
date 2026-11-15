@@ -24,7 +24,8 @@ import MemoPopup from '../components/MemoPopup.jsx';
 import TaskActSheet from '../components/TaskActSheet.jsx';
 import { planMorning } from '../native.js';
 import { askedPrefs, readPrefs } from '../prefs.js';
-import { addFocus, arrange, fixTask, fixedOn, pinTask, snoozeTask } from '../taskLocal.js';
+import { addFocus, arrange, fixTask, fixedOn, pinTask, planTask, plansFrom, snoozeTask } from '../taskLocal.js';
+import { planLabel } from '../tasks.js';
 import MonthCalendar from '../components/MonthCalendar.jsx';
 import { ThemeBackdrop } from '../components/art/Backdrop.jsx'; // 그림 테마의 화면 뒤 그림(11-13 02:47)
 import Sheet from '../components/Sheet.jsx';
@@ -362,6 +363,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
     planMorning(todayTasks.map((t) => t.title)).catch(() => null); // 아침 알림(켠 폰만): 첫 아침에 맨 위 할 일 3개
   }, [todayTasks]);
   const fixedToday = useMemo(() => fixedOn(todayKey), [todayKey, localTick]); // eslint-disable-line react-hooks/exhaustive-deps
+  const plansAhead = useMemo(() => plansFrom(todayKey), [todayKey, localTick]); // eslint-disable-line react-hooks/exhaustive-deps -- 하기로 한 날·때(11-15)
   const subjects = useMemo(() => [...new Set(allEvents.filter((e) => e.source === 'timetable').map((e) => e.title))], [allEvents]);
 
   // 날마다 밀도(오늘부터 6주). 서버 셈(AI 4_night planDays — 할 일 순서·경고와 같은 셈)을 그리고, 예시 모드나 못 받았을 때만 화면 셈.
@@ -446,10 +448,19 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
       if (fields.kind === 'task') {
         // 할 일 팝업 → 할 일 목록에 바로(걸리는 시간은 팝업의 어림, 없으면 밤 정리가 채운다). 한 메모에 여럿이면 tasks
         const { task, tasks = [task] } = await api.savePopup(popup.memoId, fields, 'suggested' in popup ? popup.suggested : popup.popup);
+        // 메모에 하기로 한 날·때를 썼으면(서버 popup.plan, 11-15 '월요일 오전에 …') 이 기기에 적어 둔다 → 그날 전엔 오늘 자리를 안 잡고 그날엔 그때 추천.
+        // 고치기에서 마감 날짜를 바꿨으면 같은 날이던 계획도 따라간다
+        const asked = popup.popup.plan;
+        const when = asked && (fields.date === popup.popup.date ? asked : asked.date === popup.popup.date && /^\d{4}-\d{2}-\d{2}$/.test(fields.date) ? { ...asked, date: fields.date } : null);
+        if (when) {
+          tasks.forEach((t) => planTask(t.id, when, todayKey));
+          setLocalTick((n) => n + 1);
+        }
         setMemos((m) => m.map((x) => (x.id === popup.memoId ? { ...x, handled: 1, task_id: task.id } : x)));
         setPopup(null);
         loadRank();
-        setSnack({ text: tasks.length > 1 ? `할 일 ${tasks.length}개를 넣었어요` : `‘${task.title}’ 할 일에 넣었어요` });
+        const whenText = when && when.date !== todayKey ? ` · ${planLabel(when, now)}에` : '';
+        setSnack({ text: tasks.length > 1 ? `할 일 ${tasks.length}개를 넣었어요${whenText}` : `‘${task.title}’ 할 일에 넣었어요${whenText}` });
         return;
       }
       const { event, repeat, tasks: prepTasks = [] } = await api.savePopup(popup.memoId, fields, 'suggested' in popup ? popup.suggested : popup.popup, changeId, weekly);
@@ -760,6 +771,8 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
                 tasks={todayTasks.slice(0, wide ? 6 : 3)}
                 total={openTasks.length}
                 fixed={fixedToday}
+                plans={plansAhead}
+                todayKey={todayKey}
                 now={now}
                 onDone={doneTask}
                 onEvent={(event) => setSheet({ event })}

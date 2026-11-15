@@ -1,0 +1,35 @@
+/* 11-15 테마 통일 — 사람 16:52 "테마가 달라도 위치라던가 레이아웃은 동일하게 맞춰야지. 기능도 그렇고. 서로에게 없는 기능은 다 넣고,
+   요소들 위치 정도는 다 통일해줘", 16:55 "로고도 통일해야지. 테마 달라도". 기준은 기본 테마 배치(사람이 고름).
+   JSX는 모든 테마가 같은 부품을 그린다(TaskRow · TodayView · WeekCalendar · MonthCalendar · Composer · Logo). 예전 입자(9판)에만 있던 것을
+   모든 테마에 넣으면서 그 기본 모양을 여기 둔다. 입자는 nine.css의 겉모습(html[data-theme^='입자'] … 더 좁은 규칙)이 덮는다.
+   테마마다 밤 · 낮 판과 '밤/낮을 테마 말고 설정으로'는 나중(사람 16:5x, 계획.md). */
+
+/* 메모 칸 왼쪽 '메모 N ▴' → 메모 쪽으로 */
+.composer .memo-count { flex: none; height: 36px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: var(--r-btn); background: transparent; color: var(--text2); font: inherit; font-size: 14px; white-space: nowrap; cursor: pointer; }
+.composer .memo-count:hover { color: var(--text); background: var(--fill); }
+
+/* 오늘 타임라인: 지금 선 왼쪽(시각 칸)에 지금 시각 */
+.cal-grid.one .now-line { z-index: 4; } /* 붙박이 시각 칸(z 3) 위에 지금 시각 글이 보이게 */
+.cal-grid .now-line .now-at { position: absolute; right: calc(100% + 4px); top: -8px; padding: 0 2px; font-size: 11px; line-height: 16px; font-weight: 700; color: var(--now); background: var(--card); white-space: nowrap; pointer-events: none; }
+
+/* 주간 달력: 지금 = 모든 날 칸을 가로지르는 옅은 점선 + 시각 칸에 지금 시각(오늘 칸은 원래대로 진한 선) */
+.cal-grid .nl { position: absolute; left: 0; right: 0; height: 0; z-index: 2; pointer-events: none; border-top: 1px dashed color-mix(in srgb, var(--now) 45%, transparent); }
+.cal-grid .nl span { position: absolute; left: 0; top: -8px; width: 32px; padding-right: 2px; text-align: right; font-size: 10px; line-height: 16px; font-weight: 700; color: var(--now); background: var(--card); }
+html .cal-grid .nl, html[data-theme] .cal-grid .nl { z-index: 4; } /* 시각 칸(붙박이, z 3) 위에 지금 시각이 보이게 — 입자 포함 */
+/* 달력은 앞뒤 날까지 그려 두고 좌우로 굴려서 줄의 왼쪽 끝이 화면 밖이다 → 시각 글은 붙박이 시각 칸처럼 화면 왼쪽에 붙인다(입자 포함) */
+html .cal-grid .nl span, html[data-theme] .cal-grid .nl span { position: sticky; left: 0; top: auto; display: block; width: 34px; margin-top: -8px; white-space: nowrap; }
+/* 지난 일정은 옅게 */
+.cal-grid .ev.past { opacity: 0.55; }
+/* 달력 제목 옆 '오늘부터'(이번 주가 오늘부터일 때) */
+.cal-head .card-title em { margin-left: 8px; font-style: normal; font-size: 12px; font-weight: 500; letter-spacing: 0; color: var(--text2); }
+
+/* 월 달력 오늘 칸 밑: 하루가 얼마나 지났는지 한 줄 */
+.mcell { position: relative; }
+.mcell .dp { position: absolute; left: 8px; right: 8px; bottom: 5px; height: 2px; background: var(--line); pointer-events: none; }
+.mcell .dp::before { content: ''; position: absolute; left: 0; top: 0; width: var(--p); height: 2px; background: var(--now); }
+.mcell .dp::after { content: ''; position: absolute; left: var(--p); top: -2px; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: var(--now); }
+
+/* 고리 가운데 큰 숫자: 단위는 조금 작게(기울이지 않는다) */
+.ring-mid .mid-big i { font-style: normal; font-size: 0.62em; margin-left: 1px; }
+/* 고리 밑 범례의 '정리 안 된 메모'(고리 바깥 점) */
+.ring-key .key-loose { display: inline-block; margin-right: 4px; vertical-align: 0; }

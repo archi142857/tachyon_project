@@ -76,10 +76,16 @@ export function normalizeEvent(ev) {
 
 // 팝업 칸(날짜·시각) → 일정의 시작·끝. 서버(3_memo_popup.js toStartEnd)와 같은 규칙
 export function popupToEvent(f) {
-  if (f.time === '?' || !f.time) return { start: f.date, end: null };
+  if (f.time === '?' || !f.time) {
+    // 종일: 끝 날짜가 뒤면 그날까지(ICS처럼 다음 날 0시)
+    const last = /^\d{4}-\d{2}-\d{2}$/.test(f.end_date || '') && f.end_date > f.date ? f.end_date : null;
+    return { start: f.date, end: last ? toKstIso(addDays(dayStartKst(last), 1)).slice(0, 10) : null };
+  }
   const start = `${f.date}T${f.time}:00+09:00`;
-  // 끝을 모르면 1시간(11-13, 서버 AI toStartEnd와 같은 규칙)
-  const end = f.end_time && f.end_time !== '?' && f.end_time > f.time ? `${f.date}T${f.end_time}:00+09:00` : endOrHour(start, null);
+  // 끝을 모르면 1시간(11-13, 서버 AI toStartEnd와 같은 규칙). 끝 날짜(end_date)를 따로 줬으면 그날의 끝 시각(11-15, 밤을 넘는 일정)
+  const day = /^\d{4}-\d{2}-\d{2}$/.test(f.end_date || '') && f.end_date > f.date ? f.end_date : f.date;
+  const asked = f.end_time && f.end_time !== '?' ? `${day}T${f.end_time}:00+09:00` : null;
+  const end = asked && asked > start ? asked : endOrHour(start, null);
   return { start, end };
 }
 

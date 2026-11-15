@@ -6,6 +6,9 @@ button.slot-note { display: block; padding: 0; border: 0; background: none; text
 button.slot-note:hover { color: var(--text); }
 .slot-note.fixed { color: var(--text); font-weight: 600; }
 .slot-note.fixed::before { content: ''; display: inline-block; width: 10px; height: 0; margin-right: 6px; border-top: 2px solid var(--accent-text); vertical-align: 3px; }
+/* 하기로 한 날·때(11-15 '월요일 오전에 …'): 정함과 같은 진하기, 금 대신 빈 동그라미 — 아직 시각을 정한 건 아님 */
+.slot-note.plan { color: var(--text2); font-weight: 600; }
+.slot-note.plan::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border: 1.5px solid currentColor; border-radius: 50%; vertical-align: 1px; }
 
 /* 할 일 바로 다루기 창 */
 .act-slot { margin: 12px 0 8px; padding: 10px 12px; border: 1.5px dashed var(--text3); border-radius: var(--r-btn); color: var(--text); }

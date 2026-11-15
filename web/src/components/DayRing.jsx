@@ -47,10 +47,10 @@ function point(rad, f) {
   return [rad * Math.cos(a), rad * Math.sin(a)].map((v) => v.toFixed(1));
 }
 
-// 하루 경계: 0시(맨 위)와 낮 12시(맨 아래)에 진한 금(11-14 피드백 '12시 정각은 까만 선으로 경계', 사람 '둘 다').
+// 하루 경계: 0시(맨 위)에만 진한 금(11-14 피드백 '12시 정각은 까만 선으로 경계'). 낮 12시(맨 아래) 금은 뺐다(사람 11-15 16:46 "12시 부분은 검은 막대 없애줘").
 // 모양은 .ring line.day-edge — 바탕이 어두운 테마는 먹 대신 그 테마의 가장 진한 글자색.
 export function DayEdges({ r0 = 60, r1 = 112 }) {
-  return [0, 0.5].map((f) => <line key={f} className="day-edge" x1={point(r0, f)[0]} y1={point(r0, f)[1]} x2={point(r1, f)[0]} y2={point(r1, f)[1]} />);
+  return <line className="day-edge" x1={point(r0, 0)[0]} y1={point(r0, 0)[1]} x2={point(r1, 0)[0]} y2={point(r1, 0)[1]} />;
 }
 
 // 바깥 점 = 아직 정리 안 된 메모(적은 시각 자리, 결정 '하루 고리' 11-13). 누르는 일은 고리 밑 글 단추가 한다(피드백 16 '고리를 딱히 누르지 않음')

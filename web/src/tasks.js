@@ -1,6 +1,6 @@
 // 할 일 표시 도우미. 진짜 순서(여유 적은 순)와 몰린 주 경고는 서버(AI 세션 4_night.js, /api/briefing/rank)가 준다.
 // 여기 topThree·dueThisWeek는 예시 모드에서만 쓰는 1단계 규칙(마감 가까운 순, 이번 주 마감 수)이다.
-import { addDays } from './time.js';
+import { addDays, dayStartKst, daysUntil, shortDate } from './time.js';
 
 export const CROWDED = 4; // 한 주에 마감이 이만큼 이상이면 '몰림'
 
@@ -42,4 +42,13 @@ export function slackLabel(slackDays) {
   if (slackDays < 0) return '시간 모자람';
   if (slackDays < 1) return '빠듯';
   return `여유 ${Math.floor(slackDays)}일`;
+}
+
+// 하기로 한 날·때(taskLocal plan, 11-15): '내일 오전' · '모레 10:00' · '11/18(수) 오후' · '오늘 저녁'
+export function planLabel(plan, now = new Date()) {
+  if (!plan?.date) return '';
+  const day = dayStartKst(plan.date);
+  const d = daysUntil(day, now);
+  const name = ['오늘', '내일', '모레'][d] ?? shortDate(day);
+  return plan.said ? `${name} ${plan.said}` : name;
 }

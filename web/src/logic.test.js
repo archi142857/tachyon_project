@@ -153,13 +153,13 @@ describe('고치기 칸', () => {
   it('팝업 ↔ 입력칸: 모르는 칸은 빈칸, 다시 ?', () => {
     const popup = { title: '스터디', date: '2026-11-10', time: '15:00', end_time: '?', place: '?' };
     const form = popupToForm(popup);
-    expect(form).toEqual({ title: '스터디', date: '2026-11-10', start: '15:00', end: '', place: '' });
+    expect(form).toEqual({ title: '스터디', date: '2026-11-10', start: '15:00', endDate: '2026-11-10', end: '', place: '' });
     expect(formToPopup({ ...form, place: ' 301동 ' })).toEqual({ title: '스터디', date: '2026-11-10', time: '15:00', end_time: '16:00', place: '301동' }); // 끝 빈칸 → 1시간(11-13)
   });
 
   it('일정 ↔ 입력칸: 시작을 비우면 종일, 끝이 비었거나 시작보다 이르면 1시간', () => {
     const form = eventToForm({ title: '스터디', start: '2026-11-10T15:00:00+09:00', end: null, place: '301동' });
-    expect(form).toEqual({ title: '스터디', date: '2026-11-10', start: '15:00', end: '', place: '301동' });
+    expect(form).toEqual({ title: '스터디', date: '2026-11-10', start: '15:00', endDate: '2026-11-10', end: '', place: '301동' });
     expect(formToEvent({ ...form, end: '17:00' })).toEqual({ title: '스터디', start: '2026-11-10T15:00:00+09:00', end: '2026-11-10T17:00:00+09:00', place: '301동' });
     expect(formToEvent({ ...form, end: '14:00' }).end).toBe('2026-11-10T16:00:00+09:00'); // 시작보다 이른 끝 → 1시간
     // 끝을 비우면 1시간(11-13 사람), 자정을 넘어도 다음 날로
@@ -169,6 +169,21 @@ describe('고치기 칸', () => {
     expect(formToPopup({ title: '회의', date: '2026-11-10', start: '23:30', end: '', place: '' }).end_time).toBe('?');
     expect(formToEvent({ ...form, start: '' })).toEqual({ title: '스터디', start: '2026-11-10', end: null, place: '301동' });
     expect(eventToForm(normalizeEvent({ title: '예시', start: '2026-11-13', end: null, place: null })).start).toBe('');
+  });
+
+  // 사람 11-15 16:55 "일정이 시작하고 끝나는 시간의 날짜가 다를 수도 있음": 끝 날짜를 따로 읽고 보낸다
+  it('밤을 넘는 일정 · 여러 날 종일 일정은 끝 날짜를 따로', () => {
+    const night = eventToForm({ title: '홈커밍', start: '2026-11-14T13:20:00+09:00', end: '2026-11-15T03:30:00+09:00', place: null });
+    expect(night).toMatchObject({ date: '2026-11-14', start: '13:20', endDate: '2026-11-15', end: '03:30' });
+    expect(formToEvent(night)).toEqual({ title: '홈커밍', start: '2026-11-14T13:20:00+09:00', end: '2026-11-15T03:30:00+09:00', place: null }); // 그대로 저장해도 끝이 안 바뀐다
+    expect(formToEvent({ ...night, endDate: '2026-11-14' }).end).toBe('2026-11-14T14:20:00+09:00'); // 같은 날인데 끝이 이르면 예전처럼 1시간
+    const trip = eventToForm(normalizeEvent({ title: '답사', start: '2026-11-20', end: '2026-11-23', place: null }));
+    expect(trip).toMatchObject({ date: '2026-11-20', start: '', endDate: '2026-11-22', end: '' }); // ICS 끝(다음 날 0시) → 마지막 날
+    expect(formToEvent(trip)).toEqual({ title: '답사', start: '2026-11-20', end: '2026-11-23', place: null });
+    expect(formToEvent({ ...trip, endDate: '2026-11-20' }).end).toBeNull(); // 하루짜리
+    expect(formToPopup({ title: '홈커밍', date: '2026-11-14', start: '13:20', endDate: '2026-11-15', end: '03:30', place: '' })).toEqual({ title: '홈커밍', date: '2026-11-14', time: '13:20', end_time: '03:30', end_date: '2026-11-15', place: '?' });
+    expect(popupToForm({ title: '홈커밍', date: '2026-11-14', time: '13:20', end_time: '03:30', end_date: '2026-11-15', place: '?' }).endDate).toBe('2026-11-15');
+    expect(popupToEvent({ date: '2026-11-14', time: '13:20', end_time: '03:30', end_date: '2026-11-15' })).toEqual({ start: '2026-11-14T13:20:00+09:00', end: '2026-11-15T03:30:00+09:00' });
   });
 });
 

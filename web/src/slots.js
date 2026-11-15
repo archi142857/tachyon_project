@@ -22,15 +22,21 @@ export function dayEvents(events, day) {
 
 // 할 일(순서대로)마다 오늘 넣어 본 자리 [시작 분, 끝 분]. 못 넣으면 null:
 // 끝냈거나, 걸리는 시간을 모르거나(밤 정리가 채운다), 수업·자료 뒤에야 할 수 있거나, 오늘 남은 빈 시간이 모자랄 때
+// t.window = [from, to](분)가 있으면 그 시간대 안에서 먼저 찾는다(메모 '월요일 오전에 …', 11-15 taskLocal plan):
+// 시작이 그 안이고 처음 1시간(짧으면 다)이 그 안이면 된다(서버 lib/known.js suggestFree와 같은 규칙). 없으면 예전처럼 지금 뒤 아무 때나
 export function daySlots(tasks, busy, nowMin) {
   const taken = busy.map(({ from, to }) => [from, to]);
   const first = Math.ceil(Math.max(nowMin, WAKE * 60) / GAP) * GAP;
+  const place = (minutes, from, to) => {
+    let s = Math.ceil(Math.max(first, from) / GAP) * GAP;
+    let hit;
+    while ((hit = taken.find(([a, b]) => s < b + GAP && s + minutes > a - GAP))) s = Math.ceil((hit[1] + GAP) / GAP) * GAP;
+    return s + Math.min(minutes, 60) <= to && s + minutes <= 1440 ? s : null;
+  };
   return tasks.map((t) => {
     if (t.done || !t.minutes || t.ready === 0) return null;
-    let s = first;
-    let hit;
-    while ((hit = taken.find(([a, b]) => s < b + GAP && s + t.minutes > a - GAP))) s = Math.ceil((hit[1] + GAP) / GAP) * GAP;
-    if (s + t.minutes > 1440) return null;
+    const s = (t.window ? place(t.minutes, t.window[0], t.window[1]) : null) ?? place(t.minutes, first, 1440);
+    if (s == null) return null;
     taken.push([s, s + t.minutes]);
     return [s, s + t.minutes];
   });

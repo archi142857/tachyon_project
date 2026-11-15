@@ -1,5 +1,6 @@
 // 아래 긴 메모 칸. Enter로 보낸다(한글 조합 중 Enter는 글자 확정만 하고 보내지 않는다).
-// 입자 테마는 9판 메모 칸: 왼쪽 '메모 N ▴'(메모 쪽으로), 오른쪽 흰 '남기기 →' 단추(nine.css).
+// 모든 테마: 왼쪽 '메모 N ▴'(메모 쪽으로, 예전엔 입자 테마에만 — 사람 11-15 16:52 "서로에게 없는 기능은 다 넣고"), 가운데 입력, 오른쪽 보내기.
+// 보내기 단추 모양만 테마 몫: 입자는 흰 '남기기 →'(nine.css), 나머지는 화살표 그림.
 // seed = { text } — 달력의 '+ 일정' · '+ 할 일'이 날짜를 미리 적어 두고 칸에 초점을 준다(일정은 메모 → 팝업 → 저장으로만 생긴다).
 import { useEffect, useRef, useState } from 'react';
 import { useParticles } from '../themeName.js';
@@ -31,7 +32,7 @@ export default function Composer({ onSend, disabled, seed, memoCount = 0, onMemo
           send();
         }}
       >
-        {nine && onMemos && (
+        {onMemos && (
           <button type="button" className="memo-count num" onClick={onMemos}>
             메모 {memoCount} ▴
           </button>

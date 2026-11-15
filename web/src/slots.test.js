@@ -28,6 +28,17 @@ describe('오늘 넣어 본 자리', () => {
     expect(daySlots([{ minutes: 30, ready: 1 }], [], 3 * 60)).toEqual([[420, 450]]);
   });
 
+  // 메모 '월요일 오전에 국축연 전화해보기'(11-15): 하기로 한 시간대 안에서 먼저, 없으면 예전처럼
+  it('하기로 한 시간대(window)가 있으면 그 안에서 먼저 찾는다', () => {
+    const morning = [540, 720];
+    // 오전(9~12시): 9:00–9:15 → 둘째는 앞 할 일과도 10분 띄워 9:30–9:45(10시 수업 10분 앞까지 됨)
+    expect(daySlots([{ minutes: 15, ready: 1, window: morning }, { minutes: 15, ready: 1, window: morning }], busy, 0).map((s) => s.map(hm))).toEqual([['9:00', '9:15'], ['9:30', '9:45']]);
+    // 오전이 다 지났으면(지금 13:30) 예전처럼 지금 뒤
+    expect(daySlots([{ minutes: 15, ready: 1, window: morning }], busy, 13 * 60 + 30).map((s) => s.map(hm))).toEqual([['14:30', '14:45']]);
+    // 시간대 없는 할 일은 그대로
+    expect(daySlots([{ minutes: 15, ready: 1 }], busy, 16 * 60 + 50).map((s) => s.map(hm))).toEqual([['16:50', '17:05']]);
+  });
+
   it('남은 빈 시간', () => {
     expect(freeMinutes(busy, 12 * 60)).toBe(60 + 525);
     expect(freeMinutes(busy, 13 * 60 + 30)).toBe(525);

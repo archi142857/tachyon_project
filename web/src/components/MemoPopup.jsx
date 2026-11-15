@@ -2,6 +2,7 @@
 // 할 일 메모(popup.kind = 'task', 11-10 사람 "할 일만 딱 적으면 메모가 안 생김")는 '할 일로 넣을까요?' — 이름·마감만(TaskPopup).
 //   11-12 사람: 한 메모의 여러 할 일(popup.also)은 줄마다 따로 넣고, 할 일마다 예상 시간(popup.minutes)과 오늘 추천 시간을 보인다.
 //   추천 시간 = 오늘 할 일 목록 뒤에 이어서 빈 시간에 넣어 본 자리(slots.js, 오늘 화면과 같은 계산). plan이 없으면 안 보인다.
+//   popup.plan = 메모에 쓴 하기로 한 날·때({ date, from?, to?, said? }, 서버 taskPlan, 11-15) → 그날 그때의 빈 시간으로 추천. 저장하면 이 기기에 적어 둔다(taskLocal planTask).
 // 서버가 준 popup { title, date, time, end_time, place }의 모르는 칸('?')은 그대로 '?'로 보인다(앱 프롬프트 규칙).
 // 이름이나 날짜를 모르면 '저장' 대신 고치기 칸부터 연다(서버는 이름·날짜가 없으면 받지 않는다).
 // popup.from = 시각·장소를 가져온 내 일정 이름(알려 준다), popup.free = 빈 시간을 고른 시간대 말(알려 준다, popup.usual이면 메모가 아니라 AI가 고른 '보통 하는 때' — 11-15), popup.change = 옮길 일정(저장하면 그 일정은 달력에서 빠진다. 끌 수 있다).
@@ -12,8 +13,8 @@
 import { useState } from 'react';
 import { useLift } from '../lift.js';
 import { dayEvents, daySlots, hm } from '../slots.js';
-import { minutesLabel } from '../tasks.js';
-import { WEEKDAYS, dayStartKst, isDateOnly, kst, minuteOfDay, plusHourText, timeInput } from '../time.js';
+import { minutesLabel, planLabel } from '../tasks.js';
+import { WEEKDAYS, dayStartKst, daysUntil, isDateOnly, kst, minuteOfDay, plusHourText, timeInput } from '../time.js';
 import EventForm, { formToPopup, popupToForm } from './EventForm.jsx';
 
 function timeText(p) {
@@ -21,8 +22,11 @@ function timeText(p) {
   const [, m, d] = p.date.split('-').map(Number);
   const wd = WEEKDAYS[kst(dayStartKst(p.date)).wd];
   if (p.time === '?' || !p.time) return `${m}월 ${d}일 (${wd}) ?`;
-  // 끝을 모르면 1시간(11-13, 저장할 때도 서버가 +1시간)
-  return `${m}월 ${d}일 (${wd}) ${p.time} ~ ${p.end_time === '?' || !p.end_time ? plusHourText(p.time, true) || '?' : p.end_time}`;
+  // 끝을 모르면 1시간(11-13, 저장할 때도 서버가 +1시간). 끝 날짜가 다르면 그 날짜도(11-15 밤을 넘는 일정)
+  const end = p.end_time === '?' || !p.end_time ? plusHourText(p.time, true) || '?' : p.end_time;
+  if (!p.end_date || p.end_date <= p.date) return `${m}월 ${d}일 (${wd}) ${p.time} ~ ${end}`;
+  const [, em, ed] = p.end_date.split('-').map(Number);
+  return `${m}월 ${d}일 (${wd}) ${p.time} ~ ${em}월 ${ed}일 (${WEEKDAYS[kst(dayStartKst(p.end_date)).wd]}) ${end}`;
 }
 
 // 옮길 일정의 옛 날짜: "11월 11일 (수) 09:30"
@@ -42,14 +46,20 @@ function dueText(p) {
   return `${m}월 ${d}일 (${wd})${p.time && p.time !== '?' ? ` ${p.time}` : ''}까지`;
 }
 
-// 할 일마다 '예상 1시간 · 추천 14:00–15:00'. 오늘 화면처럼 열린 할 일 6개 뒤에 이어서 넣어 본다
-function planText(items, plan) {
-  const shown = plan ? plan.tasks.slice(0, 6) : [];
-  const slots = plan ? daySlots([...shown, ...items.map((t) => ({ minutes: t.minutes, ready: 1 }))], dayEvents(plan.events, plan.today), minuteOfDay(plan.now)).slice(shown.length) : [];
+// 할 일마다 '예상 1시간 · 추천 14:00–15:00'. 오늘 화면처럼 열린 할 일 6개 뒤에 이어서 넣어 본다.
+// 메모에 하기로 한 날·때를 썼으면(popup.plan = when, 11-15 사람 "월요일 오전에 … 추천 시간대가 오전이 아닌 것 같은데")
+// 그날의 일정을 비켜 그때(when.from~to)에서 먼저: '추천 내일 9:00–9:15'. 그날이 오늘이 아니면 열린 할 일은 앞에 두지 않는다
+export function planText(items, plan, when) {
+  const day = when ? dayStartKst(when.date) : plan?.today;
+  const today = !when || (plan && daysUntil(day, plan.now) === 0);
+  const shown = plan && today ? plan.tasks.slice(0, 6) : [];
+  const window = when && when.from != null ? [when.from, when.to] : undefined;
+  const slots = plan ? daySlots([...shown, ...items.map((t) => ({ minutes: t.minutes, ready: 1, window }))], dayEvents(plan.events, day), today ? minuteOfDay(plan.now) : 0).slice(shown.length) : [];
+  const name = when && !today ? `${planLabel({ date: when.date }, plan?.now)} ` : '';
   return items.map((t, i) => {
     const time = t.minutes ? `예상 ${minutesLabel(t.minutes).replace('약 ', '')}` : '예상 시간 ?';
-    if (!plan || !t.minutes) return time;
-    return `${time} · ${slots[i] ? `추천 ${hm(slots[i][0])}–${hm(slots[i][1])}` : '오늘은 빈 시간이 없어요'}`;
+    if (!plan || !t.minutes) return when ? `${time} · ${planLabel(when, plan?.now)}에` : time;
+    return `${time} · ${slots[i] ? `추천 ${name}${hm(slots[i][0])}–${hm(slots[i][1])}` : when ? `${planLabel(when, plan.now)}엔 빈 시간이 없어요` : '오늘은 빈 시간이 없어요'}`;
   });
 }
 
@@ -62,7 +72,7 @@ function TaskPopup({ popup, plan, busy, onSave, onCancel }) {
     time: popup.time === '?' ? '' : popup.time,
   }));
   const items = [{ title: popup.title, minutes: popup.minutes ?? null }, ...(popup.also ?? [])];
-  const notes = planText(items, plan);
+  const notes = planText(items, plan, popup.plan);
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
   const setTitle = (i) => (e) => setForm((f) => ({ ...f, titles: f.titles.map((t, j) => (j === i ? e.target.value : t)) }));
   // 고친 이름은 같은 자리의 예상 시간을 그대로 쓴다. 비운 줄은 넣지 않는다

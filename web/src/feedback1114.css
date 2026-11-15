@@ -80,11 +80,10 @@ svg.backdrop.staff { opacity: 0.3; } /* 흰 종이 위 검은 띠는 특히 세�
 .cal-grid .ev:hover .ev-grip::after, .cal-grid .ev:focus-visible .ev-grip::after { opacity: 0.45; }
 @media (hover: none) { .cal-grid .ev-grip::after { opacity: 0.3; } }
 
-/* G3 넓은 화면: 메모 입력 칸은 늘 오른쪽 아래(메모 칸 밑). 떠 있지 않고 맨 아래 줄에 붙어 있어 내용을 가리지 않는다 */
-@media (min-width: 900px) {
-  html .shell .composer form,
-  html[data-theme] .shell .composer form { width: min(100%, 460px); max-width: none; margin: 0 0 0 auto; }
-}
+/* 메모 입력 칸은 모든 테마 · 모든 화면에서 아래 전체 폭(사람 11-15 16:48 "하단에 전체로 길게 있도록 원래처럼").
+   11-14 G3의 '넓은 화면 오른쪽 아래 460px'과 입자의 가운데 560px을 함께 푼다. 떠 있지 않고 맨 아래 줄에 붙어 내용을 가리지 않는다 */
+html .shell .composer form,
+html[data-theme] .shell .composer form { width: 100%; max-width: none; margin: 0; }
 
 /* ── 11-15 달력: 좌우는 굴리기(노션 캘린더처럼), 위아래는 일정 글자가 보이는 높이 + 두 손가락 확대, 일정은 눌러 고른 뒤에만 끌기 ──
    WeekCalendar가 보이는 날 앞뒤로 더 그려 두고(--total) 한 칸 너비를 화면의 1/--n로 맞춘다. 날짜 줄은 위에, 시간 축은 왼쪽에 붙어 있다. */

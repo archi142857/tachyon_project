@@ -15,7 +15,8 @@
 // 주소 (worker/index.js가 /api/memo* 를 여기로 보낸다. 응답은 모두 JSON)
 //   POST   /api/memo              { text }                    → { memo, popup }   popup은 일정·할 일이 아니면 null
 //   GET    /api/memo?before=&limit=                           → { memos }         오래된 것부터, event_id·task_id = 이 메모로 만든 일정·할 일
-//   POST   /api/memo/:id/save     { title, date, time, end_time, place, suggested, change_id, repeat } → { event, repeat? }
+//   POST   /api/memo/:id/save     { title, date, time, end_time, end_date?, place, suggested, change_id, repeat } → { event, repeat? }
+//                                 end_date = 끝 날짜(시작 날짜보다 뒤일 때만, 11-15 밤을 넘는 일정 · 여러 날 종일). 매주면 첫 날과의 날 수 그대로
 //                                 suggested = 받았던 popup 그대로(고쳤는지 재려고). 모르는 칸은 '?'
 //                                 change_id = 옮길 일정(popup.change.id). 주면 그 일정은 달력에서 가려진다
 //                                 repeat = true면 매주 넣는다(학기 끝까지). 응답의 repeat = 넣은 횟수, event = 첫 주 일정
@@ -26,7 +27,8 @@
 //   DELETE /api/memo/:id                                      → { ok }
 //   DELETE /api/memo           { confirm: true }           → { ok, deleted }   메모 모두 지우기(11-15 사람). 메모로 만든 일정·할 일은 그대로
 //
-// 할 일 popup 모양: { kind: "task", title, date: 마감 날짜 또는 "?", time: 마감 시각 또는 "?", minutes?: 어림한 분, also?: [{ title, minutes }], by }
+// 할 일 popup 모양: { kind: "task", title, date: 마감 날짜 또는 "?", time: 마감 시각 또는 "?", minutes?: 어림한 분, also?: [{ title, minutes }], plan?, by }
+//   plan = 하기로 한 날·때 { date, from?, to?, said? }(분, taskPlan — 11-15 '월요일 오전에 …'). 화면이 그날 그때 빈 시간으로 추천하고 이 기기에 적어 둔다
 //   (11-12 사람 "여러 개 한 메모에 적으면 분리해서 넣게") 이름 오타는 AI가 고친다. AI가 없으면 쉼표로만 나눈다
 // 일정 popup 모양: { title, date: "2026-11-10", time: "15:00", end_time: "?", place: "301동", by: "ai" | "rule",
 //               from: "공학수학 2"(시각·장소를 가져온 내 일정, 없으면 없음), free: "늦은 밤"(이 시간대의 빈 시간을 골랐음, 없으면 없음), change: { id, title, start }(옮길 일정, 없으면 없음),
@@ -35,7 +37,7 @@
 
 import { askJson, usageDetail } from "./llm.js";
 import { SYSTEM, SCHEMA, userMessage } from "./prompts/memo_popup.js";
-import { useKnown, suggestFree, lengthOf, useLength } from "./lib/known.js";
+import { useKnown, suggestFree, lengthOf, useLength, partWindow } from "./lib/known.js";
 
 export async function handle(request, env, ctx, user) {
   if (!user) return json({ error: "로그인이 필요하다" }, 401);
@@ -101,8 +103,10 @@ async function savePopup(request, env, ctx, user, memoId) {
   // 매주 되풀이(body.repeat): 첫 주는 'memo:<id>'(메모 목록·밤 정리가 찾는 줄), 다음 주부터 'memo:<id>:w1', ':w2' … 학기 끝까지
   // ponytail: 줄을 주마다 따로 만든다(되풀이 규칙 칸 없음) → 묶음 지우기·고치기는 하나씩. 빈 시간 확인은 첫 주만. 불편해지면 events에 묶음 칸을 둔다
   const weeks = body.repeat === true ? weeksAfter(f.date) : [];
+  // 끝 날짜는 첫 날과의 날 수 그대로 주마다 옮긴다(밤을 넘는 일정이 매주 밤을 넘게)
+  const gap = f.end_date && f.end_date > f.date ? Math.round((Date.parse(f.end_date) - Date.parse(f.date)) / 86400000) : 0;
   const insert = (date, extId) => {
-    const { start, end } = toStartEnd({ ...f, date });
+    const { start, end } = toStartEnd({ ...f, date, end_date: gap ? addDays(date, gap) : null });
     return env.DB.prepare(
       `INSERT INTO events (user_id, title, start, "end", place, source, ext_id) VALUES (?, ?, ?, ?, ?, 'memo', ?)
        ON CONFLICT (user_id, source, ext_id) DO UPDATE
@@ -397,7 +401,33 @@ function taskPopup(text, when, ai, now) {
   // AI가 없으면 쉼표로만 나눈다(이름 오타는 못 고침)
   const parts = ai ? [] : rest.split(/\s*[,，、]\s*/).filter((x) => x.length >= 2);
   const [first, ...also] = parts.length > 1 ? parts.map((title) => ({ title, minutes: null })) : [{ title: clean(ai?.title) ?? (rest || "?"), minutes: minutesOf(ai?.minutes) }, ...alsoOf(ai?.also)];
-  return { kind: "task", title: first.title, date: due.date ?? "?", time: due.time ?? "?", ...(first.minutes ? { minutes: first.minutes } : {}), ...(also.length ? { also } : {}), by: ai ? "ai" : "rule" };
+  const plan = taskPlan(text, when, now);
+  return { kind: "task", title: first.title, date: due.date ?? "?", time: due.time ?? "?", ...(first.minutes ? { minutes: first.minutes } : {}), ...(also.length ? { also } : {}), ...(plan ? { plan } : {}), by: ai ? "ai" : "rule" };
+}
+
+// 마감 말이 있으면 '그때까지'라서 하는 때를 정하지 않는다('수업 전에'·'과제 내기'는 마감 말, '오전에'·'메일 보내기'는 아님)
+const DEADLINE_WORD = /까지|마감|제출|(?<![가-힣])내기|(?<!오)전에|기한/;
+
+/**
+ * 할 일을 하기로 한 날·때(11-15 사람 "월요일 오전에 국축연 전화해보기" → 추천이 오늘 16:50이던 것).
+ * 마감 말(까지·마감·제출·내기·전에·기한) 없이 날짜·시각·시간대를 쓴 할 일은 '그때 하겠다'는 뜻 → popup.plan
+ * { date, from?, to?, said? }(분, said = 화면에 보일 말 '오전'·'10:00'). 화면이 그날 그때의 빈 시간으로 추천하고, 그날 전에는 오늘 자리를 안 잡는다.
+ * 시각을 썼으면 그 시각부터 1시간, 시간대만 썼으면 그 시간대(lib/known.js PARTS). 날짜 없이 시간대·시각만 쓰면 오늘 그때가 남았으면 오늘, 지났으면 내일.
+ * 오늘이고 때도 없으면 null(오늘 추천 그대로). 지난 날도 null.
+ */
+export function taskPlan(text, when, now = new Date()) {
+  if (DEADLINE_WORD.test(text) || when?.past) return null;
+  const iso = isoKst(now);
+  const today = iso.slice(0, 10);
+  const part = partWindow(text);
+  const win = when?.time ? { from: toMin(when.time), to: Math.min(toMin(when.time) + 60, 1440), said: when.time } : part;
+  let date = when?.date ?? null;
+  if (!date) {
+    if (!win) return null;
+    date = toMin(iso.slice(11, 16)) < win.to ? today : addDays(today, 1);
+  }
+  if (date < today || (date === today && !win)) return null;
+  return win ? { date, from: win.from, to: win.to, said: win.said } : { date };
 }
 
 /** 날짜·시각은 정규식이 먼저. 오전·오후를 짐작한 시각만 AI의 같은 시각(3시 ↔ 15시)을 따른다 */
@@ -792,20 +822,24 @@ function popupFields(o = {}) {
     date: cleanDate(o.date),
     time: cleanTime(o.time),
     end_time: cleanTime(o.end_time),
+    end_date: cleanDate(o.end_date), // 끝 날짜가 시작 날짜와 다를 때만(11-15 사람 "시작하고 끝나는 날짜가 다를 수도") — 화면 '고치기'의 끝 날짜 칸
     place: clean(o.place),
   };
 }
-const sameFields = (a, b) => ["title", "date", "time", "end_time", "place"].every((key) => a[key] === b[key]);
+const sameFields = (a, b) => ["title", "date", "time", "end_time", "end_date", "place"].every((key) => a[key] === b[key]);
 /** 할 일 팝업 칸 정리: 이름·마감 날짜·마감 시각('?'·빈칸 → null) */
 const taskFields = (o = {}) => ({ title: clean(o.title), date: cleanDate(o.date), time: cleanTime(o.time) });
 const sameTask = (a, b) => ["title", "date", "time"].every((key) => a[key] === b[key]);
 
-/** 팝업 칸 → events.start/end. 시각이 없으면 종일 일정: schema.sql대로 start = 그날, end = 다음 날(ICS 방식) */
-function toStartEnd(f) {
-  if (!f.time) return { start: f.date, end: addDays(f.date, 1) };
+/** 팝업 칸 → events.start/end. 시각이 없으면 종일 일정: schema.sql대로 start = 그날, end = 다음 날(ICS 방식).
+ *  end_date(끝 날짜, 시작보다 뒤일 때만)가 있으면 밤을 넘는 일정·여러 날 종일 일정(11-15) */
+export function toStartEnd(f) {
+  const endDay = f.end_date && f.end_date > f.date ? f.end_date : f.date;
+  if (!f.time) return { start: f.date, end: addDays(endDay, 1) };
   const start = `${f.date}T${f.time}:00+09:00`;
   // 끝을 안 정했거나(시작보다 이르면 잘못 쓴 것으로 본다) → 시작 + 1시간(11-13 사람 요청, 자정을 넘으면 다음 날)
-  const end = f.end_time && f.end_time > f.time ? `${f.date}T${f.end_time}:00+09:00` : isoKst(new Date(Date.parse(start) + 3600000));
+  const asked = f.end_time ? `${endDay}T${f.end_time}:00+09:00` : null;
+  const end = asked && asked > start ? asked : isoKst(new Date(Date.parse(start) + 3600000));
   return { start, end };
 }
 

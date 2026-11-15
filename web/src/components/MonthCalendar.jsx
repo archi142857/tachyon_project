@@ -1,16 +1,15 @@
 // 월 달력(11-11 사람 "달력이 왜 3주만 보이는지.. 전체 다 보여야지"): 그 달 1일이 든 주 월요일부터 6주.
 // 칸마다 날짜 · 밀도 고리 · 마감(시각 먼저) · 일정 몇 개, 넘치면 '+N'. 칸을 누르면 그날부터 주간 달력으로.
-// 입자 테마는 9판 .mc: 고리와 시각은 숨기고(nine.css) 지난 날은 옅게, 오늘 칸 밑에 하루가 얼마나 지났는지 한 줄(9판 .dp).
+// 모든 테마가 같은 칸(사람 11-15 16:52, 기본 테마 기준): 날짜 · 밀도 고리 · 시각 붙은 줄, 오늘 칸 밑에 하루가 얼마나 지났는지 한 줄(예전 입자 9판 .dp).
 import { endOf, isAllDay } from '../layout.js';
 import { WEEKDAYS, addDays, dayStart, hhmm, kst, minuteOfDay, monthGrid, sameDay } from '../time.js';
 import DensityRing from './DensityRing.jsx';
 import Icon from './Icon.jsx';
-import { tint, useParticles } from '../themeName.js';
+import { tint } from '../themeName.js';
 
 const MAX_LINES = 3;
 
 export default function MonthCalendar({ anchor, events, tasks, now, density, onPrev, onNext, onToday, onDay }) {
-  const nine = useParticles();
   const cells = monthGrid(anchor.y, anchor.m);
   const t = kst(now);
   const isCurrent = anchor.y === t.y && anchor.m === t.m;
@@ -79,7 +78,7 @@ export default function MonthCalendar({ anchor, events, tasks, now, density, onP
                 </span>
               ))}
               {lines.length > MAX_LINES && <span className="mmore num">+{lines.length - MAX_LINES}</span>}
-              {nine && today && <i className="dp" style={{ '--p': `${((minuteOfDay(now) / 1440) * 100).toFixed(1)}%` }} aria-hidden="true" />}
+              {today && <i className="dp" style={{ '--p': `${((minuteOfDay(now) / 1440) * 100).toFixed(1)}%` }} aria-hidden="true" />}
             </button>
           );
         })}

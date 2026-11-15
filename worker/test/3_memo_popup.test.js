@@ -3,7 +3,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { handle, findWhen, mergePopup, suggestEvent, isoKst, nowLabel, looksLikeTodo, withHour, isLongMemo } from "../3_memo_popup.js";
+import { handle, findWhen, mergePopup, suggestEvent, isoKst, nowLabel, looksLikeTodo, withHour, isLongMemo, taskPlan } from "../3_memo_popup.js";
 import { CASES, NOW } from "./fixtures/memo_cases.js";
 import { fakeD1, addUser, fakeCtx } from "./helpers/d1.js";
 
@@ -353,6 +353,10 @@ test("끝을 안 정한 일정은 1시간(11-13 사람 요청): 팝업 끝 칸�
   assert.equal((await save({ time: "23:30", end_time: "?" })).end, "2026-11-21T00:30:00+09:00");
   assert.equal((await save({ time: "14:00", end_time: "16:30" })).end, "2026-11-20T16:30:00+09:00");
   assert.deepEqual(Object.values(await save({ time: "?", end_time: "?" })).slice(2, 4), ["2026-11-20", "2026-11-21"]); // 종일은 그대로
+  // 끝 날짜(11-15 사람 "시작하고 끝나는 날짜가 다를 수도"): 밤을 넘는 일정 · 여러 날 종일. 시작보다 이른 끝 날짜는 버린다
+  assert.equal((await save({ time: "22:00", end_time: "02:30", end_date: "2026-11-21" })).end, "2026-11-21T02:30:00+09:00");
+  assert.deepEqual(Object.values(await save({ time: "?", end_time: "?", end_date: "2026-11-22" })).slice(2, 4), ["2026-11-20", "2026-11-23"]);
+  assert.equal((await save({ time: "14:00", end_time: "16:00", end_date: "2026-11-19" })).end, "2026-11-20T16:00:00+09:00");
 });
 
 test("메모 쓰기 → 목록 → 팝업 저장 → 일정 생김 → 고쳐 저장 → 지우기", async () => {
@@ -765,4 +769,25 @@ test("메모 길이로 모델 고르기(11-14): 짧은 메모는 빠른 모델, 
     ["claude-sonnet-5-5", 640],
   ]);
   assert.equal(isLongMemo("짧은 메모"), false);
+});
+
+// 사람 11-15 16:49 "추천 시간대가 오전이 아닌 것 같은데"('월요일 오전에 국축연 전화해보기' → 추천이 오늘 16:50이었다)
+test("할 일을 하기로 한 날·때(plan): 날짜·시간대·시각을 쓴 할 일은 그때, 마감 말이면 없음", () => {
+  const now = new Date("2026-11-15T07:49:00Z"); // 일요일 16:49
+  const plan = (t) => taskPlan(t, findWhen(t, now), now);
+  assert.deepEqual(plan("월요일 오전에 국축연 전화해보기"), { date: "2026-11-16", from: 540, to: 720, said: "오전" });
+  assert.deepEqual(plan("월요일에 국축연 전화하기"), { date: "2026-11-16" }); // 날짜만 = 그날 아무 때
+  assert.deepEqual(plan("내일 10시에 교수님께 전화"), { date: "2026-11-16", from: 600, to: 660, said: "10:00" });
+  assert.deepEqual(plan("오전에 메일 보내기"), { date: "2026-11-16", from: 540, to: 720, said: "오전" }); // 오늘 오전은 지남 → 내일, '보내기'는 마감 말 아님
+  assert.deepEqual(plan("저녁에 장보기"), { date: "2026-11-15", from: 1080, to: 1260, said: "저녁" });
+  assert.equal(plan("월요일까지 보고서 제출"), null);
+  assert.equal(plan("수업 전에 과제 출력"), null);
+  assert.equal(plan("과제 내기"), null);
+  assert.equal(plan("오늘 과제 하기"), null); // 오늘이고 때가 없으면 오늘 추천 그대로
+  const text = "월요일 오전에 국축연 전화해보기";
+  const popup = mergePopup(text, findWhen(text, now), null, now); // AI 없이 규칙만
+  assert.equal(popup.kind, "task");
+  assert.equal(popup.title, "국축연 전화해보기");
+  assert.equal(popup.date, "2026-11-16");
+  assert.deepEqual(popup.plan, { date: "2026-11-16", from: 540, to: 720, said: "오전" });
 });
