@@ -50,14 +50,24 @@ async function call(method, path, body) {
 }
 
 // 안드로이드 앱 홈 화면 위젯(app/android-native, 11-15): 할 일·일정을 바꾸거나 로그인·로그아웃하면 위젯도 다시 받게 한다.
-// 잇따라 바꾸면 마지막 것 뒤 1.5초에 한 번. 앱 밖(브라우저)에는 TachyonWidget이 없어 아무것도 안 한다.
+// 리마인드(11-16)도 같은 때 다시 잡는다(native.js planReminders — 서로 불러오는 것을 피해 그때 불러온다).
+// 잇따라 바꾸면 마지막 것 뒤 1.5초에 한 번. 앱 밖(브라우저)에는 둘 다 없어 아무것도 안 한다.
 const WIDGET_PATHS = /^\/api\/(tasks|events|memo|briefing|timetable|feeds|etl|login)/;
 let widgetTimer = null;
 export function widgetsChanged() {
-  const widget = window.Capacitor?.Plugins?.TachyonWidget;
-  if (!widget) return;
+  const plugins = window.Capacitor?.Plugins;
+  if (!plugins?.TachyonWidget && !plugins?.LocalNotifications) return;
   clearTimeout(widgetTimer);
-  widgetTimer = setTimeout(() => widget.refresh().catch(() => {}), 1500);
+  widgetTimer = setTimeout(() => {
+    plugins.TachyonWidget?.refresh().catch(() => {});
+    import('./native.js').then((m) => m.planReminders()).catch(() => {});
+  }, 1500);
+}
+
+// 리마인드 목록(서버 7_items.js): 앞으로 14일 안에 울릴 것 { reminders: [{ id, title, body, at }] }. 예시 모드는 없음
+export function getReminders() {
+  if (ex) return reply({ reminders: [] });
+  return call('GET', '/api/reminders');
 }
 
 // 예시 모드: 서버처럼 잠깐 기다렸다가 복사본을 돌려준다

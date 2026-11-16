@@ -19,6 +19,7 @@
 //                                 end_date = 끝 날짜(시작 날짜보다 뒤일 때만, 11-15 밤을 넘는 일정 · 여러 날 종일). 매주면 첫 날과의 날 수 그대로
 //                                 suggested = 받았던 popup 그대로(고쳤는지 재려고). 모르는 칸은 '?'
 //                                 change_id = 옮길 일정(popup.change.id). 주면 그 일정은 달력에서 가려진다
+//                                 remind = 리마인드(시작 몇 분 전 0~1440, 없으면 안 함 — 11-16 사람 "팝업에서 바로 리마인드 할지 말지"). 할 일은 마감 몇 분 전(마감 없으면 안 함)
 //                                 repeat = true면 매주 넣는다(학기 끝까지). 응답의 repeat = 넣은 횟수, event = 첫 주 일정
 //                                 prep = [{ title, minutes }] 일정 전에 끝낼 할 일(11-14) → 마감 = 일정 시작인 할 일로, 응답 tasks
 //                                 할 일: { kind: 'task', title, date, time, minutes, also, suggested } → { task, tasks }  (마감 날짜만 있으면 그날 23:59, 없으면 마감 없음)
@@ -108,11 +109,11 @@ async function savePopup(request, env, ctx, user, memoId) {
   const insert = (date, extId) => {
     const { start, end } = toStartEnd({ ...f, date, end_date: gap ? addDays(date, gap) : null });
     return env.DB.prepare(
-      `INSERT INTO events (user_id, title, start, "end", place, source, ext_id) VALUES (?, ?, ?, ?, ?, 'memo', ?)
+      `INSERT INTO events (user_id, title, start, "end", place, source, ext_id, remind) VALUES (?, ?, ?, ?, ?, 'memo', ?, ?)
        ON CONFLICT (user_id, source, ext_id) DO UPDATE
-         SET title = excluded.title, start = excluded.start, "end" = excluded."end", place = excluded.place
-       RETURNING id, title, start, "end", place, source`,
-    ).bind(user.id, f.title, start, end, f.place, extId);
+         SET title = excluded.title, start = excluded.start, "end" = excluded."end", place = excluded.place, remind = excluded.remind
+       RETURNING id, title, start, "end", place, source, remind`,
+    ).bind(user.id, f.title, start, end, f.place, extId, remindOf(body.remind));
   };
   // 일정 전에 끝낼 할 일(body.prep, 11-14 "여행 전 항공권·숙박은 여행까지 할 일"): 마감 = 일정 시작, ext_id 'memo:<id>:p1' …
   const prep = alsoOf(body.prep);
@@ -159,10 +160,10 @@ async function saveTask(body, env, ctx, user, memoId) {
   const saved = await env.DB.batch([
     ...list.map((t, i) =>
       env.DB.prepare(
-        `INSERT INTO tasks (user_id, title, due, minutes, source, ext_id) VALUES (?, ?, ?, ?, 'memo', ?)
-         ON CONFLICT (user_id, source, ext_id) DO UPDATE SET title = excluded.title, due = excluded.due, minutes = coalesce(excluded.minutes, tasks.minutes)
-         RETURNING id, title, due, minutes, ready, done, source`,
-      ).bind(user.id, t.title, due, t.minutes, i ? `memo:${memoId}:${i + 1}` : `memo:${memoId}`),
+        `INSERT INTO tasks (user_id, title, due, minutes, source, ext_id, remind) VALUES (?, ?, ?, ?, 'memo', ?, ?)
+         ON CONFLICT (user_id, source, ext_id) DO UPDATE SET title = excluded.title, due = excluded.due, minutes = coalesce(excluded.minutes, tasks.minutes), remind = excluded.remind
+         RETURNING id, title, due, minutes, ready, done, source, remind`,
+      ).bind(user.id, t.title, due, t.minutes, i ? `memo:${memoId}:${i + 1}` : `memo:${memoId}`, due ? remindOf(body.remind) : null),
     ),
     env.DB.prepare("UPDATE memos SET handled = 1 WHERE id = ? AND user_id = ?").bind(memoId, user.id),
   ]);
@@ -172,6 +173,9 @@ async function saveTask(body, env, ctx, user, memoId) {
   background(ctx, writeLog(env, user.id, edited ? "popup_edit" : "popup_save", detail));
   return json({ task: tasks[0], tasks });
 }
+
+/** 리마인드: 몇 분 전(0~1440 정수), 아니면 null(안 함). 7_items.js clean('remind')와 같은 범위 */
+const remindOf = (v) => (Number.isInteger(v) && v >= 0 && v <= 1440 ? v : null);
 
 /** 걸리는 분: 5분 단위, 5~480(밤 정리 minutesOf와 같은 모양). 모르면 null */
 function minutesOf(v) {

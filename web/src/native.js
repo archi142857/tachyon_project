@@ -12,7 +12,10 @@
 //   폰 → 서버(syncDevice)는 이 캘린더를 뺀다(제자리 돌기 막기). 구독 주소와 달리 몇 시간씩 늦지 않는다.
 // 아침 알림(11-14 피드백 '매일 아침 알림'): 서버 푸시 없이 폰이 스스로 띄우는 알림(LocalNotifications). 하루 1번,
 //   일어나는 시각(나 → 몇 시에 일어나요) 정각. 앱을 열 때마다 앞으로 7일 치를 다시 잡는다(첫 아침은 지금 할 일 3개, 그 뒤는 짧은 말).
-import { getCalendarItems, sendDeviceEvents } from './api.js';
+// 리마인드(11-16 사람 "하고 싶은 일정에만, 할 일·일정 모두"): 리마인드를 켠 일정·할 일만(서버 GET /api/reminders) 같은 LocalNotifications로.
+//   앱을 열 때 · 다시 볼 때 · 할 일·일정을 바꾼 뒤(api.js widgetsChanged) 앞으로 14일 치를 다시 잡는다. 번호 10000부터(아침은 7001~7007).
+//   ponytail: 다른 기기(PC)에서 켠 리마인드는 이 폰에서 앱을 한 번 열어야 잡힌다. 늘 맞아야 하면 서버 푸시(FCM)로.
+import { getCalendarItems, getReminders, sendDeviceEvents } from './api.js';
 import { readPrefs } from './prefs.js';
 
 const plugins = () => window.Capacitor?.Plugins;
@@ -74,9 +77,10 @@ export const pushOn = () => localStorage.getItem(PUSH_KEY) === '1';
 export function listenAppResume(ready) {
   let last = Date.now();
   plugins().App.addListener('resume', () => {
-    if (!ready() || !pushOn() || Date.now() - last < 5 * 60 * 1000) return;
+    if (!ready() || Date.now() - last < 5 * 60 * 1000) return;
     last = Date.now();
-    pushToDevice().catch(() => null);
+    if (pushOn()) pushToDevice().catch(() => null);
+    planReminders().catch(() => null);
   });
 }
 
@@ -215,3 +219,44 @@ export async function turnMorningOff() {
   lastPlan = '';
   await plugins().LocalNotifications.cancel({ notifications: MORNING_IDS.map((id) => ({ id })) });
 }
+
+// ── 리마인드 ─────────────────────────────────────────────
+const REMIND_FROM = 10000; // 서버가 주는 번호(일정 10000 + 2·id, 할 일 10001 + 2·id). 이보다 작은 것은 아침 알림
+let lastRemind = '';
+let reminding = null;
+let again = false;
+
+/** 리마인드 다시 잡기. 앱 밖(브라우저)·예전 APK에서는 아무것도 안 한다. 도는 중에 또 부르면 끝난 뒤 한 번 더 */
+export function planReminders() {
+  if (!plugins()?.LocalNotifications) return Promise.resolve();
+  if (reminding) {
+    again = true;
+    return reminding;
+  }
+  reminding = runReminders().finally(() => {
+    reminding = null;
+    if (again) {
+      again = false;
+      planReminders().catch(() => null);
+    }
+  });
+  return reminding;
+}
+
+async function runReminders() {
+  const ln = plugins().LocalNotifications;
+  const { reminders } = await getReminders();
+  const sign = JSON.stringify(reminders);
+  if (sign === lastRemind) return;
+  if (reminders.length) {
+    let { display } = await ln.checkPermissions();
+    if (display !== 'granted' && display !== 'denied') ({ display } = await ln.requestPermissions()); // 처음 켠 리마인드가 있을 때만 묻는다
+    if (display !== 'granted') return;
+  }
+  const { notifications } = await ln.getPending();
+  const old = notifications.filter((n) => n.id >= REMIND_FROM).map((n) => ({ id: n.id }));
+  if (old.length) await ln.cancel({ notifications: old });
+  if (reminders.length) await ln.schedule({ notifications: reminders.map((r) => ({ id: r.id, title: r.title, body: r.body, schedule: { at: new Date(r.at), allowWhileIdle: true } })) });
+  lastRemind = sign;
+}
+

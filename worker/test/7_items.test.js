@@ -79,7 +79,7 @@ test('주간 달력: 기간과 겹치는 내 일정만(종일·시각 섞여도 
   const { status, data } = await read(await call(env, cookieA, '/api/events?from=2026-11-09&to=2026-11-16'));
   assert.equal(status, 200);
   assert.deepEqual(data.events.map((e) => e.id), [ids.class, ids.fest]); // 지난 일요일 종일(end=11-09)·다음 주·남의 것 빠짐
-  assert.deepEqual(data.events[1], { id: ids.fest, title: '예시 축제', start: '2026-11-12', end: '2026-11-14', place: null, source: 'memo', important: 0, edited: 0 });
+  assert.deepEqual(data.events[1], { id: ids.fest, title: '예시 축제', start: '2026-11-12', end: '2026-11-14', place: null, source: 'memo', important: 0, remind: null, edited: 0 });
   const dflt = (await read(await call(env, cookieA, '/api/events'))).data.events; // 기본: 오늘부터 7일
   assert.deepEqual(dflt.map((e) => e.id), [ids.class, ids.fest]);
   for (const q of ['from=2026-11-16&to=2026-11-09', 'from=2026-11-01&to=2027-03-01', 'from=11/9&to=11/16']) {
@@ -225,4 +225,33 @@ test('달력 빈 칸에서 바로 넣기(POST /api/events): 끝이 없으면 1�
     assert.equal((await call(env, cookieA, '/api/events', { method: 'POST', body })).status, 400, JSON.stringify(body));
   }
   assert.equal((await call(env, null, '/api/events', { method: 'POST', body: { title: '예시', start: '2026-11-18T09:00:00+09:00' } })).status, 401);
+});
+
+// 11-16 사람 "리마인드는 모든 일정에 넣지는 말고 하고 싶은 일정에만 … 할 일이나 일정 모두"
+test('리마인드: 고치기 remind로 켜고 끄기(캘린더에서 온 것도 사본 없이), 목록은 앞으로 14일·내 것·안 끝낸 것만', async () => {
+  const { env, cookieA, cookieB, ids } = await setup();
+  const patch = async (table, id, remind, cookie = cookieA) => call(env, cookie, `/api/${table}/${id}`, { method: 'PATCH', body: { remind } });
+  for (const [table, id, m] of [['events', ids.nextWeek, 30], ['events', ids.fest, 1440], ['events', ids.class, 10], ['tasks', ids.quiz, 60], ['tasks', ids.later, 60], ['tasks', ids.etlTask, 0], ['tasks', ids.doneOne, 30]]) {
+    assert.equal((await patch(table, id, m)).status, 200, `${table} ${id}`);
+  }
+  const copy = await read(await patch('events', ids.class, 10));
+  assert.equal(copy.data.event.id, ids.class); // 구글에서 온 일정: 사본 없이 그 줄에
+  for (const bad of [2000, -1, 1.5, '30']) assert.equal((await patch('events', ids.fest, bad)).status, 400, String(bad));
+  assert.equal((await patch('tasks', ids.bTask, 30)).status, 404); // 남의 것
+
+  const { status, data } = await read(await call(env, cookieA, '/api/reminders'));
+  assert.equal(status, 200);
+  assert.deepEqual(data.reminders, [
+    { id: 10001 + 2 * ids.quiz, title: '예시 퀴즈', body: '1시간 뒤 마감 (09:00)', at: '2026-11-10T08:00:00+09:00' },
+    { id: 10000 + 2 * ids.fest, title: '예시 축제', body: '내일 종일 일정', at: '2026-11-11T09:00:00+09:00' },
+    { id: 10001 + 2 * ids.etlTask, title: '예시 과제 [예시 과목]', body: '지금 마감 (23:59)', at: '2026-11-12T23:59:00+09:00' },
+    { id: 10000 + 2 * ids.nextWeek, title: '예시 다음 주', body: '30분 뒤 시작 (10:00)', at: '2026-11-16T09:30:00+09:00' },
+  ]); // 오늘 10:00 수업은 지남, 12-20 과제는 14일 뒤, 끝낸 할 일은 뺌
+
+  assert.equal((await patch('tasks', ids.quiz, null)).status, 200); // 끄기
+  assert.equal((await read(await call(env, cookieA, '/api/reminders'))).data.reminders.length, 3);
+  assert.deepEqual((await read(await call(env, cookieB, '/api/reminders'))).data.reminders, []);
+  assert.equal((await call(env, null, '/api/reminders')).status, 401);
+  const listed = await read(await call(env, cookieA, '/api/tasks?done=all'));
+  assert.equal(listed.data.tasks.find((t) => t.id === ids.etlTask).remind, 0); // 목록에도 remind 칸
 });

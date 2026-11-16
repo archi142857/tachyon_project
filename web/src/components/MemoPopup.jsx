@@ -9,6 +9,7 @@
 // popup.repeat = 매주 되풀이 메모({ until: 학기 끝 }). 켜 둔 채 저장하면 그날까지 주마다 넣는다. 끌 수 있다.
 // popup.prep = 일정 전에 끝낼 할 일([{ title, minutes }], 11-14 '여행 전 항공권·숙박은 여행까지 할 일'). 켜 둔 채 저장하면 마감 = 일정 시작인 할 일로. 끌 수 있다.
 // popup.together = 주 달력의 다 같이 빈 시간 띠에서 잡은 모임이면 그 그룹 이름(11-13). 내 달력에만 넣는다고 알려 준다.
+// 리마인드(11-16 사람 "팝업에서 바로 리마인드 할지 말지"): 일정·할 일 모두 맨 아래 '리마인드' — 기본 꺼짐, 켜면 저장 때 remind(몇 분 전)를 같이 보낸다(RemindRow).
 // popup.guessed = 사람이 안 썼는데 서버가 채운 칸 이름(AI b5fe7db: date · time · end_time · place) → 그 칸만 추천처럼 점선(사람 피드백 5, 모양은 디자인이 정하면 맞춘다).
 import { useState } from 'react';
 import { useLift } from '../lift.js';
@@ -16,6 +17,7 @@ import { dayEvents, daySlots, hm } from '../slots.js';
 import { minutesLabel, planLabel } from '../tasks.js';
 import { WEEKDAYS, dayStartKst, daysUntil, isDateOnly, kst, minuteOfDay, plusHourText, timeInput } from '../time.js';
 import EventForm, { formToPopup, popupToForm } from './EventForm.jsx';
+import RemindRow from './RemindRow.jsx';
 
 function timeText(p) {
   if (p.date === '?' || !p.date) return '?';
@@ -71,6 +73,7 @@ function TaskPopup({ popup, plan, busy, onSave, onCancel }) {
     date: popup.date === '?' ? '' : popup.date,
     time: popup.time === '?' ? '' : popup.time,
   }));
+  const [remind, setRemind] = useState(null);
   const items = [{ title: popup.title, minutes: popup.minutes ?? null }, ...(popup.also ?? [])];
   const notes = planText(items, plan, popup.plan);
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -78,7 +81,7 @@ function TaskPopup({ popup, plan, busy, onSave, onCancel }) {
   // 고친 이름은 같은 자리의 예상 시간을 그대로 쓴다. 비운 줄은 넣지 않는다
   const toFields = (f) => {
     const [first, ...also] = f.titles.map((title, i) => ({ title: title.trim(), minutes: items[i]?.minutes ?? null })).filter((t) => t.title);
-    return { kind: 'task', title: first?.title || '?', minutes: first?.minutes ?? null, also, date: f.date || '?', time: f.date && f.time ? f.time : '?' };
+    return { kind: 'task', title: first?.title || '?', minutes: first?.minutes ?? null, also, date: f.date || '?', time: f.date && f.time ? f.time : '?', remind };
   };
   return (
     <div className={lifted ? 'popup front lifted' : 'popup front'} onFocus={onFocus} role="dialog" aria-modal="true" aria-label="할 일로 넣을까요?">
@@ -117,13 +120,14 @@ function TaskPopup({ popup, plan, busy, onSave, onCancel }) {
           <dd className="num">{dueText(popup)}</dd>
         </dl>
       )}
+      <RemindRow value={remind} onChange={setRemind} task noDue={editing ? !form.date : !popup.date || popup.date === '?'} />
       <div className="popup-actions">
         <button
           type="button"
           className="btn"
           autoFocus
           disabled={busy || (editing && !form.titles.some((t) => t.trim()))}
-          onClick={() => onSave(editing ? toFields(form) : { kind: 'task', title: popup.title, date: popup.date, time: popup.time, minutes: popup.minutes ?? null, also: popup.also ?? [] })}
+          onClick={() => onSave(editing ? toFields(form) : { kind: 'task', title: popup.title, date: popup.date, time: popup.time, minutes: popup.minutes ?? null, also: popup.also ?? [], remind })}
         >
           넣기
         </button>
@@ -154,7 +158,8 @@ function EventPopup({ popup, busy, onSave, onCancel }) {
   const [weekly, setWeekly] = useState(Boolean(popup.repeat));
   const prep = Array.isArray(popup.prep) ? popup.prep : [];
   const [withPrep, setWithPrep] = useState(prep.length > 0);
-  const plus = (f) => (withPrep ? { ...f, prep } : f);
+  const [remind, setRemind] = useState(null);
+  const plus = (f) => ({ ...(withPrep ? { ...f, prep } : f), remind });
   const canSaveAsIs = popup.title !== '?' && popup.date !== '?';
   const formReady = form.title.trim() && form.date;
   const guess = new Set(Array.isArray(popup.guessed) ? popup.guessed : []);
@@ -206,6 +211,7 @@ function EventPopup({ popup, busy, onSave, onCancel }) {
           </span>
         </label>
       )}
+      <RemindRow value={remind} onChange={setRemind} allDay={editing ? !form.start : !popup.time || popup.time === '?'} />
       <div className="popup-actions">
         <button
           type="button"

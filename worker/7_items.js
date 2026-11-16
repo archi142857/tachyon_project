@@ -13,6 +13,10 @@
 //   PATCH  /api/events/:id        { important, title, start, end, place } 가운데 바꿀 것만 → { event }
 //                                 시각 일정의 끝이 없으면(안 보냄·null·옛 끝이 안 맞음) 시작 + 1시간
 //   DELETE /api/events/:id        → { ok }
+//   GET    /api/reminders         앞으로 14일 안에 울릴 리마인드 → { reminders: [{ id, title, body, at }] } (11-16 사람 "하고 싶은 일정에만, 할 일·일정 모두")
+//                                 remind = 시작·마감 몇 분 전(0~1440, null = 안 함). 고치기 PATCH의 remind로 켜고 끈다(캘린더에서 온 것도 사본 없이).
+//                                 id = 폰 알림 번호(일정 10000 + 2·id, 할 일 10001 + 2·id), at = 울릴 시각. 종일 일정은 그날 9시 기준.
+//                                 폰 앱(web/src/native.js planReminders)이 이 목록대로 알림을 잡는다. 브라우저는 알림을 띄우지 않는다
 //
 // 캘린더(eTL·구글·애플·폰)에서 온 것은 그 캘린더가 원본이다. 그 줄의 제목·시각·장소를 바꾸면 15분 수집 때 되돌아가고, 지우면 다시 생긴다.
 //   일정을 고치면: 고친 사본(source memo, ext_id 'edit:<원본 id>')을 넣고 원본은 가린다(events.moved_to, 메모의 '일정 변경'과 같은 길).
@@ -47,6 +51,7 @@ export async function handle(request, env, ctx, user) {
     if (id !== null && method === 'PATCH') return patchItem(request, env, user, 'tasks', id);
     if (id !== null && method === 'DELETE') return deleteItem(env, user, 'tasks', id);
   }
+  if (table === 'reminders' && id === null && method === 'GET') return listReminders(env, user);
   if (table === 'events') {
     if (id === null && method === 'GET') return listEvents(url, env, user);
     if (id === null && method === 'POST') return createEvent(request, env, user);
@@ -58,12 +63,12 @@ export async function handle(request, env, ctx, user) {
 
 // ── 읽기 ─────────────────────────────────────────────────────────
 
-const TASK_COLUMNS = 'id, title, due, minutes, ready, done, source';
+const TASK_COLUMNS = 'id, title, due, minutes, ready, done, source, remind';
 // 끝낸 시각: 이 사람의 task_done 줄을 한 번만 모아(할 일 id마다 마지막 시각) 붙인다. 할 일마다 log를 다시 훑으면
 // D1 읽기가 '끝낸 할 일 수 × task_done 줄 수'로 커진다(11-12 무료 하루 읽기 한도).
 const DONE_AT_JOIN = `LEFT JOIN (SELECT json_extract(detail, '$.id') AS task_id, MAX(at) AS done_at FROM log
      WHERE action = 'task_done' AND user_id = ?1 AND json_valid(detail) GROUP BY 1) d ON d.task_id = tasks.id`;
-const EVENT_COLUMNS = `id, title, start, "end", place, source, important, (source = 'memo' AND ext_id LIKE 'edit:%') AS edited`; // edited = 캘린더 일정을 여기서 고친 사본
+const EVENT_COLUMNS = `id, title, start, "end", place, source, important, remind, (source = 'memo' AND ext_id LIKE 'edit:%') AS edited`; // edited = 캘린더 일정을 여기서 고친 사본
 
 async function listTasks(url, env, user) {
   const done = url.searchParams.get('done') || '0';
@@ -107,8 +112,8 @@ async function listEvents(url, env, user) {
 // ── 고치기·지우기 ────────────────────────────────────────────────
 
 const EDITABLE = {
-  tasks: { always: ['done', 'minutes', 'ready'], own: ['title', 'due'] },
-  events: { always: ['important'], own: ['title', 'start', 'end', 'place'] },
+  tasks: { always: ['done', 'minutes', 'ready', 'remind'], own: ['title', 'due'] },
+  events: { always: ['important', 'remind'], own: ['title', 'start', 'end', 'place'] },
 };
 
 async function patchItem(request, env, user, table, id) {
@@ -151,7 +156,7 @@ async function patchItem(request, env, user, table, id) {
   if (table === 'tasks' && 'done' in values && values.done !== row.done) action = values.done ? 'task_done' : 'task_undone';
   const [res] = await env.DB.batch([update, logStatement(env, user.id, action, { table, id, fields })]);
   const updated = res.results[0];
-  const pick = table === 'tasks' ? ['id', 'title', 'due', 'minutes', 'ready', 'done', 'source'] : ['id', 'title', 'start', 'end', 'place', 'source', 'important'];
+  const pick = table === 'tasks' ? ['id', 'title', 'due', 'minutes', 'ready', 'done', 'source', 'remind'] : ['id', 'title', 'start', 'end', 'place', 'source', 'important', 'remind'];
   return json({ ok: true, [table === 'tasks' ? 'task' : 'event']: Object.fromEntries(pick.map((k) => [k, updated[k] ?? null])) });
 }
 
@@ -161,14 +166,14 @@ async function createEvent(request, env, user) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return fail(400, 'JSON 본문이 필요해요');
   let e;
   try {
-    e = { title: clean('events', 'title', body.title), start: clean('events', 'start', body.start), end: clean('events', 'end', body.end ?? null), place: clean('events', 'place', body.place ?? null) };
+    e = { title: clean('events', 'title', body.title), start: clean('events', 'start', body.start), end: clean('events', 'end', body.end ?? null), place: clean('events', 'place', body.place ?? null), remind: clean('events', 'remind', body.remind ?? null) };
     e.end = eventEnd(e, body.end != null);
   } catch (err) {
     if (err instanceof BadValue) return fail(400, err.message);
     throw err;
   }
   const [res] = await env.DB.batch([
-    env.DB.prepare(`INSERT INTO events (user_id, title, start, "end", place, source) VALUES (?, ?, ?, ?, ?, 'memo') RETURNING ${EVENT_COLUMNS}`).bind(user.id, e.title, e.start, e.end, e.place),
+    env.DB.prepare(`INSERT INTO events (user_id, title, start, "end", place, source, remind) VALUES (?, ?, ?, ?, ?, 'memo', ?) RETURNING ${EVENT_COLUMNS}`).bind(user.id, e.title, e.start, e.end, e.place, e.remind),
     logStatement(env, user.id, 'item_add', { table: 'events' }),
   ]);
   return json({ ok: true, event: res.results[0] }, 201);
@@ -180,11 +185,11 @@ async function editCopy(env, user, e, fields) {
   const extId = `edit:${e.id}`;
   const [saved] = await env.DB.batch([
     env.DB.prepare(
-      `INSERT INTO events (user_id, title, start, "end", place, source, ext_id, important) VALUES (?, ?, ?, ?, ?, 'memo', ?, ?)
+      `INSERT INTO events (user_id, title, start, "end", place, source, ext_id, important, remind) VALUES (?, ?, ?, ?, ?, 'memo', ?, ?, ?)
        ON CONFLICT (user_id, source, ext_id) DO UPDATE
-         SET title = excluded.title, start = excluded.start, "end" = excluded."end", place = excluded.place, important = excluded.important
+         SET title = excluded.title, start = excluded.start, "end" = excluded."end", place = excluded.place, important = excluded.important, remind = excluded.remind
        RETURNING ${EVENT_COLUMNS}`,
-    ).bind(user.id, e.title, e.start, e.end, e.place, extId, e.important),
+    ).bind(user.id, e.title, e.start, e.end, e.place, extId, e.important, e.remind ?? null),
     env.DB.prepare(
       `UPDATE events SET moved_to = (SELECT id FROM events WHERE user_id = ?1 AND source = 'memo' AND ext_id = ?2) WHERE id = ?3 AND user_id = ?1`,
     ).bind(user.id, extId, e.id),
@@ -214,6 +219,40 @@ async function deleteItem(env, user, table, id) {
   return json({ ok: true });
 }
 
+// ── 리마인드 ─────────────────────────────────────────────────────
+
+const REMIND_DAYS = 14;
+const ahead = (m) => (m % 1440 === 0 ? '하루' : m % 60 === 0 ? `${m / 60}시간` : `${m}분`);
+
+/** 울릴 시각(ms)과 알림 글. 종일 일정은 그날 9시 기준('2026-11-16' → 09:00) */
+export function reminderOf(kind, row) {
+  const base = kind === 'event' ? row.start : row.due;
+  const allDay = DATE.test(base);
+  const baseMs = Date.parse(allDay ? `${base}T09:00:00+09:00` : base);
+  const at = baseMs - row.remind * 60000;
+  const clock = allDay ? '' : ` (${kstIso(baseMs).slice(11, 16)})`;
+  const body =
+    kind === 'event'
+      ? allDay
+        ? `${kstDate(at) === base ? '오늘' : '내일'} 종일 일정`
+        : `${row.remind ? `${ahead(row.remind)} 뒤 시작` : '지금 시작'}${clock}${row.place ? ` · ${row.place}` : ''}`
+      : `${row.remind ? `${ahead(row.remind)} 뒤 마감` : '지금 마감'}${clock}`;
+  return { id: (kind === 'event' ? 10000 : 10001) + 2 * row.id, title: row.title, body, at };
+}
+
+async function listReminders(env, user) {
+  const now = Date.now();
+  const [from, to] = [kstDate(now), kstDate(now + (REMIND_DAYS + 2) * DAY_MS)]; // 하루 전 알림까지 넉넉히 읽고 시각으로 거른다
+  const [events, tasks] = await env.DB.batch([
+    env.DB.prepare('SELECT id, title, start, place, remind FROM events WHERE user_id = ?1 AND remind IS NOT NULL AND moved_to IS NULL AND start >= ?2 AND start < ?3').bind(user.id, from, to),
+    env.DB.prepare('SELECT id, title, due, remind FROM tasks WHERE user_id = ?1 AND remind IS NOT NULL AND done = 0 AND due >= ?2 AND due < ?3').bind(user.id, from, to),
+  ]);
+  const list = [...events.results.map((r) => reminderOf('event', r)), ...tasks.results.map((r) => reminderOf('task', r))]
+    .filter((r) => r.at > now && r.at <= now + REMIND_DAYS * DAY_MS)
+    .sort((a, b) => a.at - b.at);
+  return json({ ok: true, reminders: list.map((r) => ({ ...r, at: kstIso(r.at) })) });
+}
+
 class BadValue extends Error {}
 
 function clean(table, key, value) {
@@ -224,6 +263,10 @@ function clean(table, key, value) {
       if (value === true || value === 1) return 1;
       if (value === false || value === 0) return 0;
       throw new BadValue(`${key}는 true·false예요`);
+    case 'remind':
+      if (value === null) return null;
+      if (Number.isInteger(value) && value >= 0 && value <= 1440) return value;
+      throw new BadValue('remind는 0~1440 사이 정수(몇 분 전)이거나 null이에요');
     case 'minutes':
       if (value === null) return null;
       if (Number.isInteger(value) && value >= 1 && value <= 1440) return value;

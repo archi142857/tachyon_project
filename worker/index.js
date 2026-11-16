@@ -8,7 +8,7 @@
 //   /api/briefing*   → 4_night.js            밤 정리·아침 브리핑
 //   /api/timetable*  → 5_timetable_photo.js  시간표 사진
 //   /api/feedback*   → 6_feedback.js         의견·오류 → GitHub 이슈
-//   /api/tasks*, /api/events* → 7_items.js   할 일·일정 읽기·고치기
+//   /api/tasks*, /api/events*, /api/reminders → 7_items.js   할 일·일정 읽기·고치기·리마인드
 //   /api/calendar*   → 8_calendar_feed.js    폰 달력에서 구독하는 Tachyon ICS
 //   /api/etl*        → 9_etl.js              eTL API(학생 개인 토큰, 선택): 과제·공지·강의자료·과목 일정
 //   /api/together*   → 10_together.js        친구·그룹·모임 시간표(표가 원격 D1에 생기기 전에는 503 '준비 중')
@@ -38,6 +38,7 @@ export const ROUTES = [
   ["/api/feedback", "6_feedback"],
   ["/api/tasks", "7_items"],
   ["/api/events", "7_items"],
+  ["/api/reminders", "7_items"],
   ["/api/calendar", "8_calendar_feed"],
   ["/api/etl", "9_etl"],
   ["/api/together", "10_together"],

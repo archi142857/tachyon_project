@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS events (
   source    TEXT NOT NULL,                -- etl · google · apple(ICS 칸 이름) · device(앱이 읽은 폰 캘린더) · memo · timetable · kakao · notice(eTL 공지에서 찾은 시험·휴강, 고치기·지우기 됨)
   ext_id    TEXT,                         -- ICS의 UID 등. 메모에서 나온 것은 'memo:<메모 id>'(메모 하나에 하나), 캘린더 일정을 앱에서 고친 사본은 source memo + 'edit:<원본 id>'
   important INTEGER NOT NULL DEFAULT 0,
+  remind    INTEGER,                      -- 리마인드: 시작 몇 분 전에 폰 알림(0~1440, NULL = 안 함, 11-16 사람 "하고 싶은 일정에만"). 종일 일정은 그날 9시 기준. 11-16 추가: ALTER TABLE events ADD COLUMN remind INTEGER;
   moved_to  INTEGER,                      -- 메모로 '일정 변경'을 하거나 캘린더 일정을 앱에서 고치면 옛 일정에 새 일정 id를 적는다 → 달력·브리핑에서 가린다(NULL = 보임).
                                           -- 새 일정을 지우면 NULL로 돌아온다. 11-10 추가: 있던 DB는 ALTER TABLE events ADD COLUMN moved_to INTEGER;
   gcal_id   TEXT,                         -- 구글 캘린더 연동(12_gcal.js, 11-18): 짝인 구글 일정 id. Tachyon이 넣은 것은 'tc…', 구글에서 온 것(source google)은 ext_id와 같음
@@ -53,6 +54,8 @@ CREATE INDEX IF NOT EXISTS events_gcal ON events (user_id, gcal_id) WHERE gcal_i
 -- 사람 × 시작 시각. 기간으로 읽기(달력·밀도·브리핑)와 폰 캘린더 겹침 확인이 그 사람 일정 전체를 훑지 않게.
 -- 없을 때 폰 캘린더 올리기 한 번이 D1 읽기 83만 줄이었다(일정 1232개, 11-12 무료 하루 읽기 500만 줄 초과의 원인). 원격 D1에는 11-12 10:13 넣음.
 CREATE INDEX IF NOT EXISTS events_user_start ON events (user_id, start);
+-- 리마인드 목록(GET /api/reminders)이 켠 줄만 읽게(11-16)
+CREATE INDEX IF NOT EXISTS events_remind ON events (user_id, start) WHERE remind IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS tasks (
   id         INTEGER PRIMARY KEY,
@@ -65,8 +68,10 @@ CREATE TABLE IF NOT EXISTS tasks (
   source     TEXT NOT NULL,               -- events.source와 같은 이름
   ext_id     TEXT,
   created_at TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%S+09:00', 'now', '+9 hours')), -- 브리핑의 '새로 생김'
+  remind     INTEGER,                     -- 리마인드: 마감 몇 분 전(events.remind와 같음, 마감 없으면 안 울림). 11-16 추가: ALTER TABLE tasks ADD COLUMN remind INTEGER;
   UNIQUE (user_id, source, ext_id)
 );
+CREATE INDEX IF NOT EXISTS tasks_remind ON tasks (user_id, due) WHERE remind IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS memos (
   id         INTEGER PRIMARY KEY,

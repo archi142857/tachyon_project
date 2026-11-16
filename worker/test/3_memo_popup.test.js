@@ -378,7 +378,7 @@ test("메모 쓰기 → 목록 → 팝업 저장 → 일정 생김 → 고쳐 �
   const saved = await call(env, user, "POST", `/api/memo/${memo.id}/save`, { ...popup, suggested: popup });
   await saved.ctx.settle();
   assert.equal(saved.status, 200);
-  assert.deepEqual(saved.body.event, { id: saved.body.event.id, title: "발표 연습", start: "2026-11-20T14:00:00+09:00", end: "2026-11-20T15:00:00+09:00", place: "301동", source: "memo" });
+  assert.deepEqual(saved.body.event, { id: saved.body.event.id, title: "발표 연습", start: "2026-11-20T14:00:00+09:00", end: "2026-11-20T15:00:00+09:00", place: "301동", source: "memo", remind: null });
   assert.equal(DB.sqlite.prepare("SELECT handled FROM memos WHERE id = ?").get(memo.id).handled, 1);
   assert.equal(DB.sqlite.prepare("SELECT ext_id FROM events").get().ext_id, `memo:${memo.id}`);
 
@@ -448,7 +448,7 @@ test("할 일 팝업 저장 → 할 일 생김(밤 정리와 같은 줄), 다시
   const saved = await call(env, user, "POST", `/api/memo/${memo.id}/save`, { ...popup, suggested: popup });
   await saved.ctx.settle();
   assert.equal(saved.status, 200);
-  assert.deepEqual(saved.body.task, { id: saved.body.task.id, title: "유기화학 과제 제출", due: `${findWhen("다음주 월요일", new Date()).date}T23:59:00+09:00`, minutes: null, ready: 1, done: 0, source: "memo" });
+  assert.deepEqual(saved.body.task, { id: saved.body.task.id, title: "유기화학 과제 제출", due: `${findWhen("다음주 월요일", new Date()).date}T23:59:00+09:00`, minutes: null, ready: 1, done: 0, source: "memo", remind: null });
   assert.equal(DB.sqlite.prepare("SELECT ext_id FROM tasks").get().ext_id, `memo:${memo.id}`);
   assert.equal(DB.sqlite.prepare("SELECT handled FROM memos WHERE id = ?").get(memo.id).handled, 1);
 
@@ -808,4 +808,22 @@ test("시각을 쓴 메모: 마감 말(까지·전에…)이 있으면 할 일, 
   assert.deepEqual(only(pop("11시 빨래"), ["date", "time", "end_time"]), { date: "2026-11-16", time: "11:00", end_time: "?" });
   assert.deepEqual(only(pop("11시까지 빨래"), ["kind", "title", "date", "time"]), { kind: "task", title: "빨래", date: "2026-11-16", time: "11:00" });
   assert.equal(kindOf("어제 11시에 빨래했다", "note"), null); // 그냥 메모는 그대로
+});
+
+// 11-16 사람 "리마인드는 하고 싶은 일정에만 … 팝업에서 바로 리마인드 할지 말지"
+test("팝업 저장의 remind: 일정은 매주 줄까지, 할 일은 마감이 있을 때만, 틀린 값은 안 함", async () => {
+  const DB = fakeD1();
+  const env = { DB };
+  const user = addUser(DB);
+  const memo = async (text) => (await call(env, user, "POST", "/api/memo", { text })).body;
+  const ev = await memo("2026-11-20 14:00 301동 [예시] 발표 연습");
+  const saved = await call(env, user, "POST", `/api/memo/${ev.memo.id}/save`, { ...ev.popup, remind: 30, repeat: true });
+  assert.equal(saved.body.event.remind, 30);
+  assert.deepEqual([...new Set(DB.sqlite.prepare("SELECT remind FROM events").all().map((r) => r.remind))], [30]); // 매주 줄도 같이
+  const t = await memo("2026-11-20까지 [예시] 보고서 내기");
+  assert.equal((await call(env, user, "POST", `/api/memo/${t.memo.id}/save`, { ...t.popup, remind: 60 })).body.task.remind, 60);
+  const noDue = await memo("[예시] 책 반납하기");
+  assert.equal((await call(env, user, "POST", `/api/memo/${noDue.memo.id}/save`, { kind: "task", title: "[예시] 책 반납하기", date: "?", time: "?", remind: 60 })).body.task.remind, null);
+  const bad = await memo("2026-11-21 10:00 [예시] 면담");
+  assert.equal((await call(env, user, "POST", `/api/memo/${bad.memo.id}/save`, { ...bad.popup, remind: 5000 })).body.event.remind, null);
 });

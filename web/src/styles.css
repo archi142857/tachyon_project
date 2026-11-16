@@ -232,6 +232,12 @@ h1, h2, h3, p { margin: 0; }
 .unknown { color: var(--text3); }
 .popup-move { display: flex; gap: 8px; align-items: flex-start; margin-top: 8px; min-height: 44px; }
 .popup-move input { margin-top: 2px; flex: none; }
+/* 리마인드 줄(11-16): 체크 + 언제(켜면) + 짧은 안내 */
+.remind-row { flex-wrap: wrap; align-items: center; column-gap: 10px; row-gap: 4px; }
+.remind-row .remind-on { display: flex; gap: 8px; align-items: center; min-height: 44px; }
+.remind-row .remind-on input { margin-top: 0; width: 20px; height: 20px; accent-color: var(--accent); }
+.remind-row .remind-when { height: 40px; width: auto; min-width: 0; font-size: 15px; }
+.remind-row small { flex-basis: 100%; }
 .popup-actions { display: flex; gap: 4px; margin-top: 14px; }
 .popup-actions .btn { flex: 1; }
 .form-grid { display: grid; gap: 10px; }

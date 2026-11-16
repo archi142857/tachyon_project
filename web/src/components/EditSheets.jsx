@@ -2,12 +2,13 @@
 // eTL·구글·애플·폰 캘린더에서 온 일정도 여기서 고친다: Tachyon 안에서만 바뀌고(서버가 고친 사본을 넣고 원본을 가린다, 7_items.js)
 // 그 캘린더는 그대로다. 고친 것을 지우면 원래 일정이 다시 보인다. 캘린더에서 온 일정 자체를 지우는 것은 그 캘린더에서 한다.
 // 캘린더에서 온 할 일은 이름·마감을 그쪽에서 고친다(서버도 막는다). 여기서 바꿀 수 있는 것: 걸리는 시간·'수업·자료 뒤'.
-// 지우기는 한 번 더 눌러야 지운다.
+// 지우기는 한 번 더 눌러야 지운다. 리마인드(11-16)는 일정·할 일 모두 — 캘린더에서 온 것도 사본 없이 켠다(서버 7_items.js remind).
 import { useState } from 'react';
 import { fromFeed } from '../api.js';
 import { isAllDay } from '../layout.js';
 import { dateInput, dayLabel, isoFromInputs, popupTime, timeInput } from '../time.js';
 import EventForm, { eventToForm, formToEvent } from './EventForm.jsx';
+import RemindRow from './RemindRow.jsx';
 import RouteInfo from './RouteInfo.jsx';
 import Sheet from './Sheet.jsx';
 
@@ -39,6 +40,7 @@ export function EventEditSheet({ event, leg, campus, events, onSave, onDelete, o
   // 캘린더에서 온 일정은 칸을 실제로 바꿨을 때만 이름·시간·장소를 보낸다('중요'만 누르면 사본을 만들지 않게)
   const dirty = JSON.stringify(form) !== JSON.stringify(eventToForm(event));
   const [important, setImportant] = useState(event.important ? 1 : 0);
+  const [remind, setRemind] = useState(event.remind ?? null);
   const [busy, setBusy] = useState(false);
   const ready = form.title.trim() && form.date;
 
@@ -66,6 +68,7 @@ export function EventEditSheet({ event, leg, campus, events, onSave, onDelete, o
       {!!event.edited && <p className="hint">캘린더에서 온 일정을 여기서 고친 거예요. 지우면 원래 일정이 다시 보여요.</p>}
       {event.id && <RouteInfo event={event} leg={leg} campus={campus} events={events} />}
       {event.id && <ImportantToggle value={important} onChange={setImportant} />}
+      <RemindRow value={remind} onChange={setRemind} allDay={!form.start} />
       {error && (
         <p className="error" role="alert">
           {error}
@@ -73,7 +76,7 @@ export function EventEditSheet({ event, leg, campus, events, onSave, onDelete, o
       )}
       <div className="sheet-actions">
         {!feed && onDelete && <DeleteButton busy={busy} onDelete={() => run(onDelete)} />}
-        <button type="button" className="btn" disabled={busy || !ready} onClick={() => run(() => onSave(feed && !dirty ? { important } : { ...formToEvent(form), important }))}>
+        <button type="button" className="btn" disabled={busy || !ready} onClick={() => run(() => onSave(feed && !dirty ? { important, remind } : { ...formToEvent(form), important, remind }))}>
           저장
         </button>
       </div>
@@ -116,6 +119,7 @@ export function TaskEditSheet({ task, onSave, onDelete, onClose }) {
   const [time, setTime] = useState(task.due ? timeInput(task.due) : '23:59');
   const [minutes, setMinutes] = useState(task.minutes ?? '');
   const [ready, setReady] = useState(task.ready === 0 ? 0 : 1); // 0 = 수업·자료 뒤에 할 수 있음
+  const [remind, setRemind] = useState(task.remind ?? null);
   const [busy, setBusy] = useState(false);
 
   const [error, setError] = useState(null);
@@ -132,7 +136,7 @@ export function TaskEditSheet({ task, onSave, onDelete, onClose }) {
   }
 
   function fields() {
-    const out = { minutes: minutes === '' ? null : Number(minutes), ready };
+    const out = { minutes: minutes === '' ? null : Number(minutes), ready, remind: date ? remind : null };
     if (!locked) Object.assign(out, { title: title.trim(), due: isoFromInputs(date, time) });
     return out;
   }
@@ -163,6 +167,7 @@ export function TaskEditSheet({ task, onSave, onDelete, onClose }) {
           <input type="checkbox" checked={ready === 0} onChange={(e) => setReady(e.target.checked ? 0 : 1)} style={{ width: 20, height: 20, accentColor: 'var(--accent)' }} />
           <span>수업·자료가 있어야 시작할 수 있어요</span>
         </label>
+        <RemindRow value={remind} onChange={setRemind} task noDue={!date} />
       </div>
       {error && (
         <p className="error" role="alert">
