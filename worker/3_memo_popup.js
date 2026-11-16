@@ -342,7 +342,10 @@ export function askPopupAi(env, text, now, { fetch, timeoutMs = 2500, long = fal
  * - 날짜·시각은 정규식이 먼저. 오전·오후를 짐작한 경우에만 AI의 같은 시각(3시 ↔ 15시)을 따른다.
  */
 export function mergePopup(text, when, ai, now = new Date()) {
-  const kind = ai ? aiKind(ai) : when && looksLikeSchedule(text, when) ? "schedule" : looksLikeTodo(text, when) ? "task" : "note";
+  let kind = ai ? aiKind(ai) : when && looksLikeSchedule(text, when) ? "schedule" : looksLikeTodo(text, when) ? "task" : "note";
+  // 11-16 사람 "11시 빨래는 일정, 11시까지 빨래는 할 일 — 모호함을 없애줘": 시각을 쓴 메모는 AI보다 이 규칙이 먼저.
+  // 마감 말(까지·전에·마감·제출·내기·기한)이 붙으면 그 시각이 마감인 할 일, 없으면 그 시각에 하는 일정. '2시부터 4시까지'의 까지는 시각 말이라 뺀다
+  if (kind !== "note" && when?.time && !when.past) kind = DEADLINE_WORD.test(cutSpans(text, when.spans)) ? "task" : "schedule";
   if (kind === "task") return taskPopup(text, when, ai, now);
   if (kind !== "schedule" || !when) return null; // 날짜·시각 말이 없는 일정은 팝업에 날짜를 못 채운다 → 메모로(밤 정리)
 
@@ -410,17 +413,16 @@ const DEADLINE_WORD = /까지|마감|제출|(?<![가-힣])내기|(?<!오)전에|
 
 /**
  * 할 일을 하기로 한 날·때(11-15 사람 "월요일 오전에 국축연 전화해보기" → 추천이 오늘 16:50이던 것).
- * 마감 말(까지·마감·제출·내기·전에·기한) 없이 날짜·시각·시간대를 쓴 할 일은 '그때 하겠다'는 뜻 → popup.plan
+ * 마감 말(까지·마감·제출·내기·전에·기한) 없이 날짜·시간대를 쓴 할 일은 '그때 하겠다'는 뜻 → popup.plan
  * { date, from?, to?, said? }(분, said = 화면에 보일 말 '오전'·'10:00'). 화면이 그날 그때의 빈 시간으로 추천하고, 그날 전에는 오늘 자리를 안 잡는다.
- * 시각을 썼으면 그 시각부터 1시간, 시간대만 썼으면 그 시간대(lib/known.js PARTS). 날짜 없이 시간대·시각만 쓰면 오늘 그때가 남았으면 오늘, 지났으면 내일.
+ * 시간대를 썼으면 그 시간대(lib/known.js PARTS). 시각을 쓴 메모는 할 일이 아니라 일정이다(mergePopup, 11-16). 날짜 없이 시간대만 쓰면 오늘 그때가 남았으면 오늘, 지났으면 내일.
  * 오늘이고 때도 없으면 null(오늘 추천 그대로). 지난 날도 null.
  */
 export function taskPlan(text, when, now = new Date()) {
   if (DEADLINE_WORD.test(text) || when?.past) return null;
   const iso = isoKst(now);
   const today = iso.slice(0, 10);
-  const part = partWindow(text);
-  const win = when?.time ? { from: toMin(when.time), to: Math.min(toMin(when.time) + 60, 1440), said: when.time } : part;
+  const win = partWindow(text);
   let date = when?.date ?? null;
   if (!date) {
     if (!win) return null;

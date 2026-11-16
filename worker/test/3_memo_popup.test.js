@@ -448,7 +448,7 @@ test("할 일 팝업 저장 → 할 일 생김(밤 정리와 같은 줄), 다시
   const saved = await call(env, user, "POST", `/api/memo/${memo.id}/save`, { ...popup, suggested: popup });
   await saved.ctx.settle();
   assert.equal(saved.status, 200);
-  assert.deepEqual(saved.body.task, { id: saved.body.task.id, title: "유기화학 과제 제출", due: "2026-11-16T23:59:00+09:00", minutes: null, ready: 1, done: 0, source: "memo" });
+  assert.deepEqual(saved.body.task, { id: saved.body.task.id, title: "유기화학 과제 제출", due: `${findWhen("다음주 월요일", new Date()).date}T23:59:00+09:00`, minutes: null, ready: 1, done: 0, source: "memo" });
   assert.equal(DB.sqlite.prepare("SELECT ext_id FROM tasks").get().ext_id, `memo:${memo.id}`);
   assert.equal(DB.sqlite.prepare("SELECT handled FROM memos WHERE id = ?").get(memo.id).handled, 1);
 
@@ -777,7 +777,6 @@ test("할 일을 하기로 한 날·때(plan): 날짜·시간대·시각을 쓴 
   const plan = (t) => taskPlan(t, findWhen(t, now), now);
   assert.deepEqual(plan("월요일 오전에 국축연 전화해보기"), { date: "2026-11-16", from: 540, to: 720, said: "오전" });
   assert.deepEqual(plan("월요일에 국축연 전화하기"), { date: "2026-11-16" }); // 날짜만 = 그날 아무 때
-  assert.deepEqual(plan("내일 10시에 교수님께 전화"), { date: "2026-11-16", from: 600, to: 660, said: "10:00" });
   assert.deepEqual(plan("오전에 메일 보내기"), { date: "2026-11-16", from: 540, to: 720, said: "오전" }); // 오늘 오전은 지남 → 내일, '보내기'는 마감 말 아님
   assert.deepEqual(plan("저녁에 장보기"), { date: "2026-11-15", from: 1080, to: 1260, said: "저녁" });
   assert.equal(plan("월요일까지 보고서 제출"), null);
@@ -790,4 +789,23 @@ test("할 일을 하기로 한 날·때(plan): 날짜·시간대·시각을 쓴 
   assert.equal(popup.title, "국축연 전화해보기");
   assert.equal(popup.date, "2026-11-16");
   assert.deepEqual(popup.plan, { date: "2026-11-16", from: 540, to: 720, said: "오전" });
+});
+
+// 11-16 사람 "11시 빨래라고 하면 일정이 되고, 11시까지 빨래라고 하면 할 일이 돼. 모호함을 없애줘"
+test("시각을 쓴 메모: 마감 말(까지·전에…)이 있으면 할 일, 없으면 일정 — AI가 반대로 답해도", () => {
+  const now = new Date("2026-11-15T23:58:00Z"); // 월요일 08:58
+  const pop = (t, kind) => mergePopup(t, findWhen(t, now), kind ? { kind, title: "?", time: "?", place: "?" } : null, now);
+  const only = (o, keys) => Object.fromEntries(keys.map((k) => [k, o[k]]));
+  const kindOf = (t, ai) => { const p = pop(t, ai); return p ? p.kind ?? "schedule" : null; };
+  for (const ai of [null, "task", "schedule"]) {
+    assert.equal(kindOf("11시 빨래", ai), "schedule", `11시 빨래 / AI ${ai}`);
+    assert.equal(kindOf("11시까지 빨래", ai), "task", `11시까지 빨래 / AI ${ai}`);
+    assert.equal(kindOf("11시 전에 빨래", ai), "task");
+    assert.equal(kindOf("2시부터 4시까지 빨래", ai), "schedule"); // 범위의 까지는 시각 말
+    assert.equal(kindOf("내일 10시에 교수님께 전화", ai), "schedule");
+    assert.equal(kindOf("금요일 23:59 마감 과제 제출", ai), "task");
+  }
+  assert.deepEqual(only(pop("11시 빨래"), ["date", "time", "end_time"]), { date: "2026-11-16", time: "11:00", end_time: "?" });
+  assert.deepEqual(only(pop("11시까지 빨래"), ["kind", "title", "date", "time"]), { kind: "task", title: "빨래", date: "2026-11-16", time: "11:00" });
+  assert.equal(kindOf("어제 11시에 빨래했다", "note"), null); // 그냥 메모는 그대로
 });
