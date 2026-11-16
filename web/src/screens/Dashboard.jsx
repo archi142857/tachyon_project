@@ -246,9 +246,10 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
     if (weekFrom === lastToday) setWeekFrom(today);
   }
 
-  // 주간 달력은 보이는 날 앞뒤로 calPad일씩 더 불러 둔다(좌우로 굴려 볼 몫, 11-15)
+  // 주간 달력은 보이는 날 앞뒤로 2·calPad일씩 더 불러 둔다(좌우로 굴려 볼 몫, 11-15). 달력은 멈출 때마다 다시 그리지 않고
+  // start에서 calPad일까지 떨어진 자리를 가운데로 그려 둔 채 굴리니(11-16) 두 배를 불러야 그려 둔 칸이 다 찬다
   const calRange = useMemo(
-    () => (calDays ? [addDays(weekFrom, -calPad(calDays)).toISOString(), calDays + 2 * calPad(calDays)] : [monthGrid(month.y, month.m)[0].toISOString(), 42]),
+    () => (calDays ? [addDays(weekFrom, -2 * calPad(calDays)).toISOString(), calDays + 4 * calPad(calDays)] : [monthGrid(month.y, month.m)[0].toISOString(), 42]),
     [calMode, weekFrom, month], // eslint-disable-line react-hooks/exhaustive-deps
   );
 

@@ -1,6 +1,6 @@
 // 주간 달력. 첫 칸은 start(처음엔 오늘), n = 한 화면에 보이는 날 수: 하루 · 3일 · 주(11-14 피드백, 폰은 처음 3일).
 // 좌우는 굴리기(11-15 사람 "노션 캘린더처럼 스와이프하면서 부드럽게, 좌우 스크롤"): 앞뒤로 pad(n)일씩 더 그려 두고 손·트랙패드로 굴린다.
-//   멈추면(날 칸 경계에 붙음) 맨 왼쪽 날로 onMove(며칠) → 부모가 start를 옮기고, 여기서 굴린 자리를 가운데로 되돌린다(화면은 그대로). 앞뒤 제한 없음.
+//   멈추면(날 칸 경계에 붙음) 맨 왼쪽 날로 onMove(며칠) → 부모가 start를 옮긴다. 그려 둔 칸은 그대로 두고, 가장자리 가까이 가면 그때만 start를 가운데로 다시 그린다(화면은 그대로). 앞뒤 제한 없음.
 // 위아래: 한 시간 높이를 일정 글자가 보이게 늘린 것이 기본, 두 손가락(트랙패드는 ctrl+휠)으로 확대·축소(이 기기에 기억, 11-15).
 // 빈 칸을 누르면 그 30분 자리로 onAdd(날, 분) — 일정 넣기 창(11-14). 일정은 한 번 눌러 고른 뒤에만 끌어 옮기고 아래 끝으로 길이를 바꾼다
 //   (11-15 사람 "달력 넘기는데 클릭돼서 불평" → 고르지 않은 일정은 끌리지 않음). 고른 일정을 한 번 더 누르면 자세히(onEvent).
@@ -73,7 +73,12 @@ export const clampZoom = (zoom, auto, fit) => Math.min(MAX_HOUR / auto, Math.max
 export default function WeekCalendar({ start, n = 7, events, tasks, now, density, isCurrent, onMove, onToday, onEvent, onTask, onDay, onAdd, onDrop, legs, together, onTogether }) {
   const pad = calPad(n);
   const total = n + 2 * pad; // 그려 두는 날 수
-  const from0 = addDays(start, -pad); // 그려 둔 첫 날(화면 밖 왼쪽)
+  // 그려 둔 날들은 anchor를 가운데로 둔다. 굴려 멈출 때마다 start만 바뀌고 칸은 그대로 — 가장자리 가까이 가야 다시 그린다(11-16 사람 "칸 멈추는게 너무 끊기고 불편해")
+  const [anchor, setAnchor] = useState(start);
+  const from0 = addDays(anchor, -pad); // 그려 둔 첫 날(화면 밖 왼쪽)
+  const at = dayIndex(from0, start, total); // start가 그려 둔 날의 몇째 칸인지(-1 = 밖)
+  const atRef = useRef(at);
+  atRef.current = at;
   const days = Array.from({ length: total }, (_, i) => addDays(from0, i));
   const todayIdx = dayIndex(from0, now, total);
   const showNow = todayIdx >= 0 && todayIdx < total;
@@ -102,10 +107,11 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
   const auto = view.h ? autoHour({ fit: fitHour, need: view.need, shortest }) : 0;
   const hour = auto ? auto * clampZoom(zoom, auto, fitHour) : null;
   const colW = () => scRef.current?.querySelector('.cal-grid > .col')?.getBoundingClientRect().width || 0;
+  // start 칸을 맨 왼쪽에. 이미 거기면(굴려 멈춘 자리를 알린 뒤) 건드리지 않는다 — 손이 만든 움직임을 끊지 않게
   const center = () => {
     const sc = scRef.current;
     const w = colW();
-    if (sc && w) sc.scrollLeft = pad * w;
+    if (sc && w && atRef.current >= 0 && Math.abs(sc.scrollLeft - atRef.current * w) > w / 2) sc.scrollLeft = atRef.current * w;
   };
   useLayoutEffect(() => {
     const sc = scRef.current;
@@ -119,7 +125,11 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
     measure();
     return () => ro.disconnect();
   }, [n]); // eslint-disable-line react-hooks/exhaustive-deps
-  useLayoutEffect(center, [start, n]); // eslint-disable-line react-hooks/exhaustive-deps
+  // 앞뒤로 한 화면(n일) 넘게 남지 않으면(또는 '오늘'처럼 밖으로 뛰면) start를 가운데로 다시 그린다
+  useLayoutEffect(() => {
+    if (at < n || at > total - 2 * n) setAnchor(start);
+    else center();
+  }, [at, n]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 처음 한 번: 오늘이 보이면 지금 시각 조금 위로
   const scrolledY = useRef(false);
@@ -130,7 +140,9 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
     if (isCurrent) sc.scrollTop = Math.max(0, (minuteOfDay(now) / 60 - first - 1.5) * hour);
   }, [hour]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 좌우로 굴리다 멈추면 맨 왼쪽 날로 start를 옮긴다. 손가락이 닿아 있는 동안은 기다린다
+  // 좌우로 굴리다 멈추면 맨 왼쪽 날로 start를 옮긴다(칸은 그대로라 화면이 움직이지 않는다). 손가락이 닿아 있는 동안은 기다린다.
+  // 손을 뗀 뒤 미끄러지는 동안에도 scroll이 계속 오니, 마지막 scroll에서 160ms 뒤(scrollend가 오면 그때) 멈춘 것으로 본다.
+  // (예전엔 손을 뗀 160ms 뒤에 바로 옮겨서 미끄러지던 화면이 중간에 끊겼다 — 11-16)
   const moveRef = useRef(onMove);
   moveRef.current = onMove;
   useEffect(() => {
@@ -139,32 +151,37 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
     let timer = null;
     let touching = false;
     const settle = () => {
+      clearTimeout(timer);
       const w = colW();
       if (!w || touching) return;
       const k = Math.round(sc.scrollLeft / w);
-      if (k !== pad) moveRef.current?.(k - pad);
+      if (k === atRef.current) return;
+      const by = k - atRef.current;
+      atRef.current = k; // 부모가 다시 그리기 전에 또 멈춤이 와도 두 번 옮기지 않게
+      moveRef.current?.(by);
     };
     const later = () => {
       clearTimeout(timer);
       timer = setTimeout(settle, 160);
     };
-    const hasEnd = 'onscrollend' in window;
     const onTouch = (e) => {
       touching = e.touches.length > 0;
       if (!touching) later();
     };
-    sc.addEventListener(hasEnd ? 'scrollend' : 'scroll', hasEnd ? settle : later, { passive: true });
+    sc.addEventListener('scroll', later, { passive: true });
+    sc.addEventListener('scrollend', settle, { passive: true });
     sc.addEventListener('touchstart', onTouch, { passive: true });
     sc.addEventListener('touchend', onTouch, { passive: true });
     sc.addEventListener('touchcancel', onTouch, { passive: true });
     return () => {
       clearTimeout(timer);
-      sc.removeEventListener(hasEnd ? 'scrollend' : 'scroll', hasEnd ? settle : later);
+      sc.removeEventListener('scroll', later);
+      sc.removeEventListener('scrollend', settle);
       sc.removeEventListener('touchstart', onTouch);
       sc.removeEventListener('touchend', onTouch);
       sc.removeEventListener('touchcancel', onTouch);
     };
-  }, [pad]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const slide = (dir) => scRef.current?.scrollBy({ left: dir * n * colW(), behavior: 'smooth' });
 
   // 두 손가락 벌리기·오므리기(트랙패드는 ctrl+휠) = 한 시간 높이 확대·축소. 손가락 가운데 시각이 제자리에 있게 위아래도 맞춘다
