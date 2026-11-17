@@ -60,6 +60,7 @@ test('합계: 날마다 쓴 사람(Cron·AI 줄 빼고)·새 사용자·메모, 
   log(plain.id, 'login', null, '2026-10-01T09:00:00+09:00'); // 기간 밖
   env.DB.sqlite.prepare("INSERT INTO memos (user_id, text, created_at) VALUES (?, '예시 비밀 메모', ?)").run(plain.id, today);
   env.DB.sqlite.prepare('UPDATE users SET created_at = ? WHERE id = ?').run('2026-10-01T09:00:00+09:00', admin.id);
+  env.DB.sqlite.prepare('UPDATE users SET created_at = ? WHERE id = ?').run(today, plain.id); // 가입 시각은 DB 시계(진짜 오늘)라 위 Date.now를 안 따른다 → 시험 날짜로 고정(11-14부터 깨지던 까닭)
 
   const { status, data, cache } = await get(env, adminCookie);
   assert.equal(status, 200, JSON.stringify(data));
