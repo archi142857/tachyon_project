@@ -3,10 +3,12 @@
 // 모양은 dhsrua555 시연 9판(100dvh 앱 틀). 색은 테마(바우하우스 · 입자 밤 · 입자 낮). 메모 칸은 늘 맨 아래.
 // 일정처럼 보이는 메모를 보내면 메모 칸 바로 위에 '이대로 저장할까요?' 팝업이 뜬다. 설정은 햄버거 메뉴.
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import * as api from '../api.js';
 import { dayLegs, loadCampus } from '../campus.js';
 import CalendarSheet from '../components/CalendarSheet.jsx';
 import Composer from '../components/Composer.jsx';
+import { FloatMemo, canFloat, useFloatWindow } from '../components/MemoFloat.jsx';
 import DeleteAccount from '../components/DeleteAccount.jsx';
 import DoneSheet from '../components/DoneSheet.jsx';
 import { EventEditSheet, EventInfoSheet, TaskEditSheet } from '../components/EditSheets.jsx';
@@ -220,6 +222,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   const [memos, setMemos] = useState([]);
   const [popup, setPopup] = useState(null); // { memoId, popup }
   const [waiting, setWaiting] = useState(false);
+  const [floatWin, openFloat, closeFloat] = useFloatWindow(); // 데스크탑 작은 메모 창(11-17, MemoFloat.jsx)
   const [busy, setBusy] = useState(false);
   const [sheet, setSheet] = useState(null); // 'menu' | 'done' | 'feedback' | 'install' | 'calendar' | 'etl' | 'theme' | 'delete' | { event } | { task }
   const [snack, setSnack] = useState(null);
@@ -839,7 +842,8 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
         {/* 정면 창(디자인 ⑤): 뒤를 막고 흐린다. 막을 누르면 '취소'와 같음 */}
         {popup && <div className="popup-scrim" aria-hidden="true" onClick={cancelPopup} />}
         {popup && <MemoPopup key={popup.memoId} popup={popup.popup} plan={{ events: planEvents, tasks: openTasks, today, now }} busy={busy} onSave={savePopup} onCancel={cancelPopup} />}
-        <Composer onSend={sendMemo} seed={seed} memoCount={memos.length} onMemos={() => setPage('memo')} />
+        <Composer onSend={sendMemo} seed={seed} memoCount={memos.length} onMemos={() => setPage('memo')} onFloat={canFloat() ? (floatWin ? closeFloat : openFloat) : null} floating={!!floatWin} />
+        {floatWin && createPortal(<FloatMemo onSend={sendMemo} waiting={waiting} pending={popup ? popup.popup?.title || '메모' : null} count={memos.length} />, floatWin.document.body)}
       </div>
 
       {guide && !join && (

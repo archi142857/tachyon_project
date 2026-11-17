@@ -103,6 +103,11 @@ test('/api/health는 아직 안 넣은 비밀값 이름만 알려 준다(값은 
   const data = await (await get(env, '/api/health')).json();
   assert.deepEqual(data.missing, ['GOOGLE_CLIENT_SECRET', 'ANTHROPIC_API_KEY', 'GITHUB_TOKEN']);
   assert.ok(!JSON.stringify(data).includes('example-id'));
+  assert.equal(data.ai_keys, 0);
+  // 둘째 키(팀원끼리 API 나눠 쓰기, 11-17): 개수만 보이고 값은 안 보인다
+  const two = await (await get(makeEnv({ ANTHROPIC_API_KEY: 'example-key-one', ANTHROPIC_API_KEY_2: 'example-key-two' }), '/api/health')).json();
+  assert.equal(two.ai_keys, 2);
+  assert.ok(!JSON.stringify(two).includes('example-key'));
 });
 
 test('앱용 목록(/api/calendar/items): ICS와 같은 줄을 ms 시각으로, 로그인해야 받고 내 것만', async () => {

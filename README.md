@@ -65,7 +65,7 @@ AI가 일을 부풀리지 않도록, 할 일 제목은 사용자가 쓴 말 그�
 npm install
 npm run db:local
 npm run dev
-# http://localhost:8787/api/health → {"ok":true,"tables":…,"missing":[…]}  (tables = DB 표 수, missing = 아직 안 넣은 비밀값 이름)
+# http://localhost:8787/api/health → {"ok":true,"tables":…,"missing":[…],"ai_keys":…}  (tables = DB 표 수, missing = 아직 안 넣은 비밀값 이름, ai_keys = 들어 있는 Claude 키 개수 0~2)
 ```
 
 비밀값(API 키 등)은 `npx wrangler secret put 이름`으로만 넣고 저장소에 적지 않습니다. 실제 일정·이름·학번·캘린더 주소도 저장소·예시·캡처에 넣지 않습니다.

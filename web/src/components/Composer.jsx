@@ -2,11 +2,12 @@
 // 모든 테마: 왼쪽 '메모 N ▴'(메모 쪽으로, 예전엔 입자 테마에만 — 사람 11-15 16:52 "서로에게 없는 기능은 다 넣고"), 가운데 입력, 오른쪽 보내기.
 // 보내기 단추 모양만 테마 몫: 입자는 흰 '남기기 →'(nine.css), 나머지는 화살표 그림.
 // seed = { text } — 달력의 '+ 일정' · '+ 할 일'이 날짜를 미리 적어 두고 칸에 초점을 준다(일정은 메모 → 팝업 → 저장으로만 생긴다).
+// onFloat = 데스크탑 작은 메모 창 열기/닫기(MemoFloat.jsx, 크롬 · 엣지 PC만 — 없으면 단추도 없음), floating = 열려 있는지.
 import { useEffect, useRef, useState } from 'react';
 import { useParticles } from '../themeName.js';
 import Icon from './Icon.jsx';
 
-export default function Composer({ onSend, disabled, seed, memoCount = 0, onMemos }) {
+export default function Composer({ onSend, disabled, seed, memoCount = 0, onMemos, onFloat = null, floating = false }) {
   const nine = useParticles();
   const [text, setText] = useState('');
   const input = useRef(null);
@@ -56,6 +57,12 @@ export default function Composer({ onSend, disabled, seed, memoCount = 0, onMemo
             send();
           }}
         />
+        {onFloat && (
+          <button type="button" className="float-btn" aria-pressed={floating} title={floating ? '작은 메모 창 닫기' : '다른 창 위에 늘 떠 있는 작은 메모 창'} onClick={onFloat}>
+            <Icon name="float" size={18} />
+            <span>{floating ? '창 닫기' : '작은 창'}</span>
+          </button>
+        )}
         <button type="submit" className="send" aria-label="메모 보내기" disabled={!text.trim() || disabled}>
           {nine ? '남기기' : <Icon name="send" />}
         </button>

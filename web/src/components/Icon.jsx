@@ -8,6 +8,7 @@ const PATHS = {
   sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
   inbox: 'M4 13h4l2 3h4l2-3h4M4 13l2.5-7h11l2.5 7v6H4z',
   moon: 'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z',
+  float: 'M3 5h18v14H3zM12 12h6v4h-6z', // 작은 창(창 안 오른쪽 아래 작은 창)
 };
 
 export default function Icon({ name, size = 24 }) {

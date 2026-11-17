@@ -57,16 +57,18 @@ export default {
       if (url.pathname === "/api/health") {
         // 아직 안 넣은 비밀값 이름(값은 안 보임). 설정이 끝나면 빈 배열.
         const missing = ["APP_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "ANTHROPIC_API_KEY", "GITHUB_TOKEN"].filter((k) => !env[k]);
+        // 들어 있는 Claude 키 개수(0~2, 값은 안 보임) — 둘째 키(ANTHROPIC_API_KEY_2, 팀원끼리 API 나눠 쓰기)를 넣었는지 밖에서 보려고(11-17)
+        const ai_keys = [env.ANTHROPIC_API_KEY, env.ANTHROPIC_API_KEY_2].filter(Boolean).length;
         try {
           const row = await env.DB.prepare("SELECT count(*) AS n FROM sqlite_master WHERE type = 'table'").first();
           // 읽기 하나가 지나가도 이 Worker가 방금 한도 오류(읽기·쓰기)를 봤으면 같이 알린다(lib/dberror.js)
           const seen = recentLimit();
-          if (seen) return Response.json({ ok: false, tables: row.n, problem: "limit", seen: kstIso(seen), missing }, { status: 503 });
-          return Response.json({ ok: true, tables: row.n, missing });
+          if (seen) return Response.json({ ok: false, tables: row.n, problem: "limit", seen: kstIso(seen), missing, ai_keys }, { status: 503 });
+          return Response.json({ ok: true, tables: row.n, missing, ai_keys });
         } catch (err) {
           // D1이 답하지 않을 때 그 까닭(무료 한도·바쁨 등)을 밖에서 바로 보게 오류 글 첫 줄만. 개인 정보는 없는 글이다.
           console.error("health: D1 실패", err && err.message);
-          return Response.json({ ok: false, db: dbError(err), problem: dbProblem(err), missing }, { status: 503 });
+          return Response.json({ ok: false, db: dbError(err), problem: dbProblem(err), missing, ai_keys }, { status: 503 });
         }
       }
 

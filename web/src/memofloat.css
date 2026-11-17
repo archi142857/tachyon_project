@@ -1,0 +1,16 @@
+/* 데스크탑 작은 메모 창(11-17 사람 목록 '데스크탑에서 우측 하단에 늘 메모 칸', components/MemoFloat.jsx).
+   단추는 넓은 화면 · 마우스가 있는 기기에서만(폰엔 그 창이 없다). 작은 창 안은 창 크기에 꽉 차게, 색은 그 테마 값 */
+.composer .float-btn { display: none; }
+@media (min-width: 900px) and (hover: hover) {
+  .composer .float-btn { display: inline-flex; align-items: center; gap: 6px; flex: none; height: 36px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: var(--r-btn); background: transparent; color: var(--text2); font: inherit; font-size: 14px; white-space: nowrap; cursor: pointer; }
+  .composer .float-btn:hover, .composer .float-btn[aria-pressed='true'] { color: var(--text); background: var(--fill); }
+}
+
+.float-body { margin: 0; min-height: 100vh; display: flex; align-items: center; background: var(--bg); color: var(--text); overflow: hidden; }
+.float-memo { box-sizing: border-box; width: 100%; padding: 12px 14px; display: grid; gap: 8px; }
+.float-memo form { display: flex; gap: 8px; align-items: center; }
+.float-memo input { flex: 1; min-width: 0; height: 44px; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: var(--r-btn); background: var(--card); color: var(--text); font: inherit; font-size: 15px; outline: none; }
+.float-memo input:focus { border-color: var(--text); }
+.float-memo .send { flex: none; height: 44px; padding: 0 16px; border: 0; border-radius: var(--r-btn); background: var(--text); color: var(--bg); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.float-memo .send:disabled { opacity: 0.4; cursor: default; }
+.float-line { margin: 0; font-size: 12px; line-height: 1.4; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
