@@ -337,6 +337,14 @@ export async function disconnectGcal() {
   await call('DELETE', '/api/gcal');
   gcalOn = false;
 }
+// AI 앱 연결(13_mcp.js): Claude·ChatGPT·Gemini에 넣을 주소와 연결된 앱 목록 → { mcp, links: [{ id, client, host, created_at, used_at }] }
+export async function getAiLinks() {
+  if (ex) return reply({ mcp: `${BASE || location.origin}/mcp`, links: [], example: true });
+  return call('GET', '/api/ai');
+}
+export async function unlinkAi(id) {
+  await call('DELETE', `/api/ai/${id}`);
+}
 // 구글 동의 화면으로 가는 주소(화면 전체를 옮긴다 → 끝나면 /?gcal=ok|denied|scope|… 로 돌아옴)
 export const gcalConnectUrl = () => `${BASE}/api/gcal/connect`;
 const GCAL_BACK = {

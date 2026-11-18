@@ -13,7 +13,7 @@ watch_dir = "web/src"
 [assets]
 directory = "web/dist"
 not_found_handling = "single-page-application"
-run_worker_first = ["/api/*"]
+run_worker_first = ["/api/*", "/mcp", "/oauth/*", "/.well-known/*"] # 13_mcp.js: AI 앱 연결
 
 [[d1_databases]]
 binding = "DB"

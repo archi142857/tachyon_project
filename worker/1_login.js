@@ -227,7 +227,7 @@ function redirectUri(url) {
 /** 로그인 뒤 돌아갈 곳은 이 사이트 안의 경로만(밖으로 튕기는 데 쓰이지 않게). */
 export function safeNext(next) {
   if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\') || next.startsWith('/api/')) return '/';
-  return next.slice(0, 200);
+  return next.slice(0, 2000); // AI 앱 연결(13_mcp.js)의 /oauth/authorize?… 가 길다
 }
 
 // ── 계정 지우기 ──────────────────────────────────────────────────
@@ -235,7 +235,8 @@ export function safeNext(next) {
 // 이 사람의 줄은 표마다 다 지운다(schema의 ON DELETE CASCADE에 기대지 않고 직접, 한 batch = 한 번에).
 // log도 지운다(남는 것은 이름 없는 'account_delete' 한 줄). GitHub 이슈에는 '사용자 #번호'만 있어 그대로 둔다.
 // 새 표에 user_id가 생기면 여기에 더한다. 원격 D1에 아직 없는 표는 건너뛴다(없는 표 하나 때문에 batch 전체가 실패하지 않게).
-const USER_TABLES = ['feeds', 'events', 'tasks', 'memos', 'briefings', 'etl', 'etl_items', 'log'];
+// gcal_gone은 events 뒤(일정을 지우면 트리거가 거기에 줄을 넣는다)
+const USER_TABLES = ['feeds', 'events', 'tasks', 'memos', 'briefings', 'etl', 'etl_items', 'log', 'gcal', 'gcal_gone', 'ai_links'];
 
 async function deleteAccount(request, env, user) {
   const body = await readJson(request);

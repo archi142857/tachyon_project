@@ -5,6 +5,7 @@
 //   GET    /api/tasks?limit=3     끝나지 않은 할 일을 여유 적은 순(4_night.js의 rankTasks)으로 → { tasks, warning }
 //                                 warning = 몰린 주 경고 문장(없으면 null)
 //   GET    /api/tasks?done=1      끝낸 할 일(끝낸 지 얼마 안 된 순, done_at = 끝낸 시각) · done=all 전부(안 끝낸 것 먼저)
+//   POST   /api/tasks             { title, due?, minutes?, remind? } → { task } 할 일 바로 넣기(AI 앱 연결 13_mcp.js가 씀, source memo)
 //   PATCH  /api/tasks/:id         { done, minutes, ready, title, due } 가운데 바꿀 것만 → { task }
 //   DELETE /api/tasks/:id         → { ok }
 //   GET    /api/events?from=2026-11-09&to=2026-11-16
@@ -48,6 +49,7 @@ export async function handle(request, env, ctx, user) {
 
   if (table === 'tasks') {
     if (id === null && method === 'GET') return listTasks(url, env, user);
+    if (id === null && method === 'POST') return createTask(request, env, user);
     if (id !== null && method === 'PATCH') return patchItem(request, env, user, 'tasks', id);
     if (id !== null && method === 'DELETE') return deleteItem(env, user, 'tasks', id);
   }
@@ -161,6 +163,23 @@ async function patchItem(request, env, user, table, id) {
 }
 
 // 달력 빈 칸을 눌러 넣기(11-14 피드백 '달력에서 클릭해서 일정 넣기'). 칸 검사는 고치기와 같은 clean · eventEnd(끝이 없으면 1시간)
+async function createTask(request, env, user) {
+  const body = await readJson(request);
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return fail(400, 'JSON 본문이 필요해요');
+  let t;
+  try {
+    t = { title: clean('tasks', 'title', body.title), due: clean('tasks', 'due', body.due ?? null), minutes: clean('tasks', 'minutes', body.minutes ?? null), remind: clean('tasks', 'remind', body.remind ?? null) };
+  } catch (err) {
+    if (err instanceof BadValue) return fail(400, err.message);
+    throw err;
+  }
+  const [res] = await env.DB.batch([
+    env.DB.prepare(`INSERT INTO tasks (user_id, title, due, minutes, source, remind) VALUES (?, ?, ?, ?, 'memo', ?) RETURNING ${TASK_COLUMNS}`).bind(user.id, t.title, t.due, t.minutes, t.remind),
+    logStatement(env, user.id, 'item_add', { table: 'tasks' }),
+  ]);
+  return json({ ok: true, task: res.results[0] }, 201);
+}
+
 async function createEvent(request, env, user) {
   const body = await readJson(request);
   if (!body || typeof body !== 'object' || Array.isArray(body)) return fail(400, 'JSON 본문이 필요해요');

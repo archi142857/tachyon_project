@@ -223,6 +223,19 @@
 
 연동 중에는 구글 일정(`source: 'google'`)도 고치기 · 지우기가 되고(`fromFeed`가 false), 구독 주소 · 폰 'Tachyon' 캘린더에는 할 일 마감만 들어간다.
 
+## 13_mcp (11-19, 사람 요청) — 있음, 원격 D1에 `ai_links` 표가 생기기 전에는 `ready: false` (`worker/13_mcp.js`)
+
+Claude · ChatGPT · Gemini 같은 AI 앱이 Tachyon을 읽고(일정 · 빈 시간 · 할 일 · eTL 공지와 강의자료 · 브리핑 · 메모) 일정 · 할 일을 넣게 하는 원격 MCP 서버. 화면은 메뉴 'AI 에이전트 연결'(`AiSheet.jsx`): 주소 복사 · 앱별 붙이는 법 · 연결된 앱 끊기.
+
+| 주소 | 하는 일 |
+|---|---|
+| `GET /api/ai` | `{ mcp, links: [{ id, client, host, created_at, used_at }], ready? }` — `mcp`가 AI 앱에 넣을 주소 |
+| `DELETE /api/ai/:id` | 연결 끊기(그 앱의 토큰이 바로 안 먹음) |
+| `POST /mcp` | AI 앱이 부르는 MCP(JSON-RPC, Bearer 토큰). 도구: `get_briefing` `get_schedule` `find_free_time` `list_tasks` `get_etl` `list_memos`(읽기) · `add_event` `add_task`(넣기) |
+| `/.well-known/oauth-*`, `/oauth/*` | AI 앱의 로그인(OAuth 2.1 + PKCE). `/oauth/authorize`는 Tachyon 허락 화면(로그인 안 했으면 로그인부터) |
+
+`POST /api/tasks { title, due?, minutes?, remind? }` → `{ task }`(할 일 바로 넣기, 7_items)도 이때 생김. 화면은 아직 안 씀.
+
 ## 아직 화면이 없는 것 (2단계)
 
 - 아침 브리핑 카드: `GET /api/briefing` (AI, 있음). 시안 3개는 캔버스에 있고, 고르는 것은 디자인 결정과 같이 미뤄짐(컨셉 11-09 23:56).

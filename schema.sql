@@ -217,3 +217,16 @@ CREATE TRIGGER IF NOT EXISTS events_gcal_gone AFTER DELETE ON events WHEN OLD.gc
 BEGIN
   INSERT OR IGNORE INTO gcal_gone (user_id, gcal_id) VALUES (OLD.user_id, OLD.gcal_id);
 END;
+
+-- AI 앱 연결(worker/13_mcp.js, 11-19 사람 "클로드·gpt·gemini가 타키온 항목을 읽고 답변"). 연결 하나(AI 앱이 허락받고 토큰을 받은 것) = 줄 하나.
+-- 토큰은 표에 두지 않는다(APP_SECRET으로 잠근 글). 줄을 지우면 그 연결의 토큰이 바로 안 먹는다.
+-- 있던 원격 D1에 한 번 넣는다: npx wrangler d1 execute tachyon --remote --file worker/migrations/13_mcp.sql
+CREATE TABLE IF NOT EXISTS ai_links (
+  id         INTEGER PRIMARY KEY,
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  client     TEXT NOT NULL,               -- AI 앱이 알려 준 이름(앱이 지어 낼 수 있어 host와 같이 보인다)
+  host       TEXT,                        -- 허락 뒤 돌아간 주소의 호스트(claude.ai, chatgpt.com, localhost …)
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S+09:00', 'now', '+9 hours')),
+  used_at    TEXT                         -- 마지막으로 토큰을 새로 받은 시각
+);
+CREATE INDEX IF NOT EXISTS ai_links_user ON ai_links (user_id);

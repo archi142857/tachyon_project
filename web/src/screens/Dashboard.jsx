@@ -7,6 +7,7 @@ import { createPortal } from 'react-dom';
 import * as api from '../api.js';
 import { dayLegs, loadCampus } from '../campus.js';
 import CalendarSheet from '../components/CalendarSheet.jsx';
+import AiSheet from '../components/AiSheet.jsx';
 import Composer from '../components/Composer.jsx';
 import { FloatMemo, canFloat, useFloatWindow } from '../components/MemoFloat.jsx';
 import DeleteAccount from '../components/DeleteAccount.jsx';
@@ -965,6 +966,9 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
             <button type="button" onClick={() => setSheet('calendar')}>
               구글 캘린더 연동·폰 달력
             </button>
+            <button type="button" onClick={() => setSheet('ai')}>
+              AI 에이전트 연결 (Claude · ChatGPT · Gemini)
+            </button>
             {!standalone() && (
               <button type="button" onClick={() => setSheet('install')}>
                 홈 화면에 추가
@@ -1007,6 +1011,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
       {sheet === 'feedback' && <FeedbackSheet screen={`대시보드 · ${PAGES.find(([k]) => k === page)[1]}`} onClose={() => setSheet(null)} onSent={(text) => setSnack({ text })} />}
       {sheet === 'install' && <InstallSheet prompt={installPrompt} onClose={() => setSheet(null)} />}
       {sheet === 'calendar' && <CalendarSheet onClose={() => setSheet(null)} />}
+      {sheet === 'ai' && <AiSheet onClose={() => setSheet(null)} />}
       {sheet === 'ttw' && (
         <TtwSheet
           initialLink={ttwFrom}
