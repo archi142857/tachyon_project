@@ -101,6 +101,8 @@ html[data-theme^='입자'] :is(.cal-stick, .cal-stick .axis-label, .cal-grid > .
 .cal-stick .axis-label, .cal-grid > .hours { position: sticky; left: 0; z-index: 3; align-self: stretch; display: flex; align-items: center; }
 .cal-grid > .hours { display: block; }
 .cal-grid .ev.selected { touch-action: none; cursor: grab; outline: 2px solid var(--accent); outline-offset: -2px; z-index: 3; }
+/* 11-19 사람 "아래로 내릴 때랑 옆으로 넘길 때가 자꾸 충돌": 손가락은 위아래만 브라우저가 굴리고(처음 방향으로 잠김), 옆은 useSwipe.js가 한 화면씩 용수철로 */
+.cal-scroll.x, .cal-scroll.x :not(.ev.selected, .ev-grip) { touch-action: pan-y; }
 .cal-sel-hint { margin: 0 2px 4px; font-size: 12px; line-height: 16px; color: var(--text3); }
 /* 일정 글은 칸 맨 위부터(단추는 글을 가운데로 내려 긴 일정은 글이 칸 가운데에 있었다), 표시(점·네모·♩)는 글 옆에 — 글이 표시 아래로 밀려 안 보이던 것도 막는다(11-15) */
 .cal-grid .ev { display: flex; flex-wrap: wrap; align-content: flex-start; align-items: flex-start; }

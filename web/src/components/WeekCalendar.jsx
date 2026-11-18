@@ -20,6 +20,7 @@ import DensityRing from './DensityRing.jsx';
 import Icon from './Icon.jsx';
 import { tint } from '../themeName.js';
 import useEventDrag from './useEventDrag.js';
+import useSwipe from './useSwipe.js';
 
 const timeText = (ev) => `${hhmm(ev.start)}–${hhmm(endOrHour(ev.start, ev.end))}`; // 끝이 없으면 1시간(11-13)
 
@@ -143,6 +144,8 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
   // 좌우로 굴리다 멈추면 맨 왼쪽 날로 start를 옮긴다(칸은 그대로라 화면이 움직이지 않는다). 손가락이 닿아 있는 동안은 기다린다.
   // 손을 뗀 뒤 미끄러지는 동안에도 scroll이 계속 오니, 마지막 scroll에서 160ms 뒤(scrollend가 오면 그때) 멈춘 것으로 본다.
   // (예전엔 손을 뗀 160ms 뒤에 바로 옮겨서 미끄러지던 화면이 중간에 끊겼다 — 11-16)
+  // 폰 손가락 좌우 넘기기는 useSwipe(방향 잠금 + 한 화면씩 용수철, 11-19). 넘기는 동안은 멈춘 것으로 보지 않는다
+  const swiping = useSwipe(scRef, colW, n);
   const moveRef = useRef(onMove);
   moveRef.current = onMove;
   useEffect(() => {
@@ -153,7 +156,7 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
     const settle = () => {
       clearTimeout(timer);
       const w = colW();
-      if (!w || touching) return;
+      if (!w || touching || swiping.current) return;
       const k = Math.round(sc.scrollLeft / w);
       if (k === atRef.current) return;
       const by = k - atRef.current;
