@@ -34,6 +34,7 @@ import { json, fail, readJson, UserError } from './lib/http.js';
 import { kstIso, kstDate, kstMidnight, DAY_MS } from './lib/time.js';
 import { logStatement } from './lib/log.js';
 import { fetchCalDav, CalDavError } from './lib/caldav.js';
+import { isLinked, linkedUsers } from './12_gcal.js';
 
 // naver = 네이버 캘린더(11-13 컨셉, 사람 요청). 구독 주소가 없어 CalDAV로 읽는다(lib/caldav.js):
 // PUT {"naver": {"id": "네이버 아이디", "password": "애플리케이션 비밀번호"}}. 둘을 JSON으로 묶어 주소처럼 잠가 feeds.url에 둔다.
@@ -356,8 +357,10 @@ function removeFeedStatements(env, userId, kind) {
 /** 한 사용자의 주소를 받는다(지금 받기). minGapMs 안에 이미 시도한 주소는 건너뛴다. */
 export async function collectUser(env, userId, { force = false, kinds = KINDS, now = Date.now(), minGapMs = 0 } = {}) {
   const { results } = await env.DB.prepare('SELECT * FROM feeds WHERE user_id = ?').bind(userId).all();
+  // 구글 캘린더를 API로 연동했으면(12_gcal.js) 구글 ICS 주소는 건너뛴다 — 같은 일정이 두 번 들어오지 않게
+  const linked = results.some((row) => row.kind === 'google') && (await isLinked(env, userId));
   const out = [];
-  for (const feed of results.filter((row) => kinds.includes(row.kind))) {
+  for (const feed of results.filter((row) => kinds.includes(row.kind) && !(row.kind === 'google' && linked))) {
     if (minGapMs > 0 && feed.last_try_at && feed.last_try_at > kstIso(now - minGapMs)) {
       out.push({ kind: feed.kind, ok: true, same: true, recent: true });
       continue;
@@ -389,6 +392,11 @@ export async function collectDue(env, now = Date.now()) {
   await env.DB.prepare('UPDATE feeds SET last_try_at = ?1 WHERE id IN (SELECT value FROM json_each(?2))')
     .bind(kstIso(now), JSON.stringify(results.map((f) => f.id)))
     .run();
+  // 구글 캘린더를 API로 연동한 사람의 구글 ICS 주소는 시도 시각만 적고 건너뛴다(12_gcal.js)
+  if (results.some((f) => f.kind === 'google')) {
+    const linked = await linkedUsers(env);
+    results = results.filter((f) => !(f.kind === 'google' && linked.has(f.user_id)));
+  }
 
   // 작은 캘린더부터(지난번 개수 순, 모르면 맨 뒤). 무료 요금제(CPU 10ms)에서 큰 캘린더가 한도에 걸려
   // 이번 차례가 끊겨도 그 앞의 작은 캘린더는 받히고, 끊긴 큰 캘린더 때문에 다른 주소가 계속 밀리지 않는다.

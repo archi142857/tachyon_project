@@ -71,6 +71,7 @@
 | Tachyon-30 | 2026-11-15 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5) | 메모 시각: 시 없는 범위('7-9') · 그 일을 보통 하는 때로 오전·오후와 추천 | [Tachyon-30-시-없는-범위-보통-하는-때.md](Tachyon-30-시-없는-범위-보통-하는-때.md) | 사용자 직접 지시 | 사용자 → Claude Code |
 | Tachyon-31 | 2026-11-16 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5) | 시각을 쓴 메모: '까지'면 할 일, 없으면 일정 | [Tachyon-31-시각-까지-할-일-없으면-일정.md](Tachyon-31-시각-까지-할-일-없으면-일정.md) | 사용자 직접 지시 | 사용자 → Claude Code |
 | Tachyon-33 | 2026-11-16 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5) | 달력 좌우 굴리기: 멈출 때 끊기던 것 | [Tachyon-33-달력-멈출-때-끊김.md](Tachyon-33-달력-멈출-때-끊김.md) | 사용자 직접 지시 | 사용자 → Claude Code |
+| Tachyon-34 | 2026-11-18 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5) | 구글 캘린더 실시간 양방향 연동(노션 캘린더 포함) | [Tachyon-34-구글-캘린더-실시간-연동.md](Tachyon-34-구글-캘린더-실시간-연동.md) | 사용자 직접 지시 | 사용자 → Claude Code |
 | Tachyon-컨셉-01 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | Tachyon-컨셉-01. 앞 자료와 기획안 읽기 | [Tachyon-컨셉-01-자료-학습.md](Tachyon-컨셉-01-자료-학습.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
 | Tachyon-컨셉-02 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결 | Tachyon-컨셉-02. 인수인계 확인과 공유 드라이브 연결 | [Tachyon-컨셉-02-인수인계와-드라이브.md](Tachyon-컨셉-02-인수인계와-드라이브.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
 | Tachyon-컨셉-03 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | Tachyon-컨셉-03. 세션 나누기와 세션끼리 소통하는 방식 | [Tachyon-컨셉-03-세션-나누기.md](Tachyon-컨셉-03-세션-나누기.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |

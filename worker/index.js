@@ -13,6 +13,7 @@
 //   /api/etl*        → 9_etl.js              eTL API(학생 개인 토큰, 선택): 과제·공지·강의자료·과목 일정
 //   /api/together*   → 10_together.js        친구·그룹·모임 시간표(표가 원격 D1에 생기기 전에는 503 '준비 중')
 //   /api/admin*      → 11_admin.js           개발자 보기: 사용자 활동 합계(ADMIN_EMAILS에 든 사람만, 아니면 404)
+//   /api/gcal*       → 12_gcal.js            구글 캘린더 실시간 양방향 연동(노션 캘린더는 구글 캘린더를 보여 줌). 쓰기 요청 뒤에도 부른다(아래)
 //
 // 번호 파일 약속: `export async function handle(request, env, ctx, user)`
 //   user = 로그인한 사람의 users 행(로그인 안 했으면 null). Cron이 필요하면 `export async function scheduled(event, env, ctx)`.
@@ -41,6 +42,7 @@ export const ROUTES = [
   ["/api/etl", "9_etl"],
   ["/api/together", "10_together"],
   ["/api/admin", "11_admin"],
+  ["/api/gcal", "12_gcal"],
 ];
 
 // wrangler.toml의 crons와 같아야 한다 (UTC)
@@ -48,7 +50,11 @@ export const CRONS = {
   "*/15 * * * *": "2_collect_ics", // 15분마다 ICS 수집
   "30 16 * * *": "4_night", // 한국 01:30 밤 정리
   "*/10 * * * *": "9_etl", // eTL API 수집(오래 안 받은 사람부터, 요청 한도 안에서)
+  "*/30 * * * *": "12_gcal", // 구글 캘린더: 알림 채널 새로 열기 · 놓친 알림 메우기 · 하루 한 번 전체 받기
 };
+
+// 쓰기 요청이 끝나면 바뀐 일정을 구글 캘린더에 바로 보낸다(연동한 사람만, 안 한 사람은 DB 읽기 한 번). 일정을 안 건드리는 곳은 뺀다
+const NO_GCAL_AFTER = new Set(["1_login", "6_feedback", "11_admin", "12_gcal"]);
 
 export default {
   async fetch(request, env, ctx) {
@@ -87,6 +93,9 @@ export default {
         console.error("로그인 확인 실패", err && err.message);
       }
       const res = await mod.handle(request, env, ctx, user);
+      if (user && res instanceof Response && res.ok && !["GET", "HEAD", "OPTIONS"].includes(request.method) && !NO_GCAL_AFTER.has(name)) {
+        ctx.waitUntil(loadModule("12_gcal").then((m) => m && m.afterWrite(env, user.id)).catch((err) => console.error("구글 캘린더 보내기 실패", err && err.message)));
+      }
       // 번호 파일이 맞는 길을 못 찾고 아무것도 안 돌려주면(빠뜨린 return) 런타임 오류 대신 404
       return res instanceof Response ? res : Response.json({ error: "없는 주소" }, { status: 404 });
     } catch (err) {
@@ -137,6 +146,7 @@ const IMPORTERS = {
   9: (rest) => import(`./9_${rest}.js`),
   10: (rest) => import(`./10_${rest}.js`),
   11: (rest) => import(`./11_${rest}.js`),
+  12: (rest) => import(`./12_${rest}.js`),
 };
 
 /** 번호 파일(예: "3_memo_popup")을 불러온다. 아직 없으면 null. */

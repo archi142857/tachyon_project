@@ -26,6 +26,7 @@ import { rankTasks, crowdedWarning } from './4_night.js';
 import { json, fail, readJson } from './lib/http.js';
 import { kstDate, kstIso, DAY_MS } from './lib/time.js';
 import { logStatement } from './lib/log.js';
+import { isLinked } from './12_gcal.js';
 
 const FEED_SOURCES = new Set(['etl', 'google', 'apple', 'naver', 'device']);
 const FEED_NAMES = { etl: 'eTL', google: '구글 캘린더', apple: '애플 캘린더', naver: '네이버 캘린더', device: '폰 캘린더' };
@@ -136,7 +137,7 @@ async function patchItem(request, env, user, table, id) {
     throw err;
   }
 
-  if (FEED_SOURCES.has(row.source)) {
+  if (FEED_SOURCES.has(row.source) && !(await gcalOwn(env, user, table, row))) {
     const changed = fields.filter((k) => own.includes(k) && values[k] !== row[k]);
     if (changed.length && table === 'tasks') return fail(409, `${FEED_NAMES[row.source]}에서 온 할 일이라 제목·마감은 ${FEED_NAMES[row.source]}에서 고쳐 주세요(15분 안에 바뀌어요)`);
     if (changed.length) return editCopy(env, user, { ...row, ...values }, changed);
@@ -192,10 +193,15 @@ async function editCopy(env, user, e, fields) {
   return json({ ok: true, event: saved.results[0] });
 }
 
+// 구글 캘린더를 API로 연동했으면(12_gcal.js) 구글 일정도 여기서 바로 고치고 지운다 → 구글에도 그대로 간다(사본을 만들지 않음)
+async function gcalOwn(env, user, table, row) {
+  return table === 'events' && row.source === 'google' && isLinked(env, user.id);
+}
+
 async function deleteItem(env, user, table, id) {
   const row = await env.DB.prepare(`SELECT source FROM ${table} WHERE id = ? AND user_id = ?`).bind(id, user.id).first();
   if (!row) return fail(404, '없는 항목이에요');
-  if (FEED_SOURCES.has(row.source)) {
+  if (FEED_SOURCES.has(row.source) && !(await gcalOwn(env, user, table, row))) {
     const name = FEED_NAMES[row.source];
     return fail(409, table === 'tasks' ? `${name}에서 온 할 일은 지울 수 없어요. 끝냈으면 체크해 주세요` : `${name}에서 온 일정은 ${name}에서 지워 주세요`);
   }

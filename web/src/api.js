@@ -200,7 +200,9 @@ export async function collectFeeds() {
 // 일정: 고치면 서버가 고친 사본(새 id, edited 1)을 넣고 원본을 가린다(Tachyon에서만 바뀜). 지우기는 409.
 // 할 일: 제목·마감 고치기와 지우기는 409, done·minutes·ready만 된다.
 export const FEED_SOURCES = ['etl', 'google', 'apple', 'naver', 'device']; // device = 앱이 읽은 폰 캘린더, naver = 네이버 캘린더(CalDAV)
-export const fromFeed = (item) => FEED_SOURCES.includes(item.source);
+// 구글 캘린더를 연동했으면(12_gcal.js) 구글 일정도 Tachyon에서 바로 고치고 지운다(구글에도 그대로 감)
+let gcalOn = false;
+export const fromFeed = (item) => FEED_SOURCES.includes(item.source) && !(gcalOn && item.source === 'google');
 
 // 그 주(월요일 0시부터 7일)의 일정. from·to는 한국 날짜, to는 빼고 센다.
 export async function getWeekEvents(start) {
@@ -304,6 +306,35 @@ export function getCalendarFeed() {
   if (ex) return reply({ url: 'https://example.com/api/calendar/0.example.ics', webcal: 'webcal://example.com/api/calendar/0.example.ics', example: true });
   return call('GET', '/api/calendar');
 }
+
+/* ── 12_gcal (worker/12_gcal.js, 11-18): 구글 캘린더 실시간 양방향 연동. 노션 캘린더는 구글 캘린더를 보여 줘서 같이 맞춰진다 ── */
+
+// → { ready, linked, error, pulled_at }. ready false = 서버에 아직 준비가 안 됨(표·구글 설정)
+export async function getGcal() {
+  if (ex) return reply({ ready: true, linked: false, error: null, pulled_at: null, example: true });
+  const r = await call('GET', '/api/gcal');
+  gcalOn = r.linked;
+  return r;
+}
+// 화면에 돌아올 때 한 번 맞춘다(알림을 놓쳐도) → { linked }
+export async function syncGcal() {
+  if (ex) return { linked: false };
+  const r = await call('POST', '/api/gcal/sync');
+  gcalOn = r.linked;
+  return r;
+}
+export async function disconnectGcal() {
+  await call('DELETE', '/api/gcal');
+  gcalOn = false;
+}
+// 구글 동의 화면으로 가는 주소(화면 전체를 옮긴다 → 끝나면 /?gcal=ok|denied|scope|… 로 돌아옴)
+export const gcalConnectUrl = () => `${BASE}/api/gcal/connect`;
+const GCAL_BACK = {
+  ok: '구글 캘린더와 연결했어요. 일정을 맞추는 중이에요',
+  denied: '구글 캘린더 연결을 취소했어요',
+  scope: '캘린더 권한에 체크해야 연결돼요. 다시 해 주세요',
+};
+export const gcalBackText = (code) => (code ? GCAL_BACK[code] || '구글 캘린더에 연결하지 못했어요. 잠시 뒤 다시 해 주세요' : null);
 
 // 안드로이드 앱이 폰 'Tachyon' 캘린더에 쓸 목록(구독 주소와 같은 줄, ms 시각) → { items: [{ key, title, start, end, allDay, place }] } (native.js)
 export function getCalendarItems() {

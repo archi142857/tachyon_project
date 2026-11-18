@@ -209,6 +209,20 @@
 - `costUsd`는 토큰 × 목록 가격(Claude 문서 11-13: Haiku 5.5 입력 $0.10·출력 $0.50, Sonnet 5.5 $2·$10 / 백만 토큰)으로 어림한 값이다. 캐시·10만 토큰 넘는 프롬프트 값은 따지지 않는다.
 - `tables.log_about`은 log 번호 끝이다(지운 줄도 세어 대략). `rowsRead`는 이 합계를 만드느라 D1이 읽은 줄이다. 기간 log 줄 × 2쯤 + 1천쯤이고, 무료 하루 읽기는 500만이다.
 
+## 12_gcal (11-18, 사람 요청) — 있음, 원격 D1에 표가 생기고 구글 콘솔 설정 전에는 `ready: false` (`worker/12_gcal.js`)
+
+구글 기본 캘린더와 일정을 양쪽으로 바로 맞춘다(노션 캘린더는 구글 캘린더를 보여 줘서 같이 맞춰짐). 화면은 메뉴 '구글 캘린더 연동·폰 달력'(`CalendarSheet.jsx`).
+
+| 주소 | 하는 일 |
+|---|---|
+| `GET /api/gcal` | `{ ready, linked, error, pulled_at }` — `error: 'reconnect'`면 토큰이 죽어 다시 연결 |
+| `GET /api/gcal/connect` | 화면 전체를 옮김 → 구글 동의 → `/?gcal=ok\|denied\|scope\|state\|google\|config`로 돌아옴(`gcalBackText`) |
+| `POST /api/gcal/sync` | 지금 맞추기 → `{ linked }`. 대시보드가 화면에 돌아올 때 부른다 |
+| `DELETE /api/gcal` | 끊기(Tachyon이 넣은 구글 일정도 지움) |
+| `POST /api/gcal/push` | 구글이 부르는 알림(화면은 안 씀) |
+
+연동 중에는 구글 일정(`source: 'google'`)도 고치기 · 지우기가 되고(`fromFeed`가 false), 구독 주소 · 폰 'Tachyon' 캘린더에는 할 일 마감만 들어간다.
+
 ## 아직 화면이 없는 것 (2단계)
 
 - 아침 브리핑 카드: `GET /api/briefing` (AI, 있음). 시안 3개는 캔버스에 있고, 고르는 것은 디자인 결정과 같이 미뤄짐(컨셉 11-09 23:56).

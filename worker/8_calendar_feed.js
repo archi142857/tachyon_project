@@ -19,6 +19,7 @@ import { json, fail } from './lib/http.js';
 import { kstDate, DAY_MS } from './lib/time.js';
 import { logAction } from './lib/log.js';
 import { syncWindow } from './2_collect_ics.js';
+import { isLinked } from './12_gcal.js';
 
 const SKIP_SOURCES = ['google', 'apple', 'naver', 'device'];
 const SIG_CHARS = 24; // 144비트
@@ -76,8 +77,10 @@ async function feedRows(env, userId, now) {
   const window = syncWindow(now);
   const from = kstDate(window.from.getTime());
   const to = kstDate(window.to.getTime());
+  // 구글 캘린더를 API로 연동했으면(12_gcal.js) 일정은 구글에 바로 들어가니 여기는 할 일 마감만(겹치지 않게)
+  const linked = await isLinked(env, userId);
   const [events, tasks] = await Promise.all([
-    env.DB.prepare(
+    linked ? { results: [] } : env.DB.prepare(
       `SELECT id, title, start, "end", place FROM events
         WHERE user_id = ? AND moved_to IS NULL AND source NOT IN (${SKIP_SOURCES.map(() => '?').join(', ')}) AND start >= ? AND start < ?
         ORDER BY start, id LIMIT 3000`,

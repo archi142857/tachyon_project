@@ -2,7 +2,7 @@
 // 넓은 화면(900px부터) = 왼쪽 메뉴(오늘 · 달력 · 할 일 · 메모) + 오른쪽 내용, 폰 = 위 막대 + 작은 탭 + 한 번에 한 칸(덜 복잡하게).
 // 모양은 dhsrua555 시연 9판(100dvh 앱 틀). 색은 테마(바우하우스 · 입자 밤 · 입자 낮). 메모 칸은 늘 맨 아래.
 // 일정처럼 보이는 메모를 보내면 메모 칸 바로 위에 '이대로 저장할까요?' 팝업이 뜬다. 설정은 햄버거 메뉴.
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import * as api from '../api.js';
 import { dayLegs, loadCampus } from '../campus.js';
@@ -287,6 +287,37 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   useEffect(() => {
     loadPlan();
   }, [loadPlan]);
+  // 구글 캘린더 연동(12_gcal.js, 11-18): 처음과 화면에 돌아올 때(30초에 한 번까지) 구글과 맞추고 일정을 다시 받는다.
+  // 구글 쪽 바뀜은 서버가 알림으로 바로 받아 두지만, 열어 둔 화면은 이때 새로 그린다. ponytail: 화면을 보는 동안 계속 바뀌게 하려면 주기 받기
+  const loadEventsRef = useRef(loadEvents);
+  loadEventsRef.current = loadEvents;
+  useEffect(() => {
+    let last = 0;
+    const back = () => {
+      if (document.hidden || Date.now() - last < 30000) return;
+      last = Date.now();
+      api
+        .syncGcal()
+        .then((r) => r.linked && loadEventsRef.current())
+        .catch(() => {});
+    };
+    back();
+    window.addEventListener('focus', back);
+    document.addEventListener('visibilitychange', back);
+    return () => {
+      window.removeEventListener('focus', back);
+      document.removeEventListener('visibilitychange', back);
+    };
+  }, []);
+  // 구글 동의 화면에서 돌아옴(/?gcal=ok|…) → 한 줄 알리고 주소에서 뺀다
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const text = api.gcalBackText(params.get('gcal'));
+    if (!text) return;
+    setSnack({ text });
+    params.delete('gcal');
+    window.history.replaceState(null, '', `${window.location.pathname}${params.size ? `?${params}` : ''}${window.location.hash}`);
+  }, []);
   useEffect(() => {
     loadCal();
   }, [loadCal]);
@@ -929,7 +960,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
               TT Wizard 시간표
             </button>
             <button type="button" onClick={() => setSheet('calendar')}>
-              폰 달력에서 보기
+              구글 캘린더 연동·폰 달력
             </button>
             {!standalone() && (
               <button type="button" onClick={() => setSheet('install')}>
