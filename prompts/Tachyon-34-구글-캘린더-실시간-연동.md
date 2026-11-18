@@ -34,7 +34,7 @@
 
 ## 남은 것(사람)
 
-- 원격 D1에 표 넣기(`worker/migrations/12_gcal.sql`) — 리마인드 칸(Tachyon-32)도 아직 없음.
+- ~~원격 D1에 표 넣기(`worker/migrations/12_gcal.sql`)~~ — 11-18 16:47 사람 "Run migrations"로 넣음(리마인드 칸 Tachyon-32도 같이, 넣기 전 없음 확인 · 넣은 뒤 칸 10개 확인).
 - Google Cloud 콘솔: Calendar API 켜기, 동의 화면에 `calendar.events` 권한, 승인된 리디렉션 URI에 `<배포 주소>/api/gcal/callback`, 시험 사용자 추가(7일마다 다시 연결) 또는 게시(경고 · 100명).
 - 실제 구글 계정으로 끝까지 해 보기(가짜 구글로만 시험함).
 
