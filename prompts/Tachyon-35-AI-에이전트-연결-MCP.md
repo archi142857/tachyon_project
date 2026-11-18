@@ -31,5 +31,5 @@
 
 ## 남은 것(사람)
 
-- 원격 D1에 `ai_links` 넣기(`worker/migrations/13_mcp.sql`) — 넣기 전까지 '준비 중'.
+- ~~원격 D1에 `ai_links` 넣기(`worker/migrations/13_mcp.sql`)~~ — 11-19 01:23 사람 "Run migration"으로 넣음(넣기 전 없음 확인, 넣은 뒤 표 · 색인 · 칸 6개 확인, 표 19개 · 사이트 200).
 - 실제 계정으로 Claude(또는 ChatGPT 개인 계정)에 붙여 '이번 주 빈 시간' · 'eTL 공지 요약'을 물어보기(구글 로그인 · 허락은 사람).

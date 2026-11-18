@@ -223,7 +223,7 @@
 
 연동 중에는 구글 일정(`source: 'google'`)도 고치기 · 지우기가 되고(`fromFeed`가 false), 구독 주소 · 폰 'Tachyon' 캘린더에는 할 일 마감만 들어간다.
 
-## 13_mcp (11-19, 사람 요청) — 있음, 원격 D1에 `ai_links` 표가 생기기 전에는 `ready: false` (`worker/13_mcp.js`)
+## 13_mcp (11-19, 사람 요청) — 있음, 원격 D1에 `ai_links` 표 넣음(11-19) (`worker/13_mcp.js`)
 
 Claude · ChatGPT · Gemini 같은 AI 앱이 Tachyon을 읽고(일정 · 빈 시간 · 할 일 · eTL 공지와 강의자료 · 브리핑 · 메모) 일정 · 할 일을 넣게 하는 원격 MCP 서버. 화면은 메뉴 'AI 에이전트 연결'(`AiSheet.jsx`): 주소 복사 · 앱별 붙이는 법 · 연결된 앱 끊기.
 
