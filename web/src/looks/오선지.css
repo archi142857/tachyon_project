@@ -1,0 +1,106 @@
+/* 오선지 모양 층(사람 11-19 01:08 "시스템과 기능, 위치만 통일하고 나머지는 다 바꾸는 쪽").
+   생각: 상아색 종이에 찍은 악보 · 연주회 프로그램. 칸마다 상자를 두르지 않고 한 장의 종이를 가는 먹 괘선으로 나누고 겹줄로 두른다.
+   칸 이름 앞엔 악장 번호(로마 숫자, 빨강), 머리 줄은 오선 위에 앉고 높은음자리표로 연다. 일정 = 음표, 할 일 고르기 = 음표 머리.
+   한글은 기울이지 않는다(본명조에 기울임꼴이 없어 가짜로 눕는다). 색 값은 themes.css, 고리는 components/art. */
+html[data-theme='오선지'] {
+  --ink: #1c1813; --red: #9e1622; --paper: #faf6ee;
+  --numeral: italic 400 17px/1 'DM Serif Display', serif;
+  background: radial-gradient(120% 90% at 50% 0%, #faf5ea, #efe6d5 85%);
+}
+html[data-theme='오선지'] :where(body, .shell, .side, .shell .topbar, .shell .composer, .tabs) { background: transparent; }
+html[data-theme='오선지'] .theme-backdrop { display: none; } /* 11-13의 검은 띠 바탕은 시안(web/design)에만 */
+html[data-theme='오선지'] :is(.num, .ev, .task .title, .side-nav button, .tabs button, .btn-text, .composer input, .memo-log .bubble) { font-family: var(--font-head); }
+
+/* ── 왼쪽 메뉴: 프로그램 차례. 로마 숫자 + 고른 쪽엔 빨간 음표 머리 */
+html[data-theme='오선지'] .side { border-right: 3px double var(--ink); }
+html[data-theme='오선지'] .side-nav { gap: 0; counter-reset: part; }
+html[data-theme='오선지'] .side-nav button { justify-content: flex-start; gap: 0; padding-left: 14px; border-left: 0; border-bottom: 1px solid var(--line); border-radius: 0; color: var(--text2); font-weight: 500; }
+html[data-theme='오선지'] .side-nav button::before { counter-increment: part; content: counter(part, upper-roman); flex: none; width: 32px; font: var(--numeral); color: var(--text3); }
+html[data-theme='오선지'] .side-nav button::after { content: ''; order: 1; flex: none; width: 10px; height: 7px; margin-left: 10px; border-radius: 50%; transform: rotate(-20deg); }
+html[data-theme='오선지'] .side-nav .count { order: 2; margin-left: auto; }
+html[data-theme='오선지'] .side-nav button:hover { background: rgb(28 24 19 / 0.04); }
+html[data-theme='오선지'] .side-nav button[aria-current='page'] { background: transparent; color: var(--ink); font-weight: 700; }
+html[data-theme='오선지'] .side-nav button[aria-current='page']::before { color: var(--red); }
+html[data-theme='오선지'] .side-nav button[aria-current='page']::after { background: var(--red); }
+html[data-theme='오선지'] :is(.side-nav, .tabs) .count { background: transparent; box-shadow: inset 0 0 0 1px var(--ink); color: var(--ink); }
+
+/* ── 머리 줄: 오선 위에 앉은 날짜, 맨 앞은 높은음자리표 · 끝은 마침 겹세로줄 */
+html[data-theme='오선지'] .shell .topbar { position: relative; height: calc(66px + env(safe-area-inset-top)); padding-bottom: 16px; border-bottom: 0; }
+html[data-theme='오선지'] .shell .topbar::after { content: ''; position: absolute; left: 12px; right: 24px; bottom: 4px; height: 13px; border-left: 1px solid var(--ink); border-right: 5px double var(--ink); background: repeating-linear-gradient(to bottom, rgb(28 24 19 / 0.7) 0 1px, transparent 1px 3px); pointer-events: none; }
+html[data-theme='오선지'] :is(.shell .topbar, .subbar) .date { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+html[data-theme='오선지'] .shell .topbar .date::before { content: '𝄞'; margin-right: 6px; font: 34px/1 'Noto Music', serif; vertical-align: -9px; }
+html[data-theme='오선지'] .btn-text { color: var(--ink); font-weight: 600; }
+html[data-theme='오선지'] .btn-text:hover { background: transparent; color: var(--red); text-decoration: underline; text-underline-offset: 4px; }
+html[data-theme='오선지'] .icon-btn:hover { color: var(--red); }
+html[data-theme='오선지'] .segmented { background: transparent; box-shadow: inset 0 0 0 1px var(--ink); border-radius: 999px; }
+html[data-theme='오선지'] .segmented button { border-radius: 999px; font-family: var(--font-head); color: var(--text2); }
+html[data-theme='오선지'] .segmented button[aria-pressed='true'] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+html[data-theme='오선지'] .tabs { border-bottom: 1px solid var(--ink); box-shadow: 0 2px 0 var(--bg), 0 3px 0 var(--ink); }
+html[data-theme='오선지'] .tabs button[aria-current='page'] { color: var(--ink); border-bottom-color: var(--red); }
+
+/* ── 칸: 상자 대신 한 장의 종이를 먹 괘선으로 나눔(사이 1px = 먹), 바깥은 겹줄. 칸 이름 앞 = 악장 번호 */
+html[data-theme='오선지'] .today-grid { gap: 1px; background: var(--ink); border: 1px solid var(--ink); outline: 1px solid var(--ink); outline-offset: 3px; }
+html[data-theme='오선지'] .today-grid > .card { border: 0; border-radius: 0; background: var(--paper); box-shadow: none; }
+html[data-theme='오선지'] .today-grid > .card:not(.ring-card) { padding: 14px 18px; }
+html[data-theme='오선지'] .card { border-color: var(--ink); box-shadow: none; }
+html[data-theme='오선지'] .card-title { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+/* 악장 번호는 칸 종류마다 고정(칸을 옮겨도 같은 이름). 카운터는 못 쓴다: 오늘 일정 칸이 container-type: size라 셈이 칸 안에 갇힌다 */
+html[data-theme='오선지'] .today-grid > .card .card-title::before { margin-right: 10px; font: var(--numeral); font-size: 20px; color: var(--red); }
+html[data-theme='오선지'] .today-grid > .day .card-title::before { content: 'I.'; }
+html[data-theme='오선지'] .today-grid > .tasks .card-title::before { content: 'II.'; }
+html[data-theme='오선지'] .today-grid > .memo-card .card-title::before { content: 'III.'; }
+html[data-theme='오선지'] :is(.card-title, .tasks-head .btn-text) { white-space: nowrap; }
+html[data-theme='오선지'] .tasks-head .btn-text { padding: 0 8px; }
+html[data-theme='오선지'] .tasks-head { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--ink); box-shadow: 0 2px 0 var(--paper), 0 3px 0 var(--ink); }
+@media (min-width: 1200px) {
+  /* 하루 일정(악보)을 넓게, 고리 · 할 일은 가운데, 메모는 좁게 */
+  html[data-theme='오선지'] .today-grid[data-layout='three'] { grid-template-columns: minmax(280px, 1.15fr) minmax(0, 1.1fr) minmax(290px, 0.95fr); grid-template-rows: minmax(0, 1.1fr) minmax(0, 1fr); }
+}
+
+/* ── 오늘 일정: 수업 = 먹 음표, 내 일정 = 흰 음표, 빈 자리 추천 = 빗금 쉼표, 지금 = 빨간 음표 머리 */
+html[data-theme='오선지'] .cal-grid { border-top-color: var(--ink); }
+html[data-theme='오선지'] .cal-grid .hline { border-top-color: var(--grid); }
+html[data-theme='오선지'] .cal-grid .col { border-left-color: var(--ink); }
+html[data-theme='오선지'] .cal-grid .hours span { font: italic 400 13px/16px 'DM Serif Display', serif; color: var(--text2); }
+html[data-theme='오선지'] .ev { border-radius: 1px; }
+html[data-theme='오선지'] .ev.timetable { background: var(--ink); --ev-text: var(--paper); color: var(--paper); }
+html[data-theme='오선지'] :is(.ev.timetable, .ev.ics, .ev.memo)::before { width: auto; height: auto; margin-right: 4px; background: none; box-shadow: none; border-radius: 0; font: 13px/1 'Noto Music', serif; vertical-align: 0; }
+html[data-theme='오선지'] .ev.timetable::before { content: '♩'; }
+html[data-theme='오선지'] :is(.ev.ics, .ev.memo)::before { content: '♫'; }
+html[data-theme='오선지'] :is(.ev.ics, .ev.memo) { background: var(--paper); border: 1px solid var(--ink); color: var(--ink); }
+html[data-theme='오선지'] .ev.slot { background: repeating-linear-gradient(-45deg, transparent 0 5px, rgb(28 24 19 / 0.07) 5px 6px); border: 1px dashed rgb(28 24 19 / 0.55); }
+html[data-theme='오선지'] .ev.sel { outline: 2px solid var(--red); outline-offset: 1px; }
+html[data-theme='오선지'] .now-line { border-top-width: 1.5px; }
+html[data-theme='오선지'] .now-line::before { content: ''; position: absolute; left: -5px; top: -5px; width: 10px; height: 7px; border-radius: 50%; background: var(--now); transform: rotate(-20deg); }
+
+/* ── 고리: 상아 종이 위 먹 띠 */
+html[data-theme='오선지'] .today-grid > .ring-card .ring-wrap { width: max(160px, min(440px, 100cqw - 32px, 100cqh - 72px)); }
+
+/* ── 할 일: 괘선 목록, 고르기 칸 = 음표 머리(빈 → 칠함) */
+html[data-theme='오선지'] .task { border-top: 0; padding: 9px 2px; }
+html[data-theme='오선지'] .task .title { font-weight: 600; }
+html[data-theme='오선지'] .task > input[type='checkbox'] { appearance: none; width: 17px; height: 12px; margin: 5px 2px 0; border: 1.6px solid var(--ink); border-radius: 50%; background: transparent; transform: rotate(-20deg); }
+html[data-theme='오선지'] .task > input[type='checkbox']:checked { background: var(--ink); }
+html[data-theme='오선지'] .pick { border-radius: 0; border-bottom: 1px solid var(--line); }
+html[data-theme='오선지'] .pick.on { background: rgb(158 22 34 / 0.05); box-shadow: inset 2px 0 0 var(--red); }
+html[data-theme='오선지'] .slot-note .tag.suggest { border: 1px solid var(--ink); border-radius: 999px; background: transparent; color: var(--ink); }
+
+/* ── 메모: 여백에 적은 주석(오른쪽 먹 줄) */
+html[data-theme='오선지'] .memo-log .bubble { background: transparent; border: 0; border-right: 2px solid var(--ink); border-radius: 0; padding: 3px 10px 3px 6px; }
+html[data-theme='오선지'] .memo-log .bubble.on { border-right-color: var(--red); color: var(--red); }
+
+/* ── 적기 칸: 겹줄 서명란, 보내기 = 온음표 같은 먹 동그라미 */
+html[data-theme='오선지'] .composer form { padding-left: 10px; background: var(--paper); border: 1px solid var(--ink); border-radius: 0; box-shadow: 0 0 0 3px var(--bg), 0 0 0 4px var(--ink); }
+html[data-theme='오선지'] .composer form:focus-within { box-shadow: 0 0 0 3px var(--bg), 0 0 0 4px var(--red); }
+html[data-theme='오선지'] .composer .memo-count { border-color: var(--ink); border-radius: 999px; color: var(--ink); }
+html[data-theme='오선지'] .composer .send { width: 40px; height: 40px; margin-right: 4px; border-radius: 50%; }
+html[data-theme='오선지'] .composer .send:not(:disabled) { background: var(--ink); color: var(--paper); }
+
+/* ── 시트: 겹줄 테 */
+html[data-theme='오선지'] dialog.sheet { border: 1px solid var(--ink); box-shadow: 0 0 0 3px var(--paper), 0 0 0 4px var(--ink), var(--shadow); }
+
+/* ── 고리 밑 표시(음표) */
+html[data-theme='오선지'] :is(.key-dot, .key-sq, .key-tri) { width: auto; height: auto; background: none; box-shadow: none; clip-path: none; border-radius: 0; color: var(--ink); font: 14px/1 'Noto Music', serif; }
+html[data-theme='오선지'] .key-dot::before { content: '♩'; }
+html[data-theme='오선지'] .key-sq::before { content: '♫'; }
+html[data-theme='오선지'] .key-tri::after { content: '◇'; position: static; inset: auto; background: none; clip-path: none; font: 700 11px/1 var(--font); }

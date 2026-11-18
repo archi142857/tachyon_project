@@ -1,0 +1,103 @@
+/* 태양계 모양 층(사람 11-19 01:08 "바우하우스를 시작으로 다른 옷을 입힌다는 느낌이 아니라 … 시스템과 기능, 위치만 통일하고 나머지는 다 바꾸는 쪽").
+   생각: 별 지도 · 천문대 계기판. 칸은 상자가 아니라 별이 비치는 얇은 계기판(금빛 모서리 눈금), 고리(태양계)는 테 없이 우주에 떠서 가운데를 크게 차지한다.
+   글자는 함렛, 칸 이름은 넓게 벌린 금빛 표지, 일정은 행성 빛 캡슐, 지금 줄은 혜성. 색 값은 themes.css, 고리 · 별 바탕은 components/art. */
+html[data-theme='태양계'] {
+  --gold: #f2c46b; --gold-hi: #ffe3a0; --hair: rgb(242 196 107 / 0.3); --hair-dim: rgb(200 212 255 / 0.13);
+  --tick: linear-gradient(var(--gold), var(--gold));
+  --plate: linear-gradient(180deg, rgb(14 20 48 / 0.66), rgb(8 12 32 / 0.5));
+  --sun: radial-gradient(circle at 35% 30%, #fff3c4, #ffc94a 45%, #d9761a);
+  background: radial-gradient(48% 42% at 52% 40%, rgb(255 170 60 / 0.1), transparent 70%), radial-gradient(55% 45% at 8% 12%, rgb(30 150 160 / 0.2), transparent 70%),
+    radial-gradient(45% 40% at 94% 22%, rgb(130 60 180 / 0.22), transparent 70%), radial-gradient(60% 40% at 60% 105%, rgb(40 110 95 / 0.22), transparent 70%), #04060f;
+}
+html[data-theme='태양계'] :where(body, .shell, .side, .shell .topbar, .shell .composer, .tabs) { background: transparent; }
+html[data-theme='태양계'] :is(.num, .ev, .hours span, .task .title) { font-family: var(--font-head); }
+
+/* ── 왼쪽 메뉴: 별자리 목록. 고른 쪽 = 궤도를 두른 금빛 별 */
+html[data-theme='태양계'] .side { position: relative; border-right: 0; background: linear-gradient(90deg, rgb(4 6 15 / 0.6), transparent); }
+html[data-theme='태양계'] .side::after { content: ''; position: absolute; top: 0; bottom: 0; right: 0; width: 1px; background: linear-gradient(transparent, var(--hair) 18%, var(--hair) 82%, transparent); }
+html[data-theme='태양계'] .side-nav button { position: relative; padding-left: 30px; border-left: 0; border-radius: 0 999px 999px 0; color: var(--text2); letter-spacing: 0.04em; }
+html[data-theme='태양계'] .side-nav button::before { content: ''; position: absolute; left: 12px; top: 50%; width: 5px; height: 5px; margin-top: -2.5px; border-radius: 50%; background: rgb(200 212 255 / 0.4); }
+html[data-theme='태양계'] .side-nav button:hover { background: rgb(242 196 107 / 0.06); color: var(--text); }
+html[data-theme='태양계'] .side-nav button[aria-current='page'] { background: linear-gradient(90deg, rgb(242 196 107 / 0.16), transparent 90%); color: var(--gold-hi); font-weight: 600; }
+html[data-theme='태양계'] .side-nav button[aria-current='page']::before { background: var(--gold); box-shadow: 0 0 0 3px #060915, 0 0 0 4px rgb(242 196 107 / 0.6), 0 0 14px 2px rgb(255 190 80 / 0.55); }
+html[data-theme='태양계'] :is(.side-nav, .tabs) .count { background: transparent; box-shadow: inset 0 0 0 1px var(--hair); color: var(--gold); }
+
+/* ── 머리 줄: 별 표 + 가는 함렛 날짜, 단추는 금빛 테 알약 */
+html[data-theme='태양계'] .shell .topbar { border-bottom: 0; }
+html[data-theme='태양계'] :is(.shell .topbar, .subbar) .date { font-size: 23px; font-weight: 300; letter-spacing: 0.03em; color: var(--heading); text-shadow: 0 0 18px rgb(255 190 80 / 0.35); }
+html[data-theme='태양계'] .shell .topbar .date::before { content: '✦'; margin-right: 12px; font-size: 13px; color: var(--gold); vertical-align: 3px; text-shadow: 0 0 10px #ffcf5a; }
+html[data-theme='태양계'] .btn-text { color: var(--gold); letter-spacing: 0.03em; }
+html[data-theme='태양계'] .btn-text:hover { background: rgb(242 196 107 / 0.1); }
+html[data-theme='태양계'] .icon-btn { color: var(--gold); border-radius: 50%; }
+html[data-theme='태양계'] .icon-btn:hover { background: rgb(242 196 107 / 0.1); }
+html[data-theme='태양계'] .segmented { background: transparent; box-shadow: inset 0 0 0 1px var(--hair); border-radius: 999px; }
+html[data-theme='태양계'] .segmented button { border-radius: 999px; color: var(--text2); }
+html[data-theme='태양계'] .segmented button[aria-pressed='true'] { background: rgb(242 196 107 / 0.16); color: var(--gold-hi); border-color: transparent; box-shadow: inset 0 0 0 1px rgb(242 196 107 / 0.55), 0 0 14px rgb(255 190 80 / 0.25); }
+html[data-theme='태양계'] .btn:not(:disabled) { box-shadow: 0 0 20px rgb(255 170 50 / 0.35); }
+html[data-theme='태양계'] .tabs { border-bottom: 1px solid var(--hair-dim); }
+html[data-theme='태양계'] .tabs button[aria-current='page'] { color: var(--gold-hi); border-bottom-color: var(--gold); text-shadow: 0 0 10px rgb(255 190 80 / 0.5); }
+
+/* ── 칸: 별이 비치는 얇은 계기판, 네 모서리에 금빛 눈금 */
+html[data-theme='태양계'] .card {
+  border: 1px solid var(--hair-dim); border-radius: 2px; background-origin: border-box; box-shadow: 0 24px 60px rgb(0 0 0 / 0.35); backdrop-filter: blur(6px);
+  background:
+    var(--tick) top left / 14px 1px no-repeat, var(--tick) top left / 1px 14px no-repeat, var(--tick) top right / 14px 1px no-repeat, var(--tick) top right / 1px 14px no-repeat,
+    var(--tick) bottom left / 14px 1px no-repeat, var(--tick) bottom left / 1px 14px no-repeat, var(--tick) bottom right / 14px 1px no-repeat, var(--tick) bottom right / 1px 14px no-repeat,
+    var(--plate);
+}
+html[data-theme='태양계'] .card-title { display: inline-flex; align-items: center; font-size: 13px; font-weight: 600; letter-spacing: 0.22em; white-space: nowrap; color: var(--gold); text-shadow: 0 0 12px rgb(255 190 80 / 0.35); }
+html[data-theme='태양계'] .card-title::before { content: ''; flex: none; width: 6px; height: 6px; margin-right: 12px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 3px #070b1c, 0 0 0 4px rgb(242 196 107 / 0.5), 0 0 10px rgb(255 190 80 / 0.7); }
+html[data-theme='태양계'] .tasks-head .btn-text { padding: 0 8px; white-space: nowrap; }
+html[data-theme='태양계'] .tasks-head { margin-bottom: 6px; padding-bottom: 8px; border-bottom: 1px solid var(--hair-dim); }
+
+/* ── 배치: 고리가 주인공(가운데 넓게 · 위로 길게), 테 없이 우주에 뜬다 */
+html[data-theme='태양계'] .today-grid { gap: 18px; }
+@media (min-width: 1200px) {
+  html[data-theme='태양계'] .today-grid[data-layout='three'] { grid-template-columns: minmax(250px, 0.8fr) minmax(0, 1.55fr) minmax(280px, 0.85fr); grid-template-rows: minmax(0, 1.6fr) minmax(0, 1fr); }
+  html[data-theme='태양계'] .today-grid[data-layout='ring'] { grid-template-columns: minmax(0, 1.8fr) minmax(240px, 0.8fr) minmax(230px, 0.8fr); }
+}
+html[data-theme='태양계'] .today-grid > .ring-card:not(.lifted) { background: none; border: 0; box-shadow: none; backdrop-filter: none; }
+html[data-theme='태양계'] .today-grid > .ring-card .ring-wrap { width: max(160px, min(620px, 100cqw - 16px, 100cqh - 60px)); }
+html[data-theme='태양계'] .ring-wrap.solar { background: radial-gradient(circle, rgb(255 170 50 / 0.16), rgb(255 140 40 / 0.05) 45%, transparent 66%); }
+
+/* ── 오늘 일정: 점선 별 지도 눈금 위 행성 빛 캡슐, 지금 줄 = 혜성 */
+html[data-theme='태양계'] .today-grid > .day .cal-grid > .hours { background: none; }
+html[data-theme='태양계'] .cal-grid { border-top-color: var(--hair-dim); }
+html[data-theme='태양계'] .cal-grid .hline { border-top: 1px dashed rgb(200 212 255 / 0.1); }
+html[data-theme='태양계'] .cal-grid .col { border-left-color: rgb(200 212 255 / 0.08); }
+html[data-theme='태양계'] .ev { border: 1px solid transparent; border-radius: 8px; }
+html[data-theme='태양계'] .ev.timetable { background: linear-gradient(115deg, rgb(242 196 107 / 0.32), rgb(201 139 76 / 0.12)); border-color: rgb(242 196 107 / 0.45); --ev-text: #ffeccc; color: #ffeccc; box-shadow: 0 0 18px -8px rgb(255 190 80 / 0.8); }
+html[data-theme='태양계'] .ev.timetable::before { background: radial-gradient(circle at 35% 30%, #f8dcae, #c98b4c 55%, #2c1608); }
+html[data-theme='태양계'] :is(.ev.ics, .ev.memo) { background: linear-gradient(115deg, rgb(127 176 255 / 0.22), rgb(127 176 255 / 0.06)); border-color: rgb(127 176 255 / 0.5); box-shadow: 0 0 18px -8px rgb(127 176 255 / 0.8); }
+html[data-theme='태양계'] :is(.ev.ics, .ev.memo)::before { background: radial-gradient(circle at 35% 30%, #cfe4ff, #3d74d9 50%, #08173a); box-shadow: none; border-radius: 50%; }
+html[data-theme='태양계'] .ev.slot { background: transparent; border: 1px dashed rgb(230 235 247 / 0.4); }
+html[data-theme='태양계'] .ev.sel { box-shadow: 0 0 0 1px var(--gold), 0 0 22px rgb(255 190 80 / 0.5); }
+html[data-theme='태양계'] .now-line { border-top: 0; height: 2px; margin-top: -1px; background: linear-gradient(90deg, #ffd1c2, rgb(255 111 82 / 0.75) 25%, rgb(255 111 82 / 0.08)); box-shadow: 0 0 10px rgb(255 111 82 / 0.6); }
+html[data-theme='태양계'] .now-line::before { content: ''; position: absolute; left: -3px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: #ffe2d8; box-shadow: 0 0 10px 3px rgb(255 111 82 / 0.8); }
+
+/* ── 할 일: 별 목록. 고르기 칸 = 고리 두른 행성, 끝낸 일 = 해 */
+html[data-theme='태양계'] .task { border-top: 1px dashed rgb(200 212 255 / 0.12); }
+html[data-theme='태양계'] .pick { border-radius: 4px; }
+html[data-theme='태양계'] .pick.on { background: linear-gradient(90deg, rgb(242 196 107 / 0.13), transparent); box-shadow: inset 2px 0 0 var(--gold); }
+html[data-theme='태양계'] .task > input[type='checkbox'] { appearance: none; position: relative; width: 16px; height: 16px; margin: 3px 2px 0; border: 1.5px solid rgb(232 236 255 / 0.45); border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgb(255 255 255 / 0.14), transparent 60%); }
+html[data-theme='태양계'] .task > input[type='checkbox']::after { content: ''; position: absolute; left: -6px; right: -6px; top: 50%; height: 6px; margin-top: -3px; border: 1px solid rgb(242 196 107 / 0.6); border-radius: 50%; transform: rotate(-22deg); }
+html[data-theme='태양계'] .task > input[type='checkbox']:checked { border-color: transparent; background: var(--sun); box-shadow: 0 0 12px rgb(255 190 70 / 0.7); }
+html[data-theme='태양계'] .slot-note.suggest { border-radius: 999px; }
+html[data-theme='태양계'] .slot-note .tag.suggest { border: 1px dashed var(--hair); border-radius: 999px; background: transparent; color: var(--gold); }
+
+/* ── 메모: 별빛 통신(푸른 유리 말풍선) */
+html[data-theme='태양계'] .memo-log .bubble { background: linear-gradient(135deg, rgb(127 176 255 / 0.15), rgb(255 255 255 / 0.04)); border: 1px solid rgb(127 176 255 / 0.28); border-radius: 14px 14px 3px 14px; }
+html[data-theme='태양계'] .memo-log .bubble.on { border-color: var(--gold); box-shadow: 0 0 14px rgb(255 190 80 / 0.35); }
+
+/* ── 적기 칸: 관제실 알약, 보내기 = 해 */
+html[data-theme='태양계'] .composer form { padding-left: 8px; background: linear-gradient(90deg, rgb(10 16 40 / 0.88), rgb(14 20 50 / 0.78)); border: 1px solid var(--hair); border-radius: 999px; box-shadow: 0 0 0 5px rgb(242 196 107 / 0.04), 0 12px 40px rgb(0 0 0 / 0.5), 0 0 30px rgb(255 170 50 / 0.1); backdrop-filter: blur(10px); }
+html[data-theme='태양계'] .composer form:focus-within { border-color: rgb(242 196 107 / 0.6); box-shadow: 0 0 0 5px rgb(242 196 107 / 0.07), 0 12px 40px rgb(0 0 0 / 0.5), 0 0 36px rgb(255 170 50 / 0.22); }
+html[data-theme='태양계'] .composer .memo-count { border-color: var(--hair); border-radius: 999px; color: var(--gold); }
+html[data-theme='태양계'] .composer .send { width: 40px; height: 40px; margin-right: 4px; border-radius: 50%; }
+html[data-theme='태양계'] .composer .send:not(:disabled) { background: var(--sun); color: #2a1600; box-shadow: 0 0 18px rgb(255 180 60 / 0.6); }
+
+/* ── 고리 밑 표시(행성 모양) */
+html[data-theme='태양계'] .key-dot { background: radial-gradient(circle at 35% 30%, #f8dcae, #c98b4c 50%, #2c1608); }
+html[data-theme='태양계'] .key-sq { border-radius: 50%; background: radial-gradient(circle at 35% 30%, #cfe4ff, #3d74d9 50%, #08173a); box-shadow: none; }
+html[data-theme='태양계'] .key-tri { clip-path: none; width: 10px; border-radius: 50%; background: none; box-shadow: inset -4px 2px 0 0 #e3e8f4; }
+html[data-theme='태양계'] .key-tri::after { display: none; }

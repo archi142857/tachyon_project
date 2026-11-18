@@ -1,5 +1,5 @@
 // 하루 고리: 한 바퀴가 오늘 하루(0–24시, 맨 위가 0시)이고 입자 하나하나가 시간 조각이다. 모양은 테마에 따라 셋(themeName.js).
-//  - 그림 테마(태양계 · 오선지 · 원자 모형 · 뉴모피즘): 테마마다 그린 고리(components/art, 맨 아래 DayRing).
+//  - 그림 테마(태양계 · 오선지 · 뉴모피즘): 테마마다 그린 고리(components/art, 맨 아래 DayRing).
 //  - 기본(③ 바우하우스와 나머지 테마): 입자 없이 면(띠)으로만 가른다(11-14 피드백 "바우하우스 테마 고리는 입자 빼고 면으로만").
 //    파랑 면 = 수업, 먹 면 = 내 일정(달력·메모), 노랑 면 = 할 일을 넣어 본 자리, 옅은 바탕 = 빈 시간, 지난 시간은 흐리게, 붉은 금 = 지금.
 //  - 입자 테마('입자 밤'·'입자 낮'): 시연 9판의 하루 고리 그대로 — 과목 색 입자, 넣어 본 자리의 섬유, 흰 타키온(아래 ParticleRing, 모양은 nine.css).
@@ -215,7 +215,7 @@ function ParticleRing({ arcs, nowMin, sel, onPick, loose = [], children }) {
 }
 
 // arcs = [{ key, from, to, kind }] (분, kind = timetable | ics | memo | slot), loose = 정리 안 된 메모를 적은 분들
-// 그림 테마(태양계 · 오선지 · 원자 모형 · 뉴모피즘, 사람 11-13 02:47)는 그 테마의 고리(components/art)를 쓴다.
+// 그림 테마(태양계 · 오선지 · 뉴모피즘, 사람 11-13 02:47)는 그 테마의 고리(components/art)를 쓴다.
 export default function DayRing(props) {
   const theme = useThemeName();
   const Art = ART.find((r) => r.name === theme)?.Ring;

@@ -56,28 +56,19 @@
 .theme-loader.solar i::after { content: ''; position: absolute; left: 50%; top: -5px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #cfe4ff, #3d74d9 50%, #08173a); }
 .theme-loader.solar i + i::after { background: radial-gradient(circle at 35% 30%, #f8dcae, #c98b4c 55%, #2c1608); }
 /* 오선지: 비스듬한 검은 띠 위로 흰 음표가 차례로 올라온다 */
-.theme-loader.staff { background: #fbfbf7; color: #0d0d0d; }
-.theme-loader.staff p { color: #4a4a50; }
+.theme-loader.staff { background: #f4eee2; color: #1c1813; }
+.theme-loader.staff p { color: #4a4237; }
 .theme-loader.staff .ld-word { font: italic 400 36px/1 'DM Serif Display', serif; }
 .theme-loader.staff .ld-art { width: 220px; aspect-ratio: auto; height: 70px; grid-auto-flow: column; gap: 22px; transform: rotate(-8deg); }
-.theme-loader.staff b { inset: 6px -10px; background: repeating-linear-gradient(#0d0d0d 0 9px, #ffffff 9px 10.5px) #0d0d0d; box-shadow: 6px 6px 0 #d10f2f; }
-.theme-loader.staff .ld-art > i { position: relative; color: #ffffff; font: 30px/1 'Noto Music', serif; font-style: normal; animation: ld-drop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) backwards; }
+.theme-loader.staff b { inset: 6px -10px; background: repeating-linear-gradient(#1c1813 0 9px, #faf6ee 9px 10.5px) #1c1813; box-shadow: 0 0 0 3px #f4eee2, 0 0 0 4px #1c1813; }
+.theme-loader.staff .ld-art > i { position: relative; color: #faf6ee; font: 30px/1 'Noto Music', serif; font-style: normal; animation: ld-drop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) backwards; }
 .theme-loader.staff i:nth-of-type(2) { animation-delay: 0.15s; }
 .theme-loader.staff i:nth-of-type(3) { animation-delay: 0.3s; }
-/* 원자 모형: 주황 원자핵 둘레 기울어진 네온 궤도 셋이 돈다 */
-.theme-loader.atom { background: radial-gradient(50% 40% at 82% 18%, rgb(255 120 30 / 0.13), transparent 70%), #070d1c; color: #e3f3ff; }
-.theme-loader.atom p { color: #8fa8c4; }
-.theme-loader.atom .ld-word { font: 700 28px/1 'Orbitron Variable', sans-serif; letter-spacing: 0.14em; color: #ffb36b; text-shadow: 0 0 12px rgb(255 138 30 / 0.7); }
-.theme-loader.atom .ld-art { animation: ld-orbit 3s linear infinite; }
-.theme-loader.atom b { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #ffd3ad, #ff8a1e 60%); box-shadow: 0 0 22px 4px rgb(255 138 30 / 0.6); }
-.theme-loader.atom i { width: 140px; height: 50px; border: 1.5px solid #36d6ff; border-radius: 50%; box-shadow: 0 0 10px rgb(54 214 255 / 0.5); }
-.theme-loader.atom i:nth-of-type(2) { transform: rotate(60deg); }
-.theme-loader.atom i:nth-of-type(3) { transform: rotate(-60deg); }
 /* 뉴모피즘: 오목한 홈을 따라 볼록한 구슬이 돈다 */
-.theme-loader.soft { background: #e3e7ee; color: #2c3a52; }
-.theme-loader.soft p { color: #4c586f; }
-.theme-loader.soft .ld-word { font: 900 32px/1 'Nunito Variable', sans-serif; color: #2b4fb8; text-shadow: 1px 1px 1px #ffffff; }
-.theme-loader.soft b { inset: 0; border-radius: 50%; box-shadow: inset 8px 8px 16px #c6cdd8, inset -8px -8px 16px #ffffff; }
-.theme-loader.soft b::after { content: ''; position: absolute; inset: 26px; border-radius: 50%; background: #e3e7ee; box-shadow: 6px 6px 12px #c2c9d4, -6px -6px 12px #ffffff; }
+.theme-loader.soft { background: #ebe4da; color: #3a322a; }
+.theme-loader.soft p { color: #574d42; }
+.theme-loader.soft .ld-word { font: 900 32px/1 'Nunito Variable', sans-serif; color: #94391f; text-shadow: 1px 1px 1px #fffaf2; }
+.theme-loader.soft b { inset: 0; border-radius: 50%; box-shadow: inset 8px 8px 16px #d4c9ba, inset -8px -8px 16px #fffaf2; }
+.theme-loader.soft b::after { content: ''; position: absolute; inset: 26px; border-radius: 50%; background: #ebe4da; box-shadow: 6px 6px 12px #cdc1b1, -6px -6px 12px #fffaf2; }
 .theme-loader.soft i { inset: 0; animation: ld-orbit 1.4s cubic-bezier(0.6, 0, 0.4, 1) infinite; }
-.theme-loader.soft i::after { content: ''; position: absolute; left: 50%; top: 5px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: linear-gradient(145deg, #4670e0, #2f54c2); box-shadow: 3px 3px 6px #b9c1cd, -3px -3px 6px #ffffff; }
+.theme-loader.soft i::after { content: ''; position: absolute; left: 50%; top: 5px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: linear-gradient(145deg, #b5563a, #a8452a); box-shadow: 3px 3px 6px #b9c1cd, -3px -3px 6px #ffffff; }

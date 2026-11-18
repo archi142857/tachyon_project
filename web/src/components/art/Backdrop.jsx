@@ -1,7 +1,7 @@
 // 그림 테마마다 화면 뒤 꾸밈(레퍼런스 그림의 바탕을 옮김). 뜻 없는 그림이라 화면 읽기에서 뺀다. theme = 테마 이름(태양계 …).
 // 앱은 ThemeBackdrop(Dashboard 맨 뒤), 시안 쪽은 앱 모형(web/design/app.jsx)이 부른다. 색은 art.css의 .backdrop.이름.
 //  태양계 = 성운 위 반짝이는 별과 먼 고리 행성 · 오선지 = 흰 종이를 가로지르는 검은 오선 띠와 흰 음표
-//  원자 = 남색 위 기울어진 주황 · 하늘색 네온 궤도와 입자 · 뉴모피즘 = 없음
+//  뉴모피즘 = 없음
 import { seeded, f1 } from './common.jsx';
 import { RINGS } from './index.js';
 import { useThemeName } from '../../themeName.js';
@@ -46,23 +46,7 @@ function Staff() {
   return [band(60, -24, 'a'), band(640, -24, 'b'), band(380, 18, 'c')];
 }
 
-function Atom() {
-  const rand = seeded('dust');
-  return (
-    <>
-      <g transform="translate(820 260)" className="orbits">
-        <ellipse rx="420" ry="110" transform="rotate(30)" />
-        <ellipse rx="420" ry="110" transform="rotate(-35)" className="cy" />
-        <ellipse rx="420" ry="90" transform="rotate(85)" />
-      </g>
-      {Array.from({ length: 70 }, (_, i) => (
-        <circle key={i} cx={f1(rand() * 1000)} cy={f1(rand() * 1000)} r={f1(0.8 + rand() * 1.8)} className={rand() < 0.5 ? 'dust' : 'dust cy'} />
-      ))}
-    </>
-  );
-}
-
-const ART = { solar: Solar, staff: Staff, atom: Atom }; // 뉴모피즘은 그림 없이 판의 빛과 그림자만
+const ART = { solar: Solar, staff: Staff }; // 뉴모피즘은 그림 없이 판의 빛과 그림자만
 
 export default function Backdrop({ theme, className = '' }) {
   const id = RINGS.find((r) => r.name === theme)?.id;
@@ -75,7 +59,7 @@ export default function Backdrop({ theme, className = '' }) {
   );
 }
 
-// 앱: 화면 맨 뒤(Dashboard .shell 첫 칸, 자리는 looks.css .theme-backdrop). 그림 테마가 아니면 아무것도 안 그린다.
+// 앱: 화면 맨 뒤(Dashboard .shell 첫 칸, 자리는 art.css .theme-backdrop). 그림 테마가 아니면 아무것도 안 그린다.
 export function ThemeBackdrop() {
   return <Backdrop theme={useThemeName()} className="theme-backdrop" />;
 }

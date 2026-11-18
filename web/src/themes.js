@@ -5,12 +5,13 @@
 export const DEFAULT = '바우하우스'; // 11-11 22:42 사람이 ③을 기본으로
 // 사람 11-13 01:15 "친구꺼랑 내꺼 디자인 말고는 일단 다 없애주고, 내 시안의 라이트/다크 전환하는건 남겨줘"
 // → 테마는 둘: 바우하우스(친구) · 입자(dhsrua555 시연 9판). 입자는 밤 · 낮을 해·달 단추로 바꾼다.
-// 사람 11-13 02:47 "일단 이것들 실제 앱 테마에 넣어줘" → 그림 테마 넷(시안 web/design). 하루 고리 · 바탕 그림은 components/art, 모양은 looks.css.
-export const ART_THEMES = ['태양계', '오선지', '원자 모형', '뉴모피즘'];
+// 사람 11-13 02:47 "일단 이것들 실제 앱 테마에 넣어줘" → 그림 테마(시안 web/design). 하루 고리 · 바탕 그림은 components/art, 모양은 looks/<테마>.css.
+// 사람 11-19 01:08 "원자모형 테마는 없애줘" → 셋.
+export const ART_THEMES = ['태양계', '오선지', '뉴모피즘'];
 export const BUILT_IN = [DEFAULT, '입자 밤', '입자 낮', ...ART_THEMES];
 export const PARTICLE = { night: '입자 밤', day: '입자 낮' };
 // 예전 이름을 골라 둔 기기: '화면까지 바뀌던 테마'는 같은 색으로, 뺀 테마는 기본으로
-const RENAMED = { 입자: '입자 밤', 종이: '입자 낮', '차분한 종이': DEFAULT, '벤토 위젯': DEFAULT, '조용한 갤러리': DEFAULT, '호박색 터미널': DEFAULT };
+const RENAMED = { 입자: '입자 밤', 종이: '입자 낮', '차분한 종이': DEFAULT, '벤토 위젯': DEFAULT, '조용한 갤러리': DEFAULT, '호박색 터미널': DEFAULT, '원자 모형': DEFAULT };
 
 // 테마가 바꿀 수 있는 값의 이름. 가져온 테마에서 이 밖의 이름은 버린다.
 export const KEYS = `--bg --card --inset --raised --heading --text --text2 --text3 --line --grid --line-strong --fill --bubble
@@ -150,13 +151,12 @@ const DOTS = Array.from({ length: 56 }, (_, i) => {
 const LOADER = {
   입자: `<div class="ld-ring">${DOTS}<b class="ld-ty"></b><span class="ld-name">Tachyon</span></div><p>입자로 넘어가는 중</p>`,
   바우하우스: '<div class="ld-shapes"><i class="c"></i><i class="s"></i><i class="t"></i></div><span class="ld-word">Tachyon</span><span class="ld-bar"></span><p>바우하우스로 넘어가는 중</p>',
-  // 그림 테마: 고리의 얼굴을 작게(해와 궤도 · 오선 위 음표 · 원자핵과 전자 · 볼록한 구슬) + 그 테마 글꼴의 이름
+  // 그림 테마: 고리의 얼굴을 작게(해와 궤도 · 오선 위 음표 · 볼록한 구슬) + 그 테마 글꼴의 이름
   태양계: '<div class="ld-art"><b></b><i></i><i></i></div><span class="ld-word">Tachyon</span><p>태양계로 넘어가는 중</p>',
   오선지: '<div class="ld-art"><b></b><i>♩</i><i>♫</i><i>♩</i></div><span class="ld-word">Tachyon</span><p>오선지로 넘어가는 중</p>',
-  '원자 모형': '<div class="ld-art"><b></b><i></i><i></i><i></i></div><span class="ld-word">Tachyon</span><p>원자 모형으로 넘어가는 중</p>',
   뉴모피즘: '<div class="ld-art"><b></b><i></i></div><span class="ld-word">Tachyon</span><p>뉴모피즘으로 넘어가는 중</p>',
 };
-const LOADER_CLASS = { 입자: 'nine', 바우하우스: 'bauhaus', 태양계: 'art solar', 오선지: 'art staff', '원자 모형': 'art atom', 뉴모피즘: 'art soft' };
+const LOADER_CLASS = { 입자: 'nine', 바우하우스: 'bauhaus', 태양계: 'art solar', 오선지: 'art staff', 뉴모피즘: 'art soft' };
 export function switchTheme(name, mine = loadThemes()) {
   const root = document.documentElement;
   const to = mine.some((t) => t.name === name) ? '바우하우스' : family(name);

@@ -34,7 +34,6 @@ button, a, label { cursor: pointer; }
 .themes i { width: 12px; height: 12px; border-radius: 50%; }
 .sw-solar i { background: radial-gradient(circle at 35% 30%, #fff3c4, #ffb02e 50%, #3b1d50); }
 .sw-staff i { background: repeating-linear-gradient(#fff 0 2px, #111 2px 4px); outline: 1px solid #fff; }
-.sw-atom i { background: #0b1430; box-shadow: inset 0 0 0 2px #ff8a1e, 0 0 6px #36d6ff; }
 .sw-soft i { background: #e3e7ee; box-shadow: inset -2px -2px 3px #b8c0cd, inset 2px 2px 3px #fff; }
 
 .stage { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
@@ -241,38 +240,6 @@ html[data-still='1'] .app * { animation: none !important; }
 .t-staff .task-list input:checked { background: #0d0d0d; }
 .t-staff .task-list .chip { color: #0d0d0d; }
 .t-staff .composer .send { transform: skewX(-10deg); }
-
-/* ── 2-3) 원자 모형: 남색 위 주황 · 하늘색 네온. 빛나는 테두리 · 빛나는 단추 · 전자 표시 */
-.t-atom {
-  --ink: #e3f3ff; --ink2: #8aa3c0; --line: rgba(70, 190, 255, 0.25); --grid: rgba(70, 190, 255, 0.1); --accent: #36d6ff; --focus: #36d6ff; --now: #ff5c7a;
-  --r: 16px; --r-sm: 10px; --r-xs: 8px;
-  --panel: rgba(12, 22, 48, 0.85); --panel-border: 1px solid rgba(70, 190, 255, 0.35); --panel-shadow: 0 0 28px rgba(40, 160, 255, 0.13), inset 0 0 24px rgba(40, 160, 255, 0.06);
-  --brand-font: 700 17px/1 'Orbitron Variable', 'Orbit', var(--font); --brand-ls: 0.14em; --brand-ink: #ffb36b; --h-font: 400 17px/1.2 'Orbit', var(--font); --h-ink: #fff;
-  --num: 'Orbit', var(--font);
-  --title: 'Orbit', var(--font); --title-w: 400; --h-fx: 0 0 10px rgba(54, 214, 255, 0.55);
-  --logo: linear-gradient(90deg, #36d6ff, #ff8a1e); --nav-on: rgba(54, 214, 255, 0.1); --nav-on-ink: #36d6ff; --nav-on-shadow: inset 2px 0 0 #36d6ff, 0 0 14px rgba(54, 214, 255, 0.2); --side-bg: rgba(5, 10, 24, 0.5);
-  --seg-bg: rgba(5, 10, 24, 0.7); --seg-on: rgba(54, 214, 255, 0.14); --seg-on-ink: #36d6ff; --seg-on-shadow: 0 0 10px rgba(54, 214, 255, 0.4), inset 0 0 0 1px #36d6ff; --chip-bg: rgba(54, 214, 255, 0.12);
-  --ev-class-bg: linear-gradient(90deg, rgba(255, 138, 30, 0.3), rgba(255, 138, 30, 0.12)); --ev-class-ink: #ffd3ad;
-  --ev-mine-bg: rgba(54, 214, 255, 0.07); --ev-mine-border: 1px solid #36d6ff; --ev-mine-shadow: 0 0 10px rgba(54, 214, 255, 0.3);
-  --ev-slot-bg: transparent; --ev-slot-border: 1px dashed #ffd36b;
-  --bubble: rgba(54, 214, 255, 0.1); --bubble-border: 1px solid rgba(54, 214, 255, 0.4); --bubble-shadow: 0 0 12px rgba(54, 214, 255, 0.15);
-  --composer-bg: rgba(5, 10, 24, 0.9); --composer-border: 1px solid rgba(255, 138, 30, 0.6); --composer-shadow: 0 0 22px rgba(255, 138, 30, 0.25); --composer-r: 14px;
-  --send-bg: rgba(255, 138, 30, 0.15); --send-ink: #ffc08a; --send-shadow: inset 0 0 0 1.5px #ff8a1e, 0 0 14px rgba(255, 138, 30, 0.5);
-  --bg: radial-gradient(50% 40% at 82% 18%, rgba(255, 120, 30, 0.13), transparent 70%), radial-gradient(50% 45% at 8% 85%, rgba(40, 180, 255, 0.13), transparent 70%), #070d1c;
-}
-.t-atom { font-synthesis-weight: none; } /* 오르빗은 굵기가 하나뿐 → 가짜 굵게 대신 빛으로 강조 */
-.t-atom .logo { text-shadow: 0 0 12px rgba(255, 138, 30, 0.7); }
-.t-atom .card h2::before { content: ''; display: inline-block; width: 7px; height: 7px; margin: 0 9px 2px 0; border-radius: 50%; background: #ff8a1e; box-shadow: 0 0 8px #ff8a1e; }
-.t-atom .tabs button[aria-current] { color: #36d6ff; text-shadow: 0 0 8px rgba(54, 214, 255, 0.8); border-bottom-color: #36d6ff !important; }
-.t-atom .card .plain.strong { color: #36d6ff; text-shadow: 0 0 8px rgba(54, 214, 255, 0.6); }
-.t-atom .tl-ev.k-class { box-shadow: inset 2px 0 0 #ff8a1e; }
-.t-atom .mark.k-class { background: #ff8a1e; box-shadow: 0 0 9px #ff8a1e; width: 11px; height: 11px; }
-.t-atom .mark.k-mine { background: #36d6ff; width: 6px; height: 6px; margin: 0 3px; box-shadow: 0 0 0 3px #0c1630, 0 0 0 4.5px #36d6ff, 0 0 12px #36d6ff; }
-.t-atom .mark.k-slot { border: 1.6px dashed #ffd36b; box-sizing: border-box; }
-.t-atom .mark.now { box-shadow: 0 0 8px var(--now); }
-.t-atom .task-list input { border-radius: 50%; border: 1.5px dashed #8aa3c0; }
-.t-atom .task-list input:checked { background: #ff8a1e; border: 1.5px solid #ffc08a; box-shadow: 0 0 10px #ff8a1e; }
-.t-atom .task-list .chip { color: #36d6ff; }
 
 /* ── 2-4) 뉴모피즘: 바탕과 같은 연회색 판을 빛(왼쪽 위)과 그림자(오른쪽 아래)로만 빚는다. 선 · 그림 없이 파랑 하나 */
 .t-soft {

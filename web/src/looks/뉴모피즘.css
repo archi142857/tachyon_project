@@ -1,0 +1,99 @@
+/* 뉴모피즘 모양 층(사람 11-19 01:08 "시스템과 기능, 위치만 통일하고 나머지는 다 바꾸는 쪽").
+   생각: 따뜻한 점토 판 하나를 빚은 것. 선이 하나도 없고 빛(왼쪽 위)과 그림자(오른쪽 아래)로만 볼록 · 오목을 만든다.
+   왼쪽 메뉴는 판에서 떠오른 도크, 고리는 테 없이 판 위의 원반, 할 일은 하나하나 볼록한 알약(고른 것 = 눌림),
+   오늘 일정은 오목한 홈 위에 볼록한 일정, 적기 칸은 오목한 홈 + 볼록한 보내기 손잡이. 테라코타 하나. 색 값은 themes.css, 고리는 components/art. */
+html[data-theme='뉴모피즘'] {
+  --clay: #ebe4da; --dk: #cdc1b1; --lt: #fffaf2;
+  --up: 10px 10px 22px var(--dk), -10px -10px 22px var(--lt);
+  --up-sm: 4px 4px 10px var(--dk), -4px -4px 10px var(--lt);
+  --in: inset 6px 6px 12px #d6cbbc, inset -6px -6px 12px var(--lt);
+  --in-sm: inset 3px 3px 7px #d6cbbc, inset -3px -3px 7px var(--lt);
+  --terra: linear-gradient(145deg, #b5563a, #a8452a); /* 가장 밝은 쪽도 흰 글자 4.5 이상 */
+  background: var(--clay);
+}
+html[data-theme='뉴모피즘'] :where(body, .shell, .side, .shell .topbar, .shell .composer, .tabs) { background: transparent; }
+html[data-theme='뉴모피즘'] :is(.card-title, .shell .topbar .date, .subbar .date) { font-weight: 800; text-shadow: 1px 1px 1px var(--lt), -1px -1px 1px rgb(170 150 128 / 0.4); }
+
+/* ── 왼쪽 메뉴: 판에서 떠오른 도크, 고른 쪽 = 눌린 홈 */
+html[data-theme='뉴모피즘'] .side { margin: 14px 0 14px 14px; padding: 16px 12px; border: 0; border-radius: 30px; background: var(--clay); box-shadow: var(--up); }
+html[data-theme='뉴모피즘'] .side-brand { padding-left: 6px; }
+html[data-theme='뉴모피즘'] .side-nav { gap: 8px; }
+html[data-theme='뉴모피즘'] .side-nav button { padding: 0 12px 0 16px; border-left: 0; border-radius: 16px; color: var(--text2); font-weight: 600; }
+html[data-theme='뉴모피즘'] .side-nav button:hover { background: transparent; box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] .side-nav button[aria-current='page'] { background: var(--clay); color: var(--accent-text); font-weight: 800; box-shadow: var(--in-sm); }
+html[data-theme='뉴모피즘'] :is(.side-nav, .tabs) .count { background: var(--clay); color: var(--accent-text); box-shadow: 2px 2px 5px var(--dk), -2px -2px 5px var(--lt); }
+
+/* ── 머리 줄: 판에 눌러 찍은 날짜, 단추는 볼록(누르면 오목) */
+html[data-theme='뉴모피즘'] .shell .topbar { gap: 10px; height: calc(68px + env(safe-area-inset-top)); border-bottom: 0; }
+html[data-theme='뉴모피즘'] :is(.shell .topbar, .subbar) .date { font-size: 22px; color: var(--heading); }
+html[data-theme='뉴모피즘'] .shell .topbar :is(.btn-text, .icon-btn) { height: 42px; background: var(--clay); box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] .shell .topbar .icon-btn { width: 42px; border-radius: 50%; }
+html[data-theme='뉴모피즘'] .btn-text { padding: 0 16px; border-radius: 999px; font-weight: 700; }
+html[data-theme='뉴모피즘'] :is(.btn-text, .icon-btn):hover { background: var(--clay); }
+html[data-theme='뉴모피즘'] :is(.btn-text, .icon-btn):active { box-shadow: var(--in-sm); }
+html[data-theme='뉴모피즘'] .segmented { padding: 5px; background: var(--clay); border: 0; border-radius: 999px; box-shadow: var(--in-sm); }
+html[data-theme='뉴모피즘'] .segmented button { border: 0; border-radius: 999px; }
+html[data-theme='뉴모피즘'] .segmented button[aria-pressed='true'] { background: var(--clay); color: var(--accent-text); font-weight: 700; box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] .btn:not(:disabled) { background: var(--terra); box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] .tabs { gap: 6px; padding: 6px 10px; border-bottom: 0; }
+html[data-theme='뉴모피즘'] .tabs button { border-bottom: 0; border-radius: 999px; }
+html[data-theme='뉴모피즘'] .tabs button[aria-current='page'] { color: var(--accent-text); box-shadow: var(--in-sm); }
+
+/* ── 칸: 선 없이 볼록한 판. 그림자가 잘리지 않게 사이를 넓게 */
+html[data-theme='뉴모피즘'] .card { border: 0; background: var(--clay); box-shadow: var(--up); }
+html[data-theme='뉴모피즘'] .today-grid { gap: 28px; padding: 8px 6px 14px; }
+html[data-theme='뉴모피즘'] .today-grid > .card:not(.ring-card) { padding: 18px 20px; }
+html[data-theme='뉴모피즘'] .tasks-head { padding-bottom: 12px; }
+html[data-theme='뉴모피즘'] .tasks-head .btn-text { padding: 0 10px; white-space: nowrap; }
+@media (max-width: 899.98px) { /* 폰: 고리 자리가 줄지 않게 사이 · 알약을 좁게 */
+  html[data-theme='뉴모피즘'] .today-grid { gap: 16px; padding: 4px 4px 8px; }
+  html[data-theme='뉴모피즘'] .today-grid > .card:not(.ring-card) { padding: 14px 16px; }
+  html[data-theme='뉴모피즘'] .pick { margin-bottom: 8px; padding: 2px 10px; }
+}
+@media (min-width: 1200px) {
+  html[data-theme='뉴모피즘'] .today-grid[data-layout='three'] { grid-template-columns: minmax(250px, 0.9fr) minmax(0, 1.3fr) minmax(250px, 0.9fr); grid-template-rows: minmax(0, 1.35fr) minmax(0, 1fr); }
+}
+
+/* ── 고리: 테 없이 판 위의 원반(고리 그림이 스스로 볼록한 판) */
+html[data-theme='뉴모피즘'] .today-grid > .ring-card:not(.lifted) { background: none; box-shadow: none; }
+html[data-theme='뉴모피즘'] .today-grid > .ring-card .ring-wrap { width: max(160px, min(520px, 100cqw - 32px, 100cqh - 64px)); }
+
+/* ── 오늘 일정: 오목한 홈 위에 볼록한 일정 */
+html[data-theme='뉴모피즘'] .cal-grid { border-top: 0; }
+html[data-theme='뉴모피즘'] .cal-grid .hline { border-top-color: rgb(170 150 128 / 0.22); }
+html[data-theme='뉴모피즘'] .cal-grid.one .col { border-left: 0; border-radius: 18px; box-shadow: var(--in-sm); }
+html[data-theme='뉴모피즘'] .ev { border-radius: 12px; }
+html[data-theme='뉴모피즘'] .ev.timetable { background: var(--terra); --ev-text: #ffffff; color: #ffffff; box-shadow: 3px 3px 7px var(--dk), -3px -3px 7px var(--lt); }
+html[data-theme='뉴모피즘'] .ev.timetable::before { background: #ffffff; }
+html[data-theme='뉴모피즘'] :is(.ev.ics, .ev.memo) { background: var(--clay); border-color: transparent; box-shadow: 3px 3px 7px var(--dk), -3px -3px 7px var(--lt); }
+html[data-theme='뉴모피즘'] .ev.slot { background: var(--clay); border-color: transparent; box-shadow: var(--in-sm); }
+html[data-theme='뉴모피즘'] .ev.sel { outline: 2px solid var(--accent); outline-offset: 2px; }
+html[data-theme='뉴모피즘'] .now-line::before { content: ''; position: absolute; left: -7px; top: -8px; width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle, var(--now) 0 3px, var(--clay) 3.5px); box-shadow: 2px 2px 5px var(--dk), -2px -2px 5px var(--lt); }
+
+/* ── 할 일: 하나하나 볼록한 알약, 고른 것 = 눌림. 고르기 칸 = 오목한 구멍 → 테라코타 구슬 */
+html[data-theme='뉴모피즘'] .pick { margin: 0 4px 14px; padding: 4px 10px; border-radius: 20px; background: var(--clay); box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] .pick.on { background: var(--clay); box-shadow: var(--in-sm); }
+html[data-theme='뉴모피즘'] .task { border-top: 0; }
+html[data-theme='뉴모피즘'] .task .title { font-weight: 700; }
+html[data-theme='뉴모피즘'] .task > input[type='checkbox'] { appearance: none; width: 24px; height: 24px; margin: 0; border-radius: 50%; background: var(--clay); box-shadow: var(--in-sm); }
+html[data-theme='뉴모피즘'] .task > input[type='checkbox']:checked { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 12.5l3.2 3.2L17 9' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"), var(--terra); box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] .slot-note .tag.suggest { border: 0; border-radius: 999px; background: var(--clay); box-shadow: var(--in-sm); color: var(--accent-text); }
+
+/* ── 메모: 볼록한 조약돌 말풍선, 고른 것 = 눌림 */
+html[data-theme='뉴모피즘'] .memo-log { padding: 8px 10px 12px; gap: 12px; }
+html[data-theme='뉴모피즘'] .memo-log .bubble { padding: 7px 14px; background: var(--clay); border: 0; border-radius: 20px 20px 6px 20px; box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] .memo-log .bubble.on { color: var(--accent-text); box-shadow: var(--in-sm); }
+
+/* ── 적기 칸: 오목한 홈 + 볼록한 테라코타 손잡이 */
+html[data-theme='뉴모피즘'] .composer form { padding: 6px 6px 6px 10px; background: var(--clay); border: 0; border-radius: 999px; box-shadow: var(--in); }
+html[data-theme='뉴모피즘'] .composer form:focus-within { box-shadow: var(--in), 0 0 0 2px rgb(168 69 42 / 0.35); }
+html[data-theme='뉴모피즘'] .composer .memo-count { border: 0; border-radius: 999px; background: var(--clay); box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] .composer .send { width: 44px; height: 44px; border-radius: 50%; }
+html[data-theme='뉴모피즘'] .composer .send:not(:disabled) { background: var(--terra); color: #ffffff; box-shadow: 4px 4px 10px var(--dk), -4px -4px 10px var(--lt); }
+html[data-theme='뉴모피즘'] .composer .send:disabled { background: var(--clay); box-shadow: var(--up-sm); }
+
+/* ── 고리 밑 표시(캡슐 · 구슬 · 보조개) */
+html[data-theme='뉴모피즘'] .key-dot { width: 16px; height: 8px; border-radius: 8px; background: var(--terra); box-shadow: 2px 2px 4px var(--dk), -2px -2px 4px var(--lt); }
+html[data-theme='뉴모피즘'] .key-sq { border-radius: 50%; background: radial-gradient(circle, #a8452a 0 2px, transparent 2.5px), linear-gradient(135deg, #fbf7f1, #e0d6c9); box-shadow: 2px 2px 4px var(--dk), -2px -2px 4px var(--lt); }
+html[data-theme='뉴모피즘'] .key-tri { clip-path: none; width: 10px; height: 10px; border-radius: 50%; background: var(--clay); box-shadow: inset 2px 2px 3px var(--dk), inset -2px -2px 3px var(--lt); }
+html[data-theme='뉴모피즘'] .key-tri::after { display: none; }

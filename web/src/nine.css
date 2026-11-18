@@ -7,7 +7,10 @@
    11-15 사람 "테마가 달라도 위치·레이아웃·기능은 같게 … 로고도 통일"(기준은 기본 테마 배치): 그사이 어긋났던 자리 — 이름표 · 메뉴 폭 ·
    할 일 줄(체크 오른쪽 · 여유 칸) · 고리 자리와 크기 · 오늘/주간 눈금 · 마감 점선 · 월 달력 고리와 시각 · 메모 쪽 가운데 기둥 · 폰 탭 — 을
    기본 테마 자리로 되돌리고(같은 부품 · 같은 JSX), 9판에만 있던 기능(메모 N 단추 · 지금 시각 글 · 일정 시각 · 오늘부터 · 하루 지난 줄)은
-   모든 테마에 넣었다(unify1115.css). 여기에는 겉모습만 남는다. */
+   모든 테마에 넣었다(unify1115.css). 여기에는 겉모습만 남는다.
+   11-19 사람 "입자 테마는 glow한 느낌이 핵심인데, 너무 flat하게 되어서 매력이 사라진 것 같은 느낌": 9판 · 옛판/입자-고리.html의 빛을 되살렸다 —
+   화면 뒤 보라 · 청록 · 분홍 빛 번짐, 유리 칸(--glass · --rim · --bloom), 일정 · 할 일 · 고리 입자의 제 색 빛, 빛나는 적기 칸 · 시트.
+   배치도 바우하우스 비율을 따르지 않고 고리를 가운데 크게(오늘 칸 three · ring). */
 @property --t { syntax: '<number>'; inherits: true; initial-value: 0; }
 @property --sc { syntax: '<color>'; inherits: true; initial-value: #8f7bff; }
 
@@ -34,10 +37,26 @@ html[data-theme^='입자'] {
   --font: Inter, 'Noto Sans KR', 'Pretendard Variable', Pretendard, system-ui, sans-serif;
   --font-head: var(--font);
   --r-card: 26px; --r-btn: 10px; --r-chip: 9px; --r-sheet: 26px;
+  /* 11-19 빛(사람 "입자 테마는 glow한 느낌이 핵심인데 너무 flat"): 유리 면 · 빛나는 테 · 번짐. 밤엔 색 빛, 낮엔 흰 유리와 옅은 색 그림자 */
+  --pk: color-mix(in srgb, #ff6fb5, #d6408a calc(var(--t) * 100%));
+  --glass: linear-gradient(180deg, color-mix(in srgb, #fff calc(6% + 58% * var(--t)), transparent), color-mix(in srgb, #fff calc(1.5% + 34% * var(--t)), transparent));
+  --edge: color-mix(in srgb, var(--ink) calc(8% - 1% * var(--t)), transparent);
+  --rim: color-mix(in srgb, #fff calc(12% + 70% * var(--t)), transparent); /* 유리 윗변에 걸린 빛 */
+  --bloom: color-mix(in srgb, var(--vi) calc(50% - 26% * var(--t)), transparent);
 }
 html[data-theme='입자 낮'] { --t: 1; }
 @media (prefers-reduced-motion: reduce) { html[data-theme^='입자'] { transition: none; } }
 html[data-theme^='입자'] body { font: 14px/1.4 var(--font); -webkit-font-smoothing: antialiased; }
+/* 화면 뒤: 고리 위쪽에 보라 빛, 오른쪽 아래 청록, 왼쪽에 분홍이 옅게 번진 어둠(9판 입자 고리 시안의 성운). 틀은 모두 비워 이 빛이 보이게 */
+html[data-theme^='입자'] {
+  background:
+    radial-gradient(52% 46% at 50% 16%, color-mix(in srgb, var(--vi) calc(17% + 3% * var(--t)), transparent), transparent 72%),
+    radial-gradient(38% 42% at 100% 100%, color-mix(in srgb, var(--te) calc(11% + 7% * var(--t)), transparent), transparent 72%),
+    radial-gradient(34% 38% at 0% 78%, color-mix(in srgb, var(--pk) calc(6% + 6% * var(--t)), transparent), transparent 72%),
+    var(--bg);
+  background-attachment: fixed;
+}
+html[data-theme^='입자'] :where(body, .shell, .side, .shell .topbar, .shell .composer) { background: transparent; }
 html[data-theme^='입자'] :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 html[data-theme^='입자'] .num { font-variant-numeric: tabular-nums; }
 
@@ -45,39 +64,41 @@ html[data-theme^='입자'] .num { font-variant-numeric: tabular-nums; }
 html[data-theme^='입자'] .btn { height: 40px; padding: 0 16px; border-radius: 10px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; }
 html[data-theme^='입자'] .btn:not(:disabled)::after { content: '→'; transition: transform 0.25s; }
 html[data-theme^='입자'] .btn:hover::after { transform: translateX(3px); }
+html[data-theme^='입자'] .btn:not(:disabled) { box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 30%, transparent), 0 6px 26px -6px var(--bloom); transition: box-shadow 0.3s; }
+html[data-theme^='입자'] .btn:not(:disabled):hover { box-shadow: 0 0 0 1px var(--ink), 0 8px 34px -4px var(--bloom); }
 html[data-theme^='입자'] .btn:disabled { opacity: 0.4; background: var(--ink); color: var(--bg); }
-html[data-theme^='입자'] .btn-text, html[data-theme^='입자'] .chip-btn { height: 40px; padding: 0 14px; border: 0; border-radius: 10px; background: none; box-shadow: inset 0 0 0 1px var(--ln); color: var(--mu); font-size: 14px; font-weight: 400; white-space: nowrap; transition: color 0.2s, box-shadow 0.2s; }
-html[data-theme^='입자'] .btn-text:hover, html[data-theme^='입자'] .chip-btn:hover { background: none; color: var(--ink); box-shadow: inset 0 0 0 1px var(--fa); }
+html[data-theme^='입자'] .btn-text, html[data-theme^='입자'] .chip-btn { height: 40px; padding: 0 14px; border: 0; border-radius: 12px; background: var(--glass); box-shadow: inset 0 1px 0 var(--rim), inset 0 0 0 1px var(--edge); color: var(--mu); font-size: 14px; font-weight: 400; white-space: nowrap; transition: color 0.2s, box-shadow 0.3s; }
+html[data-theme^='입자'] .btn-text:hover, html[data-theme^='입자'] .chip-btn:hover { background: var(--glass); color: var(--ink); box-shadow: inset 0 1px 0 var(--rim), inset 0 0 0 1px var(--fa), 0 0 22px -6px var(--bloom); }
 html[data-theme^='입자'] .btn-text.quiet { box-shadow: none; color: var(--fa); }
 html[data-theme^='입자'] .btn-text.quiet:hover { color: var(--ink); box-shadow: none; }
 html[data-theme^='입자'] .btn-text.danger { color: #ff6f6f; }
-html[data-theme^='입자'] .icon-btn { width: 36px; height: 36px; border-radius: 10px; color: var(--mu); box-shadow: inset 0 0 0 1px var(--ln); }
-html[data-theme^='입자'] .icon-btn:hover { background: none; color: var(--ink); box-shadow: inset 0 0 0 1px var(--fa); }
+html[data-theme^='입자'] .icon-btn { width: 38px; height: 38px; border-radius: 50%; color: var(--mu); background: var(--glass); box-shadow: inset 0 1px 0 var(--rim), inset 0 0 0 1px var(--edge); }
+html[data-theme^='입자'] .icon-btn:hover { background: var(--glass); color: var(--ink); box-shadow: inset 0 1px 0 var(--rim), inset 0 0 0 1px var(--fa), 0 0 22px -6px var(--bloom); }
 html[data-theme^='입자'] .icon-btn svg { width: 18px; height: 18px; }
 html[data-theme^='입자'] .tag { border: 0; border-radius: 8px; background: none; box-shadow: inset 0 0 0 1px var(--ln); color: var(--mu); font-size: 12px; font-weight: 400; }
 /* 9판 .seg */
-html[data-theme^='입자'] .segmented { display: flex; padding: 3px; border: 0; border-radius: 10px; background: none; box-shadow: inset 0 0 0 1px var(--ln); }
-html[data-theme^='입자'] .segmented button { height: 30px; padding: 0 14px; border: 0; border-radius: 7px; background: none; color: var(--mu); font-size: 14px; font-weight: 400; white-space: nowrap; transition: background 0.25s, color 0.25s; }
-html[data-theme^='입자'] .segmented button[aria-pressed='true'] { background: color-mix(in srgb, var(--ink) 13%, transparent); color: var(--ink); box-shadow: none; }
+html[data-theme^='입자'] .segmented { display: flex; padding: 3px; border: 0; border-radius: 99px; background: var(--glass); box-shadow: inset 0 1px 0 var(--rim), inset 0 0 0 1px var(--edge); }
+html[data-theme^='입자'] .segmented button { height: 30px; padding: 0 14px; border: 0; border-radius: 99px; background: none; color: var(--mu); font-size: 14px; font-weight: 400; white-space: nowrap; transition: background 0.25s, color 0.25s, box-shadow 0.25s; }
+html[data-theme^='입자'] .segmented button[aria-pressed='true'] { background: color-mix(in srgb, var(--ink) calc(14% - 6% * var(--t)), color-mix(in srgb, #fff calc(80% * var(--t)), transparent)); color: var(--ink); box-shadow: inset 0 1px 0 var(--rim), 0 0 18px -4px var(--bloom); }
 /* 9판 .bd(보라 숫자 꼬리표) */
 html[data-theme^='입자'] .side-nav .count, html[data-theme^='입자'] .tabs .count { display: inline-grid; place-items: center; min-width: 16px; height: 16px; margin-left: 6px; padding: 0 4px; border-radius: 8px; background: var(--vi); color: #fff; font-size: 10px; line-height: 16px; font-weight: 500; }
 
 /* ── 왼쪽 메뉴 · 이름표(9판 .side · .logo) ── */
 /* 11-15 테마 통일(사람 "테마가 달라도 위치·레이아웃·기능은 같게, 로고도"): 메뉴 폭 · 여백 · 줄 높이 · 이름표는 기본 테마 그대로, 테두리 · 색만 9판 */
 @media (min-width: 900px) {
-  html[data-theme^='입자'] .side { border: 0; background: var(--bg); }
+  html[data-theme^='입자'] .side { border: 0; }
 }
 html[data-theme^='입자'] .side-nav { gap: 2px; }
 html[data-theme^='입자'] .side-nav button { padding: 0 10px 0 12px; border: 0; border-radius: 0; background: none; justify-content: flex-start; gap: 12px; font-size: 15px; font-weight: 400; color: var(--fa); transition: color 0.25s; }
 html[data-theme^='입자'] .side-nav button:hover { background: none; color: var(--mu); }
-html[data-theme^='입자'] .side-nav button[aria-current='page'] { background: none; color: var(--ink); font-weight: 400; }
+html[data-theme^='입자'] .side-nav button[aria-current='page'] { background: linear-gradient(90deg, color-mix(in srgb, var(--vi) calc(16% - 6% * var(--t)), transparent), transparent 80%); color: var(--ink); font-weight: 400; text-shadow: 0 0 14px var(--bloom); }
 html[data-theme^='입자'] .side-nav button::before { content: ''; flex: none; width: 1.5px; height: 12px; background: var(--ln); transition: background 0.25s, box-shadow 0.25s; }
 html[data-theme^='입자'] .side-nav button[aria-current='page']::before { background: var(--ink); box-shadow: 0 0 8px 1px var(--vi); }
 html[data-theme^='입자'] .side-nav .count { margin-left: auto; } /* 숫자는 기본 테마처럼 오른쪽 끝 */
 
 /* ── 위 막대(9판 .top) ── */
-html[data-theme^='입자'] .shell .topbar { gap: 14px; background: var(--bg); color: var(--mu); }
-html[data-theme^='입자'] .shell .topbar .date { font-family: var(--font); font-size: 15px; font-weight: 400; letter-spacing: 0; color: var(--mu); }
+html[data-theme^='입자'] .shell .topbar { gap: 14px; color: var(--mu); }
+html[data-theme^='입자'] .shell .topbar .date { font-family: var(--font); font-size: 22px; font-weight: 300; letter-spacing: -0.03em; color: var(--ink); text-shadow: 0 0 22px var(--bloom); }
 html[data-theme^='입자'] .shell .topbar .btn-text { height: 36px; font-size: 14px; }
 /* 밤 ↔ 낮 스위치(9판 .sw): 달(파인 원)이 오른쪽으로 미끄러져 해(작은 원 + 빛살 여덟 점)가 된다. 모두 --t에서 */
 html[data-theme^='입자'] .sw { flex: none; position: relative; width: 52px; height: 28px; margin-left: 8px; padding: 0; border: 0; border-radius: 99px; cursor: pointer; background: color-mix(in srgb, var(--ink) 9%, var(--bg)); box-shadow: inset 0 0 0 1px var(--ln); }
@@ -94,10 +115,21 @@ html[data-theme^='입자'] .subbar .date { font-family: var(--font); font-size: 
 
 /* ── 오늘 화면(9판 .hx): 칸 테두리 없이 타임라인 · 고리 · 할 일. 칸 이름은 왼쪽 가는 보라 막대가 붙은 작은 이름표(.lb) ── */
 html[data-theme^='입자'] .card:not(.lifted) { border: 0; border-radius: 0; background: none; box-shadow: none; }
-html[data-theme^='입자'] .today-grid > .card:not(.lifted) { padding: 0 4px; } /* 테가 없으니 안쪽 여백도 9판처럼 거의 없이 */ /* 9판엔 카드 테두리가 없다: 칸은 lb 제목과 줄로만 나뉜다 */
+html[data-theme^='입자'] .today-grid > .card:not(.lifted) { padding: 0 4px; } /* 9판엔 카드 테두리가 없다: 고리 · 할 일 · 메모는 떠 있고 */
+/* 11-19 배치: 고리가 가운데에서 크게 빛나고(가운데 칸을 넓게), 오늘 일정만 빛 테를 두른 유리 판. 칸 사이는 넓게 띄운다 */
+html[data-theme^='입자'] .today-grid { gap: 22px; }
+@media (min-width: 1200px) {
+  html[data-theme^='입자'] .today-grid[data-layout='three'] { grid-template-columns: minmax(250px, 0.8fr) minmax(0, 1.5fr) minmax(230px, 0.75fr); grid-template-rows: minmax(0, 1.35fr) minmax(0, 1fr); }
+  html[data-theme^='입자'] .today-grid[data-layout='ring'] { grid-template-columns: minmax(0, 1.7fr) minmax(240px, 0.85fr) minmax(230px, 0.8fr); }
+}
+html[data-theme^='입자'] .today-grid > .ring-card .ring-wrap { width: max(160px, min(520px, 100cqw - 24px, 100cqh - 70px)); }
+html[data-theme^='입자'] .today-grid > .day:not(.lifted) {
+  padding: 14px 14px 10px; border-radius: 26px; background: var(--glass); backdrop-filter: blur(18px);
+  box-shadow: inset 1px 1px 0 color-mix(in srgb, var(--vi) calc(55% - 15% * var(--t)), transparent), inset -1px -1px 0 color-mix(in srgb, var(--te) calc(35% - 5% * var(--t)), transparent), inset 0 0 0 1px var(--edge), 0 0 60px -24px var(--bloom), 0 24px 50px -30px var(--sh);
+}
 html[data-theme^='입자'] .make-group { height: 44px; border: 0; border-radius: 12px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 500; box-shadow: none; }
 html[data-theme^='입자'] .card-title { display: flex; align-items: center; gap: 8px; font-family: var(--font); font-size: 12px; line-height: 1.4; font-weight: 400; letter-spacing: 0; color: var(--mu); }
-html[data-theme^='입자'] .card-title::before { content: ''; flex: none; width: 1.5px; height: 11px; background: var(--vi); }
+html[data-theme^='입자'] .card-title::before { content: ''; flex: none; width: 5px; height: 5px; border-radius: 50%; background: var(--vi); box-shadow: 0 0 8px 1px var(--vi); }
 html[data-theme^='입자'] .tasks-head { gap: 8px; }
 html[data-theme^='입자'] .tasks-head .tag { box-shadow: none; padding: 0; color: var(--fa); }
 html[data-theme^='입자'] .tasks-head .btn-text { height: 28px; padding: 0 10px; font-size: 12px; border-radius: 8px; }
@@ -106,9 +138,10 @@ html[data-theme^='입자'] .tasks-head .btn-text { height: 28px; padding: 0 10px
 html[data-theme^='입자'] .cal-grid { border-top: 0; border-bottom: 1px solid color-mix(in srgb, var(--ink) 7%, transparent); }
 html[data-theme^='입자'] .cal-grid .hline { border-top: 1px solid color-mix(in srgb, var(--ink) 7%, transparent); }
 html[data-theme^='입자'] .cal-grid .hours { font-size: 10px; line-height: 14px; font-weight: 400; color: var(--fa); }
+html[data-theme^='입자'] .today-grid > .day .cal-grid > .hours { background: none; } /* 오늘 일정은 유리 판 위라 바탕색 띠를 깔지 않는다 */
 html[data-theme^='입자'] .cal-grid .col { border-left: 0; box-shadow: inset 1px 0 0 color-mix(in srgb, var(--ink) 6%, transparent); }
 html[data-theme^='입자'] .cal-grid.one .col, html[data-theme^='입자'] .cal-grid .col.today { background: linear-gradient(color-mix(in srgb, var(--vi) 13%, transparent), transparent 70%); }
-html[data-theme^='입자'] .ev { --c: var(--vi); border: 0; border-radius: 9px; padding: 4px 8px 4px 10px; background: color-mix(in srgb, var(--c) 22%, var(--s1)); box-shadow: inset 2px 0 0 var(--c); color: var(--ink); font-size: 12px; line-height: 1.25; font-weight: 500; }
+html[data-theme^='입자'] .ev { --c: var(--vi); border: 0; border-radius: 10px; padding: 4px 8px 4px 10px; background: linear-gradient(100deg, color-mix(in srgb, var(--c) calc(34% - 8% * var(--t)), var(--s1)), color-mix(in srgb, var(--c) calc(12% + 4% * var(--t)), var(--s1)) 75%); box-shadow: inset 2px 0 0 var(--c), inset 0 1px 0 color-mix(in srgb, #fff calc(8% + 40% * var(--t)), transparent), 0 0 18px -8px var(--c); color: var(--ink); font-size: 12px; line-height: 1.25; font-weight: 500; }
 html[data-theme^='입자'] .ev::before { display: none; }
 html[data-theme^='입자'] .ev .place { display: block; margin-top: 1px; font-size: 10px; line-height: 1.3; font-weight: 400; color: var(--mu); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 html[data-theme^='입자'] .cal-grid.one .ev { padding: 4px 12px 4px 14px; font-size: 14px; }
@@ -116,8 +149,8 @@ html[data-theme^='입자'] .cal-grid.one .ev .place { font-size: 12px; } /* 9판
 html[data-theme^='입자'] .ev.important { box-shadow: inset 2px 0 0 var(--c), 0 0 0 1px color-mix(in srgb, var(--c) 70%, transparent); font-weight: 600; }
 html[data-theme^='입자'] .ev.slot { background: color-mix(in srgb, var(--c) 7%, var(--s1)); box-shadow: none; border: 1px dotted color-mix(in srgb, var(--c) 60%, transparent); }
 html[data-theme^='입자'] .ev.slot::before { display: inline; content: '추천'; margin-right: 6px; padding: 0; border: 0; font-size: 10px; font-weight: 400; color: var(--c); background: none; }
-html[data-theme^='입자'] .ev.sel { z-index: 1; border-style: solid; background: color-mix(in srgb, var(--c) 34%, var(--s1)); box-shadow: inset 2px 0 0 var(--c), 0 0 0 1.5px var(--c), 0 0 22px -4px var(--c); }
-html[data-theme^='입자'] .now-line { height: 1px; border: 0; z-index: 3; background: linear-gradient(90deg, var(--ink), color-mix(in srgb, var(--ink) 20%, transparent)); }
+html[data-theme^='입자'] .ev.sel { z-index: 1; border-style: solid; background: color-mix(in srgb, var(--c) 38%, var(--s1)); box-shadow: inset 2px 0 0 var(--c), 0 0 0 1.5px var(--c), 0 0 30px -2px var(--c); }
+html[data-theme^='입자'] .now-line { height: 1px; border: 0; z-index: 3; background: linear-gradient(90deg, var(--ink), color-mix(in srgb, var(--ink) 20%, transparent)); box-shadow: 0 0 8px 0.5px var(--bloom); }
 html[data-theme^='입자'] .now-line::before, html[data-theme^='입자'] .now-line::after { content: ''; position: absolute; left: -4px; top: -3.5px; width: 8px; height: 8px; border-radius: 50%; }
 html[data-theme^='입자'] .now-line::before { background: var(--ink); box-shadow: 0 0 10px 2px var(--vi); }
 html[data-theme^='입자'] .now-line::after { box-shadow: 0 0 0 1px var(--ink); animation: nine-ping 2.4s ease-out infinite; }
@@ -180,6 +213,9 @@ html[data-theme^='입자'] .ring-wrap.nine { aspect-ratio: 1; transition: --sc 0
 html[data-theme^='입자'] .ring-wrap.nine .ring { width: 100%; height: 100%; overflow: visible; }
 .ring-wrap.nine .ring circle { fill: color-mix(in srgb, var(--c, var(--ink)) 62%, var(--ink)); opacity: 0.5; transform-box: fill-box; transform-origin: center; transition: transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1), opacity 0.3s; }
 .ring-wrap.nine .ring g.on { filter: drop-shadow(0 0 2px var(--c)) drop-shadow(0 0 7px var(--c)); }
+/* 11-19 빛: 일정 구간의 입자는 고르지 않아도 제 색으로 은은히 번진다(9판 입자 고리 시안), 고른 것은 위처럼 더 세게 */
+.ring-wrap.nine .ring .eg:not(.on) { filter: drop-shadow(0 0 1.6px var(--c)) drop-shadow(0 0 5px color-mix(in srgb, var(--c) 55%, transparent)); }
+.ring-wrap.nine .ring .sg:not(.on) circle:not(.nd, .pl) { filter: drop-shadow(0 0 2px color-mix(in srgb, var(--c) 70%, transparent)); }
 .ring-wrap.nine .ring g.on circle { opacity: 1; transform: scale(2); }
 .ring-wrap.nine .fb { fill: none; stroke: var(--c); stroke-width: 0.6; opacity: 0; transition: opacity 0.5s; }
 .ring-wrap.nine g.on .fb { opacity: 0.85; }
@@ -196,6 +232,7 @@ html[data-theme^='입자'] .ring-wrap.nine .ring { width: 100%; height: 100%; ov
 .ring-wrap.nine .ring .pl, .ring-wrap.nine .ring g.on .pl { fill: var(--ink); transform: none; transition: none; }
 .ring-wrap.nine .ring g.on .pl { opacity: 1; }
 .ring-wrap.nine .ring line { stroke: var(--fa); stroke-width: 0.7; stroke-linecap: round; }
+html[data-theme^='입자'] .ring-wrap.nine .ring line.day-edge { stroke: var(--ink); stroke-width: 1; opacity: 0.4; filter: drop-shadow(0 0 2px var(--vi)); } /* 0시 경계: 굵은 막대 대신 가는 빛줄기 */
 .ring-wrap.nine .ring text { fill: var(--mu); font-size: 8.5px; text-anchor: middle; dominant-baseline: central; font-variant-numeric: tabular-nums; }
 .ring-wrap.nine .ring text.nw { fill: var(--ink); font-weight: 600; }
 .ring-wrap.nine .ring .hit { fill: none; stroke: transparent; stroke-width: 46; pointer-events: stroke; cursor: pointer; }
@@ -205,13 +242,15 @@ html[data-theme^='입자'] .ring-wrap.nine .ring { width: 100%; height: 100%; ov
 /* 타키온: 지금 자리에 선 흰 입자와 지나온 쪽으로 옅어지는 꼬리 */
 .ring-wrap.nine .ty { position: absolute; inset: 0; pointer-events: none; }
 .ring-wrap.nine .ty::after { content: ''; position: absolute; inset: 0; border-radius: 50%; opacity: 0.8; background: conic-gradient(transparent 310deg, var(--ink)); mask: radial-gradient(farthest-side, transparent calc(93% - 1.2px), #000 calc(93% - 0.5px), #000 calc(93% + 0.5px), transparent calc(93% + 1.2px)); }
-.ring-wrap.nine .ty::before { content: ''; position: absolute; left: 50%; top: 3.5%; width: 5px; height: 5px; margin: -2.5px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 8px 2px var(--sc); animation: nine-breathe 1.6s ease-in-out infinite alternate; }
+.ring-wrap.nine .ty::before { content: ''; position: absolute; left: 50%; top: 3.5%; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 6px 2px var(--sc), 0 0 22px 6px color-mix(in srgb, var(--sc) 55%, transparent); animation: nine-breathe 1.6s ease-in-out infinite alternate; }
 /* 가운데: 숨 쉬는 빛, 크고 가는 숫자(단위는 작게), 아래 작은 설명 */
 .ring-wrap.nine .ring-mid { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 6px; padding: 0; text-align: center; pointer-events: none; }
 .ring-wrap.nine .ring-mid > * { position: relative; }
-.ring-wrap.nine .ring-mid::before { content: ''; position: absolute; left: 22%; top: 22%; width: 56%; height: 56%; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--sc) 42%, transparent), transparent 68%); animation: nine-breathe 4.5s ease-in-out infinite alternate; }
+.ring-wrap.nine .ring-mid::before { content: ''; position: absolute; left: 18%; top: 18%; width: 64%; height: 64%; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--sc) calc(52% - 18% * var(--t)), transparent), color-mix(in srgb, var(--sc) calc(14% - 4% * var(--t)), transparent) 45%, transparent 70%); animation: nine-breathe 4.5s ease-in-out infinite alternate; }
+/* 고리 전체를 감싸는 옅은 빛무리(고른 일정의 색으로 바뀐다) */
+html[data-theme^='입자'] .ring-wrap.nine { border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--sc) calc(15% - 3% * var(--t)), transparent) 55%, color-mix(in srgb, var(--sc) calc(6% - 1% * var(--t)), transparent) 82%, transparent); }
 @keyframes nine-breathe { from { transform: scale(0.88); opacity: 0.65; } to { transform: scale(1.12); opacity: 1; } }
-.ring-wrap.nine .mid-big { font-family: var(--font); font-size: 30px; line-height: 1; font-weight: 300; letter-spacing: -0.04em; white-space: nowrap; color: var(--ink); }
+.ring-wrap.nine .mid-big { font-family: var(--font); font-size: clamp(26px, 9cqw, 46px); line-height: 1; font-weight: 200; letter-spacing: -0.045em; white-space: nowrap; color: var(--ink); text-shadow: 0 0 24px color-mix(in srgb, var(--sc) calc(80% - 50% * var(--t)), transparent); }
 .ring-wrap.nine .mid-big i { font-style: normal; font-size: 0.46em; letter-spacing: 0; margin-left: 2px; color: var(--mu); }
 .ring-wrap.nine .mid-sub { max-width: 104px; font-size: 12px; line-height: 1.4; color: var(--mu); word-break: keep-all; }
 .ring-wrap.nine .mid-title { max-width: 104px; font-family: var(--font); font-size: 14px; font-weight: 500; line-height: 1.35; color: var(--ink); word-break: keep-all; overflow-wrap: anywhere; }
@@ -225,9 +264,13 @@ html[data-theme^='입자'] .loose-btn .key-loose { width: 6px; height: 6px; bord
 /* 할 일 줄(9판 .row): 과목 색 점 · 제목 · 오른쪽 여유와 마감 · 동그란 체크 */
 html[data-theme^='입자'] .today-grid > .tasks { display: flex; flex-direction: column; gap: 8px; scrollbar-width: thin; }
 html[data-theme^='입자'] .pick { display: grid; gap: 8px; }
-html[data-theme^='입자'] .task { align-items: center; gap: 12px; min-height: 62px; padding: 11px 18px 11px 12px; border: 0; border-radius: 18px; background: var(--row); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 6%, transparent); transition: box-shadow 0.3s; }
+/* 11-19 빛: 줄마다 유리 면 + 윗변 빛 + 왼쪽에서 번지는 과목 색. 올리면 그 색으로 빛나고, 고르면 테가 켜진다 */
+html[data-theme^='입자'] .task { align-items: center; gap: 12px; min-height: 62px; padding: 11px 18px 11px 12px; border: 0; border-radius: 18px;
+  background: radial-gradient(70% 140% at 0% 50%, color-mix(in srgb, var(--c) calc(15% - 5% * var(--t)), transparent), transparent 70%), var(--glass);
+  box-shadow: inset 0 1px 0 var(--rim), inset 0 0 0 1px var(--edge); transition: box-shadow 0.3s, background 0.3s; }
+html[data-theme^='입자'] .task:hover { box-shadow: inset 0 1px 0 var(--rim), inset 0 0 0 1px color-mix(in srgb, var(--c) 35%, transparent), 0 0 26px -10px var(--c); }
 html[data-theme^='입자'] .pick.on { background: none; }
-html[data-theme^='입자'] .pick.on .task { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 75%, transparent), 0 0 18px -8px var(--c); }
+html[data-theme^='입자'] .pick.on .task { background: radial-gradient(80% 160% at 0% 50%, color-mix(in srgb, var(--c) calc(26% - 8% * var(--t)), transparent), transparent 75%), var(--glass); box-shadow: inset 0 1px 0 var(--rim), inset 0 0 0 1px color-mix(in srgb, var(--c) 80%, transparent), 0 0 34px -8px var(--c); }
 html[data-theme^='입자'] .task.done { opacity: 0.45; }
 html[data-theme^='입자'] .task .title { font-size: 14px; line-height: 1.4; font-weight: 500; color: var(--ink); }
 html[data-theme^='입자'] .task .title::before { content: ''; display: inline-block; width: 7px; height: 7px; margin: 0 9px 1px 1px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); vertical-align: middle; } /* 과목 색 점(9판 .row .dot) */
@@ -237,30 +280,31 @@ html[data-theme^='입자'] .task .meta .soon { color: var(--ink); }
 html[data-theme^='입자'] .task .short { color: #ff9d5c; }
 html[data-theme^='입자'] .task > input[type='checkbox'] { appearance: none; flex: none; position: relative; width: 30px; height: 30px; margin: 0; border-radius: 50%; display: grid; place-items: center; background: none; box-shadow: inset 0 0 0 1px var(--fa); cursor: pointer; transition: background 0.2s, box-shadow 0.2s; } /* 9판 동그란 체크, 자리는 기본처럼 왼쪽(11-15 통일) */
 html[data-theme^='입자'] .task > input[type='checkbox']:hover { box-shadow: inset 0 0 0 1px var(--ink); }
-html[data-theme^='입자'] .task > input[type='checkbox']:checked { background: var(--ink); box-shadow: none; }
+html[data-theme^='입자'] .task > input[type='checkbox']:checked { background: var(--ink); box-shadow: 0 0 16px -2px var(--c); }
 html[data-theme^='입자'] .task > input[type='checkbox']:checked::after { content: ''; width: 9px; height: 5px; margin-top: -3px; border: solid var(--bg); border-width: 0 0 1.5px 1.5px; rotate: -45deg; }
 html[data-theme^='입자'] .task .due-track { margin-top: 6px; }
 /* 추천 자리 · 정한 자리(9판 .chips .gb · 청록 글자) */
 html[data-theme^='입자'] .slot-note { margin: 0 0 0 18px; font-size: 12px; color: var(--mu); }
-html[data-theme^='입자'] .slot-note.suggest { justify-self: start; height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: none; box-shadow: inset 0 0 0 1px var(--ln); color: var(--mu); font-size: 13px; cursor: pointer; }
-html[data-theme^='입자'] .slot-note.suggest:hover { color: var(--ink); box-shadow: inset 0 0 0 1px var(--fa); }
+html[data-theme^='입자'] .slot-note.suggest { justify-self: start; height: 32px; padding: 0 14px; border: 0; border-radius: 99px; background: var(--glass); box-shadow: inset 0 1px 0 var(--rim), inset 0 0 0 1px var(--edge); color: var(--mu); font-size: 13px; cursor: pointer; transition: box-shadow 0.3s, color 0.2s; }
+html[data-theme^='입자'] .slot-note.suggest:hover { color: var(--ink); box-shadow: inset 0 1px 0 var(--rim), inset 0 0 0 1px color-mix(in srgb, var(--te) 60%, transparent), 0 0 22px -6px var(--te); }
 html[data-theme^='입자'] .slot-note .tag.suggest { padding: 0; box-shadow: none; color: var(--te); font-size: 12px; }
 html[data-theme^='입자'] .slot-note.fixed { color: var(--te); font-weight: 400; }
 html[data-theme^='입자'] .slot-note.fixed::before { border-top-color: var(--te); }
 
 /* ── 메모 칸(9판 .md): 가운데 뜬 유리 막대, '메모 N ▴' · 입력 · 흰 '남기기 →' ── */
 html[data-theme^='입자'] .shell .composer, html[data-theme^='입자'] .composer { background: none; padding: 0 16px calc(14px + env(safe-area-inset-bottom)); }
-html[data-theme^='입자'] .composer form { display: flex; gap: 8px; width: min(100%, 560px); max-width: none; margin: 0 auto; padding: 8px; border: 0; border-radius: 20px; background: color-mix(in srgb, var(--row) 86%, transparent); backdrop-filter: blur(16px); box-shadow: inset 0 0 0 1px var(--ln), 0 10px 30px var(--sh); }
+/* 11-19 빛: 떠 있는 유리 막대에 보라 → 청록으로 흐르는 빛 테, 적는 동안 더 밝게 번진다 */
+html[data-theme^='입자'] .composer form { display: flex; gap: 8px; width: min(100%, 560px); max-width: none; margin: 0 auto; padding: 8px; border: 0; border-radius: 22px; background: var(--glass), color-mix(in srgb, var(--row) 70%, transparent); backdrop-filter: blur(20px); box-shadow: inset 0 1px 0 var(--rim), inset 1px 0 0 color-mix(in srgb, var(--vi) 45%, transparent), inset -1px 0 0 color-mix(in srgb, var(--te) 40%, transparent), inset 0 0 0 1px var(--edge), 0 0 50px -18px var(--bloom), 0 12px 32px var(--sh); transition: box-shadow 0.35s; }
 html[data-theme^='입자'] .composer form::before { display: none; }
-html[data-theme^='입자'] .composer form:focus-within { outline: 0; }
-html[data-theme^='입자'] .composer input { flex: 1; min-width: 0; height: 44px; padding: 0 18px; border: 0; border-radius: 12px; background: var(--row); box-shadow: inset 0 0 0 1px var(--ln); color: var(--ink); font-size: 14px; outline: 0; transition: box-shadow 0.2s; }
-html[data-theme^='입자'] .composer input:focus { box-shadow: inset 0 0 0 1px var(--ink); }
+html[data-theme^='입자'] .composer form:focus-within { outline: 0; box-shadow: inset 0 1px 0 var(--rim), inset 1px 0 0 var(--vi), inset -1px 0 0 var(--te), inset 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent), 0 0 70px -14px var(--bloom), 0 12px 32px var(--sh); }
+html[data-theme^='입자'] .composer input { flex: 1; min-width: 0; height: 44px; padding: 0 18px; border: 0; border-radius: 14px; background: color-mix(in srgb, var(--row) 80%, transparent); box-shadow: inset 0 0 0 1px var(--ln); color: var(--ink); font-size: 14px; outline: 0; transition: box-shadow 0.2s; }
+html[data-theme^='입자'] .composer input:focus { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 55%, transparent); }
 html[data-theme^='입자'] .composer input::placeholder { color: var(--fa); }
-html[data-theme^='입자'] .composer .send { width: auto; height: 44px; padding: 0 16px; border-radius: 10px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 500; gap: 8px; white-space: nowrap; }
+html[data-theme^='입자'] .composer .send { width: auto; height: 44px; padding: 0 16px; border-radius: 14px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 500; gap: 8px; white-space: nowrap; box-shadow: 0 0 24px -4px var(--bloom); }
 html[data-theme^='입자'] .composer .send::after { content: '→'; transition: transform 0.25s; }
 html[data-theme^='입자'] .composer .send:hover::after { transform: translateX(3px); }
 html[data-theme^='입자'] .composer .send:disabled { background: var(--ink); color: var(--bg); opacity: 1; cursor: default; } /* 9판 '남기기'는 늘 흰 단추 */
-html[data-theme^='입자'] .composer .memo-count { flex: none; height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: none; box-shadow: inset 0 0 0 1px var(--ln); color: var(--mu); font-size: 14px; white-space: nowrap; cursor: pointer; }
+html[data-theme^='입자'] .composer .memo-count { flex: none; height: 44px; padding: 0 12px; border: 0; border-radius: 14px; background: none; box-shadow: inset 0 0 0 1px var(--ln); color: var(--mu); font-size: 14px; white-space: nowrap; cursor: pointer; }
 html[data-theme^='입자'] .composer .memo-count:hover { color: var(--ink); box-shadow: inset 0 0 0 1px var(--fa); }
 @media (max-width: 599.98px) {
   html[data-theme^='입자'] .composer input { padding: 0 12px; }
@@ -268,11 +312,11 @@ html[data-theme^='입자'] .composer .memo-count:hover { color: var(--ink); box-
   html[data-theme^='입자'] .composer .send::after { display: none; }
 }
 /* 메모가 할 일 · 일정으로 갈 때 묻는 칸(9판 .sheet 모양) */
-html[data-theme^='입자'] .popup { border: 0; border-radius: 26px; padding: 24px 24px 22px; background: var(--s1); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent), 0 0 80px -20px var(--vi); animation: nine-up 0.35s cubic-bezier(0.2, 0.9, 0.3, 1); }
+html[data-theme^='입자'] .popup { border: 0; border-radius: 26px; padding: 24px 24px 22px; background: var(--glass), var(--s1); box-shadow: inset 0 1px 0 var(--rim), inset 0 0 0 1px color-mix(in srgb, var(--ink) 14%, transparent), 0 0 90px -16px var(--bloom); animation: nine-up 0.35s cubic-bezier(0.2, 0.9, 0.3, 1); }
 html[data-theme^='입자'] .popup-title { font-family: var(--font); font-size: 24px; line-height: 1.25; font-weight: 300; letter-spacing: -0.03em; }
 
 /* ── 창(9판 .dim · .sheet): 뒤를 흐리고, 둥근 판이 아래에서 떠오른다 ── */
-html[data-theme^='입자'] dialog.sheet { border: 0; border-radius: 26px; background: var(--s1); color: var(--ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 16%, transparent), 0 0 80px -20px var(--vi); animation: nine-up 0.35s cubic-bezier(0.2, 0.9, 0.3, 1); }
+html[data-theme^='입자'] dialog.sheet { border: 0; border-radius: 26px; background: radial-gradient(90% 50% at 50% 0%, color-mix(in srgb, var(--vi) calc(14% - 4% * var(--t)), transparent), transparent 70%), var(--s1); color: var(--ink); box-shadow: inset 0 1px 0 var(--rim), inset 0 0 0 1px color-mix(in srgb, var(--ink) 14%, transparent), 0 0 90px -16px var(--bloom); animation: nine-up 0.35s cubic-bezier(0.2, 0.9, 0.3, 1); }
 html[data-theme^='입자'] dialog.sheet::backdrop { background: var(--dim); backdrop-filter: blur(10px); animation: nine-fade 0.25s; }
 @keyframes nine-up { from { transform: translateY(20px); opacity: 0; } }
 @keyframes nine-fade { from { opacity: 0; } }
@@ -304,8 +348,8 @@ html.theme-fade, html.theme-fade * { transition: background-color 0.6s ease, col
 html.theme-fade[data-theme^='입자'] { transition: --t 0.9s cubic-bezier(0.45, 0, 0.2, 1) !important; }
 
 /* 메모 칸 = 9판 어두운 줄(.row): 말풍선 대신 둥근 줄, 시각은 옅게 */
-html[data-theme^='입자'] .memo-log .bubble { border: 0; border-radius: 14px; padding: 10px 14px; background: var(--row); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); font-size: 14px; font-weight: 500; line-height: 1.4; }
-html[data-theme^='입자'] .memo-log .bubble.on { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--vi) 75%, transparent), 0 0 18px -8px var(--vi); }
+html[data-theme^='입자'] .memo-log .bubble { border: 0; border-radius: 16px 16px 6px 16px; padding: 10px 14px; background: radial-gradient(90% 120% at 100% 100%, color-mix(in srgb, var(--vi) calc(14% - 4% * var(--t)), transparent), transparent 70%), var(--glass); box-shadow: inset 0 1px 0 var(--rim), inset 0 0 0 1px var(--edge), 0 0 24px -12px var(--bloom); color: var(--ink); font-size: 14px; font-weight: 500; line-height: 1.4; }
+html[data-theme^='입자'] .memo-log .bubble.on { box-shadow: inset 0 1px 0 var(--rim), inset 0 0 0 1px color-mix(in srgb, var(--vi) 80%, transparent), 0 0 30px -8px var(--vi); }
 html[data-theme^='입자'] .memo-log time { font-size: 11px; color: var(--fa); }
 html[data-theme^='입자'] .memo-day { font-size: 12px; color: var(--fa); }
 html[data-theme^='입자'] .memo-saved { font-size: 11px; color: var(--te); }
