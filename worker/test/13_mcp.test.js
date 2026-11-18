@@ -184,7 +184,11 @@ test('MCP: 옛 방식(initialize) · 새 방식(server/discover) · 머리글 �
 
   const list = await rpc(s.env, access, 'tools/list', {}, { headers: { 'mcp-protocol-version': '2025-06-18' } });
   const names = list.body.result.tools.map((t) => t.name);
-  assert.deepEqual(names, ['get_briefing', 'get_schedule', 'find_free_time', 'list_tasks', 'get_etl', 'list_memos', 'add_event', 'add_task']);
+  assert.deepEqual(names, [
+    'get_briefing', 'get_schedule', 'find_free_time', 'list_tasks', 'get_etl', 'list_memos', 'add_event', 'add_task',
+    'study_rooms', 'study_room', 'study_set_scope', 'study_read', 'study_save_map', 'study_record', 'study_map',
+  ]);
+  assert.equal(list.body.result.tools.find((t) => t.name === 'study_map')._meta.ui.resourceUri, 'ui://tachyon/study-map.html');
   assert.ok(list.body.result.tools.every((t) => t.inputSchema.type === 'object' && !('run' in t)));
   assert.equal(list.body.result.tools.find((t) => t.name === 'get_etl').annotations.readOnlyHint, true);
   assert.equal(list.body.result.tools.find((t) => t.name === 'add_event').annotations.readOnlyHint, false);
@@ -208,7 +212,23 @@ test('MCP: 옛 방식(initialize) · 새 방식(server/discover) · 머리글 �
   const future = await rpc(s.env, access, 'server/discover', { _meta: { ...meta, 'io.modelcontextprotocol/protocolVersion': '2099-01-01' } });
   assert.equal(future.body.error.code, -32022);
   assert.equal(future.body.error.data.requested, '2099-01-01');
-  assert.equal((await rpc(s.env, access, 'resources/list', {})).body.error.code, -32601);
+  // 공부방 학습 지도 창(MCP Apps)
+  assert.deepEqual(old.body.result.capabilities.resources, {});
+  const res = (await rpc(s.env, access, 'resources/list', {})).body.result.resources;
+  assert.deepEqual(res.map((r) => [r.uri, r.mimeType]), [['ui://tachyon/study-map.html', 'text/html;profile=mcp-app']]);
+  assert.ok(!('text' in res[0]));
+  const page = (await rpc(s.env, access, 'resources/read', { uri: 'ui://tachyon/study-map.html' })).body.result.contents[0];
+  assert.match(page.text, /^<!doctype html>/);
+  assert.match(page.text, /ui\/initialize/);
+  assert.deepEqual(page._meta.ui.csp, { connectDomains: [], resourceDomains: [] });
+  assert.equal((await rpc(s.env, access, 'resources/read', { uri: 'ui://tachyon/none.html' })).body.error.code, -32002);
+  // eTL을 안 이은 사람: 목록은 안내, 방 열기는 도구 오류(isError)로
+  const rooms = await tool(s.env, access, 'study_rooms');
+  assert.equal(rooms.structuredContent.etl_connected, false);
+  assert.match(rooms.structuredContent.tutorial, /튜터/);
+  const room = await tool(s.env, access, 'study_room', { course: '예시' });
+  assert.equal(room.isError, true);
+  assert.match(room.content[0].text, /eTL이 아직 연결되지 않았어요/);
   assert.equal((await rpc(s.env, access, 'tools/call', { name: 'delete_everything' })).body.error.code, -32602);
 });
 

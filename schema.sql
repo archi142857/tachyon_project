@@ -230,3 +230,18 @@ CREATE TABLE IF NOT EXISTS ai_links (
   used_at    TEXT                         -- 마지막으로 토큰을 새로 받은 시각
 );
 CREATE INDEX IF NOT EXISTS ai_links_user ON ai_links (user_id);
+
+-- 공부방(worker/14_study.js, 11-19 사람 "tachyon mcp를 연결했을 때 쓸 수 있는 튜터"). 사람 × eTL 과목 = 줄 하나.
+-- 강의자료 파일·옮긴 글·내려받기 주소는 두지 않는다. 두는 것 = 파일 id·제목·쪽 수·범위, 개념 이름과 쪽 번호, 문제 결과, 오답 노트.
+-- 있던 원격 D1에 한 번 넣는다: npx wrangler d1 execute tachyon --remote --file worker/migrations/14_study.sql
+CREATE TABLE IF NOT EXISTS study (
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  course_id  TEXT NOT NULL,                -- eTL 과목 id
+  course     TEXT NOT NULL,                -- 과목 이름
+  exam       TEXT,                         -- 사용자가 말한 시험 이름(중간고사 …). NULL = 아직 범위를 안 물음
+  exam_date  TEXT,                         -- YYYY-MM-DD
+  scope_note TEXT,                         -- 사용자가 말한 범위 그대로
+  data       TEXT NOT NULL DEFAULT '{"turn":0,"files":[],"wrong":[]}', -- 자료 목록·범위·읽은 쪽·개념 지도·결과·오답 노트(14_study.js 머리말)
+  updated_at TEXT,
+  PRIMARY KEY (user_id, course_id)
+);

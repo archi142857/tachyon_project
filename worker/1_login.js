@@ -236,7 +236,7 @@ export function safeNext(next) {
 // log도 지운다(남는 것은 이름 없는 'account_delete' 한 줄). GitHub 이슈에는 '사용자 #번호'만 있어 그대로 둔다.
 // 새 표에 user_id가 생기면 여기에 더한다. 원격 D1에 아직 없는 표는 건너뛴다(없는 표 하나 때문에 batch 전체가 실패하지 않게).
 // gcal_gone은 events 뒤(일정을 지우면 트리거가 거기에 줄을 넣는다)
-const USER_TABLES = ['feeds', 'events', 'tasks', 'memos', 'briefings', 'etl', 'etl_items', 'log', 'gcal', 'gcal_gone', 'ai_links'];
+const USER_TABLES = ['feeds', 'events', 'tasks', 'memos', 'briefings', 'etl', 'etl_items', 'log', 'gcal', 'gcal_gone', 'ai_links', 'study'];
 
 async function deleteAccount(request, env, user) {
   const body = await readJson(request);

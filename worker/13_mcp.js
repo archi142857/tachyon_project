@@ -31,6 +31,7 @@ import { handle as night } from './4_night.js';
 import { handle as memo } from './3_memo_popup.js';
 import { listItems } from './9_etl.js';
 import { afterWrite } from './12_gcal.js';
+import { STUDY_TOOLS, STUDY_RESOURCES, StudyError } from './14_study.js';
 
 const MODERN = '2026-07-28';
 export const VERSIONS = [MODERN, '2025-11-25', '2025-06-18', '2025-03-26'];
@@ -51,7 +52,8 @@ const INSTRUCTIONS =
   "Tachyon is a Seoul National University student's second-brain app: one calendar (classes, eTL course events, Google Calendar, events added in Tachyon), " +
   'tasks ranked by slack (eTL assignments included), eTL announcements and course materials, quick memos, and a daily briefing. ' +
   'All times are KST (+09:00). Before suggesting a time for something new, call find_free_time. ' +
-  'Before add_event or add_task, confirm the title and time with the user. Answer in the user’s language.';
+  'Before add_event or add_task, confirm the title and time with the user. Answer in the user’s language. ' +
+  'For studying or exam prep (tutor, quiz, study room, 공부방, 시험 공부), call study_rooms first and follow the playbook it returns.';
 
 export async function handle(request, env, ctx, user) {
   const url = new URL(request.url);
@@ -181,6 +183,7 @@ async function authorize(url, env, user) {
 <ul>
 <li><b>읽기</b> 일정 · 빈 시간 · 할 일 · eTL 공지와 강의자료 목록 · 오늘 브리핑 · 메모</li>
 <li><b>넣기</b> 일정 · 할 일 (고치기 · 지우기는 못 해요)</li>
+<li><b>공부방</b> 시험 범위 안의 eTL 강의자료를 쪽마다 글로 옮겨 그 앱의 튜터에게 줘요(옮긴 글은 저장 안 함) · 개념 지도 · 문제 결과 · 오답 노트</li>
 </ul>
 <p class="note">허락하면 그 AI 앱이 부를 때마다 위 내용이 그 앱의 대화로 가고, 그 뒤 처리는 그 앱의 약관을 따릅니다. 끊기: Tachyon 메뉴 › AI 에이전트 연결.</p>
 <form method="post" action="/oauth/authorize">
@@ -375,12 +378,12 @@ async function mcp(request, env, ctx, url) {
     case 'initialize':
       return rpc(id, {
         protocolVersion: VERSIONS.includes(params.protocolVersion) ? params.protocolVersion : VERSIONS[1],
-        capabilities: { tools: { listChanged: false } },
+        capabilities: { tools: { listChanged: false }, resources: {} },
         serverInfo: SERVER,
         instructions: INSTRUCTIONS,
       });
     case 'server/discover':
-      return ok({ supportedVersions: VERSIONS, capabilities: { tools: {} }, instructions: INSTRUCTIONS, ...CACHE, _meta: { 'io.modelcontextprotocol/serverInfo': SERVER } });
+      return ok({ supportedVersions: VERSIONS, capabilities: { tools: {}, resources: {} }, instructions: INSTRUCTIONS, ...CACHE, _meta: { 'io.modelcontextprotocol/serverInfo': SERVER } });
     case 'ping':
       return ok({});
     case 'tools/list':
@@ -393,9 +396,16 @@ async function mcp(request, env, ctx, url) {
         const data = await tool.run(params.arguments || {}, { env, ctx, user });
         return ok({ content: [{ type: 'text', text: JSON.stringify(data) }], structuredContent: data });
       } catch (err) {
-        if (!(err instanceof ToolError)) throw err;
+        if (!(err instanceof ToolError || err instanceof StudyError)) throw err;
         return ok({ content: [{ type: 'text', text: err.message }], isError: true });
       }
+    }
+    case 'resources/list': // 학습 지도 창(MCP Apps) 하나
+      return ok({ resources: STUDY_RESOURCES.map(({ text, ...r }) => r), ...(modern ? CACHE : {}) });
+    case 'resources/read': {
+      const r = STUDY_RESOURCES.find((it) => it.uri === params.uri);
+      if (!r) return rpcError(id, -32002, `없는 자료예요: ${params.uri}`);
+      return ok({ contents: [{ uri: r.uri, mimeType: r.mimeType, text: r.text, _meta: r._meta }] });
     }
     default:
       return rpcError(id, -32601, `모르는 방법이에요: ${msg.method}`);
@@ -617,4 +627,5 @@ const TOOLS = [
       return out;
     },
   },
+  ...STUDY_TOOLS, // 공부방 튜터(14_study.js)
 ];

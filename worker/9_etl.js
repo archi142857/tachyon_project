@@ -239,7 +239,7 @@ export function nextLink(header) {
   return null;
 }
 
-async function getAll(get, path, params, maxPages = 3) {
+export async function getAll(get, path, params, maxPages = 3) {
   const out = [];
   let page = await get(path, params);
   for (let i = 0; ; i++) {
