@@ -35,7 +35,7 @@
 ## 남은 것(사람)
 
 - ~~원격 D1에 표 넣기(`worker/migrations/12_gcal.sql`)~~ — 11-18 16:47 사람 "Run migrations"로 넣음(리마인드 칸 Tachyon-32도 같이, 넣기 전 없음 확인 · 넣은 뒤 칸 10개 확인).
-- Google Cloud 콘솔: Calendar API 켜기, 동의 화면에 `calendar.events` 권한, 승인된 리디렉션 URI에 `<배포 주소>/api/gcal/callback`, 시험 사용자 추가(7일마다 다시 연결) 또는 게시(경고 · 100명).
+- ~~Google Cloud 콘솔: Calendar API 켜기, 동의 화면에 `calendar.events` 권한, 승인된 리디렉션 URI에 `<배포 주소>/api/gcal/callback`~~ — 11-18 17:05 사람 "알아서 진행해봐" · "Use my Chrome"으로 사람 크롬(Claude in Chrome)에서 넣음. 게시는 안 함('테스트 중', 테스트 사용자 3명 그대로 → 캘린더 연결은 7일마다 다시). 확인: 구글 인증 주소에 새 리디렉션 + `calendar.events`를 넣으면 로그인 화면으로, 등록 안 한 주소는 오류 화면으로 감.
 - 실제 구글 계정으로 끝까지 해 보기(가짜 구글로만 시험함).
 
 ## 바뀐 파일
