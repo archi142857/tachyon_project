@@ -9,6 +9,7 @@ const PATHS = {
   inbox: 'M4 13h4l2 3h4l2-3h4M4 13l2.5-7h11l2.5 7v6H4z',
   moon: 'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z',
   float: 'M3 5h18v14H3zM12 12h6v4h-6z', // 작은 창(창 안 오른쪽 아래 작은 창)
+  tune: 'M4 7h9M17 7h3M4 17h3M11 17h9M15 5v4M9 15v4', // 고르기(밀대 둘)
 };
 
 export default function Icon({ name, size = 24 }) {

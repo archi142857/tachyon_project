@@ -88,18 +88,23 @@ function readOverlay() {
   return { groupId: null, on: false };
 }
 
-// 달력 보기(11-14 피드백 '달력도 하루 3일 (지정 가능)', '모바일 달력이 빡빡함'): 하루 · 3일 · 주 · 월. 고른 것은 이 기기에, 처음엔 폰 3일 · 넓은 화면 주
+// 달력 보기: 날 수(1~14일, − · +로) 또는 월(11-14 피드백 '달력도 하루 3일 (지정 가능)', 11-19 사람 "1, 3, 7로 지정하는게 아니라, 숫자를 직접 조절할 수 잇게").
+// 고른 것은 이 기기에(CAL_KEY = 'month' 또는 날 수, CAL_DAYS_KEY = 월로 가도 기억하는 날 수), 처음엔 폰 3일 · 넓은 화면 7일
 const CAL_KEY = 'tachyon_cal_mode';
-const CAL_DAYS = { day: 1, three: 3, week: 7 };
-const gridMode = (wide) => (wide ? 'week' : 'three');
-function readCalMode(wide) {
+const CAL_DAYS_KEY = 'tachyon_cal_days';
+const CAL_MAX = 14;
+const OLD_DAYS = { day: 1, three: 3, week: 7 }; // 11-19 전에 기억해 둔 값
+function readCal(wide) {
+  let v = null;
+  let d = null;
   try {
-    const v = localStorage.getItem(CAL_KEY);
-    if (v === 'month' || CAL_DAYS[v]) return v;
+    v = localStorage.getItem(CAL_KEY);
+    d = localStorage.getItem(CAL_DAYS_KEY);
   } catch {
     /* 저장이 막힌 브라우저 */
   }
-  return gridMode(wide);
+  const n = Number(d) || OLD_DAYS[v] || Number(v);
+  return { days: n >= 1 && n <= CAL_MAX ? Math.round(n) : wide ? 7 : 3, month: v === 'month' };
 }
 
 const PAGES = [
@@ -204,16 +209,22 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   useEffect(() => {
     if (page !== 'today' || !wide) setArranging(false);
   }, [page, wide]);
-  const [calMode, setCalModeState] = useState(() => readCalMode(wide));
-  const setCalMode = useCallback((m) => {
-    setCalModeState(m);
-    try {
-      localStorage.setItem(CAL_KEY, m);
-    } catch {
-      /* 이번에만 */
-    }
+  const [cal, setCalState] = useState(() => readCal(wide));
+  const setCal = useCallback((patch) => {
+    setCalState((c) => {
+      const next = { ...c, ...patch };
+      try {
+        localStorage.setItem(CAL_KEY, next.month ? 'month' : String(next.days));
+        localStorage.setItem(CAL_DAYS_KEY, String(next.days));
+      } catch {
+        /* 이번에만 */
+      }
+      return next;
+    });
   }, []);
-  const calDays = CAL_DAYS[calMode] || 0; // 0 = 월
+  const calDays = cal.month ? 0 : cal.days; // 0 = 월
+  // 폰 달력 쪽의 보기 고르기 줄(날 수 · 같이 · + 일정)은 접어 두고 달력 머리의 단추로 연다(11-19 사람 "옵션들을 토글로 만들어 숨기고, 최대한 달력이 크게")
+  const [calTools, setCalTools] = useState(false);
   const [weekFrom, setWeekFrom] = useState(today); // 주간 달력 첫 칸(처음엔 오늘)
   const [month, setMonth] = useState(() => ({ y: kst(now).y, m: kst(now).m }));
 
@@ -254,7 +265,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   // start에서 calPad일까지 떨어진 자리를 가운데로 그려 둔 채 굴리니(11-16) 두 배를 불러야 그려 둔 칸이 다 찬다
   const calRange = useMemo(
     () => (calDays ? [addDays(weekFrom, -2 * calPad(calDays)).toISOString(), calDays + 4 * calPad(calDays)] : [monthGrid(month.y, month.m)[0].toISOString(), 42]),
-    [calMode, weekFrom, month], // eslint-disable-line react-hooks/exhaustive-deps
+    [calDays, weekFrom, month], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const loadPlan = useCallback(
@@ -379,7 +390,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   function toggleOverlay(groupId) {
     const on = !(overlay.on && overlay.groupId === groupId && groups?.some((g) => g.id === groupId));
     setOverlay({ groupId, on });
-    if (on && !calDays) setCalMode(gridMode(wide));
+    if (on && !calDays) setCal({ month: false });
     return on;
   }
 
@@ -477,7 +488,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
 
   function showWeekOf(date) {
     setPage('cal');
-    if (!calDays) setCalMode(gridMode(wide)); // 하루 · 3일 · 주 가운데 고른 것은 그대로
+    if (!calDays) setCal({ month: false }); // 고른 날 수는 그대로
     setWeekFrom(dayStart(date).toISOString());
   }
 
@@ -681,20 +692,30 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
         <button type="button" className="chip-btn cal-add" onClick={() => seedDay(calDay, '까지 ')}>
           + 할 일
         </button>
-        <Segmented
-          label="달력 보기"
-          items={[
-            ['day', '하루'],
-            ['three', '3일'],
-            ['week', '주'],
-            ['month', '월'],
-          ]}
-          value={calMode}
-          onChange={setCalMode}
-        />
+        <span className="segmented cal-pick" role="group" aria-label="달력 보기">
+          <button type="button" aria-label="하루 줄이기" disabled={!cal.month && cal.days <= 1} onClick={() => setCal({ month: false, days: Math.max(1, cal.days - (cal.month ? 0 : 1)) })}>
+            −
+          </button>
+          <button type="button" className="num" aria-pressed={!cal.month} onClick={() => setCal({ month: false })}>
+            {cal.days}일
+          </button>
+          <button type="button" aria-label="하루 늘리기" disabled={!cal.month && cal.days >= CAL_MAX} onClick={() => setCal({ month: false, days: Math.min(CAL_MAX, cal.days + (cal.month ? 0 : 1)) })}>
+            +
+          </button>
+          <button type="button" aria-pressed={cal.month} onClick={() => setCal({ month: true })}>
+            월
+          </button>
+        </span>
       </span>
     ) : null;
 
+
+  // 폰에서 달력 머리 끝에 붙는 '보기 고르기' 여닫기 단추
+  const calToggle = (
+    <button type="button" className={calTools ? 'icon-btn cal-tools-btn only-narrow on' : 'icon-btn cal-tools-btn only-narrow'} aria-label="달력 보기 고르기" aria-expanded={calTools} onClick={() => setCalTools((o) => !o)}>
+      <Icon name="tune" />
+    </button>
+  );
 
   return (
     <div className="shell">
@@ -776,7 +797,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
             </button>
           ))}
         </nav>
-        {(page === 'today' || page === 'cal') && (
+        {(page === 'today' || (page === 'cal' && calTools)) && (
           <section className="subbar only-narrow" aria-label="보기 고르기">
             <span className="date num">{page === 'today' ? dateText : ''}</span>
             <span className="grow" />
@@ -849,6 +870,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
                 legs={legs}
                 together={freeNow ? { name: overlayGroup.name, spans: freeNow.together } : null}
                 onTogether={planTogether}
+                tools={calToggle}
               />
             ) : (
               <MonthCalendar
@@ -861,6 +883,7 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
                 onNext={() => setMonth((m) => shiftMonth(m, 1))}
                 onToday={() => setMonth({ y: date.y, m: date.m })}
                 onDay={(day) => showWeekOf(day)}
+                tools={calToggle}
               />
             ))}
           {page === 'tasks' && (

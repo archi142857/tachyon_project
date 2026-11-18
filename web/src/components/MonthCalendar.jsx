@@ -9,7 +9,7 @@ import { tint } from '../themeName.js';
 
 const MAX_LINES = 3;
 
-export default function MonthCalendar({ anchor, events, tasks, now, density, onPrev, onNext, onToday, onDay }) {
+export default function MonthCalendar({ anchor, events, tasks, now, density, onPrev, onNext, onToday, onDay, tools }) {
   const cells = monthGrid(anchor.y, anchor.m);
   const t = kst(now);
   const isCurrent = anchor.y === t.y && anchor.m === t.m;
@@ -44,6 +44,7 @@ export default function MonthCalendar({ anchor, events, tasks, now, density, onP
         <button type="button" className="icon-btn" aria-label="다음 달" onClick={onNext}>
           <Icon name="right" />
         </button>
+        {tools}
       </div>
       <div className="month-wd" aria-hidden="true">
         {WEEKDAYS.map((w) => (

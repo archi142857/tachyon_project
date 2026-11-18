@@ -109,3 +109,14 @@ html[data-theme^='입자'] :is(.cal-stick, .cal-stick .axis-label, .cal-grid > .
 .cal-grid .ev::before { flex: none; margin-top: max(0px, calc((var(--ev-lh) - 7px) / 2)); }
 .cal-grid .ev > .ev-t { flex: 1 1 50%; min-width: 0; } /* 50%: 표시 옆에 놓이고, 밑의 시각·장소 줄(100%)은 다음 줄로 */
 .cal-grid .ev > .place { flex: 0 0 100%; min-width: 0; }
+
+/* ── 11-19 사람 "옵션들을 토글로 만들어 숨기고, 최대한 달력이 크게", "일 개수를 숫자로 직접 조절" ── */
+/* 날 수 고르기: − N일 + · 월 */
+.cal-pick button:is(:first-child, :nth-child(3)) { min-width: 40px; padding: 0 8px; }
+.cal-pick button:disabled { opacity: 0.35; }
+/* 폰: 보기 고르기 줄은 달력 머리 끝 단추로 여닫는다(Dashboard calTools). 연 동안 단추는 눌린 색 */
+.cal-head .cal-tools-btn.on { color: var(--accent); }
+@media not (min-width: 900px) {
+  .shell .page.page-cal { padding: 2px 4px 2px; }
+  .page-cal > .card { padding: 2px 6px 6px; }
+}

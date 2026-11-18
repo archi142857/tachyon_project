@@ -71,7 +71,8 @@ export const autoHour = ({ fit, need, shortest }) => Math.min(120, Math.max(fit,
 /** 배율을 되는 범위로: 하루가 한 화면(fit)보다 작게, 160px보다 크게는 안 된다 */
 export const clampZoom = (zoom, auto, fit) => Math.min(MAX_HOUR / auto, Math.max(Math.min(fit, auto) / auto, zoom));
 
-export default function WeekCalendar({ start, n = 7, events, tasks, now, density, isCurrent, onMove, onToday, onEvent, onTask, onDay, onAdd, onDrop, legs, together, onTogether }) {
+// tools = 머리 끝에 붙일 것(폰의 '보기 고르기' 단추, Dashboard)
+export default function WeekCalendar({ start, n = 7, events, tasks, now, density, isCurrent, onMove, onToday, onEvent, onTask, onDay, onAdd, onDrop, legs, together, onTogether, tools }) {
   const pad = calPad(n);
   const total = n + 2 * pad; // 그려 두는 날 수
   // 그려 둔 날들은 anchor를 가운데로 둔다. 굴려 멈출 때마다 start만 바뀌고 칸은 그대로 — 가장자리 가까이 가야 다시 그린다(11-16 사람 "칸 멈추는게 너무 끊기고 불편해")
@@ -303,6 +304,7 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
         <button type="button" className="icon-btn" aria-label={`다음 ${n}일`} onClick={() => slide(1)}>
           <Icon name="right" />
         </button>
+        {tools}
       </div>
       {sel && <p className="cal-sel-hint">끌어서 옮기고, 아래 끝을 끌어 길이를 바꿔요 · 한 번 더 누르면 자세히</p>}
 
