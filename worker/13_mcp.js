@@ -321,6 +321,20 @@ const rpc = (id, result) => open({ jsonrpc: '2.0', id, result });
 const rpcError = (id, code, message, status = 200, data) => open({ jsonrpc: '2.0', id, error: { code, message, ...(data ? { data } : {}) } }, status);
 
 async function mcp(request, env, ctx, url) {
+  // 사람이 이 주소를 브라우저로 열면(11-19 사람이 열어 봄) JSON 오류 대신 'AI 앱에 넣는 주소'라는 안내. AI 앱의 GET(SSE)은 그대로 405
+  if (request.method === 'GET' && (request.headers.get('accept') || '').includes('text/html')) {
+    return page(
+      '이 주소는 AI 앱에 넣는 주소예요',
+      `<p>브라우저로 여는 곳이 아니에요. 이 주소를 AI 앱의 설정에 넣으면, 그 앱이 Tachyon 허락 화면을 띄워요.</p>
+<p><b>${esc(`${url.origin}/mcp`)}</b></p>
+<ul>
+<li><b>Claude</b> 설정 › 커넥터 › 사용자 지정 커넥터 추가 → 주소 붙여 넣기 → 연결</li>
+<li><b>ChatGPT</b> 설정 › 앱 › 고급 설정 › 개발자 모드 → 앱 만들기 → 주소, 인증 OAuth</li>
+<li><b>Gemini CLI</b> settings.json의 mcpServers에 httpUrl로</li>
+</ul>
+<p class="note"><a href="/">Tachyon</a> 메뉴 › AI 에이전트 연결에도 같은 안내가 있어요.</p>`,
+    );
+  }
   if (request.method !== 'POST') return open({ error: '이 MCP는 POST(JSON 답)만 받아요' }, 405, { allow: 'POST, OPTIONS' });
   const bearer = /^Bearer\s+(\S+)$/i.exec(request.headers.get('authorization') || '')?.[1];
   const a = bearer ? await openSealed(env, bearer, 'a') : null;

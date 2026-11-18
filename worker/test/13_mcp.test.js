@@ -99,7 +99,10 @@ test('안내 문서 · 토큰 없으면 401 + 안내 주소 · CORS', async () =
   assert.match(res.headers.get('www-authenticate'), /resource_metadata="https:\/\/tachyon\.example\.invalid\/\.well-known\/oauth-protected-resource\/mcp"/);
   assert.equal(res.headers.get('access-control-allow-origin'), '*');
   assert.equal((await req(env, '/mcp', { method: 'OPTIONS', origin: AI })).status, 204);
-  assert.equal((await req(env, '/mcp', { method: 'GET', origin: AI })).status, 405);
+  assert.equal((await req(env, '/mcp', { method: 'GET', origin: AI, headers: { accept: 'text/event-stream' } })).status, 405);
+  const browser = await req(env, '/mcp', { origin: null, headers: { accept: 'text/html,application/xhtml+xml' } });
+  assert.equal(browser.status, 200);
+  assert.match(await browser.text(), /AI 앱에 넣는 주소예요[\s\S]*https:\/\/tachyon\.example\.invalid\/mcp[\s\S]*사용자 지정 커넥터/);
 });
 
 test('허락 화면: 로그인 전엔 로그인부터 · 이름은 이스케이프 · 모르는 앱·주소는 거기서 멈춤', async () => {
