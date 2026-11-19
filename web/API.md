@@ -226,7 +226,7 @@
 
 ## 13_mcp (11-19, 사람 요청) — 있음, 원격 D1에 `ai_links` 표 넣음(11-19) (`worker/13_mcp.js`)
 
-Claude · ChatGPT · Gemini 같은 AI 앱이 Tachyon을 읽고(일정 · 빈 시간 · 할 일 · eTL 공지와 강의자료 · 브리핑 · 메모) 일정 · 할 일을 넣게 하는 원격 MCP 서버. 화면은 메뉴 'AI 에이전트 연결'(`AiSheet.jsx`): 앱마다 단추 하나(Claude = 주소를 미리 채운 커넥터 추가 창 `claude.ai/customize/connectors?modal=add-custom-connector&connectorName=Tachyon&connectorUrl=…` · ChatGPT = 주소 복사 + 설정 열기 · Claude Code · Gemini CLI = 명령 복사) · 주소만 복사 · 연결된 앱 끊기.
+Claude · ChatGPT · Gemini 같은 AI 앱이 Tachyon을 읽고(일정 · 빈 시간 · 할 일 · eTL 공지와 강의자료 · 브리핑 · 메모) 일정 · 할 일을 넣게 하는 원격 MCP 서버. 화면은 메뉴 'AI 에이전트 연결'(`AiSheet.jsx`): 앱마다 단추 하나로 넣는 화면까지(Claude = 주소를 미리 채운 커넥터 추가 창 `claude.ai/customize/connectors?modal=add-custom-connector&connectorName=Tachyon&connectorUrl=…` · Claude Code = 명령이 채워진 `claude-cli://open?q=` · `vscode://anthropic.claude-code/open?prompt=` · ChatGPT = 주소 복사 + `chatgpt.com/plugins` · Gemini = 주소 복사 + `gemini.google.com/devmode`) · 주소 복사 · 연결된 앱 끊기.
 
 | 주소 | 하는 일 |
 |---|---|

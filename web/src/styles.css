@@ -493,6 +493,8 @@ select.input { padding-right: 36px; }
 /* AI 에이전트 연결: 앱마다 한 줄(이름 · 단추, 아래 설명) */
 .ai-pick { display: grid; gap: 10px; }
 .ai-pick > div { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: center; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
-.ai-pick b { font-size: 16px; color: var(--text); }
+.ai-pick b { font-size: 16px; color: var(--text); white-space: nowrap; }
 .ai-pick .hint { grid-column: 1 / -1; margin: 0; }
 .ai-pick a[aria-disabled="true"] { pointer-events: none; opacity: 0.5; }
+.ai-btns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.ai-btns .btn-line { height: 40px; padding: 0 14px; font-size: 15px; }
