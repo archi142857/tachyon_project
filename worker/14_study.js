@@ -11,15 +11,20 @@
 // - 방 = 이번 학기 eTL 과목 하나. 만드는 단계가 없다: eTL을 연결해 두면 study_rooms에 바로 보이고, 처음 열 때 study 표에 줄이 생긴다.
 //
 // 빠짐 없게 — 코드가 막는다
-// 1. 범위: 과목의 강의자료 전부(eTL 파일 탭 + 모듈, 열 때마다 받음)를 사용자가 범위 안·밖으로 정한다. 시험을 안 정했거나 정하지 않은 자료가
-//    하나라도 있으면 phase 'scope'(새로 올라온 자료도 '미정'으로 나타난다). 범위에서 빼는 길은 study_set_scope 하나(사용자가 말했을 때만).
+// 1. 범위: 과목의 강의자료 전부(eTL 파일 탭 · 페이지 탭 + 모듈의 파일 · 페이지 · 링크 · 외부 도구, 열 때마다 받음)를 사용자가 범위 안·밖으로
+//    정한다. 시험을 안 정했거나 정하지 않은 자료가 하나라도 있으면 phase 'scope'(새로 올라온 자료도 '미정'으로 나타난다).
+//    범위에서 빼는 길은 study_set_scope 하나(사용자가 말했을 때만).
+//    고친 판(11-20 사람 "etl 내용이 업데이트 되면 튜터도"): eTL은 덮어 올리면 번호가 바뀐다 → 내려간 자료와 이름이 같은(판 표시만 다른)
+//    새 자료, 또는 같은 번호의 수정 시각이 바뀐 자료는 '고친 판' — 범위 '안'을 잇고 처음부터 다시 읽는다. 같은 이름 개념의 결과는 이어진다.
 // 2. 읽기: 범위 안 자료의 모든 쪽을 study_read로 읽어야 지도를 저장할 수 있다. 모델이 빠뜨린 쪽은 읽은 것으로 치지 않는다.
-//    읽을 수 없는 형식(pptx·hwp·영상 …)은 '못 읽음'으로 지도에 남는다 → 사용자가 채팅에 올리면 AI 앱이 읽고 by_client로 지도를 낸다.
+//    eTL 페이지(위키)는 본문을 Tachyon이 그대로 글로 바꿔 PAGE_CHARS자씩 '쪽'으로 준다(Claude를 부르지 않음).
+//    읽을 수 없는 것(pptx·hwp·영상 · 링크 · 외부 도구)은 '못 읽음'으로 지도에 남는다 → 사용자가 채팅에 올리거나 AI 앱이 직접 열어 읽고
+//    by_client로 지도를 낸다.
 // 3. 지도: 모든 쪽이 개념 하나 이상이나 '건너뜀(이유)'에 들어가야 저장된다.
 // 4. 확인: 범위 안 개념마다 문제를 하나 이상 내고 study_record에 적는다. 다 ✓여야 phase 'done'.
 //    다음 개념(next): 다시 물을 때가 된 빈틈(✗·△, 3문제 뒤) → 아직 한 문제도 안 낸 절의 첫 개념(진단) → 약한 절부터 안 본 개념 → 남은 빈틈.
 //
-// 저장하는 것(study 표, 사람 × 과목 한 줄): 시험 이름·날짜·범위 말, 자료 목록(eTL 파일 번호·이름·주차), 쪽 수·읽은 쪽,
+// 저장하는 것(study 표, 사람 × 과목 한 줄): 시험 이름·날짜·범위 말, 자료 목록(eTL 번호·이름·주차·수정 시각, 페이지 · 링크는 그 주소), 쪽 수·읽은 쪽,
 //   지도(절·개념 이름과 쪽 번호), 개념마다 결과, 오답 노트(문제·틀린 점 300자까지).
 // 저장하지 않는 것: 파일, 내려받기 주소(검증값), 옮겨 적은 글 — 사용자의 AI 앱에 바로 넘기고 버린다(9_etl.js '복사하지 않음' 그대로).
 //   읽을 때 Anthropic에는 파일 저장소의 짧게 사는 주소만 보낸다(eTL 주소의 리다이렉트를 Worker가 따라가 끝 주소를 넘김 — CPU 안 씀).
@@ -33,13 +38,15 @@ import { logAction } from './lib/log.js';
 import { kstDate, kstIso, DAY_MS } from './lib/time.js';
 import { EtlError, canvas, courseName, getAll, termNames } from './9_etl.js';
 import { MAP_URI, MAP_HTML } from './14_study_map.js';
+import { plain } from './15_activities.js';
 
 export class StudyError extends Error {}
 
 const READ_DEFAULT = 12; // study_read 한 번에 옮기는 쪽. 부를 때마다 문서 전체가 입력값이라 너무 잘게 나누지 않는다(Claude 앱 도구 제한 240초 안)
 const READ_MAX = 20;
 const GAP = 3; // 틀린 개념은 다른 문제 3개 뒤에 다시
-const READABLE = new Set(['pdf', 'image', 'text']);
+const READABLE = new Set(['pdf', 'image', 'text', 'page']);
+const PAGE_CHARS = 3000; // eTL 페이지 글을 이만큼씩 끊어 '쪽'으로(지도의 쪽 번호 = 이 조각)
 const TEXT_EXT = new Set(['txt', 'md', 'csv', 'tsv', 'json', 'py', 'c', 'h', 'cpp', 'java', 'js', 'ts', 'r', 'm', 'sql', 'tex']);
 const IMAGE_EXT = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp']);
 const NEW_DATA = '{"turn":0,"files":[],"wrong":[]}';
@@ -141,30 +148,99 @@ function typeOf(name, mime) {
   return ext || 'file';
 }
 
+const day = (iso) => String(iso || '').slice(0, 10) || null;
+const pageId = (slug) => `page-${String(slug).replace(/\./g, '_')}`; // 자료 번호에 '.'이 있으면 절 · 개념 번호('<자료>.<절>.<개념>')와 섞인다
+
+/** 모듈 칸 → 자료. 과제 · 퀴즈 · 토론 · 소제목은 강의자료가 아니라 뺀다 */
+function itemOf(it) {
+  if (!it) return null;
+  const base = { title: clean(it.title || '자료'), posted: null, module: null, at: null };
+  if (it.type === 'File' && it.content_id) return { ...base, id: String(it.content_id), type: typeOf(it.title) };
+  if (it.type === 'Page' && it.page_url) return { ...base, id: pageId(it.page_url), slug: it.page_url, type: 'page', url: it.html_url };
+  if (it.type === 'ExternalUrl' && it.id) return { ...base, id: `link-${it.id}`, type: 'link', url: it.external_url };
+  if (it.type === 'ExternalTool' && it.id) return { ...base, id: `tool-${it.id}`, type: 'tool', url: it.html_url };
+  return null;
+}
+
 /**
- * 과목의 강의자료 전부: 파일 탭 + 모듈의 파일(파일 탭을 닫은 과목도 모듈로 올린 자료는 보인다).
- * 모듈 순서(주차)가 먼저, 모듈에 없는 파일은 올린 날 순서로 뒤에.
- * ponytail: 파일 탭 500개 · 모듈 250개까지(getAll 5쪽). 그보다 큰 과목이 나오면 쪽 수를 늘린다.
+ * 과목의 강의자료 전부: 파일 탭 · 페이지 탭 + 모듈의 파일 · 페이지 · 링크 · 외부 도구(탭을 닫은 과목도 모듈로 올린 자료는 보인다).
+ * 모듈 순서(주차)가 먼저, 모듈에 없는 자료는 올린 날 순서로 뒤에. mod = eTL 수정 시각(탭이 닫혀 모르면 없음).
+ * ponytail: 탭마다 500개 · 모듈 250개까지(getAll 5쪽). 그보다 큰 과목이 나오면 쪽 수를 늘린다.
+ *   모듈에만 있는 페이지는 수정 시각을 모른다(페이지마다 따로 부르면 무료 요금제 요청 한도) → 고친 것을 못 알아챈다.
  */
 export async function materials(etl, courseId) {
   const byId = new Map();
   for (const f of await tab(etl, `/courses/${courseId}/files`, { per_page: 100, sort: 'created_at' })) {
     if (!f || !f.id || f.hidden_for_user || f.locked_for_user) continue;
     const title = clean(f.display_name || f.filename || '파일');
-    byId.set(String(f.id), { id: String(f.id), title, type: typeOf(title, f['content-type']), posted: (f.created_at || '').slice(0, 10) || null, module: null, at: null });
+    byId.set(String(f.id), { id: String(f.id), title, type: typeOf(title, f['content-type']), posted: day(f.created_at), mod: f.modified_at || undefined, module: null, at: null });
+  }
+  for (const p of await tab(etl, `/courses/${courseId}/pages`, { per_page: 100, sort: 'created_at' })) {
+    if (!p || !p.url || p.hide_from_students || p.locked_for_user || p.published === false) continue;
+    const id = pageId(p.url);
+    byId.set(id, { id, slug: p.url, title: clean(p.title || '페이지'), type: 'page', url: p.html_url, posted: day(p.created_at), mod: p.updated_at || undefined, module: null, at: null });
   }
   let n = 0;
   for (const m of await tab(etl, `/courses/${courseId}/modules`, { 'include[]': 'items', per_page: 50 })) {
     for (const it of (m && m.items) || []) {
-      if (!it || it.type !== 'File' || !it.content_id) continue;
-      const id = String(it.content_id);
-      const f = byId.get(id) || { id, title: clean(it.title || '파일'), type: typeOf(it.title), posted: null, module: null, at: null };
+      const one = itemOf(it);
+      if (!one) continue;
+      const f = byId.get(one.id) || one;
       f.module ??= clean(m.name, 80) || null;
       f.at ??= n++;
-      byId.set(id, f);
+      byId.set(one.id, f);
     }
   }
   return [...byId.values()].sort((a, b) => (a.at ?? 1e9) - (b.at ?? 1e9) || String(a.posted).localeCompare(String(b.posted)) || a.title.localeCompare(b.title));
+}
+
+// 고친 판 표시: '(1)' · '(수정)' · '[최종본]' · ' v2' · '_rev' · ' final' · '-수정본'. 괄호 없는 숫자만 다른 이름(3강 · 4강)은 다른 자료다
+const VERSION = /(?:\s*[([](?:\d{1,2}|[^()[\]]*(?:수정|최종|정정|v\d|ver|rev|final|update)[^()[\]]*)[)\]]|[\s_-]+(?:v\d+|ver\.?\d+|rev(?:ised)?\d*|final|updated|수정본?|최종본?|정정본?))$/i;
+function baseName(title) {
+  let s = String(title ?? '').toLowerCase().trim().replace(/\.[a-z0-9]{1,5}$/, '');
+  while (VERSION.test(s)) s = s.replace(VERSION, '');
+  return norm(s);
+}
+
+/**
+ * 방의 자료를 eTL 지금 목록에 맞춘다 → { files, changes }.
+ * - 새 자료 → 범위 미정. 내려간 자료 → 지도가 있으면 진도째 남긴다(gone).
+ * - 고친 판: 같은 번호인데 수정 시각이 바뀜(읽었거나 지도가 있을 때만), 또는 내려간 자료와 이름(판 표시를 뗀)이 같은 새 자료가 하나씩일 때.
+ *   처음부터 다시 읽고 지도를 다시 낸다. 예전 지도는 prev(saveMap이 같은 이름 개념의 결과를 이음), 범위는 '안'만 잇는다(밖이었으면 다시 묻는다).
+ * changes는 처음 열 때(예전 목록이 비었을 때)는 null.
+ */
+export function syncFiles(oldFiles, list) {
+  const old = new Map(oldFiles.map((f) => [f.id, f]));
+  const fresh = list.filter((m) => !old.has(m.id));
+  const gone = oldFiles.filter((f) => !list.some((m) => m.id === f.id));
+  const replaced = new Map(); // 새 번호 → 내려간 예전 판
+  for (const g of gone) {
+    const key = baseName(g.title);
+    const same = fresh.filter((m) => baseName(m.title) === key);
+    if (same.length === 1 && gone.filter((x) => baseName(x.title) === key).length === 1) replaced.set(same[0].id, g);
+  }
+  const changes = { new: [], revised: [], gone: [] };
+  const files = list.map(({ at, ...m }) => {
+    let o = old.get(m.id);
+    let was = o && o.mod && m.mod && o.mod !== m.mod && (o.sections || o.read) ? o : null;
+    if (!o && replaced.has(m.id)) {
+      was = replaced.get(m.id);
+      o = { in: was.in === true ? true : null };
+    }
+    const f = { in: null, ...o, ...m, type: m.type === 'file' && o?.type ? o.type : m.type, gone: undefined }; // 'file' = 목록에선 형식을 모름 → 읽을 때 정한 것을 둔다
+    if (was) {
+      Object.assign(f, { prev: was.sections || was.prev, revised: was.title, sections: undefined, skip: undefined, read: undefined, pages: undefined, by_client: undefined });
+      changes.revised.push(`${f.id} ${f.title}`);
+    } else if (!o) changes.new.push(`${f.id} ${f.title}`);
+    return f;
+  });
+  const moved = new Set(replaced.values());
+  for (const g of gone) {
+    if (moved.has(g)) continue;
+    if (!g.gone) changes.gone.push(`${g.id} ${g.title}`);
+    if (g.sections) files.push({ ...g, gone: true }); // eTL에서 내려간 자료도 진도는 남긴다
+  }
+  return { files, changes: oldFiles.length && (changes.new.length || changes.revised.length || changes.gone.length) ? changes : null };
 }
 
 /** eTL 내려받기 주소 → 리다이렉트 끝(파일 저장소의 짧게 사는 주소). 본문은 받지 않는다 */
@@ -224,17 +300,11 @@ async function openRoom(env, userId, course) {
     .run();
   const row = await env.DB.prepare('SELECT * FROM study WHERE user_id = ? AND course_id = ?').bind(userId, c.id).first();
   const data = JSON.parse(row.data || NEW_DATA);
-  const list = await materials(etl, c.id);
-  const old = new Map(data.files.map((f) => [f.id, f]));
-  const files = list.map(({ at, ...m }) => {
-    const o = old.get(m.id);
-    return { in: null, ...o, ...m, type: m.type === 'file' && o ? o.type : m.type, gone: undefined }; // 'file' = 목록에선 형식을 모름 → 읽을 때 정한 것을 둔다
-  });
-  for (const f of data.files) if (!list.some((m) => m.id === f.id) && f.sections) files.push({ ...f, gone: true }); // eTL에서 내려간 자료도 진도는 남긴다
+  const { files, changes } = syncFiles(data.files, await materials(etl, c.id));
   data.files = files;
   row.course = c.name;
   await save(env, row, data);
-  return { row, data, etl };
+  return { row, data, changes };
 }
 
 async function save(env, row, data) {
@@ -270,8 +340,11 @@ function levelOf(s) {
 
 /** 'file' = 아직 모르는 형식(모듈 자료 이름에 확장자가 없음) → 읽어 보며 정한다 */
 const unreadable = (type) => !READABLE.has(type) && type !== 'file';
+const KIND = { page: 'eTL 페이지', link: '링크', tool: '외부 도구' };
 const cantRead = (f) =>
-  `'${f.title}'(${f.type})은 Tachyon이 못 읽는 형식이에요. 사용자에게 PDF나 파일을 이 채팅에 올려 달라고 해서 직접 읽고 study_save_map(by_client: true, total_pages)으로 지도를 내거나, 범위 밖인지 물어 주세요`;
+  f.type === 'link' || f.type === 'tool'
+    ? `'${f.title}'은(는) ${f.type === 'link' ? '링크' : '외부 도구(녹화 강의 등)'}라 Tachyon이 못 읽어요(${f.url || '주소 모름'}). 네가 열어 읽을 수 있으면 직접 읽고, 아니면 사용자에게 내용(슬라이드 · 자막 · 글)을 이 채팅에 올려 달라고 해서 study_save_map(by_client: true, total_pages)으로 지도를 내거나, 범위 밖인지 물어 주세요`
+    : `'${f.title}'(${f.type})은 Tachyon이 못 읽는 형식이에요. 사용자에게 PDF나 파일을 이 채팅에 올려 달라고 해서 직접 읽고 study_save_map(by_client: true, total_pages)으로 지도를 내거나, 범위 밖인지 물어 주세요`;
 
 function stateOf(f) {
   if (f.in == null) return 'undecided';
@@ -349,6 +422,8 @@ function viewOf(row, data) {
     type: f.type,
     state: stateOf(f),
     gone: !!f.gone,
+    ...(f.revised ? { revised_from: f.revised } : {}),
+    ...(f.url ? { url: f.url } : {}),
     pages: f.pages || null,
     read: f.sections ? (f.pages ? `1-${f.pages}` : '') : f.read || '',
     skip: f.skip || [],
@@ -378,7 +453,7 @@ function viewOf(row, data) {
 }
 
 const MARK = { ok: '✓', part: '△', wrong: '✗', out: '–' };
-const STATE_TEXT = { unread: '아직 안 읽음', reading: '읽는 중', unreadable: '못 읽는 형식 — 채팅에 PDF로 올리거나 범위 밖인지 말해 줘' };
+const STATE_TEXT = { unread: '아직 안 읽음', reading: '읽는 중', unreadable: '못 읽음 — 내용을 채팅에 올리거나(PDF · 슬라이드 · 자막) 범위 밖인지 말해 줘' };
 
 /** 창(MCP Apps)이 안 뜨는 앱에서 그대로 보여 줄 글 지도 */
 export function mapText(v) {
@@ -391,7 +466,7 @@ export function mapText(v) {
     '',
   ];
   for (const f of v.files.filter((x) => x.state !== 'out' && x.state !== 'undecided')) {
-    const head = `${f.n}. ${f.module ? `${f.module} · ` : ''}${f.title}`;
+    const head = `${f.n}. ${f.module ? `${f.module} · ` : ''}${f.title}${KIND[f.type] ? ` [${KIND[f.type]}]` : ''}${f.revised_from ? ' (고친 판)' : ''}`;
     if (f.state !== 'mapped') {
       const done = (parsePages(f.read) || []).length;
       L.push(`${head} — ${STATE_TEXT[f.state]}${f.state === 'reading' && f.pages ? ` ${done}/${f.pages}쪽` : ''}`);
@@ -431,7 +506,8 @@ export const PLAYBOOK = `Tachyon 공부방 규칙 — ALTER에서 룸메이트�
 반드시
 - 자료를 하나도 빼지 않는다. 범위에서 빼는 것은 사용자가 '범위 아님'이라고 말했을 때만(study_set_scope exclude — 자료 · 절 · 개념 단위). 네 판단으로 건너뛰거나 '중요하지 않다'며 줄이지 않는다. 시간이 모자라면 조언자가 순서를 바꾸자고 하되 빼지는 않는다.
 - 새로 올라온 자료(state 'undecided')가 보이면 범위인지 먼저 묻는다.
-- 못 읽는 자료(state 'unreadable': pptx · hwp · 영상 …)는 사용자에게 PDF나 파일을 이 채팅에 올려 달라고 하거나 범위 밖인지 묻는다. 채팅에 올라온 파일은 네가 직접 읽고 study_save_map(by_client: true, total_pages).
+- study_room에 etl_changes가 있으면 방을 열자마자 짧게 알린다: 새 자료(new) · 고친 판(revised — 범위 안이었으면 처음부터 다시 읽고 지도를 다시 낸다, 같은 이름 개념의 결과는 이어진다) · 내려간 자료(gone — 진도는 남는다). 고친 판의 예전 판이 범위 밖이었으면 다시 묻는다(revised_from).
+- 못 읽는 자료(state 'unreadable': pptx · hwp · 영상 · 링크 · 외부 도구 …)는 사용자에게 내용(PDF · 슬라이드 · 자막 · 글)을 이 채팅에 올려 달라고 하거나 범위 밖인지 묻는다. 링크(url)는 네가 열어 읽을 수 있으면 직접 읽는다. 채팅에 올라온 것이나 네가 읽은 것은 study_save_map(by_client: true, total_pages).
 - 문제는 자료에 있는 내용으로 내고, 채점 때 근거(자료 이름 · 쪽)를 밝힌다. 자료에 지난 시험 · 퀴즈가 있으면 그 형식에 맞춘다. 자료의 오타는 그대로 쓰지 말고 짚어 준다.
 - 질문 먼저: 설명을 늘어놓기 전에 묻는다. 한 번에 한 문제. 힌트는 사용자가 원할 때만. 정답을 먼저 말하지 않는다.
 - 말투는 사용자를 따른다(처음엔 친근한 반말). 수식은 LaTeX.
@@ -503,14 +579,14 @@ export const STUDY_TOOLS = [
     name: 'study_room',
     title: '공부방 열기',
     description:
-      "Open one course's study room (creates it on first open) and sync its eTL materials. Returns phase ('scope' → ask the exam and its scope first; 'read' → read every in-scope file with study_read and map it with study_save_map; 'tutor' → quiz `next`; 'done'), todo (what to do now), files with state, stats, next concept, open wrong-answer notes and map_text. Follow `todo`.",
+      "Open one course's study room (creates it on first open) and sync its eTL materials (files, eTL pages, links). etl_changes (if any): new / revised (re-uploaded or edited — read again from the start, results of same-named concepts carry over) / gone files since last open — tell the user first. Returns phase ('scope' → ask the exam and its scope first; 'read' → read every in-scope file with study_read and map it with study_save_map; 'tutor' → quiz `next`; 'done'), todo (what to do now), files with state, stats, next concept, open wrong-answer notes and map_text. Follow `todo`.",
     inputSchema: input({ course: COURSE }, ['course']),
     annotations: WRITE,
     run: async (args, x) => {
-      const { row, data } = await openRoom(x.env, x.user.id, args.course);
+      const { row, data, changes } = await openRoom(x.env, x.user.id, args.course);
       const v = viewOf(row, data);
       const hints = v.phase === 'scope' ? await examHints(x.env, x.user.id, row.course) : undefined;
-      return { today: kstDate(), ...v, todo: TODO[v.phase], ...(hints ? { exam_hints: hints } : {}), map_text: mapText(v) };
+      return { today: kstDate(), ...(changes ? { etl_changes: changes } : {}), ...v, todo: TODO[v.phase], ...(hints ? { exam_hints: hints } : {}), map_text: mapText(v) };
     },
   },
   {
@@ -578,7 +654,7 @@ export const STUDY_TOOLS = [
   {
     name: 'study_read',
     title: '자료 읽기',
-    description: `Tachyon reads an in-scope eTL file for you, page by page, word for word (every bullet, formula in LaTeX, table, code, a line per figure) — up to ${READ_MAX} pages per call (default: the next ${READ_DEFAULT} unread). Call again until unread is empty, then study_save_map. PDF, images and text files only; others come back unreadable. Nothing is stored except which pages were read.`,
+    description: `Tachyon reads an in-scope eTL file for you, page by page, word for word (every bullet, formula in LaTeX, table, code, a line per figure) — up to ${READ_MAX} pages per call (default: the next ${READ_DEFAULT} unread). Call again until unread is empty, then study_save_map. PDF, images, text files and eTL pages (their text, cut into ${PAGE_CHARS}-character pages); others (pptx, hwp, links, external tools …) come back unreadable. Nothing is stored except which pages were read.`,
     inputSchema: input({ course: COURSE, file: { type: 'string', description: 'File id from study_room' }, pages: PAGES('Pages to read') }, ['course', 'file']),
     annotations: { ...READ, openWorldHint: true },
     run: async (args, x) => readFile(args, x),
@@ -694,7 +770,7 @@ async function examHints(env, userId, course) {
 }
 
 async function readFile(args, x) {
-  const { env, user, ctx } = x;
+  const { env, user } = x;
   const { row, data } = await roomOf(env, user.id, args.course);
   const f = data.files.find((it) => it.id === String(args.file).trim());
   if (!f) throw new StudyError('없는 자료 번호예요. study_room의 files에서 id를 보세요');
@@ -716,11 +792,70 @@ async function readFile(args, x) {
   const from = want[0];
   const to = want[want.length - 1];
 
-  const limit = Number(env.STUDY_READS_PER_DAY || 60);
-  const used = await env.DB.prepare("SELECT COUNT(*) AS n FROM log WHERE user_id = ? AND action = 'study_read' AND at >= ?").bind(user.id, `${kstDate()}T00:00:00`).first('n');
-  if (used >= limit) throw new StudyError(`오늘 자료 읽기 한도(${limit}번)를 다 썼어요. 내일 이어서 읽거나, 이미 읽은 쪽으로 공부해요`);
-
   const etl = await etlOf(env, user.id);
+  let total;
+  let pages;
+  if (f.type === 'page') {
+    const chunks = await pageChunks(etl, row.course_id, f);
+    total = chunks.length;
+    pages = want.filter((p) => p <= total).map((p) => ({ page: p, label: '', text: chunks[p - 1] }));
+  } else {
+    ({ total, pages } = await readEtlFile(x, etl, row, data, f, from, to));
+  }
+  if (total) f.pages = total;
+  const got = pages.map((p) => p.page);
+  f.read = pagesText([...(parsePages(f.read) || []), ...got].filter((p) => !f.pages || p <= f.pages));
+  await save(env, row, data);
+  const missing = want.filter((p) => (!f.pages || p <= f.pages) && !got.includes(p));
+  const unread = unreadOf(f) || [];
+  return {
+    file: f.id,
+    title: f.title,
+    total_pages: f.pages,
+    pages,
+    ...(missing.length ? { missing: pagesText(missing), warning: `${pagesText(missing)}쪽이 비어 왔어요. pages로 다시 읽어 주세요` } : {}),
+    read: f.read,
+    unread: pagesText(unread),
+    todo: unread.length ? `study_read를 이어서(다음 ${pagesText(unread.slice(0, READ_DEFAULT))}쪽)` : '다 읽었다 → 이 자료의 절·개념 지도를 study_save_map',
+  };
+}
+
+/** eTL 페이지(위키) 본문 → PAGE_CHARS자쯤씩 끊은 글 목록(줄 단위로 끊는다). 수식 그림은 LaTeX로, 그림은 alt, 삽입 영상은 주소 한 줄 */
+export function pageText(html) {
+  const text = plain(
+    String(html || '')
+      .replace(/<img[^>]*data-equation-content="([^"]*)"[^>]*>/gi, (_, tex) => ` $${tex}$ `)
+      .replace(/<img[^>]*alt="([^"]*)"[^>]*>/gi, (_, alt) => ` [그림: ${alt}] `)
+      .replace(/<iframe[^>]*src="([^"]*)"[^>]*>/gi, (_, src) => ` [삽입: ${src}] `)
+      .replace(/<li[^>]*>/gi, '\n- '),
+  );
+  const out = [];
+  let cur = '';
+  for (const line of text.split('\n')) {
+    if (cur && cur.length + line.length > PAGE_CHARS) {
+      out.push(cur);
+      cur = '';
+    }
+    cur += (cur ? '\n' : '') + line; // ponytail: PAGE_CHARS보다 긴 한 줄은 한 쪽으로 둔다
+  }
+  if (cur || !out.length) out.push(cur || '(빈 페이지)');
+  return out;
+}
+
+async function pageChunks(etl, courseId, f) {
+  let page;
+  try {
+    page = (await etl.get(`/courses/${courseId}/pages/${encodeURIComponent(f.slug)}`)).data;
+  } catch (err) {
+    if (err instanceof EtlError) throw new StudyError(`eTL에서 이 페이지를 열 수 없어요(${err.status}). 교수님이 내렸거나 잠갔을 수 있어요 — 사용자에게 물어 주세요`);
+    throw err;
+  }
+  if (!page || page.locked_for_user) throw new StudyError('eTL이 이 페이지를 잠갔어요. 사용자에게 내용을 이 채팅에 올려 달라고 해 주세요');
+  return pageText(page.body);
+}
+
+/** eTL 파일 → { total, pages }. PDF · 그림은 Claude가 쪽마다 옮겨 적고(하루 한도), 글 파일은 그대로 */
+async function readEtlFile({ env, user, ctx }, etl, row, data, f, from, to) {
   let meta;
   try {
     meta = (await etl.get(`/files/${f.id}`)).data;
@@ -744,6 +879,9 @@ async function readFile(args, x) {
     total = 1;
     pages = [{ page: 1, label: '', text: (await res.text()).slice(0, 100000) }];
   } else {
+    const limit = Number(env.STUDY_READS_PER_DAY || 60);
+    const used = await env.DB.prepare("SELECT COUNT(*) AS n FROM log WHERE user_id = ? AND action = 'study_read' AND at >= ?").bind(user.id, `${kstDate()}T00:00:00`).first('n');
+    if (used >= limit) throw new StudyError(`오늘 자료 읽기 한도(${limit}번)를 다 썼어요. 내일 이어서 읽거나, 이미 읽은 쪽으로 공부해요`);
     // ponytail: 프롬프트 캐시를 안 건다 — 끝 주소가 부를 때마다 새로 서명돼 캐시가 맞지 않는다. 같은 자료를 여러 번 읽는 값이 문제가 되면
     //   Files API(한 번 올리고 file_id로, 만료 지정)로 바꾸고 cache_control을 붙인다.
     const block = f.type === 'pdf' ? { type: 'document', source: { type: 'url', url } } : { type: 'image', source: { type: 'url', url } };
@@ -759,22 +897,7 @@ async function readFile(args, x) {
     pages = (out.data.pages || []).filter((p) => p && p.page >= from && p.page <= to && (!total || p.page <= total));
     ctx.waitUntil(logAction(env, user.id, 'study_read', { model: out.model, ms: out.ms, in: out.usage.input, out: out.usage.output, pages: pages.length }));
   }
-  if (total) f.pages = total;
-  const got = pages.map((p) => p.page);
-  f.read = pagesText([...(parsePages(f.read) || []), ...got].filter((p) => !f.pages || p <= f.pages));
-  await save(env, row, data);
-  const missing = want.filter((p) => (!f.pages || p <= f.pages) && !got.includes(p));
-  const unread = unreadOf(f) || [];
-  return {
-    file: f.id,
-    title: f.title,
-    total_pages: f.pages,
-    pages,
-    ...(missing.length ? { missing: pagesText(missing), warning: `${pagesText(missing)}쪽이 비어 왔어요. pages로 다시 읽어 주세요` } : {}),
-    read: f.read,
-    unread: pagesText(unread),
-    todo: unread.length ? `study_read를 이어서(다음 ${pagesText(unread.slice(0, READ_DEFAULT))}쪽)` : '다 읽었다 → 이 자료의 절·개념 지도를 study_save_map',
-  };
+  return { total, pages };
 }
 
 async function saveMap(args, x) {
@@ -800,7 +923,7 @@ async function saveMap(args, x) {
   };
   const oldC = new Map();
   const oldS = new Map();
-  for (const s of f.sections || []) {
+  for (const s of [...(f.prev || []), ...(f.sections || [])]) { // prev = 고친 판의 예전 지도(syncFiles)
     oldS.set(norm(s.title), s);
     for (const c of s.concepts) oldC.set(norm(c.name), c);
   }
@@ -825,6 +948,8 @@ async function saveMap(args, x) {
   }
   f.sections = sections;
   f.skip = skip;
+  delete f.prev;
+  delete f.revised;
   await save(x.env, row, data);
   const v = viewOf(row, data);
   return {

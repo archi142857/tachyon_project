@@ -22,6 +22,16 @@ const META = {
   502: { display_name: '2주차 에너지.pdf', 'content-type': 'application/pdf' },
   504: { display_name: '2주차 보충.hwp', 'content-type': 'application/x-hwp' },
 };
+// 가짜 eTL 과목 202(예시 수학): 파일 탭 · 페이지 탭 · 모듈(파일 · 페이지 · 링크 · 외부 도구 · 과제)
+let files202;
+let modules202;
+const pages202 = [{ url: 'week1-notes', title: '1주차 노트', html_url: 'https://myetl.snu.ac.kr/courses/202/pages/week1-notes', created_at: '2026-09-01T09:00:00+09:00', updated_at: '2026-09-01T09:00:00+09:00', published: true }];
+const BODY = `<h2>집합</h2><p>${'가'.repeat(2000)}</p><p>합집합 <img class="equation_image" data-equation-content="A \\cup B" alt="LaTeX: A \\cup B"></p><ul><li>교집합</li></ul><p>${'나'.repeat(2000)}</p><iframe src="https://video.example.invalid/embed/1"></iframe>`;
+Object.assign(META, {
+  601: { display_name: '1강 집합.pdf', 'content-type': 'application/pdf' },
+  602: { display_name: '2강 함수.pdf', 'content-type': 'application/pdf' },
+  611: { display_name: '1강 집합.pdf', 'content-type': 'application/pdf' },
+});
 const aiReplies = [];
 const aiBodies = [];
 const downloads = [];
@@ -51,6 +61,10 @@ async function fakeFetch(input, init = {}) {
   if (p === '/api/v1/courses') return j([{ id: '201', name: '예시 물리학', term: { name: '2026년 2학기' } }, { id: '202', name: '예시 수학', term: { name: '2026년 2학기' } }]);
   if (p === '/api/v1/courses/201/files') return j(files);
   if (p === '/api/v1/courses/201/modules') return j(modules);
+  if (p === '/api/v1/courses/202/files') return j(files202);
+  if (p === '/api/v1/courses/202/modules') return j(modules202);
+  if (p === '/api/v1/courses/202/pages') return j(pages202);
+  if (p === '/api/v1/courses/202/pages/week1-notes') return j({ ...pages202[0], body: BODY });
   const m = /^\/api\/v1\/files\/(\d+)$/.exec(p);
   if (m && META[m[1]]) return j({ id: m[1], ...META[m[1]], url: `https://myetl.snu.ac.kr/files/${m[1]}/download?download_frd=1&verifier=EXAMPLEverifier` });
   return new Response('{}', { status: 404 });
@@ -207,4 +221,100 @@ test('공부방: 범위를 먼저 묻고 → 모든 쪽을 읽고 → 지도 →
   env.STUDY_READS_PER_DAY = '3';
   await fails('study_read', { course: '물리', file: '501', pages: '2' }, /한도\(3번\)/);
   assert.ok(downloads.every((d) => d.includes('/files/') && !d.includes('authorization')));
+});
+
+test('공부방: eTL 페이지 · 링크도 자료, 고친 판은 범위와 결과를 잇고 다시 읽는다', async () => {
+  const pdf = (id, name, created, modified = created) => ({ id, display_name: name, 'content-type': 'application/pdf', created_at: created, modified_at: modified });
+  files202 = [pdf('601', '1강 집합.pdf', '2026-09-01T10:00:00+09:00'), pdf('602', '2강 함수.pdf', '2026-09-08T10:00:00+09:00'), pdf('603', '3강 부록.pdf', '2026-09-15T10:00:00+09:00')];
+  modules202 = [
+    {
+      name: '1주차',
+      items: [
+        { id: 9101, type: 'File', content_id: '601', title: '1강 집합.pdf' },
+        { id: 9102, type: 'Page', page_url: 'week1-notes', title: '1주차 노트', html_url: 'https://myetl.snu.ac.kr/courses/202/modules/items/9102' },
+        { id: 9103, type: 'ExternalUrl', title: '참고 영상', external_url: 'https://video.example.invalid/watch/1' },
+        { id: 9104, type: 'Assignment', content_id: '77', title: '과제 1' },
+      ],
+    },
+    {
+      name: '2주차',
+      items: [
+        { id: 9201, type: 'File', content_id: '602', title: '2강 함수.pdf' },
+        { id: 9202, type: 'ExternalTool', title: '녹화 강의', html_url: 'https://myetl.snu.ac.kr/courses/202/modules/items/9202' },
+      ],
+    },
+  ];
+  const env = makeEnv({ ANTHROPIC_API_KEY: 'test-key' });
+  const user = await addTestUser(env);
+  const ctx = makeCtx();
+  const call = (name, args = {}) => STUDY_TOOLS.find((t) => t.name === name).run(args, { env, ctx, user });
+  const fails = async (name, args, re) => {
+    await assert.rejects(call(name, args), (err) => err instanceof StudyError && re.test(err.message));
+  };
+  await env.DB.prepare('INSERT INTO etl (user_id, token, term) VALUES (?, ?, ?)').bind(user.id, await seal(env, TOKEN), '2026년 2학기').run();
+  const course = '수학';
+
+  // 1. 자료 = 파일 + eTL 페이지 + 링크 + 외부 도구(과제는 아님), 주차 순. 처음 열 때는 바뀐 것 알림이 없다
+  const room = await call('study_room', { course });
+  assert.deepEqual(room.files.map((f) => [f.id, f.type]), [['601', 'pdf'], ['page-week1-notes', 'page'], ['link-9103', 'link'], ['602', 'pdf'], ['tool-9202', 'tool'], ['603', 'pdf']]);
+  assert.equal(room.files[2].url, 'https://video.example.invalid/watch/1');
+  assert.equal(room.etl_changes, undefined);
+  await call('study_set_scope', { course, exam: '기말고사', include: ['601', 'page-week1-notes', 'link-9103', '602'], exclude: ['603', 'tool-9202'] });
+
+  // 2. eTL 페이지: Claude 없이 본문을 글로(수식 → LaTeX, 목록, 삽입 영상 주소), 3000자쯤씩 쪽으로
+  const before = aiBodies.length;
+  const pg = await call('study_read', { course, file: 'page-week1-notes' });
+  assert.equal(aiBodies.length, before, '페이지는 Claude를 부르지 않는다');
+  assert.equal(pg.total_pages, 2);
+  assert.match(pg.pages[0].text, /^집합\n가+\n합집합 \$A \\cup B\$\n- 교집합$/);
+  assert.match(pg.pages[1].text, /\[삽입: https:\/\/video\.example\.invalid\/embed\/1\]$/);
+  await call('study_save_map', { course, file: 'page-week1-notes', sections: [{ title: '집합 연산', pages: '1-2', concepts: [{ name: '합집합', pages: '1' }, { name: '교집합', pages: '1-2' }] }] });
+
+  // 3. 링크는 못 읽음 → AI 앱이 읽거나 사용자가 올린 내용으로 by_client
+  await fails('study_read', { course, file: 'link-9103' }, /링크라 Tachyon이 못 읽어요\(https:\/\/video\.example\.invalid\/watch\/1\)/);
+  await call('study_save_map', { course, file: 'link-9103', by_client: true, total_pages: 1, sections: [{ title: '영상', pages: '1', concepts: [{ name: '벤 다이어그램', pages: '1' }] }] });
+
+  // 4. PDF 두 개를 읽고 지도 → 문제
+  aiReplies.push({ total_pages: 2, pages: [page(1), page(2)] });
+  await call('study_read', { course, file: '601' });
+  await call('study_save_map', { course, file: '601', sections: [{ title: '집합', pages: '1-2', concepts: [{ name: '집합의 정의', pages: '1' }, { name: '부분집합', pages: '2' }] }] });
+  aiReplies.push({ total_pages: 1, pages: [page(1)] });
+  await call('study_read', { course, file: '602' });
+  await call('study_save_map', { course, file: '602', sections: [{ title: '함수', pages: '1', concepts: [{ name: '함수의 정의', pages: '1' }] }] });
+  await call('study_record', { course, results: [{ id: '601.1.1', result: 'wrong', question: '예시 문제' }, { id: '601.1.2', result: 'ok' }, { id: '602.1.1', result: 'ok' }] });
+
+  // 5. 교수님이 고침: 601을 같은 이름으로 덮어 올림(새 번호 611), 범위 밖이던 603을 '(수정)'으로 다시, 602를 내리고 이름에 숫자만 붙은 606을 새로
+  files202 = [pdf('611', '1강 집합.pdf', '2026-11-19T09:00:00+09:00'), pdf('606', '2강 함수2.pdf', '2026-11-18T10:00:00+09:00'), pdf('613', '3강 부록(수정).pdf', '2026-11-19T10:00:00+09:00')];
+  modules202[0].items[0].content_id = '611';
+  modules202[1].items.shift();
+  const after = await call('study_room', { course });
+  assert.deepEqual(after.etl_changes, { new: ['606 2강 함수2.pdf'], revised: ['611 1강 집합.pdf', '613 3강 부록(수정).pdf'], gone: ['602 2강 함수.pdf'] });
+  const f = (id) => after.files.find((it) => it.id === id);
+  assert.equal(f('601'), undefined, '예전 판은 고친 판으로 넘어가 사라진다');
+  assert.deepEqual([f('611').state, f('611').revised_from], ['unread', '1강 집합.pdf'], '범위 안이던 것은 안으로 잇고 다시 읽는다');
+  assert.deepEqual([f('613').state, f('613').revised_from], ['undecided', '3강 부록.pdf'], '범위 밖이던 것의 고친 판은 다시 묻는다');
+  assert.equal(f('606').state, 'undecided', '숫자만 다른 이름은 다른 자료');
+  assert.deepEqual([f('602').gone, f('602').state], [true, 'mapped'], '내려간 자료는 진도째 남는다');
+  assert.equal(after.phase, 'scope');
+  assert.equal(after.stats.concepts, 4);
+  assert.match(after.map_text, /1강 집합\.pdf \(고친 판\) — 아직 안 읽음/);
+  assert.match(after.map_text, /1주차 노트 \[eTL 페이지\]/);
+
+  // 6. 고친 판을 다시 읽고 지도를 내면 같은 이름 개념의 결과(✗ · ✓)와 오답 노트가 이어진다
+  await call('study_set_scope', { course, include: ['606'], exclude: ['613'] });
+  aiReplies.push({ total_pages: 3, pages: [page(1), page(2), page(3)] });
+  await call('study_read', { course, file: '611' });
+  const remap = await call('study_save_map', { course, file: '611', sections: [{ title: '집합', pages: '1-3', concepts: [{ name: '집합의 정의', pages: '1' }, { name: '부분집합', pages: '2' }, { name: '공집합', pages: '3' }] }] });
+  assert.equal(remap.stats.ok, 2);
+  const map = await call('study_map', { course });
+  assert.deepEqual(map.files.find((it) => it.id === '611').sections[0].concepts.map((c) => c.s), ['wrong', 'ok', null]);
+  assert.equal(map.files.find((it) => it.id === '611').revised_from, undefined);
+  assert.deepEqual(map.wrong_open.map((w) => w.name), ['집합의 정의']);
+
+  // 7. 같은 번호의 내용이 바뀌면(eTL 수정 시각) 그 자료만 다시 읽는다. 이미 알린 내려간 자료는 또 알리지 않는다
+  files202[0].modified_at = '2026-11-20T09:00:00+09:00';
+  const edited = await call('study_room', { course });
+  assert.deepEqual(edited.etl_changes, { new: [], revised: ['611 1강 집합.pdf'], gone: [] });
+  assert.equal(edited.files.find((it) => it.id === '611').state, 'unread');
+  assert.equal((await call('study_room', { course })).etl_changes, undefined);
 });

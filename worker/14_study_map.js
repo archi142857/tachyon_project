@@ -105,7 +105,8 @@ h1 { margin: 0; font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
   var rid = 0;
   var waiting = {};
   var MARK = { ok: '✓', part: '△', wrong: '✗', out: '–' };
-  var STATE = { unread: '아직 안 읽음', reading: '읽는 중', unreadable: '못 읽는 형식 — 채팅에 올려 주세요', mapped: '' };
+  var STATE = { unread: '아직 안 읽음', reading: '읽는 중', unreadable: '못 읽음 — 내용을 채팅에 올려 주세요', mapped: '' };
+  var KIND = { page: 'eTL 페이지', link: '링크', tool: '외부 도구' };
 
   function post(msg) { if (window.parent !== window) window.parent.postMessage(msg, '*'); }
   function request(method, params) {
@@ -186,6 +187,8 @@ h1 { margin: 0; font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
       var cls = f.state === 'mapped' ? (allOk ? 'done' : anyBad ? 'warn' : 'mapped') : f.state === 'unreadable' ? 'warn' : '';
       var meta = [];
       if (f.module) meta.push(esc(f.module));
+      if (KIND[f.type]) meta.push(KIND[f.type]);
+      if (f.revised_from) meta.push('고친 판 · 다시 읽기');
       if (f.pages) meta.push(f.pages + '쪽');
       if (f.state !== 'mapped') {
         var got = 0; String(f.read || '').split(',').forEach(function (p) { var m = /^(\\d+)(?:-(\\d+))?$/.exec(p); if (m) got += (m[2] ? +m[2] : +m[1]) - +m[1] + 1; });

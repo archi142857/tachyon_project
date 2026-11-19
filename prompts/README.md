@@ -80,6 +80,7 @@
 | Tachyon-40 | 2026-11-19 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5) | 달력: 하루씩 넘기기, 모션 약하게 | [Tachyon-40-달력-하루씩-넘기기-모션-약하게.md](Tachyon-40-달력-하루씩-넘기기-모션-약하게.md) | 사용자 직접 지시 | 사용자 → Claude Code |
 | Tachyon-41 | 2026-11-19 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5) | 퀴즈 번호 자동, 강의자료 과목 폴더로 저장 | [Tachyon-41-퀴즈-번호-자동-강의자료-과목-폴더-저장.md](Tachyon-41-퀴즈-번호-자동-강의자료-과목-폴더-저장.md) | 사용자 직접 지시 | 사용자 → Claude Code |
 | Tachyon-43 | 2026-11-19 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5), Tachyon MCP 연결 | 달력: 여러 캘린더에서 겹쳐 온 일정 합치기 | [Tachyon-43-달력-겹친-일정-합치기.md](Tachyon-43-달력-겹친-일정-합치기.md) | 사용자 직접 지시 | 사용자 → Claude Code |
+| Tachyon-44 | 2026-11-20 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5) | 공부방: eTL 고친 판 따라가기, eTL 페이지 · 링크도 자료로 | [Tachyon-44-공부방-eTL-고친-판-페이지-링크.md](Tachyon-44-공부방-eTL-고친-판-페이지-링크.md) | 사용자 직접 지시 | 사용자 → Claude Code |
 | Tachyon-컨셉-01 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | Tachyon-컨셉-01. 앞 자료와 기획안 읽기 | [Tachyon-컨셉-01-자료-학습.md](Tachyon-컨셉-01-자료-학습.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
 | Tachyon-컨셉-02 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결 | Tachyon-컨셉-02. 인수인계 확인과 공유 드라이브 연결 | [Tachyon-컨셉-02-인수인계와-드라이브.md](Tachyon-컨셉-02-인수인계와-드라이브.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
 | Tachyon-컨셉-03 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | Tachyon-컨셉-03. 세션 나누기와 세션끼리 소통하는 방식 | [Tachyon-컨셉-03-세션-나누기.md](Tachyon-컨셉-03-세션-나누기.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
