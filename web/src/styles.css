@@ -483,3 +483,10 @@ select.input { padding-right: 36px; }
 .ttw-list li.none .ttw-title { color: var(--text3); }
 .ttw-title { font-size: 15px; line-height: 22px; font-weight: 500; color: var(--text); }
 .ttw-out { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+/* eTL 원터치(11-20, EtlSheet.jsx): 앱 = 로그인 단추 하나, PC = 북마크 세 줄. 직접 넣기는 접어 둔다 */
+.one-touch { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.one-touch .btn { justify-self: start; }
+.one-touch-title { margin: 0; font-weight: 700; }
+.one-touch .bookmarklet { display: inline-flex; margin: 4px 0; padding: 4px 12px; cursor: grab; text-decoration: none; }
+.etl-manual > summary { cursor: pointer; padding: 6px 0; color: var(--text2); }
+.etl-manual[open] > summary { margin-bottom: 8px; }

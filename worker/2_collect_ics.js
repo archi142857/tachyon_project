@@ -303,8 +303,8 @@ async function saveFeeds(request, env, userId, now = Date.now()) {
   return json({ ok: true, results, feeds: await listFeeds(env, userId, now) });
 }
 
-/** 주소 한 칸: 모양 확인 → 한 번 받아 보기 → (이미 죽은 주소가 아니면) 잠가서 저장 → 받은 글로 바로 반영 */
-async function addFeed(env, userId, kind, raw, now) {
+/** 주소 한 칸: 모양 확인 → 한 번 받아 보기 → (이미 죽은 주소가 아니면) 잠가서 저장 → 받은 글로 바로 반영. 9_etl(토큰으로 찾은 eTL 주소)도 부른다 */
+export async function addFeed(env, userId, kind, raw, now) {
   let url; // 잠가 둘 글: 주소, 네이버는 아이디·비밀번호 JSON
   let text = null;
   let diag = null;

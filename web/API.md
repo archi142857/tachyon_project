@@ -152,7 +152,7 @@
 | 요청 | 보냄 | 받음 |
 | --- | --- | --- |
 | `GET /api/etl` | | `{ ok, connected, last_ok_at, last_error, dead, counts: { notice, file } }` (토큰은 안 돌려줌) |
-| `PUT /api/etl` | `{ token }` | 짧거나 띄어쓰기 있는 글(비밀번호 모양)은 400으로 eTL에 보내지도 않음. eTL `/users/self`가 받으면 저장하고 바로 한 번 받음 → 위 상태 + `result { ok, courses, tasks, notices, files, calendar, classes, ai }`(classes = 수강편람에서 시간표를 찾은 과목 수) |
+| `PUT /api/etl` | `{ token }` | 짧거나 띄어쓰기 있는 글(비밀번호 모양)은 400으로 eTL에 보내지도 않음. eTL `/users/self`가 받으면 저장하고 바로 한 번 받음 → 위 상태 + `result { ok, courses, tasks, notices, files, calendar, classes, ai }`(classes = 수강편람에서 시간표를 찾은 과목 수). eTL 캘린더 주소가 없으면 eTL `/users/self/profile`의 `calendar.ics`로 같이 넣음 → `calendar { ok, saved, count } \| null`(11-20, 주소는 응답에 안 넣음) |
 | `DELETE /api/etl` | | `{ ok, connected: false }` — 토큰·목록·과목 일정 지움(eTL ICS 주소가 없으면 과제도) |
 | `POST /api/etl/collect` | | 위 상태 + `result`(1분 안에 받았으면 `{ ok, recent: true }`) |
 | `GET /api/etl/items` | | `{ notices: [{ id, course, title, url, posted_at, tag }], files: [...] }` 새 것 먼저, 100개까지. tag = exam·cancel·makeup·none |
@@ -217,6 +217,7 @@
 |---|---|
 | `GET /api/gcal` | `{ ready, linked, error, pulled_at }` — `error: 'reconnect'`면 토큰이 죽어 다시 연결 |
 | `GET /api/gcal/connect` | 화면 전체를 옮김 → 구글 동의 → `/?gcal=ok\|denied\|scope\|state\|google\|config`로 돌아옴(`gcalBackText`) |
+| `POST /api/gcal/app` | (11-20, 안드로이드 앱) `{ url }` = `/api/gcal/connect?t=<2분짜리 서명 표>`. 앱이 폰 브라우저로 열면(로그인 쿠키 없음) 표로 누구인지 알고, 끝나면 `tachyon://gcal?r=ok\|…`로 앱에 돌아감(`native.js` `gcalInApp`) |
 | `POST /api/gcal/sync` | 지금 맞추기 → `{ linked }`. 대시보드가 화면에 돌아올 때 부른다 |
 | `DELETE /api/gcal` | 끊기(Tachyon이 넣은 구글 일정도 지움) |
 | `POST /api/gcal/push` | 구글이 부르는 알림(화면은 안 씀) |

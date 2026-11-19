@@ -14,6 +14,7 @@ import DeleteAccount from '../components/DeleteAccount.jsx';
 import DoneSheet from '../components/DoneSheet.jsx';
 import { EventEditSheet, EventInfoSheet, TaskEditSheet } from '../components/EditSheets.jsx';
 import EtlSheet from '../components/EtlSheet.jsx';
+import { takeHashGift } from '../etlToken.js';
 import FeedbackSheet from '../components/FeedbackSheet.jsx';
 import InboxSheet from '../components/InboxSheet.jsx';
 import GuideSheet, { guideSeen } from '../components/GuideSheet.jsx';
@@ -324,6 +325,11 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
       document.removeEventListener('visibilitychange', back);
     };
   }, []);
+  // PC eTL 북마크가 이 탭을 연 경우(/#etl=…, 11-20 원터치) → 주소에서 바로 지우고 eTL 창에서 연결
+  const [etlGift, setEtlGift] = useState(takeHashGift);
+  useEffect(() => {
+    if (etlGift) setSheet('etl');
+  }, [etlGift]);
   // 구글 동의 화면에서 돌아옴(/?gcal=ok|…) → 한 줄 알리고 주소에서 뺀다
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -1101,7 +1107,11 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
       )}
       {sheet === 'etl' && (
         <EtlSheet
-          onClose={() => setSheet(null)}
+          gift={etlGift}
+          onClose={() => {
+            setSheet(null);
+            setEtlGift(null);
+          }}
           onChanged={() => {
             loadEvents();
             loadRank();

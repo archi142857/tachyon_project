@@ -15,7 +15,11 @@
 // 리마인드(11-16 사람 "하고 싶은 일정에만, 할 일·일정 모두"): 리마인드를 켠 일정·할 일만(서버 GET /api/reminders) 같은 LocalNotifications로.
 //   앱을 열 때 · 다시 볼 때 · 할 일·일정을 바꾼 뒤(api.js widgetsChanged) 앞으로 14일 치를 다시 잡는다. 번호 10000부터(아침은 7001~7007).
 //   ponytail: 다른 기기(PC)에서 켠 리마인드는 이 폰에서 앱을 한 번 열어야 잡힌다. 늘 맞아야 하면 서버 푸시(FCM)로.
-import { getCalendarItems, getReminders, sendDeviceEvents } from './api.js';
+// eTL · 구글 캘린더 원터치(11-20 사람 "로그인만 하면 나머진 알아서"):
+//   eTL — 앱 안 창(app/android-native EtlPlugin.kt)에서 서울대 로그인 → eTL 쪽에서 토큰 · 캘린더 주소를 만들어 옴(etlToken.js grab). 새 APK에서만
+//   구글 — 앱 안 화면은 구글이 동의 창을 막으니 폰 브라우저로 2분짜리 표와 함께 열고(worker/12_gcal.js /api/gcal/app), tachyon://gcal?r=… 로 돌아옴
+import { gcalAppUrl, getCalendarItems, getReminders, sendDeviceEvents } from './api.js';
+import { ETL_ORIGIN, nativeScript } from './etlToken.js';
 import { readPrefs } from './prefs.js';
 
 const plugins = () => window.Capacitor?.Plugins;
@@ -36,10 +40,27 @@ export async function appLogin() {
   await plugins().Browser.open({ url: `${window.location.origin}/api/login?app=${check}` });
 }
 
-/** 브라우저에서 로그인하고 돌아오면(tachyon://login?…) 표를 쿠키로 바꾸러 간다. 앱이 켜질 때 한 번 부른다. */
+/** eTL 원터치를 이 앱이 할 수 있나(EtlPlugin이 든 APK) */
+export const canEtlLogin = () => Boolean(plugins()?.TachyonEtl);
+
+/** 앱 안 창에서 eTL 로그인 → { token, ics } | { error }. 창을 닫으면 reject(code 'closed') */
+export const etlLogin = () => plugins().TachyonEtl.open({ url: `${ETL_ORIGIN}/`, script: nativeScript() });
+
+/** 구글 캘린더 연결을 폰 브라우저에서(앱 안 화면은 구글이 막음). 끝나면 tachyon://gcal로 돌아와 /?gcal=… 로 간다 */
+export async function gcalInApp() {
+  await plugins().Browser.open({ url: await gcalAppUrl() });
+}
+
+/** 브라우저에서 로그인하고 돌아오면(tachyon://login?…) 표를 쿠키로 바꾸러 간다. 구글 캘린더 연결(tachyon://gcal?r=…)도 여기로 온다. 앱이 켜질 때 한 번 부른다. */
 export function listenAppLogin() {
   plugins().App.addListener('appUrlOpen', ({ url }) => {
-    const back = new URL(url).searchParams;
+    const to = new URL(url);
+    if (to.host === 'gcal') {
+      plugins().Browser.close?.().catch(() => {}); // 안드로이드는 못 닫을 수 있다(앱이 앞으로 오면 됨)
+      window.location.href = `/?gcal=${encodeURIComponent(to.searchParams.get('r') || 'state')}`;
+      return;
+    }
+    const back = to.searchParams;
     const v = localStorage.getItem(V_KEY);
     localStorage.removeItem(V_KEY);
     const ticket = back.get('ticket');

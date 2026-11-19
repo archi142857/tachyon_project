@@ -355,6 +355,8 @@ export async function unlinkAi(id) {
 }
 // 구글 동의 화면으로 가는 주소(화면 전체를 옮긴다 → 끝나면 /?gcal=ok|denied|scope|… 로 돌아옴)
 export const gcalConnectUrl = () => `${BASE}/api/gcal/connect`;
+// 안드로이드 앱(11-20): 폰 브라우저로 여는 주소(2분짜리 표가 붙음 — 그 브라우저엔 로그인 쿠키가 없어서). 끝나면 tachyon://gcal로 앱에 돌아옴
+export const gcalAppUrl = async () => (await call('POST', '/api/gcal/app')).url;
 const GCAL_BACK = {
   ok: '구글 캘린더와 연결했어요. 일정을 맞추는 중이에요',
   denied: '구글 캘린더 연결을 취소했어요',
@@ -496,6 +498,7 @@ export function getEtl() {
 }
 
 // 붙여 넣은 토큰 → eTL이 받으면 저장하고 바로 한 번 받는다 → 상태 + result { courses, tasks, notices, files, calendar, ai }
+//   + calendar { ok, saved, count } | null: eTL 캘린더 주소가 없었으면 eTL이 알려 준 주소로 같이 넣은 결과(11-20)
 export function connectEtl(token) {
   if (ex) return Promise.reject(new Error('예시에서는 eTL을 연결하지 않아요'));
   return call('PUT', '/api/etl', { token });

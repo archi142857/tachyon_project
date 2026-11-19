@@ -19,6 +19,8 @@ let filesStatus = 403; // 과목 103은 파일 탭이 닫혀 있다
 let aiReplies = [];
 let coursesStatus = 200;
 let syllabus = null; // 과목 101의 강의계획서 칸(수업 시간표 시험에서만)
+let profileIcs = null; // /users/self/profile의 calendar.ics(eTL 달력 같이 넣기 시험에서만)
+const FEED_URL = 'https://myetl.snu.ac.kr/feeds/calendars/user_EXAMPLEfeed.ics';
 const realFetch = globalThis.fetch;
 const realNow = Date.now;
 
@@ -37,10 +39,15 @@ async function fakeFetch(input, init = {}) {
     assert.ok(!init.headers?.authorization, '검증값 붙은 내려받기 주소에는 토큰을 보내지 않는다');
     return new Response('%PDF-예시', { headers: { 'content-type': 'application/pdf' } });
   }
+  if (u.pathname === '/feeds/calendars/user_EXAMPLEfeed.ics') {
+    assert.ok(!init.headers?.authorization, '캘린더 주소에는 토큰을 보내지 않는다');
+    return new Response(calendar(vevent(['UID:event-assignment-11', 'SUMMARY:과제 1 [예시 생물]', 'DTSTART:20261120T145900Z', 'DTEND:20261120T145900Z'])), { headers: { 'content-type': 'text/calendar' } });
+  }
   const auth = (init.headers && init.headers.authorization) || '';
   if (auth !== `Bearer ${TOKEN}`) return new Response('{"errors":[{"message":"Invalid access token."}]}', { status: 401 });
   const p = u.pathname;
   if (p === '/api/v1/users/self') return j({ id: '1', name: '예시 학생' });
+  if (p === '/api/v1/users/self/profile' && profileIcs) return j({ id: '1', calendar: { ics: profileIcs } });
   if (p === '/api/v1/courses') {
     if (coursesStatus !== 200) return new Response('{}', { status: coursesStatus });
     if (u.searchParams.get('page') === '2') return j([{ id: '103', name: '예시 화학', term: { name: '2026년 2학기' } }]);
@@ -91,6 +98,7 @@ test.beforeEach(() => {
   filesStatus = 403;
   coursesStatus = 200;
   syllabus = null;
+  profileIcs = null;
   aiReplies = [{ items: [{ kind: 'exam', title: '중간고사', date: '2026-11-18', time: '14:00', end_time: '15:15', place: '26동 101호' }] }];
 });
 
@@ -173,6 +181,32 @@ test('연결하면 바로 받는다: 이번 학기 과목만, 과제(제출하�
   const list = await (await handle(req('/api/etl/items'), env, makeCtx(), user)).json();
   assert.deepEqual(list.notices.map((n) => n.title), ['과제 안내', '[중간고사 안내]']);
   assert.equal(list.files[0].url, 'https://myetl.snu.ac.kr/courses/101/files/701');
+});
+
+test('토큰으로 연결하면 eTL 캘린더 주소도 eTL이 알려 준 것으로 같이 넣는다(이미 넣은 주소는 그대로)', async () => {
+  const { env, user } = await setup();
+  profileIcs = FEED_URL;
+  const data = await (await handle(put(TOKEN), env, makeCtx(), user)).json();
+  assert.deepEqual(data.calendar, { ok: true, saved: true, count: 1 });
+  assert.ok(!JSON.stringify(data).includes('EXAMPLEfeed'), '응답에 캘린더 주소를 넣지 않는다');
+  const feeds = rows(env, "SELECT kind, url FROM feeds WHERE user_id = ?", user.id);
+  assert.equal(feeds.length, 1);
+  assert.equal(feeds[0].kind, 'etl');
+  assert.ok(!feeds[0].url.includes('EXAMPLEfeed'), '주소는 잠가서 저장');
+  assert.equal(rows(env, "SELECT title FROM tasks WHERE ext_id = 'event-assignment-11'").length, 1, 'ICS와 API 과제는 한 줄');
+
+  calls.length = 0;
+  const again = await (await handle(put(TOKEN), env, makeCtx(), user)).json();
+  assert.equal(again.calendar, null);
+  assert.ok(!calls.some((u) => u.endsWith('/users/self/profile')), '주소가 있으면 묻지 않는다');
+});
+
+test('프로필에 캘린더 주소가 없어도 토큰 연결은 된다', async () => {
+  const { env, user } = await setup();
+  const data = await (await handle(put(TOKEN), env, makeCtx(), user)).json();
+  assert.equal(data.connected, true);
+  assert.equal(data.calendar, null);
+  assert.equal(rows(env, 'SELECT * FROM feeds').length, 0);
 });
 
 test('다시 받아도 줄이 늘지 않고, 사용자가 고친 공지 일정은 덮지 않는다', async () => {

@@ -282,15 +282,15 @@ async function challenge(verifier) {
   return b64url(new Uint8Array(await crypto.subtle.digest('SHA-256', utf8.encode(verifier))));
 }
 
-// 로그인 도중에만 쓰는 쿠키: state·PKCE 비밀·돌아갈 곳. 서명해서 브라우저에 맡긴다(10분).
-async function signFlow(env, data) {
+// 로그인 도중에만 쓰는 쿠키: state·PKCE 비밀·돌아갈 곳. 서명해서 브라우저에 맡긴다(10분). 12_gcal(앱에서 구글 캘린더 연결)도 쓴다.
+export async function signFlow(env, data) {
   const payload = b64url(utf8.encode(JSON.stringify(data)));
   const key = await deriveKey(env, 'session');
   const sig = b64url(new Uint8Array(await crypto.subtle.sign('HMAC', key, utf8.encode(`flow.${payload}`))));
   return `${payload}.${sig}`;
 }
 
-async function readFlow(env, raw) {
+export async function readFlow(env, raw) {
   if (!raw) return null;
   const [payload, sig] = raw.split('.');
   if (!payload || !sig) return null;

@@ -4,6 +4,9 @@
 //
 //   GET    /api/gcal           (로그인) → { ready, linked, error, pulled_at }   ready = 표·비밀값이 있어 연결할 수 있음
 //   GET    /api/gcal/connect   (로그인) → 구글 동의 화면(calendar.events 권한, 오프라인 토큰)
+//   POST   /api/gcal/app       (로그인, 안드로이드 앱) → { url: …/api/gcal/connect?t=<2분짜리 서명 표> } — 11-20 사람 "원터치로"
+//                             앱 안 화면(WebView)은 구글이 동의 화면을 막아서 폰 브라우저(Custom Tab)로 연다. 그 브라우저에는
+//                             로그인 쿠키가 없으니 표로 누구인지 알리고, 끝나면 tachyon://gcal?r=ok|… 로 앱에 돌아간다(native.js).
 //   GET    /api/gcal/callback  → refresh 토큰을 잠가 저장 → 처음 맞추기 → /?gcal=ok|denied|scope|state|google|config
 //   POST   /api/gcal/push      (구글이 부름, 로그인 없음) 바뀜 알림 → 바로 맞추기
 //   POST   /api/gcal/sync      (로그인) 지금 맞추기(화면에 돌아올 때) → { linked }
@@ -20,6 +23,7 @@
 
 import { seal, unseal, b64url } from './lib/secret.js';
 import { getCookie, cookie } from './lib/auth.js';
+import { readFlow, signFlow } from './1_login.js';
 import { json, fail } from './lib/http.js';
 import { kstIso, kstDate, DAY_MS } from './lib/time.js';
 import { syncWindow } from './2_collect_ics.js';
@@ -31,6 +35,9 @@ const CAL = 'https://www.googleapis.com/calendar/v3';
 const BATCH = 'https://www.googleapis.com/batch/calendar/v3';
 const SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 const STATE_COOKIE = 'tachyon_gcal';
+const APP_RETURN = 'tachyon://gcal'; // 앱(app/README.md)이 받는 주소 — 로그인과 같은 tachyon:// 칸
+const TICKET_SECONDS = 120;
+const now = () => Math.floor(Date.now() / 1000);
 const SKIP = ['google', 'apple', 'naver', 'device']; // 8_calendar_feed SKIP_SOURCES와 같음
 const PER_RUN = 200; // 한 번에 보내는 넣기·고치기·지우기(batch 4번). ponytail: 나머지는 다음 쓰기·30분 Cron이 잇는다
 const USERS_PER_CRON = 3; // 한 사람에 외부 요청 3~12개·DB 질의 약 14개 → 무료 요금제 한 번 50개 안. ponytail: 사람이 많아지면 Cron을 자주
@@ -40,8 +47,13 @@ export async function handle(request, env, ctx, user) {
   const path = url.pathname.replace(/\/+$/, '');
   if (path === '/api/gcal/push') return onPush(request, env, ctx);
   if (path === '/api/gcal/callback') return finish(request, url, env, ctx, user);
+  if (path === '/api/gcal/connect' && url.searchParams.has('t')) return startFromApp(url, env);
   if (!user) return fail(401, '로그인이 필요해요');
   if (path === '/api/gcal/connect') return start(url, env, user);
+  if (path === '/api/gcal/app' && request.method === 'POST') {
+    const t = await signFlow(env, { gcal: user.id, exp: now() + TICKET_SECONDS });
+    return json({ ok: true, url: `${url.origin}/api/gcal/connect?t=${encodeURIComponent(t)}` });
+  }
   if (path === '/api/gcal/sync' && request.method === 'POST') {
     if (!(await isLinked(env, user.id))) return json({ ok: true, linked: false });
     await sync(env, user.id);
@@ -94,8 +106,17 @@ async function status(env, userId) {
   }
 }
 
-function start(url, env, user) {
-  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) return backHome(url, 'config');
+// 앱이 연 폰 브라우저: 표(gcal = 사용자 id)가 맞으면 그 사람으로 동의 화면에 간다. 로그인 표(uid · app)와 칸 이름이 달라 섞이지 않는다
+async function startFromApp(url, env) {
+  const t = await readFlow(env, url.searchParams.get('t'));
+  const user = t?.gcal != null && (await env.DB.prepare('SELECT id, email FROM users WHERE id = ?').bind(t.gcal).first());
+  if (!user) return backHome(url, 'state', null, true);
+  return start(url, env, user, true);
+}
+
+// state 쿠키 = 서명한 { s: state, who: 사용자 id, phone: 앱이면 1 } — 돌아올 때 누구 것인지 · 어디로 돌려보낼지
+async function start(url, env, user, phone = false) {
+  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) return backHome(url, 'config', null, phone);
   const state = b64url(crypto.getRandomValues(new Uint8Array(16)));
   const google = new URL(AUTH);
   google.search = new URLSearchParams({
@@ -108,35 +129,40 @@ function start(url, env, user) {
     login_hint: user.email,
     state,
   }).toString();
-  return new Response(null, { status: 302, headers: { location: google.toString(), 'set-cookie': cookie(STATE_COOKIE, state, 600, { path: '/api/gcal' }) } });
+  const flow = await signFlow(env, { s: state, who: user.id, ...(phone && { phone: 1 }), exp: now() + 600 });
+  return new Response(null, { status: 302, headers: { location: google.toString(), 'set-cookie': cookie(STATE_COOKIE, flow, 600, { path: '/api/gcal' }) } });
 }
 
 async function finish(request, url, env, ctx, user) {
-  const state = getCookie(request, STATE_COOKIE);
+  const flow = await readFlow(env, getCookie(request, STATE_COOKIE));
   const clear = cookie(STATE_COOKIE, '', 0, { path: '/api/gcal' });
-  if (url.searchParams.get('error')) return backHome(url, 'denied', clear);
-  if (!user || !state || state !== url.searchParams.get('state') || !url.searchParams.get('code')) return backHome(url, 'state', clear);
+  const phone = !!flow?.phone;
+  const back = (reason) => backHome(url, reason, clear, phone);
+  if (url.searchParams.get('error')) return back('denied');
+  // 웹은 지금 로그인한 사람이 시작한 사람과 같아야 하고, 앱(폰 브라우저, 로그인 쿠키 없음)은 서명한 쿠키의 사람
+  const uid = phone ? flow.who : user?.id;
+  if (!flow || flow.s !== url.searchParams.get('state') || !url.searchParams.get('code') || uid == null || flow.who !== uid) return back('state');
   let token;
   try {
     token = await tokenCall(env, { code: url.searchParams.get('code'), redirect_uri: `${url.origin}/api/gcal/callback`, grant_type: 'authorization_code' });
   } catch (err) {
     console.error('구글 캘린더: 토큰 교환 실패', err && err.message);
-    return backHome(url, 'google', clear);
+    return back('google');
   }
-  if (!String(token.scope || '').split(' ').includes(SCOPE)) return backHome(url, 'scope', clear); // 동의 화면에서 캘린더 칸을 껐다
-  if (!token.refresh_token) return backHome(url, 'google', clear);
+  if (!String(token.scope || '').split(' ').includes(SCOPE)) return back('scope'); // 동의 화면에서 캘린더 칸을 껐다
+  if (!token.refresh_token) return back('google');
   await env.DB.prepare(
     `INSERT INTO gcal (user_id, refresh, hook) VALUES (?, ?, ?)
      ON CONFLICT (user_id) DO UPDATE SET refresh = excluded.refresh, hook = excluded.hook, error = NULL, pulled_at = NULL, full_at = NULL`,
   )
-    .bind(user.id, await seal(env, token.refresh_token), url.origin)
+    .bind(uid, await seal(env, token.refresh_token), url.origin)
     .run();
-  ctx?.waitUntil?.(sync(env, user.id, { token: token.access_token }).catch((err) => console.error('구글 캘린더: 처음 맞추기 실패', err && err.message)));
-  return backHome(url, 'ok', clear);
+  ctx?.waitUntil?.(sync(env, uid, { token: token.access_token }).catch((err) => console.error('구글 캘린더: 처음 맞추기 실패', err && err.message)));
+  return back('ok');
 }
 
-function backHome(url, reason, setCookie) {
-  const headers = { location: `${url.origin}/?gcal=${reason}` };
+function backHome(url, reason, setCookie, phone = false) {
+  const headers = { location: phone ? `${APP_RETURN}?r=${reason}` : `${url.origin}/?gcal=${reason}` };
   if (setCookie) headers['set-cookie'] = setCookie;
   return new Response(null, { status: 302, headers });
 }

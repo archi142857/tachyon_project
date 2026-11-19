@@ -225,6 +225,39 @@ test('연결: state가 맞아야 하고, refresh 토큰은 잠가 둔다 → 끊
   assert.equal((await env.DB.prepare('SELECT count(*) AS n FROM events WHERE gcal_id IS NOT NULL').first()).n, 0);
 });
 
+test('앱에서 연결(11-20): 로그인 쿠키 없는 폰 브라우저도 2분짜리 표로 시작하고, 끝나면 tachyon://gcal로 돌아간다', async () => {
+  fakeGoogle();
+  const { env, a, cookie } = await setup({ link: false });
+  const { url } = await (await call(env, cookie, '/api/gcal/app', { method: 'POST' })).json();
+  const t = new URL(url);
+  assert.equal(t.pathname, '/api/gcal/connect');
+
+  // 폰 브라우저: 로그인 쿠키 없음
+  const start = await call(env, null, `${t.pathname}${t.search}`);
+  assert.equal(start.status, 302);
+  const google = new URL(start.headers.get('location'));
+  assert.equal(google.searchParams.get('login_hint'), 'a@example.invalid');
+  const flow = start.headers.get('set-cookie').split(';')[0];
+  const bad = await call(env, flow, '/api/gcal/callback?code=c&state=다른값');
+  assert.equal(bad.headers.get('location'), 'tachyon://gcal?r=state');
+  const ctx = makeCtx();
+  const ok = await call(env, flow, `/api/gcal/callback?code=c&state=${google.searchParams.get('state')}`, { ctx });
+  assert.equal(ok.headers.get('location'), 'tachyon://gcal?r=ok');
+  await ctx.settle();
+  assert.ok(await env.DB.prepare('SELECT 1 FROM gcal WHERE user_id = ?').bind(a.id).first());
+
+  // 틀린 표 · 로그인 표 · 웹 흐름 쿠키를 다른 로그인으로
+  assert.equal((await call(env, null, '/api/gcal/connect?t=만든.표')).headers.get('location'), 'tachyon://gcal?r=state');
+  assert.equal((await call(env, null, '/api/gcal/connect')).status, 401);
+  const web = await call(env, cookie, '/api/gcal/connect');
+  const webFlow = web.headers.get('set-cookie').split(';')[0];
+  const b = await addTestUser(env, { sub: 'sub-b', email: 'b@example.invalid' });
+  const other = (await makeSessionCookie(env, b.id)).split(';')[0];
+  const state = new URL(web.headers.get('location')).searchParams.get('state');
+  assert.equal((await call(env, `${other}; ${webFlow}`, `/api/gcal/callback?code=c&state=${state}`)).headers.get('location'), `${ORIGIN}/?gcal=state`, '웹은 시작한 사람만');
+  assert.equal((await call(env, webFlow, `/api/gcal/callback?code=c&state=${state}`)).headers.get('location'), `${ORIGIN}/?gcal=state`, '웹은 로그인 쿠키가 있어야');
+});
+
 test('batch 결과 읽기: 순서가 섞여 와도 Content-ID로, 빠진 것은 다시', async () => {
   globalThis.fetch = async () =>
     new Response(

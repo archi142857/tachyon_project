@@ -7,6 +7,8 @@
 // '복사한 주소 붙여넣기' 한 번이면 어느 캘린더 주소인지 알아서 맞춰 바로 연결한다(클립보드를 못 읽는 브라우저는 칸에 직접 붙인다).
 // 저장하면 서버가 주소를 바로 한 번 받아 보고 칸마다 결과를 준다('과제 3개를 찾았어요').
 // 저장하지 못한 칸(saved: false)은 주소를 남겨 두고 까닭을 칸 아래에 그대로 보인다.
+// 원터치(11-20 사람 "달력 연동 · eTL 토큰 원터치로"): 주소 칸 위에 eTL 로그인으로 연결(EtlSheet — 토큰 + eTL 달력 주소)과
+// 구글 캘린더 연결(CalendarSheet GoogleSync — 구글 동의만). 아래 주소 칸은 그 밖의 캘린더 · 직접 넣을 때.
 import { useEffect, useState } from 'react';
 import { collectFeeds, getFeeds, markSetupSkipped, saveFeeds, saveProfile } from '../api.js';
 import { inApp, syncDevice } from '../native.js';
@@ -14,6 +16,8 @@ import DeleteAccount from '../components/DeleteAccount.jsx';
 import TopBar from '../components/TopBar.jsx';
 import DeptPicker from '../components/DeptPicker.jsx';
 import NaverFeed from '../components/NaverFeed.jsx';
+import EtlSheet from '../components/EtlSheet.jsx';
+import { GoogleSync } from '../components/CalendarSheet.jsx';
 import { FEEDS, detectFeed, entryOf, entryYears, feedResult, gradeOf, normalizeIcs, resultLine, unsavedErrors } from '../setup.js';
 
 const EMPTY = { etl: '', google: '', apple: '' };
@@ -251,6 +255,7 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
             <h2 id="setup-feeds">캘린더 연결</h2>
             <span className="feeds-sub">쓰는 것만</span>
           </div>
+          {!example && <OneTouch onFeeds={setFeeds} />}
           {inApp() && !example && <PhoneCalendar />}
           <button type="button" className="btn-line" disabled={busy} onClick={paste} aria-describedby="feeds-paste-how">
             복사한 주소 붙여넣기
@@ -371,6 +376,30 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
           </section>
         )}
       </main>
+    </>
+  );
+}
+
+// eTL은 로그인만(창이 닫히면 주소 칸 상태를 다시 읽음), 구글은 구글 동의만
+function OneTouch({ onFeeds }) {
+  const [etl, setEtl] = useState(false);
+  return (
+    <>
+      <button type="button" className="btn" onClick={() => setEtl(true)}>
+        eTL 로그인으로 연결
+      </button>
+      <p className="hint">eTL 달력과 과제 · 공지 · 강의자료를 주소 복사 없이 한 번에 가져와요.</p>
+      <GoogleSync app={inApp()} />
+      {etl && (
+        <EtlSheet
+          onClose={() => {
+            setEtl(false);
+            getFeeds()
+              .then(onFeeds)
+              .catch(() => {});
+          }}
+        />
+      )}
     </>
   );
 }

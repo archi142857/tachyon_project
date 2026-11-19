@@ -6,7 +6,7 @@
 // 주소는 사람마다 다른 비밀이라 화면에만 보이고, 오류 보고·로그 어디에도 남기지 않는다.
 import { useEffect, useRef, useState } from 'react';
 import { disconnectGcal, gcalConnectUrl, getCalendarFeed, getGcal, googleSubscribeLink, syncGcal } from '../api.js';
-import { CAL_NAME, inApp, pushOn, pushToDevice, turnPushOff, turnPushOn } from '../native.js';
+import { CAL_NAME, gcalInApp, inApp, pushOn, pushToDevice, turnPushOff, turnPushOn } from '../native.js';
 import Sheet from './Sheet.jsx';
 
 const linkButton = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' };
@@ -90,8 +90,9 @@ export default function CalendarSheet({ onClose }) {
   );
 }
 
-// 구글 캘린더 연동: 연결 → 구글 동의 화면 → /?gcal=ok 로 돌아옴. 앱 안 화면에서는 구글이 로그인 창을 막아서 브라우저에서 하게 한다
-function GoogleSync({ app }) {
+// 구글 캘린더 연동: 연결 → 구글 동의 화면 → /?gcal=ok 로 돌아옴. 첫 설정(Setup.jsx)에도 같은 칸.
+// 앱 안 화면은 구글이 동의 창을 막아서(11-20 사람 "안 된다고만 하지 말고") 폰 브라우저로 열고 tachyon://gcal로 돌아온다(native.js gcalInApp)
+export function GoogleSync({ app }) {
   const [st, setSt] = useState(null);
   const [busy, setBusy] = useState(false);
   const [sure, setSure] = useState(false);
@@ -118,8 +119,10 @@ function GoogleSync({ app }) {
   }
 
   const broken = st?.error === 'reconnect';
-  const connect = app ? (
-    <p className="hint" style={{ margin: 0 }}>앱 안에서는 구글이 연결 창을 막아요. 폰이나 컴퓨터의 브라우저에서 Tachyon에 들어가 연결해 주세요. 한 번 연결하면 앱에도 그대로 맞춰져요.</p>
+  const connect = app && st?.ready && !st.example ? (
+    <button type="button" className="btn" disabled={busy} style={{ justifySelf: 'start' }} onClick={() => run(gcalInApp, null)}>
+      {broken ? '다시 연결' : '구글 캘린더 연결'}
+    </button>
   ) : st?.ready && !st.example ? (
     <a className="btn" href={gcalConnectUrl()} style={{ ...linkButton, justifySelf: 'start' }}>
       {broken ? '다시 연결' : '구글 캘린더 연결'}

@@ -3,9 +3,12 @@
 // '이건 eTL 비밀번호가 아니에요'를 크게 보인다(비밀번호를 넣을 뻔한 일이 있었음 — 팀원 11-10). 서버도 짧은 글은 eTL에 보내지 않는다.
 // 강의자료는 목록 + eTL 링크만(앱 서버에 복사하지 않음, 11-10). 링크는 eTL에 로그인해야 열린다.
 // '과목 폴더로 모두 저장'(11-19): 서버가 eTL 파일을 흘려보내기만 하고(남기지 않음) 컴퓨터 폴더 · 폰 Download에 과목별로(saveFiles.js).
-import { useCallback, useEffect, useState } from 'react';
+// 원터치(11-20 사람 "로그인만 하면 나머진 알아서"): 앱 = eTL 로그인 창 하나로 끝, PC = 북마크 한 번 끌어다 놓고 로그인 뒤 한 번 누르기(etlToken.js).
+//   토큰이 들어가면 서버가 eTL 달력 주소도 같이 넣는다. 폰 웹 브라우저만 아래 '직접 토큰 넣기'가 기본.
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as api from '../api.js';
-import { maskToken, tokenFrom } from '../etlToken.js';
+import { ETL_ORIGIN, bookmarklet, giftFrom, maskToken, tokenFrom } from '../etlToken.js';
+import { canEtlLogin, etlLogin, inApp } from '../native.js';
 import { canSave, saveFiles } from '../saveFiles.js';
 import { kst } from '../time.js';
 import Sheet from './Sheet.jsx';
@@ -37,10 +40,85 @@ async function readCopied() {
   }
 }
 
+// 원터치 칸: 앱이면 로그인 창, PC면 북마크. 폰 웹은 null(아래 직접 넣기). → { token, ics }를 onGift로
+export function oneTouchKind() {
+  if (inApp()) return canEtlLogin() ? 'app' : 'old-app';
+  return window.matchMedia?.('(pointer: fine)').matches ? 'pc' : null;
+}
+
+function OneTouch({ kind, busy, onGift }) {
+  const [note, setNote] = useState(null);
+  const mark = useRef(null);
+  const gift = useRef(onGift);
+  gift.current = onGift;
+
+  // PC: 북마크 주소는 React가 javascript: 를 막아서 직접 넣는다. eTL 창이 보낸 것만 받는다(보낸 곳 · 모양 확인)
+  useEffect(() => {
+    if (kind !== 'pc') return undefined;
+    mark.current?.setAttribute('href', bookmarklet(window.location.origin));
+    const got = (e) => {
+      const g = e.origin === ETL_ORIGIN && giftFrom(e.data);
+      if (g) gift.current(g);
+    };
+    window.addEventListener('message', got);
+    return () => window.removeEventListener('message', got);
+  }, [kind]);
+
+  async function login() {
+    setNote(null);
+    try {
+      const r = await etlLogin();
+      const g = { token: tokenFrom(r.token || ''), ics: typeof r.ics === 'string' ? r.ics : null };
+      if (g.token || g.ics) return gift.current(g);
+      setNote(r.error ? `eTL이 토큰을 만들어 주지 않았어요(${r.error}). 아래 ‘직접 토큰 넣기’로 해 주세요` : 'eTL에서 받은 게 없어요. 아래 ‘직접 토큰 넣기’로 해 주세요');
+    } catch (err) {
+      if (err?.code !== 'closed') setNote('eTL 창을 열지 못했어요. 다시 해 주세요');
+    }
+  }
+
+  if (kind === 'old-app') return <p className="hint">새 앱(Releases의 tachyon.apk)을 깔면 eTL에 로그인만 해도 연결돼요. 지금 앱에서는 아래처럼 직접 넣어 주세요.</p>;
+  return (
+    <div className="one-touch">
+      {kind === 'app' ? (
+        <>
+          <button type="button" className="btn" disabled={busy} onClick={login}>
+            {busy ? '연결하는 중…' : 'eTL 로그인하고 바로 연결'}
+          </button>
+          <p className="hint">서울대 로그인 화면이 열려요. 로그인하면 과제 · 공지 · 강의자료와 eTL 달력까지 알아서 연결하고 창이 닫혀요. 비밀번호는 서울대 화면에만 들어가요.</p>
+        </>
+      ) : (
+        <>
+          <p className="one-touch-title">컴퓨터에서 한 번에</p>
+          <ol className="etl-steps">
+            <li>
+              처음 한 번만: 이 단추를 즐겨찾기 줄로 끌어다 놓아요{' '}
+              <a ref={mark} className="btn-line bookmarklet" draggable onClick={(e) => (e.preventDefault(), setNote('누르지 말고 즐겨찾기 줄로 끌어다 놓아 주세요. 줄이 안 보이면 Ctrl+Shift+B(맥은 ⌘+Shift+B)'))}>
+                Tachyon eTL 연결
+              </a>
+            </li>
+            <li>
+              <button type="button" className="btn-text" onClick={() => window.open(`${ETL_ORIGIN}/`, 'tachyon-etl', 'popup,width=560,height=800')}>
+                eTL 열기
+              </button>{' '}
+              → 로그인
+            </li>
+            <li>로그인한 eTL 창에서 즐겨찾기의 ‘Tachyon eTL 연결’을 누르면 끝. 과제 · 공지 · 강의자료와 eTL 달력까지 연결돼요.</li>
+          </ol>
+        </>
+      )}
+      {note && (
+        <p className="hint" role="status">
+          {note}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // 11-13 사람 피드백 'eTL 넣는 거 쉽게(클릭만 하면 되도록)'·'eTL(외부 사이트)에서 돌아가기'(기록 Tachyon-컨셉-21):
 // 'eTL 열기' 한 번 → eTL에서 토큰 만들고 복사 → 돌아오면 복사한 토큰을 알아서 찾아 '이 토큰으로 연결' 한 번.
 // 토큰 모양(etlToken.js)이 아니면 아무것도 하지 않는다 — 복사해 둔 다른 글은 서버로 보내지 않는다.
-function ConnectForm({ busy, onConnect }) {
+function ConnectForm({ busy, onConnect, folded }) {
   const [token, setToken] = useState('');
   const [opened, setOpened] = useState(null); // null | 'tab' | 'app'
   const [found, setFound] = useState(null); // 복사해 둔 글에서 찾은 토큰
@@ -96,7 +174,7 @@ function ConnectForm({ busy, onConnect }) {
   }
 
   const typed = tokenFrom(token);
-  return (
+  const form = (
     <form
       className="form-grid"
       onSubmit={(e) => {
@@ -104,7 +182,6 @@ function ConnectForm({ busy, onConnect }) {
         if (token.trim()) onConnect(token.trim());
       }}
     >
-      <p style={{ fontSize: 16, lineHeight: '24px' }}>eTL의 과제·공지·강의자료를 자동으로 가져와요. 하지 않아도 돼요(선택).</p>
       <p className="warn-box" role="note">
         이건 eTL 비밀번호가 아니에요. 비밀번호는 넣지 마세요.
       </p>
@@ -173,9 +250,17 @@ function ConnectForm({ busy, onConnect }) {
         </>
       )}
       <p className="hint">
-        토큰은 잠가서 저장하고 다시 보이지 않아요. ‘연결 끊기’를 누르거나 eTL 설정에서 토큰을 지우면 바로 끊겨요. PC에서 하면 더 쉬워요.
+        토큰은 잠가서 저장하고 다시 보이지 않아요. ‘연결 끊기’를 누르거나 eTL 설정에서 토큰을 지우면 바로 끊겨요.{folded ? '' : ' 앱이나 PC에서 하면 로그인만으로 돼요.'}
       </p>
     </form>
+  );
+  return folded ? (
+    <details className="etl-manual">
+      <summary>직접 토큰 넣기</summary>
+      {form}
+    </details>
+  ) : (
+    form
   );
 }
 
@@ -201,7 +286,7 @@ function ItemList({ items, empty, notices }) {
   );
 }
 
-export default function EtlSheet({ onClose, onChanged }) {
+export default function EtlSheet({ onClose, onChanged, gift }) {
   const [state, setState] = useState(null);
   const [items, setItems] = useState({ notices: [], files: [] });
   const [tab, setTab] = useState('files');
@@ -268,8 +353,28 @@ export default function EtlSheet({ onClose, onChanged }) {
     if (!x) return null;
     if (x.recent) return '방금 받았어요';
     if (!x.ok) return x.error || null;
-    return `과목 ${x.courses}개 · 과제 ${x.tasks}개 · 공지 ${x.notices}개 · 강의자료 ${x.files}개를 받았어요`;
+    const cal = r.calendar?.saved ? ' · eTL 달력도 연결했어요' : '';
+    return `과목 ${x.courses}개 · 과제 ${x.tasks}개 · 공지 ${x.notices}개 · 강의자료 ${x.files}개를 받았어요${cal}`;
   };
+
+  // 원터치로 받은 것: 토큰이면 연결(서버가 달력 주소도), 토큰 없이 달력 주소만 오면 달력만
+  function connectGift(g) {
+    if (g.token) return run(() => api.connectEtl(g.token), resultText);
+    if (g.ics)
+      return run(
+        () => api.saveFeeds({ etl: g.ics }),
+        () => 'eTL 달력은 연결했어요. 토큰은 eTL이 만들어 주지 않아서, 과제 · 공지 · 강의자료는 아래 ‘직접 토큰 넣기’로 넣어 주세요',
+      );
+  }
+  // PC 북마크가 Tachyon 탭을 새로 연 경우(#etl=…, Dashboard가 읽어 넘김) 한 번만
+  const used = useRef(false);
+  useEffect(() => {
+    if (gift && !used.current) {
+      used.current = true;
+      connectGift(gift);
+    }
+  });
+  const kind = oneTouchKind();
 
   return (
     <Sheet title="eTL 연결" onClose={onClose}>
@@ -281,7 +386,9 @@ export default function EtlSheet({ onClose, onChanged }) {
               {state.last_error || 'eTL 연결이 끊겼어요. 새 토큰으로 다시 연결해 주세요'}
             </p>
           )}
-          <ConnectForm busy={busy} onConnect={(token) => run(() => api.connectEtl(token), resultText)} />
+          <p style={{ fontSize: 16, lineHeight: '24px' }}>eTL의 과제·공지·강의자료와 eTL 달력을 자동으로 가져와요. 하지 않아도 돼요(선택).</p>
+          {kind && <OneTouch kind={kind} busy={busy} onGift={connectGift} />}
+          <ConnectForm busy={busy} folded={kind === 'app' || kind === 'pc'} onConnect={(token) => run(() => api.connectEtl(token), resultText)} />
         </>
       )}
       {state && state.connected && !state.dead && (

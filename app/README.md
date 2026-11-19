@@ -7,6 +7,8 @@
 |---|---|---|
 | 폰 캘린더 읽기(주소 없이) | `web/src/native.js` `syncDevice` | `worker/2_collect_ics.js` `POST /api/feeds/device` |
 | 구글 로그인(폰 브라우저로 나갔다가 `tachyon://login`으로 돌아옴) | `web/src/native.js` `appLogin` | `worker/1_login.js` 앱 로그인 |
+| eTL 원터치(11-20): 앱 안 창에서 서울대 로그인만 → 토큰 · eTL 달력 주소를 eTL 쪽에서 만들어 옴(`EtlPlugin.kt`, 돌릴 글은 화면이 줌) | `web/src/etlToken.js` `grab` · `native.js` `etlLogin` | `PUT /api/etl`(토큰 → 달력 주소도) |
+| 구글 캘린더 연동(11-20, 폰 브라우저로 나갔다가 `tachyon://gcal`로 돌아옴) | `web/src/native.js` `gcalInApp` | `worker/12_gcal.js` `POST /api/gcal/app` |
 | 홈 화면 위젯(할 일 · 오늘 일정, 아래 칸) | `web/src/api.js` `widgetsChanged` | 있던 `/api/tasks` · `/api/events` 그대로 |
 
 ## 만들기
@@ -39,6 +41,7 @@ APK는 그 실행의 Artifacts에 올라가고, main에서 돈 것만 Releases�
 | `widget/TasksWidget*.kt` · `TodayWidget*.kt` | 위젯 두 개(틀 + 목록 줄) |
 | `widget/WidgetTapActivity.kt` | 줄·체크 누름을 받는 보이지 않는 창(안드로이드 14부터 뒤에서 앱 열기가 막혀서) |
 | `widget/WidgetPlugin.kt` | 화면 → 위젯 다리(`TachyonWidget.refresh()`) |
+| `EtlPlugin.kt` | eTL 원터치 창(`TachyonEtl.open({ url, script })`): 앱 안 WebView에 eTL → 로그인하면 eTL 쪽에서 script를 돌려 `TachyonEtl.done(JSON)`으로 받고 닫힘 |
 | `res/` · `AndroidManifest-application.xml` | 위젯 모양(밝은·어두운 카드) · 등록 |
 
 이 노트북에서 만들어 보기(JDK 21 + Android SDK. 위젯만 볼 때는 2·3단계를 빼도 된다):

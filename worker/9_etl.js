@@ -4,7 +4,8 @@
 //
 //   GET    /api/etl           연결 상태 { ok, connected, last_ok_at, last_error, dead, counts: {notice, file} }. 토큰은 돌려주지 않는다.
 //   PUT    /api/etl           {"token": "…"} → 모양을 먼저 보고(비밀번호처럼 짧거나 띄어쓰기가 있으면 eTL에 보내지도 않음),
-//                             eTL /users/self가 200일 때만 잠가 저장하고 바로 한 번 받는다.
+//                             eTL /users/self가 200일 때만 잠가 저장하고 바로 한 번 받는다. eTL 캘린더 주소가 없으면
+//                             /users/self/profile의 calendar.ics로 같이 넣는다(응답 calendar: { ok, saved, count } | null, 11-20).
 //   DELETE /api/etl           연결 끊기: 토큰, 공지·강의자료 목록, eTL API로 넣은 과목 일정을 지운다(eTL ICS 주소가 없으면 과제도).
 //                             공지에서 찾아 넣은 시험·휴강 일정(source 'notice')은 사용자 일정처럼 남긴다.
 //   POST   /api/etl/collect   지금 다시 받기(1분 안에 받았으면 건너뜀, recent: true)
@@ -37,6 +38,7 @@ import { fail, json, readJson } from './lib/http.js';
 import { DAY_MS, KST_MS, kstDate, kstIso, kstMidnight } from './lib/time.js';
 import { logStatement } from './lib/log.js';
 import { expandWeekly, semesterEnd } from './5_timetable_photo.js';
+import { addFeed } from './2_collect_ics.js';
 import { PROBLEM, codeOf, linkClasses, linkOf, readCode, toLinkItems, weeklyRows } from './ttwizard.js';
 
 export const ORIGIN = 'https://myetl.snu.ac.kr';
@@ -143,8 +145,25 @@ async function connect(request, env, userId) {
     ).bind(userId, sealed),
     logStatement(env, userId, 'etl_connect'),
   ]);
+  const calendar = await linkCalendar(env, userId, get);
   const result = await collectUser(env, userId, { force: true });
-  return json({ ok: true, result, ...(await status(env, userId)) });
+  return json({ ok: true, result, calendar, ...(await status(env, userId)) });
+}
+
+// 11-20 사람 "달력 연동 · eTL 토큰 원터치": 토큰이 있으면 eTL 캘린더 피드 주소는 eTL이 알려 준다(/users/self/profile의 calendar.ics,
+// 본인 프로필에만 옴) → 주소를 따로 복사하지 않아도 eTL 달력이 같이 연결된다. 이미 넣은 eTL 주소는 그대로 둔다.
+// 못 하면(주소 없음 · 받기 실패) 토큰 연결은 그대로 두고 null. 주소는 응답에 넣지 않는다(아는 사람 누구나 보는 비밀값).
+async function linkCalendar(env, userId, get) {
+  try {
+    if (await env.DB.prepare("SELECT 1 FROM feeds WHERE user_id = ? AND kind = 'etl'").bind(userId).first()) return null;
+    const ics = (await get('/users/self/profile')).data?.calendar?.ics;
+    if (!ics) return null;
+    const r = await addFeed(env, userId, 'etl', ics, Date.now());
+    return { ok: r.ok, saved: r.saved, count: r.count ?? null };
+  } catch (err) {
+    console.error('eTL: 캘린더 주소 넣기 실패', err && err.message);
+    return null;
+  }
 }
 
 async function disconnect(env, userId) {
