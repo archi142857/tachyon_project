@@ -134,6 +134,15 @@ function ShapeRing({ arcs, nowMin, sel, onPick, loose, children }) {
 // 지금 = 고리 바깥 흰 타키온과 꼬리(.ty), 가운데 숨 쉬는 빛(--sc = 고른 것의 색). 모양은 nine.css.
 const NINE = [[66, 40, 1], [75, 46, 1.2], [84, 52, 1.4], [93, 58, 1.6], [102, 64, 1.8]];
 
+// 추천 자리의 섬유: 바깥 입자 띠(62)에서 안쪽 마디(41)로 휘어 들어가는 다섯 가닥(k = 0 … 1), 가운데(0.5)를 점이 타고 돈다
+const P = (rad, f) => point(rad, f).join(' ');
+const fiber = (a, k) => {
+  const x = a.from / 1440;
+  const d = (a.to - a.from) / 1440;
+  const m = x + d / 2;
+  return `M${P(62, x + d * k)} Q${P(55, m + d * (k - 0.5) * 0.5)} ${P(41, m)}`;
+};
+
 function ParticleRing({ arcs, nowMin, sel, onPick, loose = [], children }) {
   const now = nowMin / 1440;
   const picked = arcs.find((a) => a.key === sel);
@@ -149,32 +158,18 @@ function ParticleRing({ arcs, nowMin, sel, onPick, loose = [], children }) {
       (arc ? groups.get(arc.key) : rest).push(<circle key={`${rad}-${j}`} className={cls} cx={cx} cy={cy} r={r} />);
     }
   }
-  const P = (rad, f) => point(rad, f).join(' ');
+  const slotPicked = picked?.kind === 'slot';
+  const knot = picked ? point(41, (picked.from + picked.to) / 2880) : null; // 섬유가 모이는 안쪽 마디
   return (
     <div className="ring-wrap nine" style={{ '--sc': picked ? tint(picked.title) : 'var(--vi)' }}>
+      {/* 바탕 고리: 고른 것과 상관없이 늘 같은 그림(11-19 렉 — 고를 때마다 빛 번짐 입자 수백 개가 0.45초 동안 매 장면 다시 그려졌다) */}
       <svg className="ring day" viewBox="-120 -120 240 240" aria-hidden="true">
         <g className="bg">{rest}</g>
-        {arcs.map((a) => {
-          const x = a.from / 1440;
-          const y = a.to / 1440;
-          const m = (x + y) / 2;
-          const d = y - x;
-          const fiber = (k) => `M${P(62, x + d * k)} Q${P(55, m + d * (k - 0.5) * 0.5)} ${P(41, m)}`;
-          const [nx, ny] = point(41, m);
-          const slot = a.kind === 'slot';
-          return (
-            <g key={a.key} className={`${slot ? 'sg' : 'eg'}${a.key === sel ? ' on' : ''}`} style={{ '--c': tint(a.title) }}>
-              {groups.get(a.key)}
-              {slot && [0, 0.25, 0.5, 0.75, 1].map((k) => <path key={k} className="fb" d={fiber(k)} />)}
-              {slot && <circle className="nd" cx={nx} cy={ny} r="1.5" />}
-              {slot && a.key === sel && (
-                <circle className="pl" r="1.4">
-                  <animateMotion dur="1.6s" repeatCount="indefinite" path={fiber(0.5)} />
-                </circle>
-              )}
-            </g>
-          );
-        })}
+        {arcs.map((a) => (
+          <g key={a.key} className={a.kind === 'slot' ? 'sg' : 'eg'} style={{ '--c': tint(a.title) }}>
+            {groups.get(a.key)}
+          </g>
+        ))}
         {Array.from({ length: 24 }, (_, h) => {
           const [x1, y1] = point(108, h / 24);
           const [x2, y2] = point(h % 3 ? 109.5 : 111.5, h / 24);
@@ -208,6 +203,23 @@ function ParticleRing({ arcs, nowMin, sel, onPick, loose = [], children }) {
           <path key={a.key} className="hit" d={arcPath(a)} onClick={() => onPick(a.key)} />
         ))}
       </svg>
+      {/* 고른 것: 커진 입자 · 센 빛 · (추천 자리면) 섬유와 타고 도는 점을 따로 얇은 그림에 얹어 떠오르게(합성기만 움직임). 바꾸면 새로 떠오른다 */}
+      {picked && (
+        <svg key={picked.key} className="ring live" viewBox="-120 -120 240 240" aria-hidden="true">
+          <g className={`${slotPicked ? 'sg' : 'eg'} on`} style={{ '--c': tint(picked.title) }}>
+            {groups.get(picked.key)}
+            {slotPicked && [0, 0.25, 0.5, 0.75, 1].map((k) => <path key={k} className="fb" d={fiber(picked, k)} />)}
+            {slotPicked && <circle className="nd" cx={knot[0]} cy={knot[1]} r="1.5" />}
+            {slotPicked && (
+              <g>
+                <circle className="pl-halo" r="3.2" />
+                <circle className="pl" r="1.4" />
+                <animateMotion dur="1.6s" repeatCount="indefinite" path={fiber(picked, 0.5)} />
+              </g>
+            )}
+          </g>
+        </svg>
+      )}
       <i className="ty day" style={{ transform: `rotate(${now * 360}deg)` }} />
       <div className="ring-mid">{children}</div>
     </div>

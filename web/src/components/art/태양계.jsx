@@ -56,20 +56,22 @@ const sparkle = (s) => `M0 ${-s}L${s * 0.16} ${-s * 0.16}L${s} 0L${s * 0.16} ${s
 export default function SolarRing({ arcs, nowMin, sel, onPick, loose, children }) {
   const id = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const rand = seeded('stars');
-  const stars = [];
+  // 별은 세 무리로 나눠 무리째 반짝인다(11-19 렉: 별 하나하나가 따로 움직이면 별마다 합성 층이 생겨 매 장면 백 장 넘게 다시 겹쳤다). 잠자는 시간 별은 가만히
+  const stars = [[], [], [], []];
   for (let i = 0; i < 130; i++) {
     const m = rand() * 1440;
     const r = 58 + rand() * 50;
     const big = rand() < 0.16;
     const size = big ? 2.2 + rand() * 2.4 : 0.35 + rand() * 0.6;
-    const delay = rand() * 4;
+    const pick = Math.floor(rand() * 3);
     if (arcs.some((a) => m > a.from - 12 && m < a.to + 12)) continue; // 별은 빈 시간에만
-    const cls = `star${m < WAKE * 60 ? ' sleep' : ''}`;
-    const style = { animationDelay: `${f1(delay)}s` };
-    if (big) stars.push(<path key={i} d={sparkle(size)} transform={at(r, m)} className={`${cls} sparkle`} style={style} />);
+    const sleep = m < WAKE * 60;
+    const cls = `star${sleep ? ' sleep' : ''}`;
+    const into = stars[sleep ? 3 : pick];
+    if (big) into.push(<path key={i} d={sparkle(size)} transform={at(r, m)} className={`${cls} sparkle`} />);
     else {
       const [x, y] = point(r, m);
-      stars.push(<circle key={i} cx={f1(x)} cy={f1(y)} r={f1(size)} className={cls} style={style} />);
+      into.push(<circle key={i} cx={f1(x)} cy={f1(y)} r={f1(size)} className={cls} />);
     }
   }
   const brand = seeded('belt');
@@ -84,7 +86,34 @@ export default function SolarRing({ arcs, nowMin, sel, onPick, loose, children }
   const ray = radial(40, 112, nowMin);
 
   return (
-    <RingFrame name="solar" sel={sel} mid={children} loose={loose}>
+    <RingFrame
+      name="solar"
+      sel={sel}
+      mid={children}
+      loose={loose}
+      arcs={arcs}
+      item={(a, on) => {
+        const k = look(a.kind);
+        const R = ORBIT[k];
+        const s = Math.min(8.5, 3.8 + (a.to - a.from) / 42);
+        return (
+          <g key={a.key} className={`item k-${k} ${when(a, nowMin)}${on ? ' on' : ''}`}>
+            <path className="trail" d={arcPath(R, a.from + 3, a.to - 3)} filter={`url(#${id}-glow)`} />
+            <g transform={at(R, (a.from + a.to) / 2)}>
+              <g className="pl">
+                <Planet kind={k} s={s} id={id} />
+              </g>
+            </g>
+          </g>
+        );
+      }}
+      over={
+        <>
+          <NowLabel nowMin={nowMin} rad={128} text={hm(nowMin)} />
+          <Hits arcs={arcs} onPick={onPick} />
+        </>
+      }
+    >
       <defs>
         <radialGradient id={`${id}-sun`}>
           <stop offset="0" stopColor="#fff8cf" />
@@ -117,26 +146,16 @@ export default function SolarRing({ arcs, nowMin, sel, onPick, loose, children }
         <circle key={r} r={r} className="orbit" />
       ))}
       <g className="belt-rocks">{rocks}</g>
-      <g className="stars">{stars}</g>
+      <g className="stars">
+        {stars.slice(0, 3).map((g, k) => (
+          <g key={k} className={`tw tw${k + 1}`}>
+            {g}
+          </g>
+        ))}
+        {stars[3]}
+      </g>
       <HourLabels nowMin={nowMin} loose={loose} rad={128} />
       <line className="ray" {...ray} stroke={`url(#${id}-ray)`} filter={`url(#${id}-glow)`} />
-      {arcs.map((a) => {
-        const k = look(a.kind);
-        const R = ORBIT[k];
-        const s = Math.min(8.5, 3.8 + (a.to - a.from) / 42);
-        return (
-          <g key={a.key} className={`item k-${k} ${when(a, nowMin)}${a.key === sel ? ' on' : ''}`}>
-            <path className="trail" d={arcPath(R, a.from + 3, a.to - 3)} filter={`url(#${id}-glow)`} />
-            <g transform={at(R, (a.from + a.to) / 2)}>
-              <g className="pl">
-                <Planet kind={k} s={s} id={id} />
-              </g>
-            </g>
-          </g>
-        );
-      })}
-      <NowLabel nowMin={nowMin} rad={128} text={hm(nowMin)} />
-      <Hits arcs={arcs} onPick={onPick} />
     </RingFrame>
   );
 }

@@ -54,7 +54,7 @@ html[data-theme='오선지'] .tasks-head .btn-text { padding: 0 8px; }
 html[data-theme='오선지'] .tasks-head { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--ink); box-shadow: 0 2px 0 var(--paper), 0 3px 0 var(--ink); }
 @media (min-width: 1200px) {
   /* 하루 일정(악보)을 넓게, 고리 · 할 일은 가운데, 메모는 좁게 */
-  html[data-theme='오선지'] .today-grid[data-layout='three'] { grid-template-columns: minmax(280px, 1.15fr) minmax(0, 1.1fr) minmax(290px, 0.95fr); grid-template-rows: minmax(0, 1.1fr) minmax(0, 1fr); }
+  html[data-theme='오선지'] .today-grid[data-layout='three'] { grid-template-columns: minmax(280px, 0.95fr) minmax(0, 1.35fr) minmax(280px, 0.85fr); grid-template-rows: minmax(0, 1.1fr) minmax(0, 1fr); }
 }
 
 /* ── 오늘 일정: 수업 = 먹 음표, 내 일정 = 흰 음표, 빈 자리 추천 = 빗금 쉼표, 지금 = 빨간 음표 머리 */
@@ -92,7 +92,6 @@ html[data-theme='오선지'] .memo-log .bubble.on { border-right-color: var(--re
 /* ── 적기 칸: 겹줄 서명란, 보내기 = 온음표 같은 먹 동그라미 */
 html[data-theme='오선지'] .composer form { padding-left: 10px; background: var(--paper); border: 1px solid var(--ink); border-radius: 0; box-shadow: 0 0 0 3px var(--bg), 0 0 0 4px var(--ink); }
 html[data-theme='오선지'] .composer form:focus-within { box-shadow: 0 0 0 3px var(--bg), 0 0 0 4px var(--red); }
-html[data-theme='오선지'] .composer .memo-count { border-color: var(--ink); border-radius: 999px; color: var(--ink); }
 html[data-theme='오선지'] .composer .send { width: 40px; height: 40px; margin-right: 4px; border-radius: 50%; }
 html[data-theme='오선지'] .composer .send:not(:disabled) { background: var(--ink); color: var(--paper); }
 

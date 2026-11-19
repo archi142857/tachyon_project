@@ -4,7 +4,7 @@
 html[data-theme='태양계'] {
   --gold: #f2c46b; --gold-hi: #ffe3a0; --hair: rgb(242 196 107 / 0.3); --hair-dim: rgb(200 212 255 / 0.13);
   --tick: linear-gradient(var(--gold), var(--gold));
-  --plate: linear-gradient(180deg, rgb(14 20 48 / 0.66), rgb(8 12 32 / 0.5));
+  --plate: linear-gradient(180deg, rgb(14 20 48 / 0.78), rgb(8 12 32 / 0.66));
   --sun: radial-gradient(circle at 35% 30%, #fff3c4, #ffc94a 45%, #d9761a);
   background: radial-gradient(48% 42% at 52% 40%, rgb(255 170 60 / 0.1), transparent 70%), radial-gradient(55% 45% at 8% 12%, rgb(30 150 160 / 0.2), transparent 70%),
     radial-gradient(45% 40% at 94% 22%, rgb(130 60 180 / 0.22), transparent 70%), radial-gradient(60% 40% at 60% 105%, rgb(40 110 95 / 0.22), transparent 70%), #04060f;
@@ -39,7 +39,7 @@ html[data-theme='태양계'] .tabs button[aria-current='page'] { color: var(--go
 
 /* ── 칸: 별이 비치는 얇은 계기판, 네 모서리에 금빛 눈금 */
 html[data-theme='태양계'] .card {
-  border: 1px solid var(--hair-dim); border-radius: 2px; background-origin: border-box; box-shadow: 0 24px 60px rgb(0 0 0 / 0.35); backdrop-filter: blur(6px);
+  border: 1px solid var(--hair-dim); border-radius: 2px; background-origin: border-box; box-shadow: 0 24px 60px rgb(0 0 0 / 0.35); /* 11-19 렉: 뒤 흐림(backdrop-filter)을 뺌 — 별이 반짝일 때마다 칸 전체를 매 장면 다시 흐렸다. 대신 판을 조금 더 짙게 */
   background:
     var(--tick) top left / 14px 1px no-repeat, var(--tick) top left / 1px 14px no-repeat, var(--tick) top right / 14px 1px no-repeat, var(--tick) top right / 1px 14px no-repeat,
     var(--tick) bottom left / 14px 1px no-repeat, var(--tick) bottom left / 1px 14px no-repeat, var(--tick) bottom right / 14px 1px no-repeat, var(--tick) bottom right / 1px 14px no-repeat,
@@ -53,10 +53,10 @@ html[data-theme='태양계'] .tasks-head { margin-bottom: 6px; padding-bottom: 8
 /* ── 배치: 고리가 주인공(가운데 넓게 · 위로 길게), 테 없이 우주에 뜬다 */
 html[data-theme='태양계'] .today-grid { gap: 18px; }
 @media (min-width: 1200px) {
-  html[data-theme='태양계'] .today-grid[data-layout='three'] { grid-template-columns: minmax(250px, 0.8fr) minmax(0, 1.55fr) minmax(280px, 0.85fr); grid-template-rows: minmax(0, 1.6fr) minmax(0, 1fr); }
+  html[data-theme='태양계'] .today-grid[data-layout='three'] { grid-template-columns: minmax(250px, 0.8fr) minmax(0, 1.65fr) minmax(270px, 0.75fr); grid-template-rows: minmax(0, 1.6fr) minmax(0, 1fr); }
   html[data-theme='태양계'] .today-grid[data-layout='ring'] { grid-template-columns: minmax(0, 1.8fr) minmax(240px, 0.8fr) minmax(230px, 0.8fr); }
 }
-html[data-theme='태양계'] .today-grid > .ring-card:not(.lifted) { background: none; border: 0; box-shadow: none; backdrop-filter: none; }
+html[data-theme='태양계'] .today-grid > .ring-card:not(.lifted) { background: none; border: 0; box-shadow: none; }
 html[data-theme='태양계'] .today-grid > .ring-card .ring-wrap { width: max(160px, min(620px, 100cqw - 16px, 100cqh - 60px)); }
 html[data-theme='태양계'] .ring-wrap.solar { background: radial-gradient(circle, rgb(255 170 50 / 0.16), rgb(255 140 40 / 0.05) 45%, transparent 66%); }
 
@@ -90,9 +90,8 @@ html[data-theme='태양계'] .memo-log .bubble { background: linear-gradient(135
 html[data-theme='태양계'] .memo-log .bubble.on { border-color: var(--gold); box-shadow: 0 0 14px rgb(255 190 80 / 0.35); }
 
 /* ── 적기 칸: 관제실 알약, 보내기 = 해 */
-html[data-theme='태양계'] .composer form { padding-left: 8px; background: linear-gradient(90deg, rgb(10 16 40 / 0.88), rgb(14 20 50 / 0.78)); border: 1px solid var(--hair); border-radius: 999px; box-shadow: 0 0 0 5px rgb(242 196 107 / 0.04), 0 12px 40px rgb(0 0 0 / 0.5), 0 0 30px rgb(255 170 50 / 0.1); backdrop-filter: blur(10px); }
+html[data-theme='태양계'] .composer form { padding-left: 8px; background: linear-gradient(90deg, rgb(10 16 40 / 0.88), rgb(14 20 50 / 0.78)); border: 1px solid var(--hair); border-radius: 999px; box-shadow: 0 0 0 5px rgb(242 196 107 / 0.04), 0 12px 40px rgb(0 0 0 / 0.5), 0 0 30px rgb(255 170 50 / 0.1); }
 html[data-theme='태양계'] .composer form:focus-within { border-color: rgb(242 196 107 / 0.6); box-shadow: 0 0 0 5px rgb(242 196 107 / 0.07), 0 12px 40px rgb(0 0 0 / 0.5), 0 0 36px rgb(255 170 50 / 0.22); }
-html[data-theme='태양계'] .composer .memo-count { border-color: var(--hair); border-radius: 999px; color: var(--gold); }
 html[data-theme='태양계'] .composer .send { width: 40px; height: 40px; margin-right: 4px; border-radius: 50%; }
 html[data-theme='태양계'] .composer .send:not(:disabled) { background: var(--sun); color: #2a1600; box-shadow: 0 0 18px rgb(255 180 60 / 0.6); }
 

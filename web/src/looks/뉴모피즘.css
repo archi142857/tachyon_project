@@ -45,13 +45,8 @@ html[data-theme='뉴모피즘'] .today-grid { gap: 28px; padding: 8px 6px 14px; 
 html[data-theme='뉴모피즘'] .today-grid > .card:not(.ring-card) { padding: 18px 20px; }
 html[data-theme='뉴모피즘'] .tasks-head { padding-bottom: 12px; }
 html[data-theme='뉴모피즘'] .tasks-head .btn-text { padding: 0 10px; white-space: nowrap; }
-@media (max-width: 899.98px) { /* 폰: 고리 자리가 줄지 않게 사이 · 알약을 좁게 */
-  html[data-theme='뉴모피즘'] .today-grid { gap: 16px; padding: 4px 4px 8px; }
-  html[data-theme='뉴모피즘'] .today-grid > .card:not(.ring-card) { padding: 14px 16px; }
-  html[data-theme='뉴모피즘'] .pick { margin-bottom: 8px; padding: 2px 10px; }
-}
 @media (min-width: 1200px) {
-  html[data-theme='뉴모피즘'] .today-grid[data-layout='three'] { grid-template-columns: minmax(250px, 0.9fr) minmax(0, 1.3fr) minmax(250px, 0.9fr); grid-template-rows: minmax(0, 1.35fr) minmax(0, 1fr); }
+  html[data-theme='뉴모피즘'] .today-grid[data-layout='three'] { grid-template-columns: minmax(250px, 0.85fr) minmax(0, 1.5fr) minmax(250px, 0.85fr); grid-template-rows: minmax(0, 1.35fr) minmax(0, 1fr); }
 }
 
 /* ── 고리: 테 없이 판 위의 원반(고리 그림이 스스로 볼록한 판) */
@@ -73,6 +68,12 @@ html[data-theme='뉴모피즘'] .now-line::before { content: ''; position: absol
 /* ── 할 일: 하나하나 볼록한 알약, 고른 것 = 눌림. 고르기 칸 = 오목한 구멍 → 테라코타 구슬 */
 html[data-theme='뉴모피즘'] .pick { margin: 0 4px 14px; padding: 4px 10px; border-radius: 20px; background: var(--clay); box-shadow: var(--up-sm); }
 html[data-theme='뉴모피즘'] .pick.on { background: var(--clay); box-shadow: var(--in-sm); }
+@media (max-width: 899.98px) { /* 폰: 고리 자리가 줄지 않게 사이 · 알약을 좁게. 위 기본 규칙보다 뒤에 둔다(11-19: 앞에 있어 알약 규칙에 덮여 폰 고리가 177px로 줄었다) */
+  html[data-theme='뉴모피즘'] .today-grid { gap: 16px; padding: 4px 4px 8px; }
+  html[data-theme='뉴모피즘'] .today-grid > .card:not(.ring-card) { padding: 14px 16px; }
+  html[data-theme='뉴모피즘'] .pick { margin-bottom: 8px; padding: 2px 10px; }
+  html[data-theme='뉴모피즘'] .shell .topbar { height: calc(56px + env(safe-area-inset-top)); }
+}
 html[data-theme='뉴모피즘'] .task { border-top: 0; }
 html[data-theme='뉴모피즘'] .task .title { font-weight: 700; }
 html[data-theme='뉴모피즘'] .task > input[type='checkbox'] { appearance: none; width: 24px; height: 24px; margin: 0; border-radius: 50%; background: var(--clay); box-shadow: var(--in-sm); }
@@ -87,7 +88,6 @@ html[data-theme='뉴모피즘'] .memo-log .bubble.on { color: var(--accent-text)
 /* ── 적기 칸: 오목한 홈 + 볼록한 테라코타 손잡이 */
 html[data-theme='뉴모피즘'] .composer form { padding: 6px 6px 6px 10px; background: var(--clay); border: 0; border-radius: 999px; box-shadow: var(--in); }
 html[data-theme='뉴모피즘'] .composer form:focus-within { box-shadow: var(--in), 0 0 0 2px rgb(168 69 42 / 0.35); }
-html[data-theme='뉴모피즘'] .composer .memo-count { border: 0; border-radius: 999px; background: var(--clay); box-shadow: var(--up-sm); }
 html[data-theme='뉴모피즘'] .composer .send { width: 44px; height: 44px; border-radius: 50%; }
 html[data-theme='뉴모피즘'] .composer .send:not(:disabled) { background: var(--terra); color: #ffffff; box-shadow: 4px 4px 10px var(--dk), -4px -4px 10px var(--lt); }
 html[data-theme='뉴모피즘'] .composer .send:disabled { background: var(--clay); box-shadow: var(--up-sm); }

@@ -62,7 +62,34 @@ export default function StaffRing({ arcs, nowMin, sel, onPick, loose, children }
   const { seps } = ringRuns(arcs);
   const gap = 2.4 * minPerUnit(82); // 겹세로줄 두 줄 사이
   return (
-    <RingFrame name="staff" sel={sel} mid={children} loose={loose}>
+    <RingFrame
+      name="staff"
+      sel={sel}
+      mid={children}
+      loose={loose}
+      arcs={arcs}
+      item={(a, on) => (
+        <g key={a.key} className={`item k-${look(a.kind)} ${when(a, nowMin)}${on ? ' on' : ''}`}>
+          <Notes a={a} nowMin={nowMin} />
+        </g>
+      )}
+      over={
+        <>
+          {seps.map((m) => (
+            <g key={m} className="dbar">
+              <line {...radial(64, 100, m - gap / 2)} />
+              <line {...radial(64, 100, m + gap / 2)} />
+            </g>
+          ))}
+          <g className="play">
+            <line {...radial(56, 108, nowMin)} />
+            <polygon points="0,0 6,-3.5 6,3.5" transform={at(108, nowMin, deg(nowMin) - 90)} />
+          </g>
+          <NowLabel nowMin={nowMin} rad={121} text={hm(nowMin)} />
+          <Hits arcs={arcs} onPick={onPick} />
+        </>
+      }
+    >
       <circle r="82" className="ribbon" />
       {LINES.map((r) => (
         <circle key={r} r={r} className="line" />
@@ -75,23 +102,6 @@ export default function StaffRing({ arcs, nowMin, sel, onPick, loose, children }
         𝄞
       </text>
       <HourLabels nowMin={nowMin} loose={loose} rad={121} />
-      {arcs.map((a) => (
-        <g key={a.key} className={`item k-${look(a.kind)} ${when(a, nowMin)}${a.key === sel ? ' on' : ''}`}>
-          <Notes a={a} nowMin={nowMin} />
-        </g>
-      ))}
-      {seps.map((m) => (
-        <g key={m} className="dbar">
-          <line {...radial(64, 100, m - gap / 2)} />
-          <line {...radial(64, 100, m + gap / 2)} />
-        </g>
-      ))}
-      <g className="play">
-        <line {...radial(56, 108, nowMin)} />
-        <polygon points="0,0 6,-3.5 6,3.5" transform={at(108, nowMin, deg(nowMin) - 90)} />
-      </g>
-      <NowLabel nowMin={nowMin} rad={121} text={hm(nowMin)} />
-      <Hits arcs={arcs} onPick={onPick} />
     </RingFrame>
   );
 }

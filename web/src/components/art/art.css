@@ -10,11 +10,15 @@
 .ring-wrap.soft { --sky: #ebe4da; --r-dim: #6e6255; --r-now: #a8301d; --mid-ink: #3a322a; --mid-dim: #6e6255;
   --art-font: 'Pretendard Variable', Pretendard, sans-serif; --mid-font: 800 22px/1.15 var(--art-font); --mid-fx: 1px 1px 1px #fffaf2, -1px -1px 1px rgba(170, 150, 128, 0.45); --loose: #a8452a; }
 .art { display: block; width: 100%; height: auto; overflow: visible; }
+/* 겹친 층(common.jsx RingFrame, 11-19 렉): 바탕 위에 일정 층 · 고른 것 층 · 위 층(지금 · 누르는 띠). 누르는 것은 위 층의 띠(.hit)만 */
+.art:is(.items, .chosen, .over) { position: absolute; inset: 0; height: 100%; pointer-events: none; }
+.art.items { transition: opacity 0.3s; }
+.art.items.dim { opacity: 0.22; } /* 고르면 나머지 일정이 층째 흐려진다(합성기만) */
+.art.chosen { animation: art-pop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1) both; } /* 고른 것만 새로 그려 떠오른다 */
+@keyframes art-pop { from { opacity: 0; transform: scale(0.97); } }
 .art text { font: 500 8.5px/1 var(--art-font); fill: var(--r-dim); text-anchor: middle; dominant-baseline: central; font-variant-numeric: tabular-nums; }
 .art .now-label { fill: var(--r-now); font-weight: 700; paint-order: stroke; stroke: var(--sky); stroke-width: 3px; }
 .art .hit { fill: none; stroke: transparent; stroke-width: 48; cursor: pointer; pointer-events: stroke; }
-.art .item { transition: opacity 0.3s; }
-.art.has-sel .item:not(.on) { opacity: 0.22; }
 .art .k-class { --c: var(--c-class); }
 .art .k-mine { --c: var(--c-mine); }
 .art .k-slot { --c: var(--c-slot); }
@@ -24,14 +28,16 @@
 .ring-wrap:is(.solar, .staff, .soft) .mid-big { font: var(--mid-font); color: var(--mid-ink); text-shadow: var(--mid-fx, none); }
 .ring-wrap:is(.solar, .staff, .soft) .mid-title { font-family: var(--art-font); color: var(--mid-ink); text-shadow: var(--mid-fx, none); }
 .ring-wrap:is(.solar, .staff, .soft) .mid-sub { color: var(--mid-dim); }
-@media (prefers-reduced-motion: reduce) { .art *, .backdrop * { animation: none !important; transition: none !important; } }
-html[data-still='1'] :is(.art, .backdrop) * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .art, .art *, .backdrop * { animation: none !important; transition: none !important; } }
+html[data-still='1'] :is(.art, .art *, .backdrop *) { animation: none !important; }
 
 /* ── 화면 뒤 바탕(Backdrop.jsx). 앱에선 화면 맨 뒤에 고정 */
 .backdrop { pointer-events: none; }
 .theme-backdrop { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; }
 .backdrop.solar .dot { fill: #fff; opacity: 0.55; }
-.backdrop.solar .sp { fill: #fff6dc; animation: twinkle 4s ease-in-out infinite alternate; }
+.backdrop.solar .sp { fill: #fff6dc; }
+.backdrop.solar .tw2 .sp { fill-opacity: 0.7; } .backdrop.solar .tw3 .sp { fill-opacity: 0.4; } /* 11-19 렉: 화면 뒤 큰 별은 가만히(밝기만 세 겹, 묶음 opacity가 아닌 fill-opacity — 묶음 opacity는 합성기가 매 장면 화면 전체를 다시 겹쳤다) — 화면 전체 크기 층이 반짝이면 그 위 칸이 모두 매 장면 다시 겹쳐졌다. 반짝임은 고리 안 별만 */
+.backdrop.solar .tw { animation: none; }
 .backdrop.solar .far-planet circle { fill: #2a2140; }
 .backdrop.solar .far-planet ellipse { fill: none; stroke: #c9a86a; stroke-width: 6; opacity: 0.35; }
 .backdrop.staff .rib { fill: #0d0d0d; }
@@ -42,16 +48,19 @@ html[data-still='1'] :is(.art, .backdrop) * { animation: none !important; }
 @keyframes twinkle { from { opacity: 0.2; } to { opacity: 1; } }
 .ring-wrap.solar { background: radial-gradient(circle, rgba(255, 160, 40, 0.1), transparent 62%); border-radius: 50%; }
 .solar .orbit { fill: none; stroke: rgba(255, 255, 255, 0.5); stroke-width: 0.5; }
-.solar .star { fill: #fff; animation: twinkle 3.6s ease-in-out infinite alternate; }
+.solar .star { fill: #fff; }
+.solar .tw { animation: twinkle 3.6s ease-in-out infinite alternate; } /* 별 무리째(태양계.jsx · Backdrop.jsx, 11-19 렉) */
+.solar .tw2 { animation-delay: -1.3s; }
+.solar .tw3 { animation-delay: -2.5s; }
 .solar .sparkle { fill: #fff8e0; }
-.solar .star.sleep { opacity: 0.3; animation: none; }
+.solar .star.sleep { opacity: 0.3; }
 .solar .rock { fill: #e3b45c; }
 .solar .rock.dim { fill: #8a6a3a; }
 .solar .ray { stroke-width: 3; stroke-linecap: round; }
-.solar .trail { fill: none; stroke: var(--c); stroke-width: 2.2; stroke-linecap: round; opacity: 0.5; transition: opacity 0.3s; }
+.solar .trail { fill: none; stroke: var(--c); stroke-width: 2.2; stroke-linecap: round; opacity: 0.5; }
 .solar .belt { fill: none; stroke: #e9c48e; stroke-width: 1.2; }
 .solar .cloud-band { stroke: rgba(255, 255, 255, 0.35); stroke-width: 0.6; }
-.solar .pl { transform-box: fill-box; transform-origin: center; transition: transform 0.35s cubic-bezier(0.3, 1.5, 0.5, 1), opacity 0.3s; }
+.solar .pl { transform-box: fill-box; transform-origin: center; }
 .solar .past .pl { opacity: 0.35; filter: grayscale(0.7); }
 .solar .past .trail { opacity: 0.15; }
 .solar .now .pl { filter: drop-shadow(0 0 4px #ffcf5a); }
@@ -89,7 +98,7 @@ html[data-still='1'] :is(.art, .backdrop) * { animation: none !important; }
 .soft .b-light { stop-color: #d9805f; }
 .soft .b-dark { stop-color: #a8452a; }
 .soft .progress { fill: none; stroke-width: 2.4; stroke-linecap: round; }
-.soft .capsule { fill: none; stroke-width: 9; stroke-linecap: round; transition: stroke-width 0.25s; }
+.soft .capsule { fill: none; stroke-width: 9; stroke-linecap: round; }
 .soft .bead-dot { fill: #a8452a; }
 .soft .past { opacity: 0.45; }
 .soft .on .capsule { stroke-width: 11.5; }

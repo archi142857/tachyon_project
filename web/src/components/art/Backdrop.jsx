@@ -1,6 +1,6 @@
 // 그림 테마마다 화면 뒤 꾸밈(레퍼런스 그림의 바탕을 옮김). 뜻 없는 그림이라 화면 읽기에서 뺀다. theme = 테마 이름(태양계 …).
 // 앱은 ThemeBackdrop(Dashboard 맨 뒤), 시안 쪽은 앱 모형(web/design/app.jsx)이 부른다. 색은 art.css의 .backdrop.이름.
-//  태양계 = 성운 위 반짝이는 별과 먼 고리 행성 · 오선지 = 흰 종이를 가로지르는 검은 오선 띠와 흰 음표
+//  태양계 = 성운 위 별(밝기 세 겹)과 먼 고리 행성 · 오선지 = 흰 종이를 가로지르는 검은 오선 띠와 흰 음표
 //  뉴모피즘 = 없음
 import { seeded, f1 } from './common.jsx';
 import { RINGS } from './index.js';
@@ -14,8 +14,13 @@ function Solar() {
   return (
     <>
       {dots}
-      {Array.from({ length: 34 }, (_, i) => (
-        <path key={i} d={sparkle(3 + rand() * 9)} transform={`translate(${f1(rand() * 1000)} ${f1(rand() * 1000)})`} className="sp" style={{ animationDelay: `${f1(rand() * 4)}s` }} />
+      {/* 큰 별 세 무리(밝기 세 겹, art.css). 11-19 렉: 화면 뒤 별은 반짝이지 않는다 — 반짝임은 고리 안 별만 */}
+      {[0, 1, 2].map((k) => (
+        <g key={k} className={`tw tw${k + 1}`}>
+          {Array.from({ length: 12 }, (_, i) => (
+            <path key={i} d={sparkle(3 + rand() * 9)} transform={`translate(${f1(rand() * 1000)} ${f1(rand() * 1000)})`} className="sp" />
+          ))}
+        </g>
       ))}
       <g transform="translate(930 900) rotate(-20)" className="far-planet">
         <circle r="70" />

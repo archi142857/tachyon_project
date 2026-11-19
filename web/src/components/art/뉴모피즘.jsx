@@ -29,7 +29,41 @@ export default function SoftRing({ arcs, nowMin, sel, onPick, loose, children })
   const id = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const u = (n) => `url(#${id}-${n})`;
   return (
-    <RingFrame name="soft" sel={sel} mid={children} loose={loose}>
+    <RingFrame
+      name="soft"
+      sel={sel}
+      mid={children}
+      loose={loose}
+      arcs={arcs}
+      item={(a, on) => {
+        const k = look(a.kind);
+        let body;
+        if (k === 'class') body = <path className="capsule" d={arcPath(R.class, a.from + 4, a.to - 4)} stroke={u('blue')} filter={u('up-sm')} />;
+        else if (k === 'mine')
+          body = dots(a, 18).map((m) => (
+            <g key={m} transform={at(R.mine, m)}>
+              <circle r="4.6" className="bead" fill={u('out-sm')} filter={u('up-sm')} />
+              <circle r="1.6" className="bead-dot" />
+            </g>
+          ));
+        else body = dots(a, 20).map((m) => <circle key={m} r="4.4" className="dimple" fill={u('in-sm')} transform={at(R.slot, m)} />);
+        return (
+          <g key={a.key} className={`item k-${k} ${when(a, nowMin)}${on ? ' on' : ''}`}>
+            {body}
+          </g>
+        );
+      }}
+      over={
+        <>
+          <g transform={at(RIM, nowMin)} className="knob">
+            <circle r="6" filter={u('up-sm')} fill={u('out-sm')} />
+            <circle r="2.2" className="knob-dot" />
+          </g>
+          <NowLabel nowMin={nowMin} rad={131} text={hm(nowMin)} />
+          <Hits arcs={arcs} onPick={onPick} />
+        </>
+      }
+    >
       <defs>
         {/* 볼록: 오른쪽 아래 그림자 + 왼쪽 위 빛 */}
         <filter id={`${id}-up`} x="-40%" y="-40%" width="180%" height="180%">
@@ -67,31 +101,7 @@ export default function SoftRing({ arcs, nowMin, sel, onPick, loose, children })
       ))}
       <HourLabels nowMin={nowMin} loose={loose} rad={131} />
       <path className="progress" d={arcPath(RIM, 0, Math.max(0.5, nowMin))} stroke={u('blue')} />
-      {arcs.map((a) => {
-        const k = look(a.kind);
-        let body;
-        if (k === 'class') body = <path className="capsule" d={arcPath(R.class, a.from + 4, a.to - 4)} stroke={u('blue')} filter={u('up-sm')} />;
-        else if (k === 'mine')
-          body = dots(a, 18).map((m) => (
-            <g key={m} transform={at(R.mine, m)}>
-              <circle r="4.6" className="bead" fill={u('out-sm')} filter={u('up-sm')} />
-              <circle r="1.6" className="bead-dot" />
-            </g>
-          ));
-        else body = dots(a, 20).map((m) => <circle key={m} r="4.4" className="dimple" fill={u('in-sm')} transform={at(R.slot, m)} />);
-        return (
-          <g key={a.key} className={`item k-${k} ${when(a, nowMin)}${a.key === sel ? ' on' : ''}`}>
-            {body}
-          </g>
-        );
-      })}
-      <g transform={at(RIM, nowMin)} className="knob">
-        <circle r="6" filter={u('up-sm')} fill={u('out-sm')} />
-        <circle r="2.2" className="knob-dot" />
-      </g>
       <circle r="55" className="button" filter={u('up')} />
-      <NowLabel nowMin={nowMin} rad={131} text={hm(nowMin)} />
-      <Hits arcs={arcs} onPick={onPick} />
     </RingFrame>
   );
 }

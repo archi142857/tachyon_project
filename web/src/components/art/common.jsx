@@ -109,13 +109,29 @@ export function Hits({ arcs, onPick }) {
   return arcs.map((a) => <path key={a.key} className="hit" d={arcPath(HIT, a.from, a.to)} onClick={() => onPick(a.key)} />);
 }
 
-/** 고리 틀: svg와 가운데 글자 칸. 같은 내용이 옆 목록에 글자로 있어서 그림은 화면 읽기에서 뺀다.
+/** 고리 틀: 겹친 svg 넷과 가운데 글자 칸. 같은 내용이 옆 목록에 글자로 있어서 그림은 화면 읽기에서 뺀다.
+ *  children = 바탕(판 · 띠 · 눈금 · 별), item(a, on) = 일정 하나, over = 일정 위에 그릴 것(지금 표시 · 누르는 띠 Hits).
+ *  11-19 렉(사람 "모션이 전체적으로 너무 렉걸려"): 예전엔 하나의 svg 안에서 고른 것만 밝히고 나머지를 0.3초 동안 흐리게 해,
+ *  그림자 필터가 든 고리 전체가 매 장면 다시 그려졌다(20장면/초). 이제 일정 층(items)은 고를 때 그대로이고 층째 흐려지며(합성기),
+ *  고른 것만 맨 위 얇은 층(pick)에 새로 한 번 그려 떠오른다.
  *  loose = 아직 정리 안 된 메모를 적은 분들(앱 기본 고리와 같은 바깥 점, 누르는 일은 고리 밑 글 단추가 한다) */
-export function RingFrame({ name, sel, mid, loose = [], children }) {
+export function RingFrame({ name, sel, mid, loose = [], arcs, item, over, children }) {
+  const picked = arcs.find((a) => a.key === sel);
   return (
     <div className={`ring-wrap ${name}`}>
-      <svg className={sel ? 'art has-sel' : 'art'} viewBox={VIEW} aria-hidden="true">
+      <svg className="art" viewBox={VIEW} aria-hidden="true">
         {children}
+      </svg>
+      <svg className={`art items${picked ? ' dim' : ''}`} viewBox={VIEW} aria-hidden="true">
+        {arcs.map((a) => item(a, false))}
+      </svg>
+      {picked && (
+        <svg key={picked.key} className="art chosen" viewBox={VIEW} aria-hidden="true">
+          {item(picked, true)}
+        </svg>
+      )}
+      <svg className="art over" viewBox={VIEW} aria-hidden="true">
+        {over}
         {/* 하루 경계 0시(11-14, 앱 기본 고리와 같음). 낮 12시 금은 뺐다(사람 11-15 16:46) */}
         <line className="day-edge" {...radial(60, 112, 0)} />
         <g className="loose">

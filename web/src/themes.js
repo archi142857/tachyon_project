@@ -88,17 +88,29 @@ export function applyTheme(name, mine = loadThemes(), { save = true } = {}) {
   const own = mine.find((t) => t.name === name);
   if (!own && Object.hasOwn(RENAMED, name)) name = RENAMED[name];
   if (!own && !BUILT_IN.includes(name)) name = DEFAULT;
-  // 고를 때만 색이 천천히 넘어간다(9판의 밤 ↔ 낮 전환). 앱을 열 때는 바로
-  if (save && typeof window !== 'undefined' && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-    root.classList.add('theme-fade');
-    clearTimeout(applyTheme.fade);
-    applyTheme.fade = setTimeout(() => root.classList.remove('theme-fade'), 700);
-  }
   // 입자 테마는 9판 글꼴(Inter · Noto Sans KR, 9판과 같은 곳에서)을 처음 고를 때 한 번 받는다. 받는 동안은 비슷한 Pretendard로 보인다
   if (name.startsWith('입자') && typeof document !== 'undefined' && !document.getElementById('nine-font')) {
     const link = Object.assign(document.createElement('link'), { id: 'nine-font', rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&display=swap' });
     document.head.append(link);
   }
+  // 고를 때만 색이 천천히 넘어간다(9판의 밤 ↔ 낮 전환). 앱을 열 때는 바로.
+  // 11-19 사람 "모션이 전체적으로 너무 렉": 예전엔 모든 요소의 색 · 그림자에 전환을 걸어 0.6~0.9초 동안 매 장면 화면 전체 스타일을 다시 셌다.
+  // 이제는 바뀌기 전 화면 사진을 새 화면 위에서 걷어 내는 한 번의 겹침(View Transitions, 합성기에서만 움직임). 못 쓰는 브라우저는 바로 바뀐다
+  const fade = save && typeof document !== 'undefined' && document.startViewTransition && !document.querySelector('.theme-loader') && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const dress = () => paintTheme(root, name, own);
+  if (fade) document.startViewTransition(dress);
+  else dress();
+  if (save) {
+    try {
+      localStorage.setItem(PICK, name);
+    } catch {
+      // 못 적어도 이번 화면에는 입혀졌다
+    }
+  }
+  return name;
+}
+
+function paintTheme(root, name, own) {
   for (const key of KEYS) root.style.removeProperty(key);
   root.style.colorScheme = '';
   if (own) {
@@ -114,14 +126,6 @@ export function applyTheme(name, mine = loadThemes(), { save = true } = {}) {
     meta.dataset.base ??= meta.content;
     meta.content = name === DEFAULT ? meta.dataset.base : getComputedStyle(root).getPropertyValue('--bg').trim();
   }
-  if (save) {
-    try {
-      localStorage.setItem(PICK, name);
-    } catch {
-      // 못 적어도 이번 화면에는 입혀졌다
-    }
-  }
-  return name;
 }
 
 // 지금 화면에 입혀진 값을 테마 글로. 새 테마를 만들 때 본으로 쓴다.
