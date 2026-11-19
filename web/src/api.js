@@ -233,10 +233,18 @@ export async function getEvents(from, days) {
     const start = new Date(from);
     return reply({ events: ex.events.map(normalizeEvent).filter((e) => new Date(e.start) < to && new Date(e.end || e.start) >= start) });
   }
+  // 서버는 한 번에 62일까지라 길면 나눠 받는다(11-20: 7일 보기는 앞뒤 여유까지 63일이라 컴퓨터 달력이 통째로 비었다).
+  // 둘째 조각부터는 그 조각 안에서 시작한 것만 — 앞에서 시작해 걸친 것은 앞 조각에 이미 있다
   const day = (d) => toKstIso(d).slice(0, 10);
-  const res = await call('GET', `/api/events?from=${day(from)}&to=${day(to)}`);
-  return { events: res.events.map(normalizeEvent) };
+  const parts = [];
+  for (let i = 0; i < days; i += RANGE_MAX) {
+    const a = day(addDays(from, i));
+    const b = day(addDays(from, Math.min(i + RANGE_MAX, days)));
+    parts.push(call('GET', `/api/events?from=${a}&to=${b}`).then((r) => (i ? r.events.filter((e) => e.start.slice(0, 10) >= a) : r.events)));
+  }
+  return { events: (await Promise.all(parts)).flat().map(normalizeEvent) };
 }
+const RANGE_MAX = 62; // worker/7_items.js MAX_RANGE_DAYS
 
 // 날마다 몫(AI 4_night planDays, 11-11): 밀도 고리·'고르게' 줄을 서버 셈 하나로 그린다. 예시 모드는 화면 셈(density.js)
 // → { ok, awake: { from, minutes }, daily_min, guessed, warning, days: [{ date, event_min, room_min, task_min, extra_min, over_min, cram_min, items: [{ task_id, min }] }] }

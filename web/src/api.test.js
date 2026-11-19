@@ -64,3 +64,26 @@ describe('앱 위젯 다시 받기(11-15)', () => {
     expect(refresh).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('긴 기간 일정은 62일씩 나눠 받는다(11-20 컴퓨터 7일 보기가 비던 것)', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('63일 → 두 번, 걸친 일정은 한 번만', async () => {
+    const asked = [];
+    vi.stubGlobal('fetch', vi.fn(async (url) => {
+      const q = new URL(url, 'http://x').searchParams;
+      asked.push([q.get('from'), q.get('to')]);
+      // 서버처럼 기간과 겹치는 것을 준다: 둘째 조각에는 첫 조각에서 시작한 여러 날 일정도 온다
+      const all = [
+        { id: 1, title: '예시 여행', start: '2026-12-20', end: '2026-12-24' },
+        { id: 2, title: '예시 수업', start: '2026-12-22T09:00:00+09:00', end: '2026-12-22T10:00:00+09:00' },
+      ];
+      const events = all.filter((e) => e.start.slice(0, 10) < q.get('to') && (e.end || e.start).slice(0, 10) >= q.get('from'));
+      return new Response(JSON.stringify({ ok: true, events }), { status: 200 });
+    }));
+    const { getEvents } = await import('./api.js');
+    const { events } = await getEvents('2026-10-20T15:00:00.000Z', 63);
+    expect(asked).toEqual([['2026-10-21', '2026-12-22'], ['2026-12-22', '2026-12-23']]);
+    expect(events.map((e) => e.id).sort()).toEqual([1, 2]);
+  });
+});
