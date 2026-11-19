@@ -78,6 +78,7 @@
 | Tachyon-38 | 2026-11-19 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5) | 달력: 위아래 · 옆 방향 잠금, 한 화면씩 탄성 넘기기 | [Tachyon-38-달력-방향-잠금-탄성-넘기기.md](Tachyon-38-달력-방향-잠금-탄성-넘기기.md) | 사용자 직접 지시 | 사용자 → Claude Code |
 | Tachyon-39 | 2026-11-19 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5) | 달력: 보기 고르기 접기, 날 수 직접 조절 | [Tachyon-39-달력-보기-접기-날-수-직접.md](Tachyon-39-달력-보기-접기-날-수-직접.md) | 사용자 직접 지시 | 사용자 → Claude Code |
 | Tachyon-40 | 2026-11-19 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5) | 달력: 하루씩 넘기기, 모션 약하게 | [Tachyon-40-달력-하루씩-넘기기-모션-약하게.md](Tachyon-40-달력-하루씩-넘기기-모션-약하게.md) | 사용자 직접 지시 | 사용자 → Claude Code |
+| Tachyon-41 | 2026-11-19 | Claude Code (Claude 데스크톱 앱, Claude Opus 5.5) | 퀴즈 번호 자동, 강의자료 과목 폴더로 저장 | [Tachyon-41-퀴즈-번호-자동-강의자료-과목-폴더-저장.md](Tachyon-41-퀴즈-번호-자동-강의자료-과목-폴더-저장.md) | 사용자 직접 지시 | 사용자 → Claude Code |
 | Tachyon-컨셉-01 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | Tachyon-컨셉-01. 앞 자료와 기획안 읽기 | [Tachyon-컨셉-01-자료-학습.md](Tachyon-컨셉-01-자료-학습.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
 | Tachyon-컨셉-02 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5), Google Drive 연결 | Tachyon-컨셉-02. 인수인계 확인과 공유 드라이브 연결 | [Tachyon-컨셉-02-인수인계와-드라이브.md](Tachyon-컨셉-02-인수인계와-드라이브.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |
 | Tachyon-컨셉-03 | 2026-11-09 | Claude (claude.ai 프로젝트 세션, Claude Opus 5.5) | Tachyon-컨셉-03. 세션 나누기와 세션끼리 소통하는 방식 | [Tachyon-컨셉-03-세션-나누기.md](Tachyon-컨셉-03-세션-나누기.md) | 사용자 직접 지시·보고 | 사용자(archi142857) → Tachyon / Concept |

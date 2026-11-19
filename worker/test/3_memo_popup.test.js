@@ -3,7 +3,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { handle, findWhen, mergePopup, suggestEvent, isoKst, nowLabel, looksLikeTodo, withHour, isLongMemo, taskPlan } from "../3_memo_popup.js";
+import { handle, findWhen, mergePopup, suggestEvent, isoKst, nowLabel, looksLikeTodo, withHour, isLongMemo, taskPlan, numberTitle } from "../3_memo_popup.js";
 import { CASES, NOW } from "./fixtures/memo_cases.js";
 import { fakeD1, addUser, fakeCtx } from "./helpers/d1.js";
 
@@ -826,4 +826,26 @@ test("팝업 저장의 remind: 일정은 매주 줄까지, 할 일은 마감이 
   assert.equal((await call(env, user, "POST", `/api/memo/${noDue.memo.id}/save`, { kind: "task", title: "[예시] 책 반납하기", date: "?", time: "?", remind: 60 })).body.task.remind, null);
   const bad = await memo("2026-11-21 10:00 [예시] 면담");
   assert.equal((await call(env, user, "POST", `/api/memo/${bad.memo.id}/save`, { ...bad.popup, remind: 5000 })).body.event.remind, null);
+});
+
+// ── 번호 붙는 것(11-19 사람 "퀴즈가 지금까지 2개가 있었는데, 새로 추가하면 퀴즈 3이라고") ──
+
+test("번호 없이 쓴 퀴즈·과제는 내 것 중 가장 큰 번호 + 1, 과목 낱말이 겹치면 그것만 센다", () => {
+  const mine = ["퀴즈 1", "퀴즈2", "공수2 과제#1", "과제#2", "예시 실습 보고서"];
+  assert.equal(numberTitle("예시과목 퀴즈", mine), "예시과목 퀴즈 3");
+  assert.equal(numberTitle("Quiz", ["quiz 4", "퀴즈 1"]), "Quiz 5"); // 퀴즈 = quiz
+  assert.equal(numberTitle("공수2 과제", mine), "공수2 과제 2"); // '공수2'가 든 과제만
+  assert.equal(numberTitle("과제 제출", mine), "과제 3 제출");
+  assert.equal(numberTitle("퀴즈 3 공부", mine), "퀴즈 3 공부"); // 번호를 썼으면 그대로
+  assert.equal(numberTitle("실습", mine), "실습"); // 번호 붙은 실습이 없으면 그대로
+  assert.equal(numberTitle("동아리 모임", mine), "동아리 모임");
+});
+
+test("메모 팝업: '25일 예시과목 퀴즈' → 내 할 일의 퀴즈 1·2를 보고 '퀴즈 3'", async () => {
+  const DB = fakeD1();
+  const user = addUser(DB);
+  for (const t of ["퀴즈 1", "퀴즈2"]) DB.sqlite.prepare("INSERT INTO tasks (user_id, title, done, source) VALUES (?, ?, 1, 'etl')").run(user.id, t);
+  const fetch = async () => aiReply({ kind: "task", title: "예시과목 퀴즈", date: "2026-11-25", time: "?", place: "?" });
+  const p = await suggestEvent({ ANTHROPIC_API_KEY: "k", DB }, "25일 예시과목 퀴즈", NOW, { ctx: fakeCtx(), userId: user.id, fetch });
+  assert.equal(p.title, "예시과목 퀴즈 3");
 });

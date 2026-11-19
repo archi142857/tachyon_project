@@ -33,6 +33,10 @@ async function fakeFetch(input, init = {}) {
   }
   const u = new URL(url);
   assert.equal(u.origin, 'https://myetl.snu.ac.kr', '토큰은 eTL에만 보낸다');
+  if (u.pathname === '/files/701/download') {
+    assert.ok(!init.headers?.authorization, '검증값 붙은 내려받기 주소에는 토큰을 보내지 않는다');
+    return new Response('%PDF-예시', { headers: { 'content-type': 'application/pdf' } });
+  }
   const auth = (init.headers && init.headers.authorization) || '';
   if (auth !== `Bearer ${TOKEN}`) return new Response('{"errors":[{"message":"Invalid access token."}]}', { status: 401 });
   const p = u.pathname;
@@ -66,6 +70,9 @@ async function fakeFetch(input, init = {}) {
   if (p === '/api/v1/courses/101/files')
     return j([{ id: '701', display_name: '1주차 강의자료.pdf', created_at: '2026-09-02T00:00:00Z', url: 'https://myetl.snu.ac.kr/files/701/download?download_frd=1&verifier=SECRETVERIFIER' }]);
   if (p === '/api/v1/courses/103/files') return new Response('{}', { status: filesStatus });
+  if (p === '/api/v1/files/701')
+    return j({ id: '701', display_name: '1주차 강의자료.pdf', 'content-type': 'application/pdf', url: 'https://myetl.snu.ac.kr/files/701/download?download_frd=1&verifier=SECRETVERIFIER' });
+  if (p === '/api/v1/files/702') return j({ id: '702', display_name: '잠긴 자료.pdf', locked_for_user: true });
   if (p === '/api/v1/calendar_events')
     return j([{ id: '801', title: '현장 학습', start_at: '2026-11-21T01:00:00Z', end_at: '2026-11-21T05:00:00Z', location_name: '예시 장소', all_day: false, context_code: 'course_101' }]);
   return new Response('{}', { status: 404 });
@@ -327,4 +334,24 @@ test('작은 도우미: 학기 이름, 마감 시각, 다음 쪽, 묻는 글, �
   ]);
   assert.equal(tagOf(items), 'exam');
   assert.equal(tagOf([]), 'none');
+});
+
+test('강의자료 내려받기: 내 자료만, 파일을 그대로 흘려보내고 서버에는 남기지 않는다(11-19)', async () => {
+  const { env, user } = await setup();
+  await env.DB.prepare('INSERT INTO etl (user_id, token) VALUES (?, ?)').bind(user.id, await seal(env, TOKEN)).run();
+  const add = (ext, title, uid = user.id) =>
+    env.DB.sqlite.prepare("INSERT INTO etl_items (user_id, kind, course, title, url, posted_at, ext_id) VALUES (?, 'file', '예시 생물', ?, '', '2026-09-02T09:00:00+09:00', ?)").run(uid, title, ext).lastInsertRowid;
+  const mine = add('file-701', '1주차 강의자료.pdf');
+  const locked = add('file-702', '잠긴 자료.pdf');
+  const other = await addTestUser(env, { sub: 'sub-example-2', email: 'other@example.invalid' });
+  const theirs = add('file-701', '1주차 강의자료.pdf', other.id);
+
+  const res = await handle(req(`/api/etl/files/${mine}`), env, makeCtx(), user);
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get('content-type'), 'application/pdf');
+  assert.equal(res.headers.get('content-disposition'), `attachment; filename*=UTF-8''${encodeURIComponent('1주차 강의자료.pdf')}`);
+  assert.equal(await res.text(), '%PDF-예시');
+  assert.equal((await handle(req(`/api/etl/files/${theirs}`), env, makeCtx(), user)).status, 404);
+  assert.equal((await handle(req(`/api/etl/files/${locked}`), env, makeCtx(), user)).status, 403);
+  assertNoSecrets(env);
 });

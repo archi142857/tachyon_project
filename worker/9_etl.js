@@ -9,6 +9,7 @@
 //                             공지에서 찾아 넣은 시험·휴강 일정(source 'notice')은 사용자 일정처럼 남긴다.
 //   POST   /api/etl/collect   지금 다시 받기(1분 안에 받았으면 건너뜀, recent: true)
 //   GET    /api/etl/items     공지·강의자료 목록(새 것 먼저) { notices: [...], files: [...] }
+//   GET    /api/etl/files/:id 강의자료 한 개(etl_items.id) 파일 그대로 — 서버에 남기지 않음(11-19, 과목 폴더로 저장하기)
 //   Cron   */10 * * * *       오래 안 받은 사람부터, 한 번에 eTL·AI 요청 ETL_REQUESTS_PER_RUN(기본 40)개 안에서(무료 요금제 한 번 50개)
 //
 // 넣는 곳(표는 schema.sql: etl, etl_items, tasks, events, log)
@@ -81,6 +82,8 @@ export async function handle(request, env, ctx, user) {
       return json({ ok: true, result, ...(await status(env, user.id)) });
     }
     if (pathname === '/api/etl/items' && method === 'GET') return json({ ok: true, ...(await listItems(env, user.id)) });
+    const file = pathname.match(/^\/api\/etl\/files\/(\d+)$/);
+    if (file && method === 'GET') return download(env, user.id, Number(file[1]));
     // TT Wizard 시간표 링크(11-11 사람 "TT Wizard랑 연동", 컨셉): POST = 살펴보기(save면 넣기), GET = Tachyon 수업 → TT Wizard 링크
     if (pathname === '/api/etl/ttwizard' && method === 'POST') return ttwizardImport(request, env, user.id);
     if (pathname === '/api/etl/ttwizard' && method === 'GET') return ttwizardExport(env, user.id);
@@ -180,6 +183,37 @@ export async function listItems(env, userId) {
         .all()
     ).results;
   return { notices: await pick('notice'), files: await pick('file') };
+}
+
+/**
+ * 강의자료 한 개를 eTL에서 받아 그대로 흘려보낸다(11-19 사람 "받은 자료들을 데스크탑 혹은 폰에 잘 정리해서 저장").
+ * 서버에 남기지 않는다(11-10 '앱 서버에 복사하지 않음' 그대로). 과목 폴더로 나누는 건 화면(web/src/saveFiles.js)·폰 앱 몫.
+ * eTL 파일 정보의 url(검증값이 붙은 내려받기 주소)에는 토큰을 보내지 않는다 — 저장소로 넘겨질 때 토큰이 따라가지 않게.
+ */
+async function download(env, userId, id) {
+  const item = await env.DB.prepare("SELECT title, ext_id FROM etl_items WHERE id = ? AND user_id = ? AND kind = 'file'").bind(id, userId).first();
+  if (!item) return fail(404, '없는 강의자료예요');
+  const row = await env.DB.prepare('SELECT token FROM etl WHERE user_id = ?').bind(userId).first();
+  if (!row) return fail(400, 'eTL을 먼저 연결해 주세요');
+  let meta;
+  try {
+    meta = (await canvas(await unseal(env, row.token), { left: 1 })(`/files/${item.ext_id.replace(/^file-/, '')}`)).data;
+  } catch (err) {
+    if (!(err instanceof EtlError)) throw err;
+    if (err.auth) return fail(400, MSG.auth);
+    return fail(502, err.status ? `eTL이 이 자료를 주지 않아요(${err.status}). 교수님이 내렸거나 잠갔을 수 있어요` : MSG.down);
+  }
+  if (!meta?.url || meta.locked_for_user) return fail(403, 'eTL이 이 자료의 내려받기를 막았어요(잠김). eTL에서 직접 열어 주세요');
+  const res = await fetch(meta.url, { signal: AbortSignal.timeout(60000) }).catch(() => null);
+  if (!res?.ok) return fail(502, 'eTL에서 파일을 못 받았어요. 잠시 뒤 다시 해 주세요');
+  const name = String(meta.display_name || item.title);
+  return new Response(res.body, {
+    headers: {
+      'content-type': res.headers.get('content-type') || meta['content-type'] || 'application/octet-stream',
+      'content-disposition': `attachment; filename*=UTF-8''${encodeURIComponent(name)}`,
+      'cache-control': 'private, no-store',
+    },
+  });
 }
 
 // ── eTL(Canvas) 부르기 ───────────────────────────────────────────

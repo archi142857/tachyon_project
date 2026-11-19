@@ -2,9 +2,11 @@
 // 토큰은 학생이 eTL에서 직접 만든다: eTL → 계정 → 설정 → '승인된 통합' → '+ 새 액세스 토큰'.
 // '이건 eTL 비밀번호가 아니에요'를 크게 보인다(비밀번호를 넣을 뻔한 일이 있었음 — 팀원 11-10). 서버도 짧은 글은 eTL에 보내지 않는다.
 // 강의자료는 목록 + eTL 링크만(앱 서버에 복사하지 않음, 11-10). 링크는 eTL에 로그인해야 열린다.
+// '과목 폴더로 모두 저장'(11-19): 서버가 eTL 파일을 흘려보내기만 하고(남기지 않음) 컴퓨터 폴더 · 폰 Download에 과목별로(saveFiles.js).
 import { useCallback, useEffect, useState } from 'react';
 import * as api from '../api.js';
 import { maskToken, tokenFrom } from '../etlToken.js';
+import { canSave, saveFiles } from '../saveFiles.js';
 import { kst } from '../time.js';
 import Sheet from './Sheet.jsx';
 
@@ -239,6 +241,28 @@ export default function EtlSheet({ onClose, onChanged }) {
     }
   }
 
+  // 강의자료를 과목 폴더로 저장(11-19, saveFiles.js)
+  async function saveAll() {
+    const total = items.files.length;
+    setBusy(true);
+    setError(null);
+    setNote(null);
+    try {
+      const r = await saveFiles(items.files, (p) => setNote(`저장하는 중… ${p.saved + p.skipped + p.failed}/${total}`));
+      if (!r) return setNote(null);
+      const where = r.phone ? '폰의 Download/Tachyon 강의자료' : '고른 폴더의 Tachyon 강의자료';
+      const parts = [!r.saved ? '새로 저장할 자료가 없어요' : r.phone ? `${r.saved}개를 ${where}에 받기 시작했어요(진행은 알림에)` : `${r.saved}개를 ${where}에 과목별로 저장했어요`];
+      if (r.skipped) parts.push(`${r.phone ? '전에 받은' : '이미 있던'} ${r.skipped}개는 건너뜀`);
+      if (r.failed) parts.push(`${r.failed}개는 못 받음(eTL에서 잠긴 자료일 수 있어요)`);
+      setNote(parts.join(' · '));
+    } catch (err) {
+      setNote(null);
+      setError(errorText(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const resultText = (r) => {
     const x = r && r.result;
     if (!x) return null;
@@ -275,7 +299,17 @@ export default function EtlSheet({ onClose, onChanged }) {
             </button>
           </div>
           {tab === 'files' ? (
-            <ItemList items={items.files} empty="이번 학기 강의자료가 아직 없어요" />
+            <>
+              <ItemList items={items.files} empty="이번 학기 강의자료가 아직 없어요" />
+              {items.files.length > 0 &&
+                (canSave() ? (
+                  <button type="button" className="btn-line" disabled={busy} onClick={saveAll}>
+                    과목 폴더로 모두 저장
+                  </button>
+                ) : (
+                  <p className="hint">과목 폴더로 모두 저장은 컴퓨터의 크롬 · 엣지나 Tachyon 앱에서 돼요</p>
+                ))}
+            </>
           ) : (
             <ItemList items={items.notices} empty="최근 30일 공지가 없어요" notices />
           )}

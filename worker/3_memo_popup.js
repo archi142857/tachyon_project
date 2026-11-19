@@ -234,12 +234,14 @@ export async function suggestEvent(env, text, now = new Date(), { ctx, userId, f
     }
   };
   // AI에게 묻는 동안 내 일정을 읽는다(기다리는 시간이 안 늘고, AI에게는 일정을 안 보낸다 = 토큰 그대로)
-  const [ai, known, busy] = await Promise.all([
+  const [ai, known, busy, numbered] = await Promise.all([
     askAi(),
     when ? loadKnown(env, userId, text, now) : [],
     when && !when.time ? loadDay(env, userId, when.date) : [], // 시각을 안 썼을 때만: 빈 시간 고르기에 쓴다
+    loadNumbered(env, userId, text),
   ]);
-  const popup = mergePopup(text, when, ai, now);
+  const read = mergePopup(text, when, ai, now);
+  const popup = read && numbered.length ? { ...read, title: numberTitle(read.title, numbered) } : read;
   if (!popup || popup.kind === "task") return popup;
   const len = lengthOf(text); // '2시간'이라고 썼으면 그 길이로
   const filled = markGuessed(popup, withHour(useLength(suggestFree(useKnown(popup, text, known, isoKst(now).slice(0, 10)), text, busy, isoKst(now), len?.minutes, clean(ai?.part)), len)), when, len);
@@ -319,6 +321,51 @@ async function loadDay(env, userId, date) {
     .all()
     .then((r) => r.results)
     .catch(() => []);
+}
+
+// 번호가 붙는 것(한 줄 = 같은 것). 11-19 사람 "퀴즈가 지금까지 2개가 있었는데, 내가 새로 추가하면 퀴즈 3이라고 저장"
+const NUMBERED = [["퀴즈", "quiz", "쪽지시험"], ["과제", "숙제", "hw", "homework", "assignment"], ["실습", "lab"]];
+const wordRe = (words, flags = "i") => new RegExp(`(?<![a-z])(?:${words.join("|")})(?![a-z])`, flags);
+const NUM_AFTER = /^\s*(?:#|no\.?)?\s*\d/i;
+
+/** 번호 없이 쓴 번호 붙는 말의 줄(NUMBERED 한 줄) 또는 null. '퀴즈 3'처럼 번호를 썼으면 null */
+function numberedKind(text) {
+  return NUMBERED.find((words) => {
+    const m = text.match(wordRe(words));
+    return m && !NUM_AFTER.test(text.slice(m.index + m[0].length));
+  }) || null;
+}
+
+/**
+ * '심수기 퀴즈' + 내 할 일·일정 이름들 → '심수기 퀴즈 3'(같은 말에 붙은 가장 큰 번호 + 1). 번호 붙은 게 없으면 그대로.
+ * 과목 줄임말처럼 다른 낱말이 겹치는 것('심수기')이 있으면 그것들만 센다.
+ * ponytail: eTL 과제(tasks)에는 과목 칸이 없어 이름에 과목이 없으면 모든 과목의 퀴즈를 센다 — 두 과목에 퀴즈가 있으면
+ *   번호가 틀릴 수 있다(팝업에서 고침). 과목별로 정확히 하려면 eTL 받을 때 tasks에 과목을 적는다
+ */
+export function numberTitle(title, titles) {
+  const words = numberedKind(title);
+  if (!words) return title;
+  const num = new RegExp(`${wordRe(words).source}\\s*(?:#|no\\.?)?\\s*(\\d{1,3})(?!\\d)`, "gi");
+  const found = titles.map((t) => ({ t, n: Math.max(0, ...[...t.matchAll(num)].map((m) => Number(m[1]))) })).filter((x) => x.n);
+  const others = title.split(/\s+/).filter((w) => w.length >= 2 && !wordRe(words).test(w));
+  const same = found.filter((x) => others.some((w) => x.t.includes(w)));
+  const pool = same.length ? same : found;
+  if (!pool.length) return title;
+  const m = title.match(wordRe(words));
+  const at = m.index + m[0].length;
+  return `${title.slice(0, at)} ${Math.max(...pool.map((x) => x.n)) + 1}${title.slice(at)}`;
+}
+
+/** 메모에 번호 없는 '퀴즈'·'과제' 같은 말이 있으면, 그 말이 든 내 할 일·일정 이름들(끝낸 것도) */
+async function loadNumbered(env, userId, text) {
+  const words = numberedKind(text);
+  if (!words || !env.DB || !userId) return [];
+  const has = "EXISTS (SELECT 1 FROM json_each(?2) WHERE instr(lower(title), value) > 0)";
+  return env.DB.prepare(`SELECT title FROM tasks WHERE user_id = ?1 AND ${has} UNION SELECT title FROM events WHERE user_id = ?1 AND moved_to IS NULL AND ${has} LIMIT 500`)
+    .bind(userId, JSON.stringify(words))
+    .all()
+    .then((r) => r.results.map((x) => x.title))
+    .catch(() => []); // 못 읽어도 팝업은 뜬다
 }
 
 // 메모 길이로 모델 고르기(11-14 피드백 "메모 길이에 따라 작은 모델 / 긴 메모만 서버 큰 모델"):
