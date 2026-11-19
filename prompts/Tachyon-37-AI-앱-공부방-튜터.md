@@ -19,6 +19,12 @@ tachyon mcp가 연결 되면, 사용자들이 각자의 ai 서비스 내에서 �
 시작할 때 시험범위를 물어보게 하면 좋겟고, 체계가 있으면 좋으니까 학습 구조를 잘 시각화해주면 좋을 것 같아
 ````
 
+11-19 14:06 (원격 D1에 `study` 표를 넣을지 물은 데 답)
+
+````text
+Run migration
+````
+
 ## 정한 것
 
 - ALTER 다섯에서 룸메이트를 빼고 넷: 🧑‍🏫 튜터(핵심) · 🧭 조언자 · ✍️ 편집자는 사용자의 AI 앱이 맡고, 📚 사서는 Tachyon(서버)이 맡는다. 규칙(PLAYBOOK)과 튜토리얼은 `study_rooms` 답에 실어 보낸다 — AI 앱마다 따로 설정할 것이 없다.
@@ -41,6 +47,6 @@ tachyon mcp가 연결 되면, 사용자들이 각자의 ai 서비스 내에서 �
 
 ## 남은 것(사람)
 
-- 원격 D1에 `study` 넣기(`npx wrangler d1 execute tachyon --remote --file worker/migrations/14_study.sql`) — 사람 OK 뒤.
+- ~~원격 D1에 `study` 넣기~~ — 11-19 14:07 넣음: 원래 없던 표를 만들고 `PRAGMA table_info`로 8칸 · 열쇠(user_id, course_id) 확인. 13:23 배포(Workers Builds)에 공부방 코드가 들어 있다. 이미 Tachyon을 이어 둔 AI 앱은 도구 목록을 다시 받아야(연결 다시 · 새 대화) `study_*`가 보인다(`listChanged: false`).
 - 팀 확인: 강의자료 내용을 Anthropic에 보내 옮겨 적는 것(저장은 안 함)은 11-10의 '목록 + 링크만' 결정을 넘는다(저작권 · 개인정보처리방침 초안에 표시).
 - 실제 eTL 토큰으로 끝까지: 파일 저장소 주소를 Claude API가 받아 오는지, Claude · ChatGPT에서 지도 창이 뜨는지, 한 번 읽기의 토큰 · 시간.
