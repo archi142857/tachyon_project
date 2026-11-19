@@ -77,7 +77,28 @@ export function makeExample(now = new Date()) {
         { id: id(), course: '미적분학', title: '연습문제 5장.pdf', url: 'https://myetl.snu.ac.kr/courses/0/files/3', posted_at: ago(6 * 24 * 60), tag: null },
       ],
     },
+    // 활동 모아보기(15_activities) 예시: 지어낸 행사 · 모집. 주소는 모양만 서울대 게시판
+    activities: exampleActivities(now),
   };
+}
+
+// 날짜는 오늘에서 며칠 뒤로(예시가 늘 '앞으로의 일'이 되게)
+function exampleActivities(now) {
+  const day = (n) => {
+    const p = kst(new Date(new Date(now).getTime() + n * 86400000));
+    return ymd(p);
+  };
+  const url = (n) => `https://www.snu.ac.kr/snunow/events?md=v&bbsidx=${n}`;
+  const a = (n, more) => ({ id: `e${n}`, src: 'SNU 캘린더', url: url(n), from: null, to: null, posted: null, tags: [], summary: null, apply_until: null, date: null, time: null, end_time: null, end_date: null, place: null, level: null, years: [], colleges: [], who: null, seen: toKstIso(now), ...more });
+  return [
+    a(1, { title: '[경력개발센터] 예시바이오 현직자 특강 참여자 모집', kind: '특강·세미나', tags: ['바이오', '취업', '현직자'], summary: '바이오 기업 연구직 현직자가 들려주는 직무 이야기', apply_until: day(2), date: day(4), time: '19:00', end_time: '20:30', place: '예시관 101호', level: '전체', who: '학부 · 대학원생 누구나', from: day(-3), to: day(2) }),
+    a(2, { title: '예시 생활관 학부생 멘토 모집 공고', kind: '모집·프로그램', tags: ['멘토', '생활관', '리더십'], summary: '신입생과 함께 생활하며 돕는 학부생 멘토 모집', apply_until: `${day(5)}T13:00`, level: '학부', years: [2, 3, 4], who: '학부 2학년 이상, 평점 2.4 이상', from: day(-1), to: day(5) }),
+    a(3, { title: '2027 예시 데이터 분석 공모전', kind: '공모전·대회', tags: ['데이터', 'AI', '분석'], summary: '공공 데이터로 캠퍼스 문제를 푸는 아이디어 공모', apply_until: day(12), level: '학부', colleges: ['공과대학'], who: '공과대학 학부생', from: day(-5), to: day(12) }),
+    a(4, { title: '예시 장학재단 2027년 장학생 모집', kind: '장학', tags: ['장학금'], summary: '학업 우수 학부생 생활비 장학생 선발', apply_until: day(9), level: '학부', who: '학부 재학생', from: day(-2), to: day(9) }),
+    a(5, { title: 'SNU 예시 오케스트라 정기 연주회', kind: '문화·공연', tags: ['음악', '공연'], summary: '학생 오케스트라 정기 연주회, 누구나 무료', date: day(1), time: '19:30', end_time: '21:30', place: '예시 콘서트홀', level: '전체', from: day(1), to: day(1) }),
+    a(6, { title: '[예시연구소] 대학생 수면 습관 설문 참여자 모집', kind: '연구 참여', tags: ['설문', '수면'], summary: '20분 온라인 설문, 참여하면 커피 쿠폰', apply_until: day(7), place: '온라인', level: '학부', who: '서울대 학부생', from: day(-4), to: day(7) }),
+    a(7, { title: '겨울방학 예시국가 단기 연수 참가자 모집', kind: '해외·교류', tags: ['해외', '어학', '연수'], summary: '방학 2주 현지 대학 연수, 계절학기 학점 인정', apply_until: day(3), date: day(40), end_date: day(54), level: '학부', years: [1, 2, 3], who: '학부 1~3학년', from: day(-6), to: day(3) }),
+  ];
 }
 
 // 예시 모드에서만 쓰는 '일정·할 일처럼 보이나' 흉내. 진짜 판단은 서버(worker/3_memo_popup.js, 정규식 + Claude)가 한다.

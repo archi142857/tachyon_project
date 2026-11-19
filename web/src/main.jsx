@@ -20,6 +20,7 @@ import './looks/뉴모피즘.css';
 import './feedback1114.css'; // 11-14 피드백(앱다움 · 고리 면 · 달력 손조작 · 폰 첫 화면) — looks 다음에
 import './unify1115.css'; // 11-15 테마 통일(자리 · 기능은 모든 테마가 같게, 9판에만 있던 것의 기본 모양) — feedback1114.css 다음에
 import './memofloat.css'; // 11-17 데스크탑 작은 메모 창(MemoFloat.jsx)
+import './activities.css'; // 11-19 '활동' 쪽(ActivitiesPage.jsx)
 import './loader.css'; // 테마를 바꿀 때 덮는 테마별 로딩 화면
 import { applyTheme, currentTheme } from './themes.js';
 import { applyText } from './prefs.js';

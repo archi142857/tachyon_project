@@ -15,6 +15,7 @@
 //   /api/admin*      → 11_admin.js           개발자 보기: 사용자 활동 합계(ADMIN_EMAILS에 든 사람만, 아니면 404)
 //   /api/gcal*       → 12_gcal.js            구글 캘린더 실시간 양방향 연동(노션 캘린더는 구글 캘린더를 보여 줌). 쓰기 요청 뒤에도 부른다(아래)
 //   /mcp, /oauth/*, /.well-known/*, /api/ai* → 13_mcp.js   AI 앱(Claude·ChatGPT·Gemini) 연결: 원격 MCP 서버 + 그 로그인(OAuth)
+//   /api/activities  → 15_activities.js      활동 모아보기: 서울대 공개 게시판(SNU 캘린더 · 일반공지) → AI 카드(로그인 없이 읽힘, R2 한 파일)
 //
 // 번호 파일 약속: `export async function handle(request, env, ctx, user)`
 //   user = 로그인한 사람의 users 행(로그인 안 했으면 null). Cron이 필요하면 `export async function scheduled(event, env, ctx)`.
@@ -49,6 +50,7 @@ export const ROUTES = [
   ["/oauth", "13_mcp"],
   ["/.well-known", "13_mcp"],
   ["/api/ai", "13_mcp"],
+  ["/api/activities", "15_activities"],
 ];
 
 // wrangler.toml의 crons와 같아야 한다 (UTC)
@@ -60,7 +62,7 @@ export const CRONS = {
 };
 
 // 쓰기 요청이 끝나면 바뀐 일정을 구글 캘린더에 바로 보낸다(연동한 사람만, 안 한 사람은 DB 읽기 한 번). 일정을 안 건드리는 곳은 뺀다
-const NO_GCAL_AFTER = new Set(["1_login", "6_feedback", "11_admin", "12_gcal", "13_mcp"]);
+const NO_GCAL_AFTER = new Set(["1_login", "6_feedback", "11_admin", "12_gcal", "13_mcp", "15_activities"]);
 // 다른 곳(AI 앱의 서버·브라우저)에서 바로 부르는 주소. 쿠키가 아니라 토큰으로 사람을 알아서 다른 사이트에서 와도 된다(13_mcp.js)
 const CROSS_SITE_OK = new Set(["/mcp", "/oauth/token", "/oauth/register"]);
 
@@ -156,6 +158,7 @@ const IMPORTERS = {
   11: (rest) => import(`./11_${rest}.js`),
   12: (rest) => import(`./12_${rest}.js`),
   13: (rest) => import(`./13_${rest}.js`),
+  15: (rest) => import(`./15_${rest}.js`),
 };
 
 /** 번호 파일(예: "3_memo_popup")을 불러온다. 아직 없으면 null. */

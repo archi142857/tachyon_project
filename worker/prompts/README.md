@@ -8,6 +8,7 @@ Tachyon 앱이 Claude API에 보내는 프롬프트를 고치지 않은 그대�
 | [night.js](night.js) | [4_night.js](../4_night.js) | 똑똑한 모델(Sonnet 5.5) | 01:30 밤 정리: 그날 메모 → 할 일 후보, 할 일마다 걸리는 시간 · 지금 가능 / 수업·자료 뒤 |
 | [timetable_photo.js](timetable_photo.js) | [5_timetable_photo.js](../5_timetable_photo.js) | 똑똑한 모델(Sonnet 5.5, 사진 읽기) | 시간표 사진 → 요일 · 시각 · 과목 · 강의실 목록 (앱에 OCR 없음) |
 | [etl_notice.js](etl_notice.js) | [9_etl.js](../9_etl.js) | 빠른 모델(Haiku 5.5) | eTL 공지 하나 → 시험 · 휴강 · 보강 일정(날짜 · 시각 · 장소, 공지에 적힌 것만) |
+| [activities.js](activities.js) | [15_activities.js](../15_activities.js) | 빠른 모델(Haiku 5.5) | 활동 모아보기(11-19): 서울대 공개 게시판(SNU 캘린더 · 일반공지) 새 글 몇 개 → 종류 · 관심 태그 · 한 줄 요약 · 신청 마감 · 행사 때 · 장소 · 대상(학부/대학원 · 학년 · 단과대). 글은 저장하지 않고 카드 칸 + 원문 링크만 |
 | [study_read.js](study_read.js) | [14_study.js](../14_study.js) | 빠른 모델(Haiku 5.5, PDF · 사진 읽기) | AI 앱 공부방: 시험 범위 안 eTL 강의자료 몇 쪽 → 쪽마다 그대로 옮겨 적은 글(요약 · 오타 고치기 없음). 글은 사용자의 AI 앱으로 바로 가고 저장하지 않음 |
 
 ## 모든 프롬프트가 지키는 규칙 (11-09 '아이디어 회의 1')

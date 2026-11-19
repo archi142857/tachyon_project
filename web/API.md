@@ -234,7 +234,18 @@ Claude · ChatGPT · Gemini 같은 AI 앱이 Tachyon을 읽고(일정 · 빈 시
 | `POST /mcp` | AI 앱이 부르는 MCP(JSON-RPC, Bearer 토큰). 도구: `get_briefing` `get_schedule` `find_free_time` `list_tasks` `get_etl` `list_memos`(읽기) · `add_event` `add_task`(넣기) |
 | `/.well-known/oauth-*`, `/oauth/*` | AI 앱의 로그인(OAuth 2.1 + PKCE). `/oauth/authorize`는 Tachyon 허락 화면(로그인 안 했으면 로그인부터) |
 
-`POST /api/tasks { title, due?, minutes?, remind? }` → `{ task }`(할 일 바로 넣기, 7_items)도 이때 생김. 화면은 아직 안 씀.
+`POST /api/tasks { title, due?, minutes?, remind? }` → `{ task }`(할 일 바로 넣기, 7_items)도 이때 생김. 화면은 11-19부터 '활동'의 '신청 마감 할 일로'가 씀(`api.createTask`).
+
+## 15_activities (컨셉 세션, 11-19 사람 요청) — 있음 (`worker/15_activities.js`), 화면은 '활동' 쪽(`ActivitiesPage.jsx`)
+
+서울대 공개 게시판(SNU 캘린더 · 일반공지 — 로그인 없이 보이는 페이지)의 새 글을 서버가 가끔 읽어, AI(Haiku, `prompts/activities.js`)가 종류 · 관심 태그 · 한 줄 요약 · 신청 마감 · 행사 때 · 대상을 붙인 카드 목록. 모두에게 같은 공개 자료라 R2 한 파일(`activities/list.json`), DB 표 바꿈 없음. 본문 · 첨부는 저장하지 않는다(카드 칸 + 원문 링크). 메일은 보류(사람 11-19 12:50), SNU비교과(extra.snu.ac.kr)는 학교 로그인 안이라 안 읽음.
+
+| 주소 | 하는 일 |
+|---|---|
+| `GET /api/activities` | `{ items, kinds, updated_at, refreshing, waiting }` — 로그인 없이도 됨. 2시간 지났으면(못 읽은 글이 남았으면 20초) 답한 뒤 뒤에서 한 걸음(첫 쪽 + 새 글 본문 6개 + AI 한 번) |
+
+item = `{ id, src, url, title, from, to, posted, kind, tags, summary, apply_until('YYYY-MM-DD' 또는 'YYYY-MM-DDTHH:MM'), date, time, end_time, end_date, place, level('학부'|'대학원'|'전체'|null), years, colleges, who, seen }` — 모르는 칸은 null · 빈 배열. 마감이 가까운 순. '안내'(행정 알림)는 빼고 보냄.
+거르기(신청 가능 · 관심사 · 시간 됨)와 관심사 · 별표 · 숨기기는 화면이 이 기기에서(`web/src/activities.js`, localStorage `tachyon_activities_v1`). '일정에 넣기'는 `POST /api/events`.
 
 ## 아직 화면이 없는 것 (2단계)
 

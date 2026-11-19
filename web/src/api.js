@@ -513,6 +513,22 @@ export function getEtlItems() {
   return call('GET', '/api/etl/items');
 }
 
+// 활동 모아보기(11-19, worker/15_activities.js) → { items, kinds, updated_at, refreshing, waiting }. 서울대 공개 게시판이라 모두 같은 목록
+export function getActivities() {
+  if (ex) return reply({ items: ex.activities, kinds: ['특강·세미나', '공모전·대회', '모집·프로그램', '장학', '해외·교류', '취업·창업', '봉사', '문화·공연', '연구 참여'], updated_at: new Date().toISOString(), refreshing: false, waiting: 0 });
+  return call('GET', '/api/activities');
+}
+
+// 할 일 바로 넣기(활동의 '신청 마감 할 일로'): { title, due? } → { task }. 서버 7_items POST /api/tasks
+export function createTask(fields) {
+  if (ex) {
+    const task = { id: Date.now(), due: null, minutes: null, ready: 1, done: 0, source: 'memo', remind: null, ...fields };
+    ex.tasks.push(task);
+    return reply({ task });
+  }
+  return call('POST', '/api/tasks', fields);
+}
+
 // TT Wizard 시간표 링크(11-11 컨셉, worker/ttwizard.js). 살펴보기 → { sem, title, classes: [{ title, found, custom, times: [{ day, start, end, place }] }], from, until, replaces }
 // 넣기 → { saved, classes }. 내보내기 → { link, count, matched }(TT Wizard에서 여는 주소)
 export function ttwizardPreview(link) {

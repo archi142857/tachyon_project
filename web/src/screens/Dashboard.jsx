@@ -36,6 +36,7 @@ import Snackbar from '../components/Snackbar.jsx';
 import TaskList from '../components/TaskList.jsx';
 import ThemeSheet from '../components/ThemeSheet.jsx';
 import TogetherPage from '../components/TogetherPage.jsx';
+import ActivitiesPage from '../components/ActivitiesPage.jsx';
 import TidySheet from '../components/TidySheet.jsx';
 import TodayView from '../components/TodayView.jsx';
 import WidgetGrid from '../components/WidgetGrid.jsx';
@@ -113,6 +114,7 @@ const PAGES = [
   ['tasks', '할 일'],
   ['memo', '메모'],
   ['together', '같이'],
+  ['activities', '활동'], // 11-19 사람 "서울대 비교과 … 활동 / 행사 안내 … 모아볼 수 있는 섹션"(ActivitiesPage.jsx)
 ];
 const PANES = [
   ['ring', '하루'],
@@ -911,6 +913,14 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
           {page === 'together' && <TogetherPage key={togetherKey} example={example} now={now} onSnack={(text) => setSnack({ text })} startCreate={togetherStart} onStartUsed={doneTogetherStart} overlay={overlay.on ? overlay.groupId : null} onOverlay={(groupId) => {
                 if (toggleOverlay(groupId)) setSnack({ text: '주 달력에 다 같이 빈 시간을 겹쳐 보여요', actionLabel: '달력 보기', onAction: () => setPage('cal') });
               }} />}
+          {page === 'activities' && (
+            <ActivitiesPage
+              events={allEvents}
+              now={now}
+              onSnack={(text) => setSnack({ text })}
+              onChanged={(what) => (what === 'tasks' ? loadRank() : loadEvents())}
+            />
+          )}
         </main>
 
         {/* 정면 창(디자인 ⑤): 뒤를 막고 흐린다. 막을 누르면 '취소'와 같음 */}
