@@ -13,4 +13,12 @@
 .float-memo input:focus { border-color: var(--text); }
 .float-memo .send { flex: none; height: 44px; padding: 0 16px; border: 0; border-radius: var(--r-btn); background: var(--text); color: var(--bg); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
 .float-memo .send:disabled { opacity: 0.4; cursor: default; }
-.float-line { margin: 0; font-size: 12px; line-height: 1.4; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.float-status { display: flex; gap: 8px; align-items: center; min-height: 28px; }
+.float-line { flex: 1; min-width: 0; margin: 0; font-size: 12px; line-height: 1.4; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.float-here { flex: none; height: 28px; padding: 0 10px; border: 1px solid var(--line-strong); border-radius: var(--r-btn); background: var(--card); color: var(--text); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.float-here:hover { background: var(--fill); }
+
+/* 11-19: Tachyon 창이 안 보일 때 메모 팝업을 작은 창 안에(MemoFloat.jsx FloatPopup). 창 전체가 팝업이라 막(scrim) · 가운데 띄우기 없이 꽉 차게 */
+.float-body.has-popup { display: block; overflow-y: auto; }
+.float-popup { box-sizing: border-box; padding: 12px; }
+.float-body .float-popup .popup.front { position: static; inset: auto; transform: none; width: auto; max-width: none; max-height: none; margin: 0; box-shadow: none; animation: none; }
