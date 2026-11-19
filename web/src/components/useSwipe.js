@@ -1,33 +1,31 @@
 // 달력 좌우 넘기기(폰 손가락). 11-19 사람 "아래로 내릴 때랑 옆으로 넘길 때가 자꾸 충돌", "노션 등에서 쓰이는 탄성 느낌".
 // 위아래: 칸이 touch-action: pan-y(feedback1114.css)라 브라우저가 그대로 굴린다(관성 포함). 처음 움직임이 옆이면 브라우저가
 //   굴리지 않고 손가락을 여기로 넘긴다 = 방향 잠금. 그래서 옆으로 넘기는 동안 위아래가 같이 흔들리지 않는다.
-// 옆: 손가락을 그대로 따라가고, 놓으면 빠르기·거리로 한 화면(n일) 앞뒤 또는 제자리를 골라 용수철로 붙는다(조금 지나쳤다 돌아옴).
+// 옆: 손가락을 그대로 따라가고, 놓으면 빠르기·거리로 하루 앞뒤(많이 끌었으면 가까운 날) 또는 제자리를 골라 용수철로 붙는다.
+//   11-19 10:06 사람 "보는 날짜 개수와 상관없이 하루단위로", "모션이 너무 강해" → 한 화면씩 → 하루씩, 지나쳤다 돌아오는 튕김 없앰.
 // 마우스 · 트랙패드는 예전처럼 브라우저가 굴린다(칸 단위로 붙음). 멈춘 뒤 start 옮기기는 WeekCalendar의 settle이 한다(scrollend).
 import { useEffect, useRef } from 'react';
 
-const FLICK = 0.3; // px/ms. 이보다 빠르게 튕기면 거리가 짧아도 한 화면 넘긴다
-const HALF = 0.3; // 한 화면의 이만큼 넘게 끌었으면 넘긴다
-// 용수철(react-spring 단위). 감쇠비 = 18 / (2√200) ≈ 0.64 → 60fps에서 튕겨 넘기면 약 12px 지나쳤다 돌아오고 0.5초에 멈춤
-// (24면 지나침이 0이라 탄성이 안 느껴진다 — 11-19 계산). 더 통통 = FRICTION을 낮게, 더 차분 = 높게
-const TENSION = 200;
-const FRICTION = 18;
+const FLICK = 0.3; // px/ms. 이보다 빠르게 튕기면 거리가 짧아도 하루 넘긴다
+const HALF = 0.3; // 날 칸의 이만큼 넘게 끌었으면 넘긴다
+// 용수철(react-spring 단위). 감쇠비 = 32 / (2√260) ≈ 1 → 지나침 없이 0.4~0.5초에 멈춤(11-19 계산: 2000px/s로 튕겨도 0px).
+// 18이면 약 12~19px 지나쳤다 돌아와 '너무 강하다'였다. 더 통통 = FRICTION을 낮게, 더 차분 = 높게
+const TENSION = 260;
+const FRICTION = 32;
 
 /**
  * 손을 뗐을 때 붙을 scrollLeft. base = 끌기 시작한 날 칸 자리, left = 지금, v = 빠르기(px/ms, + = 다음 날 쪽),
- * w = 날 칸 너비, n = 한 화면 날 수, max = 굴릴 수 있는 끝.
+ * w = 날 칸 너비, max = 굴릴 수 있는 끝. 보는 날 수와 상관없이 하루 단위.
  */
-export function swipeTarget({ base, left, v, w, n, max }) {
-  const page = w * n;
-  let pages = Math.round((left - base) / page);
-  if (pages === 0 && (Math.abs(v) > FLICK || Math.abs(left - base) > page * HALF)) pages = Math.sign(Math.abs(v) > FLICK ? v : left - base);
-  return Math.min(max, Math.max(0, base + pages * page));
+export function swipeTarget({ base, left, v, w, max }) {
+  let days = Math.round((left - base) / w);
+  if (days === 0 && (Math.abs(v) > FLICK || Math.abs(left - base) > w * HALF)) days = Math.sign(Math.abs(v) > FLICK ? v : left - base);
+  return Math.min(max, Math.max(0, base + days * w));
 }
 
-// scRef = 굴리는 칸, colW() = 날 칸 너비, n = 한 화면 날 수. → busy ref(true = 넘기는 중, 그동안 settle은 기다린다)
-export default function useSwipe(scRef, colW, n) {
+// scRef = 굴리는 칸, colW() = 날 칸 너비. → busy ref(true = 넘기는 중, 그동안 settle은 기다린다)
+export default function useSwipe(scRef, colW) {
   const busy = useRef(false);
-  const nRef = useRef(n);
-  nRef.current = n;
   useEffect(() => {
     const sc = scRef.current;
     if (!sc) return undefined;
@@ -66,7 +64,7 @@ export default function useSwipe(scRef, colW, n) {
       const was = g;
       g = null;
       if (!w) return void (busy.current = false);
-      const to = was.on ? swipeTarget({ base: was.base, left: sc.scrollLeft, v, w, n: nRef.current, max: sc.scrollWidth - sc.clientWidth }) : was.base;
+      const to = was.on ? swipeTarget({ base: was.base, left: sc.scrollLeft, v, w, max: sc.scrollWidth - sc.clientWidth }) : was.base;
       spring(to, was.on ? v : 0);
     };
 
