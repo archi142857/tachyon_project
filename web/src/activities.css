@@ -53,3 +53,6 @@
 .act-hidden li { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text2); }
 .act-hidden li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .act-foot { margin: 4px 2px 0; font-size: 12px; line-height: 17px; color: var(--text3, var(--text2)); }
+
+/* 테두리 단추 모양의 바깥 링크(TtwSheet 'TT Wizard 졸업 요건 열기', 11-19) */
+a.btn-line { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; text-decoration: none; }

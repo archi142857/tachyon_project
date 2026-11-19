@@ -139,6 +139,15 @@ export default function TtwSheet({ initialLink, onClose, onSaved }) {
         </button>
         {out && <p className="hint">{out}</p>}
       </div>
+
+      {/* 졸업 요건 미리 보기(11-19 사람 "졸업요건 … TT Wizard에 조사되었을 텐데 … 필요한 기능은 똑같이 써도 되고"):
+          TT Wizard의 '졸업 요건' 탭(157과정 · 2019~2026학번, 학교 공개 문서 기반)으로 바로. 그 탭은 TT Wizard에서 학과 · 학번을 켜야 보인다 */}
+      <div className="ttw-out">
+        <p className="hint">졸업 요건 미리 보기도 TT Wizard에 있어요. 학과 · 학번을 켜면 학기마다 들은 과목으로 남은 요건과 다음 학기 추천을 보여 줘요(학교 공식 졸업 사정은 아니에요).</p>
+        <a className="btn-line" href="https://archi142857.github.io/tt-wizard/#tab=grad" target="_blank" rel="noopener noreferrer">
+          TT Wizard 졸업 요건 열기
+        </a>
+      </div>
     </Sheet>
   );
 }
