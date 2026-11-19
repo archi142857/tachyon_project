@@ -27,12 +27,10 @@ describe('useEventDrag', () => {
 });
 
 describe('달력 한 시간 높이(11-15)', () => {
-  it('짧은 일정에도 글자가 보이게 늘리고, 배율은 하루 한 화면 ~ 160px 안', async () => {
+  it('기본 높이(짧은 일정 때문에 늘리지 않음), 배율은 하루 한 화면 ~ 160px 안', async () => {
     const { autoHour, clampZoom, calPad } = await import('./components/WeekCalendar.jsx');
-    expect(autoHour({ fit: 30, need: 46, shortest: 1 })).toBe(46); // 한 시간 일정 = 두어 줄
-    expect(autoHour({ fit: 30, need: 46, shortest: 0.25 })).toBe(92); // 15분짜리도 0.5시간 몫으로
-    expect(autoHour({ fit: 60, need: 46, shortest: 1 })).toBe(60); // 화면이 넉넉하면 꽉 채움
-    expect(autoHour({ fit: 30, need: 46, shortest: 0.1 })).toBe(92);
+    expect(autoHour({ fit: 30, base: 52 })).toBe(52); // 11-20: 짧은 일정은 한 줄로 그리고 한 시간은 늘 기본
+    expect(autoHour({ fit: 60, base: 52 })).toBe(60); // 화면이 넉넉하면 하루를 꽉 채움
     expect(clampZoom(0.01, 46, 30) * 46).toBeCloseTo(30); // 하루 한 화면보다 작게는 안 됨
     expect(clampZoom(10, 46, 30) * 46).toBeCloseTo(160);
     expect(clampZoom(1, 46, 30)).toBe(1);

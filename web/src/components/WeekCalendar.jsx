@@ -1,10 +1,12 @@
 // 주간 달력. 첫 칸은 start(처음엔 오늘), n = 한 화면에 보이는 날 수: 하루 · 3일 · 주(11-14 피드백, 폰은 처음 3일).
 // 좌우는 굴리기(11-15 사람 "노션 캘린더처럼 스와이프하면서 부드럽게, 좌우 스크롤"): 앞뒤로 pad(n)일씩 더 그려 두고 손·트랙패드로 굴린다.
 //   멈추면(날 칸 경계에 붙음) 맨 왼쪽 날로 onMove(며칠) → 부모가 start를 옮긴다. 그려 둔 칸은 그대로 두고, 가장자리 가까이 가면 그때만 start를 가운데로 다시 그린다(화면은 그대로). 앞뒤 제한 없음.
-// 위아래: 한 시간 높이를 일정 글자가 보이게 늘린 것이 기본, 두 손가락(트랙패드는 ctrl+휠)으로 확대·축소(이 기기에 기억, 11-15).
+// 위아래: 0~24시 전체(11-20 사람 "달력 가독성이 너무 안좋아 … 대폭"): 한 시간 높이는 CSS --cal-hour-base(폰 52 · 넓은 화면 58px),
+//   두 손가락(트랙패드는 ctrl+휠)으로 확대·축소(이 기기에 기억). 처음엔 지금 시각(밤이면 그 주 첫 일정) 조금 위로 굴려 둔다.
+//   짧은 일정은 22px까지 키워 '08:00 제목' 한 줄로(겹침 계산도 그 높이로), 길면 제목 + 시각 · 장소.
 // 빈 칸을 누르면 그 30분 자리로 onAdd(날, 분) — 일정 넣기 창(11-14). 일정은 한 번 눌러 고른 뒤에만 끌어 옮기고 아래 끝으로 길이를 바꾼다
 //   (11-15 사람 "달력 넘기는데 클릭돼서 불평" → 고르지 않은 일정은 끌리지 않음). 고른 일정을 한 번 더 누르면 자세히(onEvent).
-// 지금 선은 오늘이 보이면 늘 보인다(시간 축이 지금 시각을 품게 넓힌다 — 11-14 '실시간 선이 안 뜸': 밤에는 9–20시 축 밖이라 안 그려졌다).
+// 지금 선은 오늘이 보이면 늘 보인다(축이 0~24시라 밤에도 — 11-14 '실시간 선이 안 뜸').
 // 날짜 숫자를 그날 밀도 고리(DensityRing)가 감싸고(11-13 사람 '바쁨도 밀도 고리가 날짜 숫자를 감싸도록'), 밑에 쓰는 시간. 날짜를 누르면 그날로 메모 칸을 연다(onDay). ('고르게' 막대 줄과 설명은 11-12 사람 "없어도 될 듯"으로 뺐다 — 고르게 나눈 것은 고리와 할 일 쪽 '나눠 둔 몫'에 보인다.)
 // 맨 위 줄은 과제 마감(시각을 붙여서)과 하루 종일 일정, 아래는 시간 칸. 중요한 일정은 굵은 테두리.
 // 모든 테마가 같은 달력(사람 11-15 16:52, 기본 테마 기준): 1시간 눈금 · 맨 위 '마감' 줄 · 오늘 칸의 지금 선 + 칸을 가로지르는 옅은 점선과 시각(예전 입자 9판 .nl) ·
@@ -32,6 +34,7 @@ function eventLabel(ev, leg) {
 }
 
 const used = (d) => (d ? d.eventMin + d.taskMin + d.over : 0);
+const weekend = (day) => ['', '', '', '', '', ' sat', ' sun'][kst(day).wd]; // 토 파랑 · 일 빨강(우리 달력 버릇)
 
 // 다 같이 빈 시간 띠(11-13, 디자인 넷째 묶음 ①)의 끝 글자: 자정이면 24:00
 const spanEnd = (sp) => (sp.end.slice(0, 10) !== sp.start.slice(0, 10) && hhmm(sp.end) === '00:00' ? '24:00' : hhmm(sp.end));
@@ -39,13 +42,12 @@ const spanEnd = (sp) => (sp.end.slice(0, 10) !== sp.start.slice(0, 10) && hhmm(s
 // density(date) → 그날 밀도(density.js) 또는 null
 // together = { name, spans: [{ start, end }] } 고른 그룹의 다 같이 빈 시간(없으면 null) → 칸마다 일정 뒤에 띠.
 // 띠를 누르면 onTogether({ start, end }) — 누른 30분부터 1시간(띠 끝까지), 키보드로는 띠 처음부터
-// 칸 높이에 들어가는 줄 수(글자가 줄을 넘어 반쯤 잘려 보이지 않게, 11-14 피드백) — 남는 줄은 '…'로 끝난다
-const linesFor = (hours, hourPx, lh) => Math.max(1, Math.floor((hours * hourPx - 6) / lh));
 
 /** 보이는 날 앞뒤로 더 그려 둘 날 수(굴릴 몫). 부모도 이만큼 넓게 일정을 불러온다 */
 export const calPad = (n) => Math.max(7, 2 * n);
 
-const ZOOM_KEY = 'tachyon_cal_zoom';
+const ZOOM_KEY = 'tachyon_cal_zoom2'; // 11-20 한 시간 기준이 바뀌어 예전 배율(…_zoom)은 버린다
+const MIN_PX = 22; // 짧은 일정도 한 줄은 읽히게
 const MAX_HOUR = 160;
 function readZoom() {
   try {
@@ -64,10 +66,11 @@ function saveZoom(z) {
 }
 
 /**
- * 한 시간 높이(px). auto = 맨 짧은 일정에도 글자 두어 줄이 들어가는 높이와 '하루가 한 화면'(fit) 중 큰 것(120까지).
+ * 한 시간 높이(px). auto = 읽기 좋은 기본(base, CSS --cal-hour-base)과 '하루가 한 화면'(fit) 중 큰 것.
+ * (예전엔 맨 짧은 일정에 맞춰 120px까지 늘려 하루가 텅 빈 칸으로 보였다 — 11-20)
  * zoom = 두 손가락으로 바꾼 배율(1 = 기본). 하루가 한 화면보다 작게는, 160px보다 크게는 안 된다.
  */
-export const autoHour = ({ fit, need, shortest }) => Math.min(120, Math.max(fit, need / Math.max(0.5, shortest)));
+export const autoHour = ({ fit, base }) => Math.max(fit, base);
 /** 배율을 되는 범위로: 하루가 한 화면(fit)보다 작게, 160px보다 크게는 안 된다 */
 export const clampZoom = (zoom, auto, fit) => Math.min(MAX_HOUR / auto, Math.max(Math.min(fit, auto) / auto, zoom));
 
@@ -88,12 +91,9 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
   const timed = events.filter((e) => !isAllDay(e));
   const allDay = events.filter(isAllDay);
   const shown = timed.filter((e) => dayIndex(from0, e.start, total) >= 0);
-  const range = hourRange(start, together ? [...shown, ...together.spans] : shown); // 겹쳐 보면 다 같이 빈 시간도 보이게 넓힌다
-  const nowFirst = showNow ? Math.min(range.first, Math.floor(nowHour)) : range.first;
-  // 눈금은 모든 테마가 1시간마다(사람 11-15 16:52 "테마가 달라도 위치·레이아웃·기능은 같게" — 기본 테마 기준)
-  const first = nowFirst;
-  const last = showNow ? Math.max(range.last, Math.min(24, Math.floor(nowHour) + 1)) : range.last;
-  const step = 1;
+  // 축은 늘 0~24시, 눈금은 모든 테마가 1시간마다(사람 11-15 16:52 "테마가 달라도 위치·레이아웃·기능은 같게")
+  const first = 0;
+  const last = 24;
   const hourAt = (date) => minuteOfDay(date) / 60 - first;
   const nowTop = hourAt(now);
 
@@ -102,11 +102,10 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
   // ── 굴리는 칸(좌우 · 위아래) ──
   const scRef = useRef(null);
   const stickRef = useRef(null);
-  const [view, setView] = useState({ h: 0, stick: 0, need: 46 }); // 굴리는 칸 높이 · 위 머리 높이 · 일정 글자 두어 줄 높이(--ev-need)
+  const [view, setView] = useState({ h: 0, stick: 0, base: 52 }); // 굴리는 칸 높이 · 위 머리 높이 · 기본 한 시간 높이(--cal-hour-base)
   const [zoom, setZoom] = useState(readZoom);
-  const shortest = shown.length ? Math.min(...shown.map((e) => (endOf(e) - Date.parse(e.start)) / 3600000)) : 1;
   const fitHour = view.h ? (view.h - view.stick) / (last - first) : 0;
-  const auto = view.h ? autoHour({ fit: fitHour, need: view.need, shortest }) : 0;
+  const auto = view.h ? autoHour({ fit: fitHour, base: view.base }) : 0;
   const hour = auto ? auto * clampZoom(zoom, auto, fitHour) : null;
   const colW = () => scRef.current?.querySelector('.cal-grid > .col')?.getBoundingClientRect().width || 0;
   // start 칸을 맨 왼쪽에. 이미 거기면(굴려 멈춘 자리를 알린 뒤) 건드리지 않는다 — 손이 만든 움직임을 끊지 않게
@@ -119,7 +118,7 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
     const sc = scRef.current;
     if (!sc || typeof ResizeObserver === 'undefined') return undefined;
     const measure = () => {
-      setView({ h: sc.clientHeight, stick: stickRef.current?.offsetHeight || 0, need: parseFloat(getComputedStyle(sc).getPropertyValue('--ev-need')) || 46 });
+      setView({ h: sc.clientHeight, stick: stickRef.current?.offsetHeight || 0, base: parseFloat(getComputedStyle(sc).getPropertyValue('--cal-hour-base')) || 52 });
       center();
     };
     const ro = new ResizeObserver(measure);
@@ -133,13 +132,15 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
     else center();
   }, [at, n]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 처음 한 번: 오늘이 보이면 지금 시각 조금 위로
+  // 처음 한 번: 오늘이 보이고 지금이 그 주 일정 시간대 안이면 지금 시각 조금 위로, 아니면(밤 · 다른 주) 그 주 첫 일정 조금 위로
   const scrolledY = useRef(false);
   useLayoutEffect(() => {
     const sc = scRef.current;
     if (!hour || scrolledY.current || !sc) return;
     scrolledY.current = true;
-    if (isCurrent) sc.scrollTop = Math.max(0, (minuteOfDay(now) / 60 - first - 1.5) * hour);
+    const range = hourRange(start, shown);
+    const at = isCurrent && nowHour >= range.first - 1 && nowHour < range.last ? nowHour - 1.5 : range.first - 0.5;
+    sc.scrollTop = Math.max(0, at * hour);
   }, [hour]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 좌우로 굴리다 멈추면 맨 왼쪽 날로 start를 옮긴다(칸은 그대로라 화면이 움직이지 않는다). 손가락이 닿아 있는 동안은 기다린다.
@@ -265,6 +266,7 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
     return () => ro.disconnect();
   }, [last, first]);
 
+  const hPx = hour || fit.hour; // 지금 한 시간 높이(px)
   const cols = () => (gridRef.current ? [...gridRef.current.querySelectorAll(':scope > .col')] : []);
   const drag = useEventDrag({
     cols,
@@ -283,7 +285,7 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
 
   return (
     <section
-      className="card cal"
+      className="card cal wk"
       aria-label={n === 7 ? '주간 달력' : `${n}일 달력`}
       style={{ '--n': n, '--total': total }}
       onKeyDown={(e) => e.key === 'Escape' && sel && (e.stopPropagation(), setSel(null))}
@@ -319,7 +321,7 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
             <button
               key={i}
               type="button"
-              className={`cal-day${i === todayIdx ? ' today' : ''}`}
+              className={`cal-day${i === todayIdx ? ' today' : ''}${weekend(day)}`}
               aria-label={`${p.m}월 ${p.d}일 ${WEEKDAYS[p.wd]}요일${d ? `, 일정 ${hoursText(d.eventMin)}, 할 일 ${hoursText(d.taskMin + d.over)}` : ''}. 이 날에 넣기`}
               onClick={() => onDay?.(day)}
             >
@@ -328,7 +330,7 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
                 <DensityRing day={d} size={36} />
                 <span className="dn num">{p.d}</span>
               </span>
-              <span className="dh num">{d ? Math.round((used(d) / 60) * 10) / 10 : ''}</span>
+              <span className="dh num">{used(d) ? `${Math.round((used(d) / 60) * 10) / 10}시간` : ''}</span>
             </button>
           );
         })}
@@ -336,7 +338,7 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
 
       {hasTop && (
         <div className="cal-top">
-          <span className="axis-label">마감</span>
+          <span className="axis-label">{top.some((items) => items.some((x) => x.kind === 'allday')) ? '종일' : '마감'}</span>
           {top.map((items, i) => (
             <div className="day" key={i}>
               {items.map(({ kind, item }) =>
@@ -345,7 +347,7 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
                     <b className="num">{hhmm(item.due)}</b> {item.title}
                   </button>
                 ) : (
-                  <button key={`e${item.id}`} type="button" className="chip allday" title={item.title} onClick={() => onEvent(item)}>
+                  <button key={`e${item.id}`} type="button" className="chip allday" style={{ '--c': tint(item.title) }} title={item.title} onClick={() => onEvent(item)}>
                     {item.title}
                   </button>
                 ),
@@ -357,13 +359,13 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
       </div>
 
         <div className="cal-grid" ref={gridRef} style={{ height: `calc(var(--hour) * ${last - first})` }}>
-          {Array.from({ length: (last - first) / step - 1 }, (_, i) => (
-            <div key={i} className="hline" style={{ top: `calc(var(--hour) * ${(i + 1) * step})` }} aria-hidden="true" />
+          {Array.from({ length: (last - first) * 2 - 1 }, (_, i) => (
+            <div key={i} className={i % 2 ? 'hline' : 'hline half'} style={{ top: `calc(var(--hour) * ${(i + 1) / 2})` }} aria-hidden="true" />
           ))}
           <div className="hours" aria-hidden="true">
-            {Array.from({ length: (last - first) / step }, (_, i) => (
-              <span key={i} className="num" style={{ top: i === 0 ? '2px' : `calc(var(--hour) * ${i * step} - 8px)` }}>
-                {first + i * step}
+            {Array.from({ length: last - first - 1 }, (_, i) => (
+              <span key={i} className="num" style={{ top: `calc(var(--hour) * ${i + 1})` }}>
+                {first + i + 1}시
               </span>
             ))}
           </div>
@@ -374,7 +376,7 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
           )}
           {days.map((day, i) => (
             <div
-              className={i === todayIdx ? 'col today' : 'col'}
+              className={`col${i === todayIdx ? ' today' : ''}${weekend(day)}`}
               key={i}
               onClick={(e) => {
                 // 빈 칸 누르기 → 그 30분 자리에 일정 넣기(일정 · 띠를 누른 것은 그쪽이 받는다)
@@ -416,9 +418,13 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
                     />
                   );
                 })}
-              {layoutDay(timed.filter((e) => dayIndex(from0, e.start, total) === i)).map(({ ev, col, cols }) => {
+              {layoutDay(timed.filter((e) => dayIndex(from0, e.start, total) === i), (MIN_PX / hPx) * 3600000).map(({ ev, col, cols }) => {
                 const s = hourAt(ev.start);
                 const len = Math.min((endOf(ev) - Date.parse(ev.start)) / 3600000, last - first - s);
+                // 칸 높이(px)로 글 모양: 40px 아래는 '08:00 제목' 한 줄, 그 위는 제목(들어가는 만큼, 넘치면 …) + 시각 · 장소 한 줄(11-14 반쯤 잘린 글자 없게)
+                const px = Math.max(len * hPx, MIN_PX);
+                const one = px < 40;
+                const lines = Math.max(1, Math.floor((px - 8) / fit.lh) - 1);
                 const leg = legs && legs.get(ev.id);
                 const late = lateOf(leg && leg.arrive);
                 const from = minuteOfDay(ev.start);
@@ -427,10 +433,10 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
                   <button
                     key={ev.id}
                     type="button"
-                    className={`ev ${ev.source === 'timetable' || ev.source === 'memo' ? ev.source : 'ics'}${ev.important ? ' important' : ''}${late > 0 ? ' late-ev' : ''}${endOf(ev) < new Date(now).getTime() ? ' past' : ''}${drag.ghost?.id === ev.id ? ' lifting' : ''}${sel === ev.id ? ' selected' : ''}`}
+                    className={`ev ${ev.source === 'timetable' || ev.source === 'memo' ? ev.source : 'ics'}${one ? ' one' : ''}${ev.important ? ' important' : ''}${late > 0 ? ' late-ev' : ''}${endOf(ev) < new Date(now).getTime() ? ' past' : ''}${drag.ghost?.id === ev.id ? ' lifting' : ''}${sel === ev.id ? ' selected' : ''}`}
                     style={{
                       top: `calc(var(--hour) * ${s} + 1px)`,
-                      height: `calc(var(--hour) * ${Math.max(len, 0.5)} - 2px)`,
+                      height: `max(calc(var(--hour) * ${len} - 2px), ${MIN_PX}px)`,
                       left: `calc(${(col / cols) * 100}% + 2px)`,
                       width: `calc(${100 / cols}% - 4px)`,
                       '--c': tint(ev.title),
@@ -447,10 +453,10 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
                   >
                     {/* 이름은 보이는 글자 그대로 + 화면 읽기용 시각·중요(보이는 글자가 이름 안에 있어야 한다) */}
                     <span className="sr-only">{timeText(ev)}, </span>
-                    <span className="ev-t" style={{ WebkitLineClamp: linesFor(Math.max(len, 0.5), fit.hour, fit.lh) }}>
+                    <span className="ev-t" style={{ '--lines': one ? 1 : lines }}>
                       {ev.title}
                     </span>
-                    <span className="place">{[timeText(ev).replace('–', ' – '), ev.place].filter(Boolean).join(' · ')}</span>
+                    <span className="ev-m num">{one ? hhmm(ev.start) : [timeText(ev), ev.place].filter(Boolean).join(' · ')}</span>
                     {ev.important ? <span className="sr-only">, 중요</span> : null}
                     {late > 0 && <span className="late-pill">{late}분 지각</span>}
                     {onDrop && sel === ev.id && <span className="ev-grip" aria-hidden="true" onPointerDown={(e) => (e.stopPropagation(), drag.start(e, item, 'resize'))} />}

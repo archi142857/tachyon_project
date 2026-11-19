@@ -1,0 +1,103 @@
+/* 11-20 달력 다시 짜기(사람 01:17 "달력 가독성이 너무 안좋아. 깔짝 수정하지 말고 대폭 업데이트 해줘").
+   주간 달력(WeekCalendar.jsx, section.cal.wk)만. 모든 테마가 같은 짜임 · 크기 · 글 모양이고, 색은 테마 값(--card · --text · --accent …)과
+   테마마다의 일정 색 다섯(--tint-0 ~ 4, themeName.js tint)으로. 앞 층들(styles · shape · nine · looks · feedback1114 · unify1115)의
+   달력 규칙 위에 덮으려고 `html .cal.wk` + 칸 이름으로 쓴다(입자 · 그림 테마 규칙 html[data-theme] .ev 보다 세다).
+   - 축 0~24시, 한 시간 기본 52px(넓은 화면 58px) — JSX가 --cal-hour-base를 읽는다. 30분 점선.
+   - 일정 칸 = 그 색을 옅게 깐 면 + 왼쪽 굵은 색 띠, 제목은 진한 글자 · 아래 줄에 시각 · 장소. 40px 아래 짧은 일정은 '08:00 제목' 한 줄(.one).
+   - 날짜 머리: 요일 · 큰 날짜 숫자(오늘은 색 동그라미) · 그날 쓰는 시간 'N시간'. 토 파랑 · 일 빨강. 주말 칸과 오늘 칸은 바탕을 살짝.
+   - 일정 앞의 ● □ 표시는 색 띠가 대신한다(뜻은 같은 제목 = 같은 색). */
+
+/* ── 테마마다의 일정 색(같은 첫 낱말 = 같은 색) · 토/일 색 · 면 진하기 ── */
+:root {
+  --tint-0: #1e4d9b; --tint-1: #c4321e; --tint-2: #d9a300; --tint-3: #2f7d4f; --tint-4: #6b4fbb; /* 바우하우스: 원색 */
+  --cal-sat: #2f62c8; --cal-sun: #d0362a; --ev-fill: 15%;
+}
+html[data-theme='입자 밤'] { --tint-0: #8f7bff; --tint-1: #35e0c0; --tint-2: #ff6fb5; --tint-3: #5aa2ff; --tint-4: #ffa04a; --cal-sat: #86aeff; --cal-sun: #ff8a8a; --ev-fill: 26%; }
+html[data-theme='입자 낮'] { --tint-0: #6a55e8; --tint-1: #0e9e84; --tint-2: #d9478f; --tint-3: #3b7be0; --tint-4: #dd7a1c; --ev-fill: 16%; }
+html[data-theme='태양계'] { --tint-0: #f2c46b; --tint-1: #7fb0ff; --tint-2: #ff8a65; --tint-3: #8fd694; --tint-4: #c792ea; --cal-sat: #8fb4ff; --cal-sun: #ff8f7a; --ev-fill: 24%; }
+html[data-theme='오선지'] { --tint-0: #2e5a87; --tint-1: #8b2e2e; --tint-2: #a0671a; --tint-3: #4f6b3a; --tint-4: #5d4a7a; --cal-sat: #2e5a87; --cal-sun: #8b2e2e; --ev-fill: 14%; }
+html[data-theme='뉴모피즘'] { --tint-0: #a8452a; --tint-1: #3f6e8c; --tint-2: #b9822f; --tint-3: #6d8a3f; --tint-4: #7d5a9e; --cal-sat: #3f6e8c; --cal-sun: #a8452a; --ev-fill: 17%; }
+
+/* ── 틀 ── */
+html .cal.wk { --cal-hour-base: 52px; --axis: 34px; --cal-hline: color-mix(in srgb, var(--text) 12%, transparent); --cal-half: color-mix(in srgb, var(--text) 6%, transparent); }
+@media (min-width: 1024px) { html .cal.wk { --cal-hour-base: 58px; --axis: 46px; } }
+/* 입자: 카드가 비쳐 뒤 입자 그림이 글자 뒤로 지나갔다 → 달력 면은 바탕색으로 거의 막는다 */
+html[data-theme^='입자'] .cal.wk { background: color-mix(in srgb, var(--bg) 90%, transparent); }
+
+/* ── 날짜 머리 ── */
+html .cal.wk .cal-days { padding: 2px 0 6px; align-items: end; }
+html .cal.wk .cal-days .cal-day { display: grid; justify-items: center; gap: 1px; padding: 4px 0 3px; border: 0; border-radius: 10px; background: none; color: inherit; cursor: pointer; }
+html .cal.wk .cal-days .cal-day:hover { background: var(--fill); }
+html .cal.wk .cal-days .wd { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0; color: var(--text2); }
+html .cal.wk .cal-days .dn { width: auto; min-width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; font-size: 18px; font-weight: 650; letter-spacing: -0.02em; color: var(--heading); }
+html .cal.wk .cal-days .sat :is(.wd, .dn) { color: var(--cal-sat); }
+html .cal.wk .cal-days .sun :is(.wd, .dn) { color: var(--cal-sun); }
+html .cal.wk .cal-days .today .wd { color: var(--accent-text); }
+html .cal.wk .cal-days .today .dn { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--on-accent); }
+html .cal.wk .cal-days .dh { min-height: 14px; font-size: 11px; line-height: 14px; font-weight: 500; color: var(--text3); }
+
+/* ── 종일 · 마감 줄 ── */
+html .cal.wk .cal-top { padding: 4px 0; border-top: 1px solid var(--line); min-height: 28px; }
+html .cal.wk .cal-top .axis-label { justify-content: flex-end; padding-right: 6px; font-size: 11px; line-height: 14px; font-weight: 600; color: var(--text3); }
+html .cal.wk .cal-top .day { gap: 3px; padding: 0 2px; }
+html .cal.wk .cal-top .chip { height: 22px; padding: 0 7px; border: 0; border-radius: 6px; font-size: 12px; line-height: 22px; font-weight: 600; color: var(--text); box-shadow: none; }
+html .cal.wk .cal-top .chip.allday { background: color-mix(in srgb, var(--c, var(--accent)) calc(var(--ev-fill) + 6%), var(--card)); box-shadow: inset 3px 0 0 var(--c, var(--accent)); }
+html .cal.wk .cal-top .chip.deadline { background: color-mix(in srgb, var(--mark-task) 22%, var(--card)); box-shadow: inset 3px 0 0 var(--mark-task); }
+html .cal.wk .cal-top .chip b { font-weight: 700; margin-right: 2px; }
+
+/* ── 시간 칸 ── */
+html .cal.wk .cal-grid { --ev-lh: 16px; border-top: 1px solid var(--line); }
+@media (min-width: 1024px) { html .cal.wk .cal-grid { --ev-lh: 17px; } }
+html .cal.wk .cal-grid .hline { border-top: 1px solid var(--cal-hline); }
+html .cal.wk .cal-grid .hline.half { border-top: 1px dashed var(--cal-half); }
+html .cal.wk .cal-grid > .col { border-left: 1px solid var(--cal-hline); box-shadow: none; background: none; }
+html .cal.wk .cal-grid > .col:is(.sat, .sun) { background: color-mix(in srgb, var(--text) 3%, transparent); }
+html .cal.wk .cal-grid > .col.today { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+html .cal.wk .cal-grid > .hours span { left: 0; right: 6px; transform: translateY(-50%); text-align: right; font-size: 11px; line-height: 14px; font-weight: 500; color: var(--text3); white-space: nowrap; }
+@media (min-width: 1024px) { html .cal.wk .cal-grid > .hours span { font-size: 12px; } }
+
+/* ── 일정 칸 ── */
+html .cal.wk .cal-grid .ev {
+  --tone: var(--c, var(--accent));
+  display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; align-content: stretch; gap: 1px;
+  padding: 4px 6px 4px 8px; border: 0; border-radius: 6px;
+  background: color-mix(in srgb, var(--tone) var(--ev-fill), var(--card));
+  box-shadow: inset 3px 0 0 var(--tone);
+  backdrop-filter: none; filter: none;
+  color: var(--text); font-size: 12.5px; line-height: var(--ev-lh); font-weight: 600; text-align: left;
+}
+html .cal.wk .cal-grid .ev::before, html .cal.wk .cal-grid .ev::after { display: none; }
+html .cal.wk .cal-grid .ev .ev-t { flex: none; color: var(--heading); -webkit-line-clamp: var(--lines, 1); }
+html .cal.wk .cal-grid .ev .ev-m { display: block; flex: none; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 11px; line-height: 14px; font-weight: 500; color: var(--text2); font-variant-numeric: tabular-nums; }
+/* 짧은 일정: '08:00 제목' 한 줄 */
+html .cal.wk .cal-grid .ev.one { flex-direction: row; align-items: center; gap: 5px; padding-top: 0; padding-bottom: 0; }
+html .cal.wk .cal-grid .ev.one .ev-m { order: -1; overflow: visible; }
+html .cal.wk .cal-grid .ev.one .ev-t { display: block; flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* 좁은 칸(폰에서 7일 · 나란히 겹침)은 시각 · 장소 줄을 빼고 그 줄까지 제목에(시각은 자리로 보인다). 아주 좁으면 글자를 아무 데서나 끊는다 */
+html .cal.wk .cal-grid .ev { container-type: inline-size; }
+@container (max-width: 100px) { html .cal.wk .cal-grid .ev.one .ev-m { display: none; } }
+@container (max-width: 72px) {
+  html .cal.wk .cal-grid .ev:not(.one) .ev-m { display: none; }
+  html .cal.wk .cal-grid .ev:not(.one) .ev-t { -webkit-line-clamp: calc(var(--lines, 1) + 1); }
+}
+@container (max-width: 56px) { html .cal.wk .cal-grid .ev .ev-t { word-break: break-all; font-size: 11.5px; } }
+/* 좁은 마감 칩은 시각을 빼고 제목만 */
+html .cal.wk .cal-top .chip { container-type: inline-size; }
+@container (max-width: 90px) { html .cal.wk .cal-top .chip b { display: none; } }
+@media (min-width: 1024px) { html .cal.wk .cal-grid .ev { font-size: 13px; } html .cal.wk .cal-grid .ev .ev-m { font-size: 11.5px; } }
+/* 뜻 */
+html .cal.wk .cal-grid .ev.important { box-shadow: inset 5px 0 0 var(--tone), inset 0 0 0 1.5px var(--tone); }
+html .cal.wk .cal-grid .ev.important .ev-t::before { content: '★ '; color: var(--tone); }
+html .cal.wk .cal-grid .ev.late-ev { box-shadow: inset 3px 0 0 var(--tone), inset 0 2px 0 var(--danger); }
+html .cal.wk .cal-grid .ev.past { opacity: 0.5; }
+html .cal.wk .cal-grid .ev.past:hover { opacity: 0.85; }
+html .cal.wk .cal-grid .ev:hover { z-index: 2; background: color-mix(in srgb, var(--tone) calc(var(--ev-fill) + 8%), var(--card)); }
+html .cal.wk .cal-grid .ev.selected { z-index: 3; outline: 2px solid var(--accent); outline-offset: 0; }
+html .cal.wk .cal-grid .ev .late-pill { top: 3px; right: 3px; }
+
+/* ── 지금 ── */
+html .cal.wk .cal-grid .now-line { z-index: 3; height: 2px; margin-top: -1px; border: 0; background: var(--now); box-shadow: none; }
+html .cal.wk .cal-grid .now-line::before { content: ''; display: block; position: absolute; left: -5px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--now); box-shadow: none; animation: none; }
+html .cal.wk .cal-grid .now-line::after { display: none; }
+html .cal.wk .cal-grid .nl { border-top: 1px dashed color-mix(in srgb, var(--now) 40%, transparent); }
+html .cal.wk .cal-grid .nl span { width: calc(var(--axis) - 2px); padding-right: 4px; font-size: 11px; color: var(--now); }

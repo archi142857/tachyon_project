@@ -23,4 +23,8 @@ export const useParticles = () => PARTICLE_THEMES.has(useThemeName());
 
 // 입자 테마(9판)의 색: 첫 낱말(보통 과목 이름)이 같으면 같은 색 — '일반화학 퀴즈'와 '일반화학 퀴즈 준비'가 한 색(9판 과목 색)
 const PAL = ['#8f7bff', '#35e0c0', '#ff6fb5', '#5aa2ff', '#ffa04a'];
-export const tint = (title = '') => PAL[[...String(title).trim().split(/\s+/)[0]].reduce((sum, ch) => (sum * 31 + ch.codePointAt(0)) % 997, 7) % PAL.length];
+// 11-20: 테마마다 제 색 다섯을 둔다(calendar1120.css --tint-0~4). 없는 곳(예: 그림 svg 밖)은 9판 색으로
+export const tint = (title = '') => {
+  const i = [...String(title).trim().split(/\s+/)[0]].reduce((sum, ch) => (sum * 31 + ch.codePointAt(0)) % 997, 7) % PAL.length;
+  return `var(--tint-${i}, ${PAL[i]})`;
+};

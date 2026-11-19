@@ -198,6 +198,13 @@ describe('달력 칸 배치', () => {
     expect([by.c.col, by.c.cols]).toEqual([0, 1]);
   });
 
+  it('짧은 일정을 키워 그리면(minMs) 키운 칸끼리도 나란히(11-20)', () => {
+    const short = { id: 's', title: 's', start: iso(2026, 11, 10, 8), end: '2026-11-10T08:15:00+09:00' };
+    const next = { id: 'n', title: 'n', start: '2026-11-10T08:15:00+09:00', end: '2026-11-10T09:00:00+09:00' };
+    expect(layoutDay([short, next]).map((o) => o.cols)).toEqual([1, 1]); // 시각으로는 안 겹침
+    expect(layoutDay([short, next], 25 * 60000).map((o) => o.cols)).toEqual([2, 2]); // 25분 높이로 그리면 겹침
+  });
+
   it('끝을 모르면 한 시간짜리로 그린다', () => {
     expect(endOf(ev('a', 15, null)) - Date.parse(iso(2026, 11, 10, 15))).toBe(3600000);
   });

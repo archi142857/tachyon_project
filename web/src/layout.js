@@ -17,9 +17,10 @@ export function isAllDay(ev) {
 }
 
 // 하루 안의 일정들을 겹치지 않게 칸으로 나눈다 → [{ ev, col, cols }]
-export function layoutDay(events) {
+// minMs = 그릴 때 가장 짧은 길이(달력은 짧은 일정을 한 줄 높이로 키운다 — 키운 칸끼리도 안 겹치게, 11-20)
+export function layoutDay(events, minMs = 0) {
   const items = events
-    .map((ev) => ({ ev, s: Date.parse(ev.start), e: endOf(ev) }))
+    .map((ev) => ({ ev, s: Date.parse(ev.start), e: Math.max(endOf(ev), Date.parse(ev.start) + minMs) }))
     .sort((a, b) => a.s - b.s || b.e - a.e);
   const out = [];
   let group = [];

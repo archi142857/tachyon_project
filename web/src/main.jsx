@@ -22,6 +22,7 @@ import './unify1115.css'; // 11-15 테마 통일(자리 · 기능은 모든 테�
 import './memofloat.css'; // 11-17 데스크탑 작은 메모 창(MemoFloat.jsx)
 import './activities.css'; // 11-19 '활동' 쪽(ActivitiesPage.jsx)
 import './request1119.css'; // 11-19 18:16 요청 층(바우하우스 뺀 넷: 넓은 화면 공간 · 렉) — 앞 층들 다음에
+import './calendar1120.css'; // 11-20 주간 달력 다시 짜기(가독성, 모든 테마) — 앞 층들 다음에
 import './loader.css'; // 테마를 바꿀 때 덮는 테마별 로딩 화면
 import { applyTheme, currentTheme } from './themes.js';
 import { applyText } from './prefs.js';
