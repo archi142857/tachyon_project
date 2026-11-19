@@ -22,6 +22,7 @@
 // 설정(선택, wrangler.toml [vars]): DAILY_TASK_MIN = 하루에 할 일에 쓰는 시간(분), 기본 180
 
 import { askJson, usageDetail } from "./llm.js";
+import { mergeTwins } from "./lib/twins.js";
 import { SYSTEM, SCHEMA, userMessage } from "./prompts/night.js";
 import { findWhen, kst, ymd, addDays, isoKst, nowLabel } from "./3_memo_popup.js"; // 한국 시각·날짜 읽기는 3번 파일에 한 번만 둔다
 
@@ -345,12 +346,12 @@ async function buildBriefing(env, userId, now, { by, newTasks = [] }) {
   const [events, tasks, spans] = await Promise.all([
     // 오늘 시작하는 일정 + 전에 시작해 오늘도 이어지는 하루 종일 일정(여행·시험 기간 같은 여러 날 일정)
     env.DB.prepare(
-      `SELECT id, title, start, "end", place, important FROM events
-       WHERE user_id = ? AND moved_to IS NULL AND start < ? AND (start >= ? OR (length(start) = 10 AND "end" > ?)) ORDER BY start`,
+      `SELECT id, title, start, "end", place, important, source FROM events
+       WHERE user_id = ? AND moved_to IS NULL AND start < ? AND (start >= ? OR (length(start) = 10 AND "end" > ?)) ORDER BY start, id`,
     )
       .bind(userId, addDays(date, 1), date, date)
       .all()
-      .then((r) => r.results),
+      .then((r) => mergeTwins(r.results).map(({ id, title, start, end, place, important }) => ({ id, title, start, end, place, important }))), // 겹친 일정은 하나로(lib/twins.js)
     openTasks(env, userId),
     planEvents(env, userId, now),
   ]);

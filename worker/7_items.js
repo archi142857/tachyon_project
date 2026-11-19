@@ -10,6 +10,7 @@
 //   DELETE /api/tasks/:id         → { ok }
 //   GET    /api/events?from=2026-11-09&to=2026-11-16
 //                                 그 기간과 겹치는 일정(to 날짜는 안 들어감, 최대 62일) → { events }. 없으면 오늘부터 7일
+//                                 여러 캘린더가 따로 가져온 같은 일정은 하나로 합쳐 준다(lib/twins.js, DB는 그대로)
 //   POST   /api/events            { title, start, end?, place? } → { event } 달력 빈 칸을 눌러 바로 넣기(11-14 피드백, 메모를 거치지 않음, source memo)
 //   PATCH  /api/events/:id        { important, title, start, end, place } 가운데 바꿀 것만 → { event }
 //                                 시각 일정의 끝이 없으면(안 보냄·null·옛 끝이 안 맞음) 시작 + 1시간
@@ -32,6 +33,7 @@ import { json, fail, readJson } from './lib/http.js';
 import { kstDate, kstIso, DAY_MS } from './lib/time.js';
 import { logStatement } from './lib/log.js';
 import { isLinked } from './12_gcal.js';
+import { mergeTwins } from './lib/twins.js';
 
 const FEED_SOURCES = new Set(['etl', 'google', 'apple', 'naver', 'device']);
 const FEED_NAMES = { etl: 'eTL', google: '구글 캘린더', apple: '애플 캘린더', naver: '네이버 캘린더', device: '폰 캘린더' };
@@ -108,7 +110,7 @@ async function listEvents(url, env, user) {
   )
     .bind(user.id, from, to)
     .all();
-  return json({ ok: true, events: results });
+  return json({ ok: true, events: mergeTwins(results) });
 }
 
 // ── 고치기·지우기 ────────────────────────────────────────────────
