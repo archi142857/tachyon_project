@@ -7,6 +7,8 @@
 // 그냥 저대로"에 따라: Tachyon 창이 안 보이면(visibilityState hidden — 다른 탭 · 최소화 · 다른 앱에 다 가림) 작은 창을 키워 그 안에(FloatPopup),
 // 보이면 지금처럼 Tachyon 창에. 창 키우기는 브라우저가 손 누름 바로 뒤(몇 초)에만 허락해서(Document PiP 규칙),
 // AI 답이 늦어 못 키우면 팝업은 Tachyon 창에 두고 작은 창 한 줄에 '여기서 고르기' 단추 — 누르면 그 손 누름으로 키워 옮긴다.
+// 11-20 사람 "새로운 창으로 가운데에 띄워줘": 작은 창 안 대신 화면 가운데 새 창(openCenterWindow)을 먼저, 막히면 위의 작은 창 길로.
+// '여기서 고르기'도 가운데 창을 연다. 작은 창 · 가운데 창 모두 글에 딱 맞는 높이(밑 여백 없음), 오른쪽 위 ×.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 // 팝업을 띄울 때 창 크기. 닫으면 그 전 크기로 되돌린다(사람이 끌어 바꾼 크기 그대로)
@@ -38,14 +40,73 @@ export function shrinkFloat(win) {
   }
 }
 
-// 팝업 글이 창보다 길면(고치기 칸을 열면) 그만큼 키운다. 화면 높이를 넘지 않게, 못 키우면 창 안에서 굴린다
+// 창 높이를 팝업 글에 딱 맞춘다(11-20 사람 "크기 밑에 여백 안 남게" — 늘리고 줄이기 둘 다). 화면 높이 - 40을 넘지 않게,
+// 작은 창은 손 누름 뒤가 아니면 못 바꿔서 그때는 창 안에서 굴린다
 export function fitFloat(win, contentHeight) {
   try {
     const frame = win.outerHeight - win.innerHeight; // 창 위 제목 줄
-    const want = Math.min(Math.ceil(contentHeight + frame), (win.screen?.availHeight || 900) - 40);
-    if (want > win.outerHeight + 4) win.resizeTo(win.outerWidth, want);
+    const want = Math.max(160, Math.min(Math.ceil(contentHeight + frame), (win.screen?.availHeight || 900) - 40));
+    if (Math.abs(want - win.outerHeight) > 4) win.resizeTo(win.outerWidth, want);
   } catch {
     /* 손 누름 뒤가 아님 — 굴려서 본다 */
+  }
+}
+
+// 가운데 새 창(11-20 사람 "새로운 창으로 가운데에 띄워줘" → 물음에 '화면 가운데 새 창'):
+// 팝업 막기 규칙 때문에 손 누름(키 · 클릭) 바로 뒤에만 열린다 → 그 손이 있는 창(작은 창 또는 본 창)에서 연다.
+// 위의 주소 줄은 브라우저가 늘 보여 준다(사이트가 다른 앱인 척 못 하게 — 뺄 수 없음). 창 크기는 팝업 글에 딱 맞추고 그 화면 가운데로.
+export const CENTER_SIZE = [460, 420];
+export const CENTER_NAME = 'tachyon-popup';
+
+/** 방금 손 누름이 있었던 창(없으면 null) — 그 창에서만 새 창이 열린다 */
+export function activeWindow(...wins) {
+  return wins.find((w) => w && !w.closed && w.navigator?.userActivation?.isActive) || null;
+}
+
+/** from 창의 화면 가운데에 [너비, 높이] 창을 둘 왼쪽 · 위 */
+export function centerOf(scr = {}, w, h) {
+  const left = (scr.availLeft || 0) + Math.max(0, ((scr.availWidth || w) - w) / 2);
+  const top = (scr.availTop || 0) + Math.max(0, ((scr.availHeight || h) - h) / 2);
+  return [Math.round(left), Math.round(top)];
+}
+
+/** 가운데 새 창 열기 → 창 또는 null(막힘). CSS · 테마를 옮기고 앞으로 */
+export function openCenterWindow(from, [w, h] = CENTER_SIZE) {
+  if (!from) return null;
+  const [left, top] = centerOf(from.screen, w, h);
+  let win = null;
+  try {
+    win = from.open('', CENTER_NAME, `popup=yes,width=${w},height=${h},left=${left},top=${top}`);
+  } catch {
+    return null;
+  }
+  if (!win || win.closed) return null;
+  try {
+    if (!win.document.head.childElementCount) copyLook(document, win.document);
+    win.document.body.className = 'float-body has-popup center-pop';
+    win.document.title = 'Tachyon — 넣을까요?';
+    win.focus();
+    return win;
+  } catch {
+    try {
+      win.close();
+    } catch {
+      /* 이미 닫힘 */
+    }
+    return null;
+  }
+}
+
+/** 가운데 창: 높이를 글에 딱 맞추고 다시 가운데로(고치기를 열어 길어져도) */
+export function fitCenter(win, contentHeight) {
+  try {
+    const frame = win.outerHeight - win.innerHeight;
+    const h = Math.max(160, Math.min(Math.ceil(contentHeight + frame), (win.screen?.availHeight || 900) - 40));
+    if (Math.abs(h - win.outerHeight) > 2) win.resizeTo(win.outerWidth, h);
+    const [left, top] = centerOf(win.screen, win.outerWidth, h);
+    win.moveTo(left, top);
+  } catch {
+    /* 사람이 옮긴 뒤 등 — 그대로 */
   }
 }
 
@@ -100,8 +161,9 @@ export function useFloatWindow() {
   return [win, open, close];
 }
 
-// 작은 창 안의 팝업 틀: 창 몸에 has-popup을 달아 팝업이 창에 꽉 차게(memofloat.css), 글이 길어지면 창을 키우고, Esc = 그만
-export function FloatPopup({ win, onCancel, children }) {
+// 다른 창 안의 팝업 틀(작은 창 = mode 'float', 가운데 새 창 = 'center'): 창 몸에 has-popup을 달아 팝업이 창에 꽉 차게(memofloat.css),
+// 창 높이를 글에 딱 맞추고(가운데 창은 다시 가운데로), 오른쪽 위 ×와 Esc = 그만(메모로만)
+export function FloatPopup({ win, onCancel, mode = 'float', children }) {
   const box = useRef(null);
   useLayoutEffect(() => {
     const body = win.document.body;
@@ -111,12 +173,12 @@ export function FloatPopup({ win, onCancel, children }) {
   useEffect(() => {
     const el = box.current;
     if (!el || !win.ResizeObserver) return undefined;
-    const fit = () => fitFloat(win, el.scrollHeight);
+    const fit = () => (mode === 'center' ? fitCenter : fitFloat)(win, el.scrollHeight);
     fit();
     const watch = new win.ResizeObserver(fit);
     watch.observe(el);
     return () => watch.disconnect();
-  }, [win]);
+  }, [win, mode]);
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onCancel();
     win.addEventListener('keydown', onKey);
@@ -124,6 +186,9 @@ export function FloatPopup({ win, onCancel, children }) {
   }, [win, onCancel]);
   return (
     <div ref={box} className="float-popup">
+      <button type="button" className="pop-x" aria-label="닫기(메모로만)" title="닫기 — 메모로만 둬요" onClick={onCancel}>
+        ×
+      </button>
       {children}
     </div>
   );
@@ -132,7 +197,8 @@ export function FloatPopup({ win, onCancel, children }) {
 // 작은 창 안: 입력 한 칸 + 보내기, 밑에 한 줄(보내는 중 · 남겼어요 · 팝업이 Tachyon 창에 있음)
 // pending = 지금 Tachyon 창에 떠 있는 팝업의 이름(없으면 null), onHere = 그 팝업을 이 창으로 옮기기(누른 손으로 창을 키운다),
 // note = Tachyon 창 아래 알림 글(‘…’ 할 일에 넣었어요 등) — 작은 창에서 고른 결과를 여기서도 보이게
-export function FloatMemo({ onSend, waiting = false, pending = null, count = 0, onHere = null, note = null }) {
+// pendingAt = 그 팝업이 떠 있는 곳('main' Tachyon 창 · 'center' 가운데 새 창)
+export function FloatMemo({ onSend, waiting = false, pending = null, pendingAt = 'main', count = 0, onHere = null, note = null }) {
   const [text, setText] = useState('');
   const [sent, setSent] = useState(false);
   const input = useRef(null);
@@ -148,7 +214,8 @@ export function FloatMemo({ onSend, waiting = false, pending = null, count = 0, 
     setSent(true);
     input.current?.focus();
   };
-  const line = waiting ? '보내는 중…' : pending ? `‘${pending}’ 넣을까요? — Tachyon 창에 떠 있어요` : note || (sent ? `남겼어요 · 메모 ${count}개` : 'Enter로 남겨요. 일정 · 할 일이면 넣을지 물어봐요');
+  const at = pendingAt === 'center' ? '가운데 창에 떠 있어요' : 'Tachyon 창에 떠 있어요';
+  const line = waiting ? '보내는 중…' : pending ? `‘${pending}’ 넣을까요? — ${at}` : note || (sent ? `남겼어요 · 메모 ${count}개` : 'Enter로 남겨요. 일정 · 할 일이면 넣을지 물어봐요');
   return (
     <div className="float-memo">
       <form
@@ -181,9 +248,9 @@ export function FloatMemo({ onSend, waiting = false, pending = null, count = 0, 
         <p className="float-line" role="status">
           {line}
         </p>
-        {pending && onHere && !waiting && (
+        {pending && onHere && pendingAt !== 'center' && !waiting && (
           <button type="button" className="float-here" onClick={onHere}>
-            여기서 고르기
+            창 띄우기
           </button>
         )}
       </div>

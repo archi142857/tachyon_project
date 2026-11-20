@@ -9,7 +9,7 @@ import { dayLegs, loadCampus } from '../campus.js';
 import CalendarSheet from '../components/CalendarSheet.jsx';
 import AiSheet from '../components/AiSheet.jsx';
 import Composer from '../components/Composer.jsx';
-import { FloatMemo, FloatPopup, canFloat, growFloat, shrinkFloat, useFloatWindow } from '../components/MemoFloat.jsx';
+import { FloatMemo, FloatPopup, activeWindow, canFloat, growFloat, openCenterWindow, shrinkFloat, useFloatWindow } from '../components/MemoFloat.jsx';
 import DeleteAccount from '../components/DeleteAccount.jsx';
 import DoneSheet from '../components/DoneSheet.jsx';
 import { EventEditSheet, EventInfoSheet, TaskEditSheet } from '../components/EditSheets.jsx';
@@ -238,7 +238,8 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
   const [popup, setPopup] = useState(null); // { memoId, popup }
   const [waiting, setWaiting] = useState(false);
   const [floatWin, openFloat, closeFloat] = useFloatWindow(); // 데스크탑 작은 메모 창(11-17, MemoFloat.jsx)
-  const [popupWhere, setPopupWhere] = useState('main'); // 'float' = 팝업을 작은 창 안에(11-19 사람 "다른 창을 보고 있을 때도 위로 팝업으로")
+  const [popupWhere, setPopupWhere] = useState('main'); // 'float' = 팝업을 작은 창 안에(11-19 사람 "다른 창을 보고 있을 때도 위로 팝업으로"), 'center' = 가운데 새 창(11-20)
+  const [popWin, setPopWin] = useState(null); // 가운데 새 창(11-20 사람 "새로운 창으로 가운데에 띄워줘")
   const [busy, setBusy] = useState(false);
   const [sheet, setSheet] = useState(null); // 'menu' | 'done' | 'feedback' | 'install' | 'calendar' | 'etl' | 'theme' | 'delete' | { event } | { task }
   const [snack, setSnack] = useState(null);
@@ -458,9 +459,14 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
     try {
       const { memo, popup: found } = await api.sendMemo(text);
       setMemos((m) => m.map((x) => (x.id === temp.id ? memo : x)));
-      // Tachyon 창이 안 보이고(다른 탭 · 최소화 · 다른 앱에 가림) 작은 창이 열려 있으면 작은 창을 키워 그 안에.
-      // 보이면 지금처럼 이 창에. 못 키우면(AI 답이 늦어 손 누름 허락이 지남) 이 창에 두고 작은 창에 '여기서 고르기'
-      if (found) setPopupWhere(floatWin && document.visibilityState === 'hidden' && growFloat(floatWin) ? 'float' : 'main');
+      // Tachyon 창이 안 보이면(다른 탭 · 최소화 · 다른 앱에 가림) 화면 가운데 새 창에(11-20), 그게 막히면 작은 창을 키워 그 안에(11-19).
+      // 보이면 지금처럼 이 창에. 둘 다 못 하면(AI 답이 늦어 손 누름 허락이 지남) 이 창에 두고 작은 창에 '창 띄우기'
+      if (found) {
+        const away = document.visibilityState === 'hidden';
+        const center = away ? openCenterWindow(activeWindow(floatWin, window)) : null;
+        if (center) setPopWin(center);
+        setPopupWhere(center ? 'center' : floatWin && away && growFloat(floatWin) ? 'float' : 'main');
+      }
       setPopup(found ? { memoId: memo.id, popup: found } : null);
     } catch {
       setMemos((m) => m.filter((x) => x.id !== temp.id));
@@ -570,8 +576,34 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
     if (!popupInFloat) shrinkFloat(floatWin);
     if (popupWhere === 'float' && (!popup || !floatWin)) setPopupWhere('main');
   }, [popupInFloat, popup, popupWhere, floatWin]);
-  // 작은 창 '여기서 고르기' — 누른 손으로 창을 키워 팝업을 옮긴다
+  // 가운데 창(11-20): 팝업이 닫히거나 다른 곳으로 가면 창을 닫고, 사람이 창을 직접 닫으면(제목 줄 ×) '메모로만'과 같게
+  const popupInCenter = Boolean(popup && popWin && !popWin.closed && popupWhere === 'center');
+  useEffect(() => {
+    if (!popWin || popupInCenter) return;
+    try {
+      popWin.close();
+    } catch {
+      /* 이미 닫힘 */
+    }
+    setPopWin(null);
+    if (popupWhere === 'center') setPopupWhere('main');
+  }, [popWin, popupInCenter, popupWhere]);
+  const closedByHand = useRef(null);
+  closedByHand.current = () => popupInCenter && cancelPopup();
+  useEffect(() => {
+    if (!popWin) return undefined;
+    const onHide = () => closedByHand.current?.();
+    popWin.addEventListener('pagehide', onHide);
+    return () => popWin.removeEventListener('pagehide', onHide);
+  }, [popWin]);
+  // 작은 창 '창 띄우기' — 누른 손으로 가운데 새 창을 연다(막히면 작은 창을 키워 그 안에)
   const showPopupHere = () => {
+    const center = openCenterWindow(activeWindow(floatWin, window) || floatWin);
+    if (center) {
+      setPopWin(center);
+      setPopupWhere('center');
+      return;
+    }
     growFloat(floatWin);
     setPopupWhere('float');
   };
@@ -930,8 +962,8 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
         </main>
 
         {/* 정면 창(디자인 ⑤): 뒤를 막고 흐린다. 막을 누르면 '취소'와 같음 */}
-        {popup && !popupInFloat && <div className="popup-scrim" aria-hidden="true" onClick={cancelPopup} />}
-        {popup && !popupInFloat && <MemoPopup key={popup.memoId} popup={popup.popup} plan={{ events: planEvents, tasks: openTasks, today, now }} busy={busy} onSave={savePopup} onCancel={cancelPopup} />}
+        {popup && !popupInFloat && !popupInCenter && <div className="popup-scrim" aria-hidden="true" onClick={cancelPopup} />}
+        {popup && !popupInFloat && !popupInCenter && <MemoPopup key={popup.memoId} popup={popup.popup} plan={{ events: planEvents, tasks: openTasks, today, now }} busy={busy} onSave={savePopup} onCancel={cancelPopup} />}
         <Composer onSend={sendMemo} seed={seed} onFloat={canFloat() ? (floatWin ? closeFloat : openFloat) : null} floating={!!floatWin} />
         {floatWin &&
           createPortal(
@@ -940,9 +972,16 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
                 <MemoPopup key={popup.memoId} popup={popup.popup} plan={{ events: planEvents, tasks: openTasks, today, now }} busy={busy} onSave={savePopup} onCancel={cancelPopup} />
               </FloatPopup>
             ) : (
-              <FloatMemo onSend={sendMemo} waiting={waiting} pending={popup ? popup.popup?.title || '메모' : null} count={memos.length} note={snack?.text} onHere={popup ? showPopupHere : null} />
+              <FloatMemo onSend={sendMemo} waiting={waiting} pending={popup ? popup.popup?.title || '메모' : null} pendingAt={popupInCenter ? 'center' : 'main'} count={memos.length} note={snack?.text} onHere={popup ? showPopupHere : null} />
             ),
             floatWin.document.body,
+          )}
+        {popupInCenter &&
+          createPortal(
+            <FloatPopup win={popWin} onCancel={cancelPopup} mode="center">
+              <MemoPopup key={popup.memoId} popup={popup.popup} plan={{ events: planEvents, tasks: openTasks, today, now }} busy={busy} onSave={savePopup} onCancel={cancelPopup} />
+            </FloatPopup>,
+            popWin.document.body,
           )}
       </div>
 

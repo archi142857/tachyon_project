@@ -20,5 +20,8 @@
 
 /* 11-19: Tachyon 창이 안 보일 때 메모 팝업을 작은 창 안에(MemoFloat.jsx FloatPopup). 창 전체가 팝업이라 막(scrim) · 가운데 띄우기 없이 꽉 차게 */
 .float-body.has-popup { display: block; overflow-y: auto; }
-.float-popup { box-sizing: border-box; padding: 12px; }
+.float-popup { position: relative; box-sizing: border-box; padding: 12px; }
+/* 11-20 사람 "우측 상단에 X 버튼": 작은 창 · 가운데 창 팝업 오른쪽 위 × = 그만(메모로만) */
+.pop-x { position: absolute; top: 18px; right: 18px; z-index: 2; width: 36px; height: 36px; border: 0; border-radius: 50%; background: transparent; color: var(--text2); font: inherit; font-size: 26px; line-height: 1; cursor: pointer; }
+.pop-x:hover { background: var(--fill); color: var(--text); }
 .float-body .float-popup .popup.front { position: static; inset: auto; transform: none; width: auto; max-width: none; max-height: none; margin: 0; box-shadow: none; animation: none; }
