@@ -48,7 +48,7 @@ function InterestEditor({ kinds, prefs, onSave, onClose }) {
         ))}
       </div>
       <label className="act-interest-title" htmlFor="act-words">
-        관심 낱말 <small>쉼표로 나눠요 · 제목 · 태그 · 요약에서 찾아요</small>
+        관심 키워드 <small>쉼표로 나눠요 · 제목 · 태그 · 요약에서 찾아요</small>
       </label>
       <input id="act-words" className="input" value={words} maxLength={200} placeholder="예: 바이오, AI, 글쓰기, 해외" onChange={(e) => setWords(e.target.value)} />
       <div className="act-interest-actions">
@@ -121,7 +121,7 @@ function ActivityCard({ item, me, events, now, starred, onStar, onHide, onTask, 
       <div className="act-actions">
         {task && (
           <button type="button" className="btn-text" disabled={added.task} onClick={onTask}>
-            {added.task ? '할 일에 넣음' : '신청 마감 할 일로'}
+            {added.task ? '할 일에 넣음' : '마감을 할 일에 넣기'}
           </button>
         )}
         {event && (
@@ -209,7 +209,7 @@ export default function ActivitiesPage({ events = [], now = new Date(), onSnack,
           <h2 className="card-title">활동</h2>
           <p>{error}</p>
           <button type="button" className="btn-text" onClick={() => (setError(null), load())}>
-            다시 해 보기
+            다시 시도
           </button>
         </section>
       </div>
@@ -245,7 +245,7 @@ export default function ActivitiesPage({ events = [], now = new Date(), onSnack,
         />
       )}
 
-      <nav className="act-tabs" aria-label="활동 거르기">
+      <nav className="act-tabs" aria-label="활동 필터">
         {TABS.map(([key, label]) => (
           <button key={key} type="button" aria-pressed={tab === key} onClick={() => setTab(key)}>
             {label}
@@ -279,7 +279,7 @@ export default function ActivitiesPage({ events = [], now = new Date(), onSnack,
         </section>
       ) : shown.length === 0 ? (
         <section className="card act-empty">
-          <p>{items.length ? '여기에 맞는 활동이 없어요. 거르기를 바꿔 보세요.' : data.refreshing ? '서울대 게시판에서 활동을 모으는 중이에요. 잠시 뒤 채워져요.' : '아직 모은 활동이 없어요.'}</p>
+          <p>{items.length ? '여기에 맞는 활동이 없어요. 필터를 바꿔 보세요.' : data.refreshing ? '서울대 게시판에서 활동을 모으는 중이에요. 잠시 뒤 채워져요.' : '아직 모은 활동이 없어요.'}</p>
         </section>
       ) : (
         <div className="act-list">

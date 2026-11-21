@@ -4,7 +4,7 @@
 // 강의자료는 목록 + eTL 링크만(앱 서버에 복사하지 않음, 11-10). 링크는 eTL에 로그인해야 열린다.
 // '과목 폴더로 모두 저장'(11-19): 서버가 eTL 파일을 흘려보내기만 하고(남기지 않음) 컴퓨터 폴더 · 폰 Download에 과목별로(saveFiles.js).
 // 원터치(11-20 사람 "로그인만 하면 나머진 알아서"): 앱 = eTL 로그인 창 하나로 끝, PC = 북마크 한 번 끌어다 놓고 로그인 뒤 한 번 누르기(etlToken.js).
-//   토큰이 들어가면 서버가 eTL 달력 주소도 같이 넣는다. 폰 웹 브라우저만 아래 '직접 토큰 넣기'가 기본.
+//   토큰이 들어가면 서버가 eTL 캘린더 주소도 같이 넣는다. 폰 웹 브라우저만 아래 '직접 토큰 넣기'가 기본.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as api from '../api.js';
 import { ETL_ORIGIN, bookmarklet, giftFrom, maskToken, tokenFrom } from '../etlToken.js';
@@ -25,7 +25,7 @@ function when(iso) {
 
 function errorText(err) {
   if (err && err.status === 503 && !err.code) return 'eTL 연결은 준비 중이에요. 곧 열려요'; // code가 있으면 서버 저장소 사정(db_limit·db_busy) — 서버 안내 글 그대로
-  return (err && err.message) || '하지 못했어요. 다시 해 주세요';
+  return (err && err.message) || 'eTL에서 받지 못했어요. 잠시 후 다시 시도해 주세요';
 }
 
 // 안드로이드 앱 안이면 폰 브라우저 창(Capacitor Browser — 위 ✕로 닫으면 앱으로 돌아옴), 웹이면 새 탭(Tachyon 탭은 그대로 남음)
@@ -72,7 +72,7 @@ function OneTouch({ kind, busy, onGift }) {
       if (g.token || g.ics) return gift.current(g);
       setNote(r.error ? `eTL이 토큰을 만들어 주지 않았어요(${r.error}). 아래 ‘직접 토큰 넣기’로 해 주세요` : 'eTL에서 받은 게 없어요. 아래 ‘직접 토큰 넣기’로 해 주세요');
     } catch (err) {
-      if (err?.code !== 'closed') setNote('eTL 창을 열지 못했어요. 다시 해 주세요');
+      if (err?.code !== 'closed') setNote('eTL 창을 열지 못했어요. 다시 시도해 주세요');
     }
   }
 
@@ -84,7 +84,7 @@ function OneTouch({ kind, busy, onGift }) {
           <button type="button" className="btn" disabled={busy} onClick={login}>
             {busy ? '연결하는 중…' : 'eTL 로그인하고 바로 연결'}
           </button>
-          <p className="hint">서울대 로그인 화면이 열려요. 로그인하면 과제 · 공지 · 강의자료와 eTL 달력까지 알아서 연결하고 창이 닫혀요. 비밀번호는 서울대 화면에만 들어가요.</p>
+          <p className="hint">서울대 로그인 화면이 열려요. 로그인하면 과제 · 공지 · 강의자료와 eTL 캘린더까지 알아서 연결하고 창이 닫혀요. 비밀번호는 서울대 화면에만 들어가요.</p>
         </>
       ) : (
         <>
@@ -102,7 +102,7 @@ function OneTouch({ kind, busy, onGift }) {
               </button>{' '}
               → 로그인
             </li>
-            <li>로그인한 eTL 창에서 즐겨찾기의 ‘Tachyon eTL 연결’을 누르면 끝. 과제 · 공지 · 강의자료와 eTL 달력까지 연결돼요.</li>
+            <li>로그인한 eTL 창에서 즐겨찾기의 ‘Tachyon eTL 연결’을 누르면 끝. 과제 · 공지 · 강의자료와 eTL 캘린더까지 연결돼요.</li>
           </ol>
         </>
       )}
@@ -353,7 +353,7 @@ export default function EtlSheet({ onClose, onChanged, gift }) {
     if (!x) return null;
     if (x.recent) return '방금 받았어요';
     if (!x.ok) return x.error || null;
-    const cal = r.calendar?.saved ? ' · eTL 달력도 연결했어요' : '';
+    const cal = r.calendar?.saved ? ' · eTL 캘린더도 연결했어요' : '';
     return `과목 ${x.courses}개 · 과제 ${x.tasks}개 · 공지 ${x.notices}개 · 강의자료 ${x.files}개를 받았어요${cal}`;
   };
 
@@ -363,7 +363,7 @@ export default function EtlSheet({ onClose, onChanged, gift }) {
     if (g.ics)
       return run(
         () => api.saveFeeds({ etl: g.ics }),
-        () => 'eTL 달력은 연결했어요. 토큰은 eTL이 만들어 주지 않아서, 과제 · 공지 · 강의자료는 아래 ‘직접 토큰 넣기’로 넣어 주세요',
+        () => 'eTL 캘린더은 연결했어요. 토큰은 eTL이 만들어 주지 않아서, 과제 · 공지 · 강의자료는 아래 ‘직접 토큰 넣기’로 넣어 주세요',
       );
   }
   // PC 북마크가 Tachyon 탭을 새로 연 경우(#etl=…, Dashboard가 읽어 넘김) 한 번만
@@ -386,7 +386,7 @@ export default function EtlSheet({ onClose, onChanged, gift }) {
               {state.last_error || 'eTL 연결이 끊겼어요. 새 토큰으로 다시 연결해 주세요'}
             </p>
           )}
-          <p style={{ fontSize: 16, lineHeight: '24px' }}>eTL의 과제·공지·강의자료와 eTL 달력을 자동으로 가져와요. 하지 않아도 돼요(선택).</p>
+          <p style={{ fontSize: 16, lineHeight: '24px' }}>eTL의 과제·공지·강의자료와 eTL 캘린더을 자동으로 가져와요. 하지 않아도 돼요(선택).</p>
           {kind && <OneTouch kind={kind} busy={busy} onGift={connectGift} />}
           <ConnectForm busy={busy} folded={kind === 'app' || kind === 'pc'} onConnect={(token) => run(() => api.connectEtl(token), resultText)} />
         </>

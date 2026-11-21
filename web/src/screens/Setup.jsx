@@ -7,7 +7,7 @@
 // '복사한 주소 붙여넣기' 한 번이면 어느 캘린더 주소인지 알아서 맞춰 바로 연결한다(클립보드를 못 읽는 브라우저는 칸에 직접 붙인다).
 // 저장하면 서버가 주소를 바로 한 번 받아 보고 칸마다 결과를 준다('과제 3개를 찾았어요').
 // 저장하지 못한 칸(saved: false)은 주소를 남겨 두고 까닭을 칸 아래에 그대로 보인다.
-// 원터치(11-20 사람 "달력 연동 · eTL 토큰 원터치로"): 주소 칸 위에 eTL 로그인으로 연결(EtlSheet — 토큰 + eTL 달력 주소)과
+// 원터치(11-20 사람 "달력 연동 · eTL 토큰 원터치로"): 주소 칸 위에 eTL 로그인으로 연결(EtlSheet — 토큰 + eTL 캘린더 주소)과
 // 구글 캘린더 연결(CalendarSheet GoogleSync — 구글 동의만). 아래 주소 칸은 그 밖의 캘린더 · 직접 넣을 때.
 import { useEffect, useState } from 'react';
 import { collectFeeds, getFeeds, markSetupSkipped, saveFeeds, saveProfile } from '../api.js';
@@ -84,7 +84,7 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
       setFeeds(next);
       showResults(results, { [kind]: text.trim() });
     } catch (err) {
-      setErrors({ form: err.message || '저장하지 못했어요. 잠시 뒤에 다시 해 주세요' });
+      setErrors({ form: err.message || '저장하지 못했어요. 잠시 후 다시 시도해 주세요' });
     } finally {
       setBusy(false);
     }
@@ -115,7 +115,7 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
       setFeeds(next);
       showResults(results, urls);
     } catch (err) {
-      setErrors({ form: err.message || '저장하지 못했어요. 잠시 뒤에 다시 해 주세요' });
+      setErrors({ form: err.message || '저장하지 못했어요. 잠시 후 다시 시도해 주세요' });
     } finally {
       setBusy(false);
     }
@@ -146,7 +146,7 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
       setProfileSaved(true);
       setStep('feeds');
     } catch (err) {
-      setErrors({ form: err.message || '저장하지 못했어요. 잠시 뒤에 다시 해 주세요' });
+      setErrors({ form: err.message || '저장하지 못했어요. 잠시 후 다시 시도해 주세요' });
     } finally {
       setBusy(false);
     }
@@ -159,7 +159,7 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
       setFeeds(next);
       showResults(results);
     } catch (err) {
-      setErrors({ form: err.message || '다시 받지 못했어요. 잠시 뒤에 다시 해 주세요' });
+      setErrors({ form: err.message || '다시 받지 못했어요. 잠시 후 다시 시도해 주세요' });
     } finally {
       setBusy(false);
     }
@@ -173,7 +173,7 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
       setLines((l) => ({ ...l, [kind]: null }));
       setErrors((e) => ({ ...e, [kind]: undefined }));
     } catch (err) {
-      setErrors({ [kind]: err.message || '지우지 못했어요' });
+      setErrors({ [kind]: err.message || '연결을 끊지 못했어요. 잠시 후 다시 시도해 주세요' });
     }
   }
 
@@ -186,7 +186,7 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
   // 메뉴에서 다시 열면 늘 [닫기][저장]
   const saveButton = { label: busy ? '받아 보는 중…' : '저장', onClick: save };
   const primary = again || typed || !checked ? saveButton : { label: '다음', onClick: onDone };
-  const secondary = again ? { label: '닫기', onClick: onDone } : !checked ? { label: '건너뛰기', onClick: skip } : failed ? { label: '그대로 두고 넘어가기', onClick: onDone } : null;
+  const secondary = again ? { label: '닫기', onClick: onDone } : !checked ? { label: '건너뛰기', onClick: skip } : failed ? { label: '나중에 하기', onClick: onDone } : null;
   const anySaved = feeds.some((f) => f.set);
 
   const profileCard = (
@@ -253,7 +253,7 @@ export default function Setup({ user, example, again, onDone, onDeleted }) {
         <section className="card" aria-labelledby="setup-feeds">
           <div className="feeds-head">
             <h2 id="setup-feeds">캘린더 연결</h2>
-            <span className="feeds-sub">쓰는 것만</span>
+            <span className="feeds-sub">쓰는 캘린더만 연결하면 돼요</span>
           </div>
           {!example && <OneTouch onFeeds={setFeeds} />}
           {inApp() && !example && <PhoneCalendar />}
@@ -388,7 +388,7 @@ function OneTouch({ onFeeds }) {
       <button type="button" className="btn" onClick={() => setEtl(true)}>
         eTL 로그인으로 연결
       </button>
-      <p className="hint">eTL 달력과 과제 · 공지 · 강의자료를 주소 복사 없이 한 번에 가져와요.</p>
+      <p className="hint">eTL 캘린더과 과제 · 공지 · 강의자료를 주소 복사 없이 한 번에 가져와요.</p>
       <GoogleSync app={inApp()} />
       {etl && (
         <EtlSheet

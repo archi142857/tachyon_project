@@ -278,7 +278,7 @@ export async function listFeeds(env, userId, now = Date.now()) {
         ? kind === 'naver'
           ? '네이버 캘린더 연결이 끊겼어요. 네이버에서 애플리케이션 비밀번호를 새로 만들어 다시 넣어 주세요'
           : '이 캘린더 주소가 더 이상 열리지 않아요. 캘린더에서 주소를 다시 복사해 붙여 주세요'
-        : row.last_error || (stuck ? '받다가 멈췄어요(처리 시간 한도일 수 있어요)' : null),
+        : row.last_error || (stuck ? '일정을 다 받지 못했어요. ‘지금 다시 받기’를 눌러 주세요' : null),
     });
   }
   return out;

@@ -7,9 +7,9 @@ const answer = (status, body) => vi.fn(async () => new Response(body === undefin
 describe('로그인 오류 글', () => {
   it('저장소 한도(db_limit)·서버 문제(server)는 알아듣는 글로', () => {
     expect(loginErrorText('db_limit')).toBe('오늘 서버 사용량을 모두 소진했어요. 오전 9시부터 다시 이용할 수 있어요');
-    expect(loginErrorText('server')).toMatch(/잠시 뒤/);
-    expect(loginErrorText('denied')).toMatch(/그만뒀어요/);
-    expect(loginErrorText('state')).toBe('로그인하지 못했어요. 다시 해 주세요');
+    expect(loginErrorText('server')).toMatch(/잠시 후/);
+    expect(loginErrorText('denied')).toMatch(/취소했어요/);
+    expect(loginErrorText('state')).toBe('로그인하지 못했어요. 다시 시도해 주세요');
     expect(loginErrorText(null)).toBeNull();
   });
 });
@@ -34,9 +34,9 @@ describe('API 오류 글', () => {
 
   it('500이나 글이 없는 503은 한 줄 안내만', async () => {
     vi.stubGlobal('fetch', answer(500, { error: '서버에서 오류가 났다' }));
-    await expect(getTogether()).rejects.toMatchObject({ status: 500, message: '잠깐 문제가 생겼어요. 잠시 뒤에 다시 해 주세요' });
+    await expect(getTogether()).rejects.toMatchObject({ status: 500, message: '잠깐 문제가 생겼어요. 잠시 후 다시 시도해 주세요' });
     vi.stubGlobal('fetch', answer(503));
-    await expect(getTogether()).rejects.toMatchObject({ status: 503, message: '잠깐 문제가 생겼어요. 잠시 뒤에 다시 해 주세요' });
+    await expect(getTogether()).rejects.toMatchObject({ status: 503, message: '잠깐 문제가 생겼어요. 잠시 후 다시 시도해 주세요' });
   });
 
   it('4xx는 서버 문장 그대로', async () => {

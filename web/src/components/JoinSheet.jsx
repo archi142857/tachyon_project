@@ -9,7 +9,7 @@ export default function JoinSheet({ code, onClose, onJoined }) {
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
-    api.previewJoin(code).then(setInfo, (err) => setError(err.status === 410 ? '기한이 지난 초대 링크예요. 새 링크를 받아 주세요' : err.status === 404 ? '없는 초대 링크예요' : err.message || '초대 링크를 열지 못했어요'));
+    api.previewJoin(code).then(setInfo, (err) => setError(err.status === 410 ? '기한이 지난 초대 링크예요. 새 링크를 받아 주세요' : err.status === 404 ? '초대 링크를 찾을 수 없어요. 보낸 사람에게 새 링크를 받아 주세요' : err.message || '초대 링크를 열지 못했어요'));
   }, [code]);
 
   async function accept() {
@@ -18,7 +18,7 @@ export default function JoinSheet({ code, onClose, onJoined }) {
       const res = await api.acceptJoin(code);
       onJoined(res.kind === 'group' ? `그룹 ‘${res.group.name}’에 들어왔어요` : `${res.friend.name}님과 친구가 됐어요`);
     } catch (err) {
-      setError(err.message || '받지 못했어요. 다시 해 주세요');
+      setError(err.message || '받지 못했어요. 다시 시도해 주세요');
       setBusy(false);
     }
   }

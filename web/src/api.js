@@ -42,7 +42,7 @@ async function call(method, path, body) {
     // 503은 서버가 일부러 보내는 안내라 그 문장을 그대로 쓴다 — 저장소 사정 { error, code: 'db_limit' | 'db_busy' }(11-12),
     // 같이 쓰기·eTL 표 준비 중. code는 error.code로 넘긴다(web/API.md '공통').
     const said = res.status === 503 && (data?.code === 'db_limit' ? DB_LIMIT_TEXT : typeof data?.error === 'string' && data.error);
-    const text = said || (res.status >= 500 ? '잠깐 문제가 생겼어요. 잠시 뒤에 다시 해 주세요' : data?.error || (res.status === 401 ? '로그인이 필요해요' : `요청을 처리하지 못했어요 (${res.status})`));
+    const text = said || (res.status >= 500 ? '잠깐 문제가 생겼어요. 잠시 후 다시 시도해 주세요' : data?.error || (res.status === 401 ? '로그인이 필요해요' : '문제가 생겼어요. 잠시 후 다시 시도해 주세요'));
     const error = new Error(text);
     error.status = res.status;
     error.code = data?.code ?? null;
@@ -113,11 +113,11 @@ export const LOGIN_URL = `${BASE}/api/login?next=/`;
 // (뒤 둘은 로그인 중 서버 저장소가 실패한 것 — db_limit = 무료 하루 한도, 한국 09:00에 풀림. 서버 쪽지 11-12 1104)
 export function loginErrorText(code) {
   if (!code) return null;
-  if (code === 'denied') return '구글 로그인을 그만뒀어요. 다시 해 주세요';
-  if (code === 'config') return '로그인 준비가 아직 안 됐어요(서버 설정). 잠시 뒤에 다시 해 주세요';
+  if (code === 'denied') return '구글 로그인을 취소했어요. 다시 로그인해 주세요';
+  if (code === 'config') return '지금은 로그인할 수 없어요. 잠시 후 다시 시도해 주세요';
   if (code === 'db_limit') return DB_LIMIT_TEXT;
-  if (code === 'server') return '서버에 잠깐 문제가 있어요. 잠시 뒤에 다시 해 주세요';
-  return '로그인하지 못했어요. 다시 해 주세요';
+  if (code === 'server') return '서버에 잠깐 문제가 있어요. 잠시 후 다시 시도해 주세요';
+  return '로그인하지 못했어요. 다시 시도해 주세요';
 }
 
 // 첫 설정을 건너뛰었는지는 이 기기에만 적어 둔다(서버는 학과·학년이 비면 needsSetup = true)
@@ -366,9 +366,9 @@ export const gcalAppUrl = async () => (await call('POST', '/api/gcal/app')).url;
 const GCAL_BACK = {
   ok: '구글 캘린더와 연결했어요. 일정을 맞추는 중이에요',
   denied: '구글 캘린더 연결을 취소했어요',
-  scope: '캘린더 권한에 체크해야 연결돼요. 다시 해 주세요',
+  scope: '캘린더 권한에 체크해야 연결돼요. 다시 시도해 주세요',
 };
-export const gcalBackText = (code) => (code ? GCAL_BACK[code] || '구글 캘린더에 연결하지 못했어요. 잠시 뒤 다시 해 주세요' : null);
+export const gcalBackText = (code) => (code ? GCAL_BACK[code] || '구글 캘린더에 연결하지 못했어요. 잠시 후 다시 시도해 주세요' : null);
 
 // 안드로이드 앱이 폰 'Tachyon' 캘린더에 쓸 목록(구독 주소와 같은 줄, ms 시각) → { items: [{ key, title, start, end, allDay, place }] } (native.js)
 export function getCalendarItems() {

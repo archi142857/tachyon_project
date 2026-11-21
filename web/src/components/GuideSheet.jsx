@@ -18,9 +18,9 @@ export const guideSeen = () => {
 
 const CARDS = [
   [pic1, '적기만 하세요', ["아래 칸에 아무렇게나 적으면 돼요. 예: '내일 3시 팀플 2동', '과제 3장까지 금요일'.", '일정이면 달력에, 할 일이면 할 일에 넣을지 바로 물어봐요.']],
-  [pic2, '수업·과제를 한곳에', ['eTL·구글 캘린더·TT Wizard 시간표를 이으면 수업·과제·마감이 알아서 들어와요.', '메뉴에서 언제든 이을 수 있어요(하지 않아도 돼요).']],
-  [pic3, '하루 고리로 한눈에', ['동그라미 하나가 오늘 24시간이에요.', '수업 · 내 일정 · 할 일을 넣어 본 자리 · 빨간 표시가 지금.', '빈 시간에 할 일을 넣어 봐 줘요. 마음에 들면 넣고, 아니면 다른 자리로.']],
-  [pic4, '같이 쓰면 더 쉬워요', ['친구·그룹을 만들면 다 같이 되는 시간을 찾아 줘요. 남에게는 빈/바쁨만 보여요.']],
+  [pic2, '수업·과제를 한곳에', ['eTL · 구글 캘린더 · TT Wizard를 연결하면 수업 · 과제 · 마감이 자동으로 들어와요.', '메뉴에서 언제든 연결할 수 있어요(하지 않아도 돼요).']],
+  [pic3, '하루 고리로 한눈에', ['동그라미 하나가 오늘 24시간이에요.', '수업 · 내 일정 · 할 일 추천 시간 · 빨간 표시가 지금.', '빈 시간에 할 일 시간을 추천해요. 마음에 들면 넣고, 아니면 다른 시간을 골라요.']],
+  [pic4, '같이 쓰면 더 쉬워요', ['친구 · 그룹을 만들면 다 같이 빈 시간을 찾아 줘요. 다른 사람에게는 내 일정이 ‘바쁨’으로만 보여요.']],
 ];
 
 export default function GuideSheet({ onClose }) {
@@ -51,7 +51,7 @@ export default function GuideSheet({ onClose }) {
   };
 
   return (
-    <Sheet title={`길잡이 ${i + 1}/${CARDS.length}`} onClose={close} front className="guide">
+    <Sheet title={`사용법 ${i + 1}/${CARDS.length}`} onClose={close} front className="guide">
       <div
         className={`guide-swipe${dx ? ' moving' : ''}`}
         style={{ transform: `translateX(${dx}px)`, opacity: 1 - Math.min(0.5, Math.abs(dx) / 400) }}

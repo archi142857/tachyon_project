@@ -31,7 +31,7 @@ export default function InboxSheet({ tasks, warning, onClose, onTask, onSnooze, 
 
   if (card === undefined) {
     return (
-      <Sheet title="받은함" onClose={onClose} front>
+      <Sheet title="오늘 브리핑" onClose={onClose} front>
         <p className="hint">오늘 브리핑을 불러오는 중…</p>
       </Sheet>
     );
@@ -48,7 +48,7 @@ export default function InboxSheet({ tasks, warning, onClose, onTask, onSnooze, 
   }
 
   return (
-    <Sheet title="받은함" onClose={onClose} front>
+    <Sheet title="오늘 브리핑" onClose={onClose} front>
       <h3 className="group-title">아침 브리핑</h3>
       {first && (
         <p className="inbox-line num">
@@ -90,7 +90,7 @@ export default function InboxSheet({ tasks, warning, onClose, onTask, onSnooze, 
 
       {b.new_tasks?.length > 0 && (
         <>
-          <h3 className="group-title">밤 정리로 생긴 할 일</h3>
+          <h3 className="group-title">밤사이 메모에서 찾은 할 일</h3>
           <ul className="inbox-new">
             {b.new_tasks.map((t) => (
               <li key={t.id}>
@@ -115,7 +115,7 @@ export default function InboxSheet({ tasks, warning, onClose, onTask, onSnooze, 
           </span>
         </>
       )}
-      {asked != null && <p className="hint">고마워요. 할 일 자리를 다시 셌어요.</p>}
+      {asked != null && <p className="hint">고마워요. 추천 시간을 다시 계산했어요.</p>}
     </Sheet>
   );
 }

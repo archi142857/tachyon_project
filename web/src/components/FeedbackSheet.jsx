@@ -26,7 +26,7 @@ export default function FeedbackSheet({ screen, onClose, onSent }) {
       onClose();
     } catch (err) {
       // 4xx(하루 한도 등)는 서버 문장, 5xx는 '잠깐 문제가 생겼어요'(api.js), 연결 끊김은 한 줄 안내
-      setError(err.status && err.message ? err.message : '보내지 못했어요. 잠시 뒤에 다시 해 주세요');
+      setError(err.status && err.message ? err.message : '보내지 못했어요. 잠시 후 다시 시도해 주세요');
     } finally {
       setBusy(false);
     }
@@ -46,7 +46,7 @@ export default function FeedbackSheet({ screen, onClose, onSent }) {
           <span>한 줄로</span>
           <input className="input" value={text} maxLength={200} onChange={(e) => setText(e.target.value)} autoFocus />
         </label>
-        <p className="hint">보낸 글은 GitHub 이슈로 남고, 저장소를 공개하면 누구나 봐요. 이름·학번·이메일 같은 개인 정보는 쓰지 마세요.</p>
+        <p className="hint">보낸 의견은 공개될 수 있어요. 이름 · 학번 · 이메일은 쓰지 마세요.</p>
         {error && <p className="error">{error}</p>}
         <button type="submit" className="btn" disabled={busy || !text.trim()}>
           보내기

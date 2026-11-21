@@ -47,7 +47,7 @@ export default function TaskActSheet({ task, slot, fixed, now, focusMin, onClose
           고치기
         </button>
         <button type="button" className="btn-text" onClick={onDone}>
-          끝냄
+          끝내기
         </button>
       </div>
     </Sheet>

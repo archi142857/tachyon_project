@@ -8,13 +8,13 @@ const ahead = (m) => (m === 1440 ? '하루 전' : m >= 60 ? `${m / 60}시간 전
 
 export default function RemindRow({ value, onChange, task = false, allDay = false, noDue = false }) {
   const what = task ? '마감' : '시작';
-  if (noDue) return <p className="hint popup-move">리마인드는 마감을 정하면 켤 수 있어요.</p>;
+  if (noDue) return <p className="hint popup-move">알림은 마감을 정하면 켤 수 있어요.</p>;
   const on = value != null;
   return (
     <div className="hint popup-move remind-row">
       <label className="remind-on">
         <input type="checkbox" checked={on} onChange={(e) => onChange(e.target.checked ? (task ? 60 : 30) : null)} />
-        <span>리마인드</span>
+        <span>알림</span>
       </label>
       {on && (
         <select className="input remind-when" aria-label="언제 알릴까요" value={value} onChange={(e) => onChange(Number(e.target.value))}>

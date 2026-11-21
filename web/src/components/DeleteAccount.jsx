@@ -19,7 +19,7 @@ export default function DeleteAccount({ example, heading = false, onDeleted }) {
       const res = await deleteAccount();
       onDeleted(res?.example);
     } catch (err) {
-      setError(err.message || '지우지 못했어요. 잠시 뒤에 다시 해 주세요');
+      setError(err.message || '지우지 못했어요. 잠시 후 다시 시도해 주세요');
       setBusy(false);
     }
   }

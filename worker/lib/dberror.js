@@ -48,5 +48,5 @@ export function recentLimit(now = Date.now()) {
 /** 화면에 보낼 503 본문. limit 글은 사람이 고른 말(11-13, 화면 5d14423과 같게) */
 export const DB_PROBLEM_REPLY = {
   limit: { error: '오늘 서버 사용량을 모두 소진했어요. 오전 9시부터 다시 이용할 수 있어요', code: 'db_limit' },
-  busy: { error: '서버 저장소가 잠깐 바빠요. 잠시 뒤 다시 해 주세요', code: 'db_busy' },
+  busy: { error: '이용이 몰리고 있어요. 잠시 후 다시 시도해 주세요', code: 'db_busy' },
 };

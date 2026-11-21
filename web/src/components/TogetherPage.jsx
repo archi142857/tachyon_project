@@ -104,7 +104,7 @@ export default function TogetherPage({ example, now, onSnack, startCreate = fals
       const res = await job();
       done?.(res);
     } catch (err) {
-      onSnack(err.message || '하지 못했어요. 다시 해 주세요');
+      onSnack(err.message || '바꾸지 못했어요. 잠시 후 다시 시도해 주세요');
     }
   };
 
@@ -160,7 +160,7 @@ export default function TogetherPage({ example, now, onSnack, startCreate = fals
           </h2>
           <span className="tag num">{data.groups.length}</span>
         </div>
-        {data.groups.length === 0 && <p className="empty">아직 그룹이 없어요. 위의 ‘그룹 만들기’로 만들고 초대 링크를 보내면 다 같이 되는 시간을 골라요.</p>}
+        {data.groups.length === 0 && <p className="empty">아직 그룹이 없어요. 위의 ‘그룹 만들기’로 만들고 초대 링크를 보내면 다 같이 빈 시간을 골라요.</p>}
         <div className="t-list">
           {data.groups.map((g) => (
             <div key={g.id} className="t-group">
@@ -212,14 +212,14 @@ export default function TogetherPage({ example, now, onSnack, startCreate = fals
           <section className="card t-card together-empty">
             {data.groups.length === 0 ? (
               <>
-                <p className="together-lead">그룹을 만들어 다 같이 되는 시간을 골라 보세요</p>
-                <p className="hint">만든 뒤 초대 링크를 보내면 멤버의 빈 시간이 모임 시간표에 모여요. 남에게는 내 일정이 '바쁨'으로만 보이고 이름은 안 보여요.</p>
+                <p className="together-lead">그룹을 만들어 다 같이 빈 시간을 골라 보세요</p>
+                <p className="hint">만든 뒤 초대 링크를 보내면 멤버의 빈 시간이 모임 시간표에 모여요. 다른 사람에게는 내 일정이 ‘바쁨’으로만 보여요.</p>
                 <button type="button" className="btn-line" onClick={openCreate}>
                   그룹 만들기
                 </button>
               </>
             ) : (
-              <p className="hint">그룹을 고르면 멤버와 모임 시간표가 여기에 보여요. 남에게는 내 일정이 '바쁨'으로만 보이고 이름은 안 보여요.</p>
+              <p className="hint">그룹을 고르면 멤버와 모임 시간표가 여기에 보여요. 다른 사람에게는 내 일정이 ‘바쁨’으로만 보여요.</p>
             )}
           </section>
         )}
@@ -396,11 +396,11 @@ function GroupPanel({ id, friends, now, run, onBack, onChanged, onMeet }) {
             </label>
             <div className="form-row">
               <label className="field">
-                <span>첫날</span>
+                <span>시작일</span>
                 <input className="input" type="date" value={form.from} onChange={(e) => setForm({ ...form, from: e.target.value })} />
               </label>
               <label className="field">
-                <span>끝날(14일까지)</span>
+                <span>종료일(최대 14일)</span>
                 <input className="input" type="date" value={form.to} onChange={(e) => setForm({ ...form, to: e.target.value })} />
               </label>
             </div>
@@ -416,7 +416,7 @@ function GroupPanel({ id, friends, now, run, onBack, onChanged, onMeet }) {
             </div>
             <div className="form-row">
               <label className="field">
-                <span>칸</span>
+                <span>시간 단위</span>
                 <select className="input" value={form.slot} onChange={(e) => setForm({ ...form, slot: e.target.value })}>
                   <option value="15">15분</option>
                   <option value="30">30분</option>
@@ -480,9 +480,9 @@ function MeetPanel({ id, now, run, onBack }) {
             </span>
           ))
         ) : (
-          <span className="hint">다 같이 되는 때가 아직 없어요</span>
+          <span className="hint">다 같이 빈 시간이 아직 없어요</span>
         )}
-        {m.unknown > 0 && <span className="hint">아직 안 칠한 사람 {m.unknown}명</span>}
+        {m.unknown > 0 && <span className="hint">아직 표시하지 않은 사람 {m.unknown}명</span>}
       </div>
       <div className="meet-tools">
         <div className="segmented" role="group" aria-label="모임 시간표 보기">
@@ -509,7 +509,7 @@ function MeetPanel({ id, now, run, onBack }) {
           {pickedSlot.who.length ? `: ${pickedSlot.who.map((w) => nameOf.get(w) || '?').join(', ')}` : ''}
         </p>
       )}
-      <p className="hint meet-key">진할수록 되는 사람이 많아요 · 흰 점 = 내가 되는 칸 · 남에게는 내 일정이 이름 없이 '바쁨'으로만 보여요</p>
+      <p className="hint meet-key">진할수록 되는 사람이 많아요 · 흰 점 = 내가 되는 칸 · 다른 사람에게는 내 일정이 ‘바쁨’으로만 보여요</p>
     </section>
   );
 }

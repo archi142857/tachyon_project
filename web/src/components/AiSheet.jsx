@@ -61,14 +61,14 @@ export default function AiSheet({ onClose }) {
       setNote({ at: 'links', text: `${link.client} 연결을 끊었어요` });
       await load();
     } catch (err) {
-      setNote({ at: 'links', text: err.message || '끊지 못했어요. 다시 해 주세요' });
+      setNote({ at: 'links', text: err.message || '끊지 못했어요. 다시 시도해 주세요' });
     } finally {
       setBusy(null);
     }
   }
 
   return (
-    <Sheet title="AI 에이전트 연결" onClose={onClose}>
+    <Sheet title="AI 앱 연결" onClose={onClose}>
       <div className="form-grid">
         <p className="hint" style={{ fontSize: 15, lineHeight: '22px', color: 'var(--text)' }}>
           Claude · ChatGPT · Gemini가 내 일정 · 빈 시간 · 할 일 · eTL 공지와 강의자료 · 오늘 브리핑을 읽고, 일정 · 할 일을 넣을 수 있어요. 과목마다 공부방도 열려서 그 AI가 시험 범위의 eTL 자료로 문제를 내며 빈틈을 채워 줘요. 예: “이번 주에 2시간 빈 때 찾아서 스터디 넣어 줘” · “공부방 열어 줘”

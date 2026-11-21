@@ -23,12 +23,12 @@ function ImportantToggle({ value, onChange }) {
   );
 }
 
-// 처음 누르면 '한 번 더 누르면 지워요'로 바뀌고, 두 번째에 지운다
-function DeleteButton({ busy, onDelete }) {
-  const [sure, setSure] = useState(false);
+// 처음 누르면 '한 번 더 누르면 지워요'로 바뀌고, 두 번째에 지운다. once = 지운 뒤 [되돌리기]가 있는 것(직접 넣은 것)은 한 번에(11-21)
+function DeleteButton({ busy, onDelete, once = false }) {
+  const [sure, setSure] = useState(once);
   return (
     <button type="button" className="btn-text danger" disabled={busy} onClick={() => (sure ? onDelete() : setSure(true))}>
-      {sure ? '한 번 더 누르면 지워요' : '지우기'}
+      {sure && !once ? '한 번 더 누르면 지워요' : '지우기'}
     </button>
   );
 }
@@ -51,14 +51,16 @@ export function EventEditSheet({ event, leg, campus, events, onSave, onDelete, o
     try {
       await job();
     } catch (err) {
-      setError(err.message || '하지 못했어요. 다시 해 주세요');
+      setError(err.message || '저장하지 못했어요. 잠시 후 다시 시도해 주세요');
     } finally {
       setBusy(false);
     }
   }
 
+  const save = () => !busy && ready && run(() => onSave(feed && !dirty ? { important, remind } : { ...formToEvent(form), important, remind }));
+
   return (
-    <Sheet title={event.id ? '일정 고치기' : '일정 넣기'} onClose={onClose} front>{/* id 없음 = 달력 빈 칸에서 새로(11-14) */}
+    <Sheet title={event.id ? '일정 고치기' : '일정 넣기'} onClose={onClose} onEnter={save} front>{/* id 없음 = 달력 빈 칸에서 새로(11-14) */}
       <EventForm form={form} onChange={setForm} idPrefix="edit-event" autoFocus={!event.id} />
       {feed && (
         <p className="hint">
@@ -75,8 +77,8 @@ export function EventEditSheet({ event, leg, campus, events, onSave, onDelete, o
         </p>
       )}
       <div className="sheet-actions">
-        {!feed && onDelete && <DeleteButton busy={busy} onDelete={() => run(onDelete)} />}
-        <button type="button" className="btn" disabled={busy || !ready} onClick={() => run(() => onSave(feed && !dirty ? { important, remind } : { ...formToEvent(form), important, remind }))}>
+        {!feed && onDelete && <DeleteButton busy={busy} once={event.source === 'memo' && !event.edited} onDelete={() => run(onDelete)} />}
+        <button type="button" className="btn" disabled={busy || !ready} onClick={save}>
           저장
         </button>
       </div>
@@ -104,7 +106,7 @@ export function EventInfoSheet({ event, leg, campus, events, onEdit, onClose }) 
       </dl>
       <RouteInfo event={event} leg={leg} campus={campus} events={events} />
       <div className="sheet-actions">
-        <button type="button" className="btn" onClick={onEdit}>
+        <button type="button" className="btn" data-autofocus onClick={onEdit}>
           고치기
         </button>
       </div>
@@ -129,7 +131,7 @@ export function TaskEditSheet({ task, onSave, onDelete, onClose }) {
     try {
       await job();
     } catch (err) {
-      setError(err.message || '하지 못했어요. 다시 해 주세요');
+      setError(err.message || '저장하지 못했어요. 잠시 후 다시 시도해 주세요');
     } finally {
       setBusy(false);
     }
@@ -141,8 +143,10 @@ export function TaskEditSheet({ task, onSave, onDelete, onClose }) {
     return out;
   }
 
+  const save = () => !busy && (locked || title.trim()) && run(() => onSave(fields()));
+
   return (
-    <Sheet title="할 일 고치기" onClose={onClose} front>
+    <Sheet title="할 일 고치기" onClose={onClose} onEnter={save} front>
       <div className="form-grid">
         <label className="field">
           <span>이름</span>
@@ -175,8 +179,8 @@ export function TaskEditSheet({ task, onSave, onDelete, onClose }) {
         </p>
       )}
       <div className="sheet-actions">
-        {!locked && onDelete && <DeleteButton busy={busy} onDelete={() => run(onDelete)} />}
-        <button type="button" className="btn" disabled={busy || (!locked && !title.trim())} onClick={() => run(() => onSave(fields()))}>
+        {!locked && onDelete && <DeleteButton busy={busy} once={task.source === 'memo'} onDelete={() => run(onDelete)} />}
+        <button type="button" className="btn" disabled={busy || (!locked && !title.trim())} onClick={save}>
           저장
         </button>
       </div>

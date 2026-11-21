@@ -21,7 +21,7 @@ export default function DoneSheet({ now, onClose, onUndone }) {
       setTasks((list) => list.filter((t) => t.id !== task.id));
       onUndone(task);
     } catch {
-      setError('되돌리지 못했어요. 다시 해 주세요');
+      setError('되돌리지 못했어요. 다시 시도해 주세요');
     }
   }
 

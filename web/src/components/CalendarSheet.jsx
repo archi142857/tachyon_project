@@ -1,6 +1,6 @@
 // 폰 달력에서 보기: Tachyon에 넣은 일정·마감을 폰 달력에서 보게 한다.
 // - 안드로이드 앱: 폰 안 'Tachyon' 캘린더에 직접 쓴다(켜기·끄기, native.js — 11-10 컨셉, 사람 요청 "달력도 자동으로 동기화").
-// - 그 밖(아이폰·PC·브라우저): 사람마다 다른 구독 주소(8_calendar_feed.js). 아이폰은 '폰 달력에 추가', 구글 캘린더는 '구글 캘린더'(웹에서 한 번 누르기).
+// - 그 밖(아이폰·PC·브라우저): 사람마다 다른 구독 주소(8_calendar_feed.js). 아이폰은 '폰 캘린더에 추가', 구글 캘린더는 '구글 캘린더'(웹에서 한 번 누르기).
 // - 구글 캘린더 실시간 연동(11-18 사람 "구글/노션 캘린더랑 연동되어서 실시간으로 둘 다 반영"): 맨 위 GoogleSync. 연동하면 일정은 구글로 바로 가고
 //   구독 주소·폰 'Tachyon' 캘린더에는 할 일 마감만 남는다(겹치지 않게, 12_gcal.js).
 // 주소는 사람마다 다른 비밀이라 화면에만 보이고, 오류 보고·로그 어디에도 남기지 않는다.
@@ -36,11 +36,11 @@ export default function CalendarSheet({ onClose }) {
   }
 
   return (
-    <Sheet title="구글 캘린더 연동·폰 달력" onClose={onClose}>
+    <Sheet title="구글 캘린더 동기화 · 폰에서 보기" onClose={onClose}>
       <div className="form-grid">
         <GoogleSync app={app} />
         <p className="hint" style={{ fontSize: 15, lineHeight: '22px', color: 'var(--text)' }}>
-          메모·시간표·eTL 일정과 할 일 마감을 폰 달력에서 볼 수 있어요. 구글·애플 캘린더에서 온 일정은 이미 폰에 있어서 빼요.
+          메모·시간표·eTL 일정과 할 일 마감을 폰 캘린더에서 볼 수 있어요. 구글·애플 캘린더에서 온 일정은 이미 폰에 있어서 빼요.
         </p>
         {app && feed && !feed.example && <PhonePush />}
         {error && <p className="error">{error}</p>}
@@ -58,7 +58,7 @@ export default function CalendarSheet({ onClose }) {
             )}
             <p className="hint">이 주소를 아는 사람은 누구나 내 일정을 볼 수 있어요. 다른 사람에게 보여 주지 마세요.</p>
             <ul className="hint" style={{ paddingLeft: 18, display: 'grid', gap: 4 }}>
-              {!app && <li>아이폰: 아래 '폰 달력에 추가'를 누르면 구독 창이 떠요.</li>}
+              {!app && <li>아이폰: 아래 '폰 캘린더에 추가'를 누르면 구독 창이 떠요.</li>}
               <li>구글 캘린더: 컴퓨터에서 '구글 캘린더'를 누르면 추가할지 물어요(주소를 붙여 넣지 않아도 돼요). 바뀐 것은 구글이 받아 가는 대로 최대 12시간쯤 늦게 보여요.</li>
             </ul>
           </>
@@ -76,13 +76,13 @@ export default function CalendarSheet({ onClose }) {
             {/* 안드로이드 앱에는 webcal을 여는 곳이 없어서 위의 '이 폰 캘린더에 바로 넣기'를 쓴다 */}
             {!app && (
               <a className="btn" href={feed.webcal} style={linkButton}>
-                폰 달력에 추가
+                폰 캘린더에 추가
               </a>
             )}
           </>
         ) : (
           <button type="button" className="btn" disabled>
-            폰 달력에 추가
+            폰 캘린더에 추가
           </button>
         )}
       </div>
@@ -100,7 +100,7 @@ export function GoogleSync({ app }) {
   useEffect(() => {
     getGcal()
       .then(setSt)
-      .catch(() => setNote('연동 상태를 불러오지 못했어요'));
+      .catch(() => setNote('연결 상태를 불러오지 못했어요. 인터넷을 확인해 주세요'));
   }, []);
 
   async function run(job, done) {
@@ -111,7 +111,7 @@ export function GoogleSync({ app }) {
       setSt(await getGcal());
       setNote(done);
     } catch (err) {
-      setNote(err.message || '하지 못했어요. 다시 해 주세요');
+      setNote(err.message || '구글 캘린더에 연결하지 못했어요. 잠시 후 다시 시도해 주세요');
     } finally {
       setBusy(false);
       setSure(false);
@@ -135,11 +135,11 @@ export function GoogleSync({ app }) {
 
   return (
     <div style={{ display: 'grid', gap: 6, padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 8 }}>
-      <p style={{ margin: 0, fontWeight: 700 }}>구글 캘린더와 실시간 연동 {st?.linked && !broken ? '· 켜짐' : ''}</p>
+      <p style={{ margin: 0, fontWeight: 700 }}>구글 캘린더 동기화 {st?.linked && !broken ? '· 켜짐' : ''}</p>
       <p className="hint" style={{ margin: 0 }}>
         {st?.linked
-          ? '구글 캘린더에서 바꾸면 Tachyon에, Tachyon에서 바꾸면 구글 캘린더에 바로 반영돼요. 노션 캘린더도 이 구글 캘린더를 보여 줘서 같이 맞춰져요. 아래 구독 주소·폰 캘린더에는 이제 할 일 마감만 들어가요.'
-          : '구글 캘린더(그리고 그걸 보여 주는 노션 캘린더)와 일정을 양쪽으로 바로 맞춰요. 어느 쪽에서 넣거나 고치거나 지워도 다른 쪽에 반영돼요.'}
+          ? '구글 캘린더와 Tachyon 일정이 양쪽에서 바로 바뀌어요. 노션 캘린더에도 함께 보여요. 아래 구독 주소 · 폰 캘린더에는 이제 할 일 마감만 들어가요.'
+          : '연결하면 구글 캘린더와 Tachyon 일정이 양쪽에서 바로 바뀌어요. 노션 캘린더에도 함께 보여요.'}
       </p>
       {broken && <p className="error" style={{ margin: 0 }}>구글 연결이 끊겼어요. 다시 연결해 주세요.</p>}
       {note && (
@@ -149,13 +149,13 @@ export function GoogleSync({ app }) {
       )}
       {st?.linked && !broken ? (
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <button type="button" className="btn" disabled={busy} onClick={() => run(syncGcal, '구글 캘린더와 맞췄어요')}>
-            지금 맞추기
+          <button type="button" className="btn" disabled={busy} onClick={() => run(syncGcal, '구글 캘린더와 동기화했어요')}>
+            지금 동기화
           </button>
-          <button type="button" className="btn-text danger" disabled={busy} onClick={() => (sure ? run(disconnectGcal, '연동을 끊었어요. Tachyon이 구글에 넣은 일정은 지웠어요') : setSure(true))}>
-            {sure ? '한 번 더 누르면 끊어요' : '연동 끊기'}
+          <button type="button" className="btn-text danger" disabled={busy} onClick={() => (sure ? run(disconnectGcal, '연결을 끊었어요. Tachyon이 구글에 넣은 일정은 지웠어요') : setSure(true))}>
+            {sure ? '한 번 더 누르면 끊어요' : '연결 끊기'}
           </button>
-          {st.pulled_at && <span className="hint">마지막으로 맞춘 때 {st.pulled_at.slice(5, 16).replace('T', ' ')}</span>}
+          {st.pulled_at && <span className="hint">마지막 동기화 {st.pulled_at.slice(5, 16).replace('T', ' ')}</span>}
         </div>
       ) : (
         st && connect
@@ -176,14 +176,14 @@ function PhonePush() {
     try {
       await job();
     } catch {
-      setStatus('폰 캘린더에 넣지 못했어요. 잠시 뒤 다시 해 주세요');
+      setStatus('폰 캘린더에 넣지 못했어요. 잠시 후 다시 시도해 주세요');
     } finally {
       setBusy(false);
     }
   }
 
   const NO_PERMISSION = '캘린더 권한이 없어서 못 넣었어요. 폰 설정의 앱 목록에서 Tachyon → 권한 → 캘린더를 허용해 주세요';
-  const done = (r) => setStatus(r ? `‘${CAL_NAME}’ 캘린더에 일정 ${r.total}개를 맞췄어요${r.added || r.removed ? ` (새로 ${r.added}개, 뺀 것 ${r.removed}개)` : ''}` : NO_PERMISSION);
+  const done = (r) => setStatus(r ? `‘${CAL_NAME}’ 캘린더에 일정 ${r.total}개를 넣었어요${r.added || r.removed ? ` (새로 ${r.added}개, 뺀 것 ${r.removed}개)` : ''}` : NO_PERMISSION);
 
   return (
     <div style={{ display: 'grid', gap: 6, padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 8 }}>
@@ -200,7 +200,7 @@ function PhonePush() {
         {on ? (
           <>
             <button type="button" className="btn" disabled={busy} onClick={() => run(async () => done(await pushToDevice()))}>
-              지금 맞추기
+              지금 동기화
             </button>
             <button
               type="button"

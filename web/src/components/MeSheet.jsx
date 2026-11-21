@@ -55,9 +55,8 @@ export default function MeSheet({ start = false, onClose, onDoneList, onSetup })
   };
 
   return (
-    <Sheet title={start ? '시작 질문 셋' : '나'} onClose={finish} front>
-      {start && <p className="hint">답하면 하루 고리와 할 일 자리를 나에게 맞춰요. 나중에 ‘나’에서 바꿀 수 있어요.</p>}
-      {!start && <h3 className="group-title">앱이 나에 대해 아는 것</h3>}
+    <Sheet title={start ? '처음 설정 3가지' : '내 설정'} onClose={finish} front>
+      {start && <p className="hint">답하면 하루 고리와 추천 시간을 나에게 맞춰요. 나중에 ‘내 설정’에서 바꿀 수 있어요.</p>}
       <Pick label="몇 시에 일어나요?" items={WAKES.map((h) => [h, `${h}시`])} value={p.wake} onChange={(v) => change('wake', v)} />
       <Pick label="한 번에 몇 분 집중해요?" items={FOCUSES.map((m) => [m, `${m}분`])} value={p.focus} onChange={(v) => change('focus', v)} />
       <Pick label="앱을 열면 어디부터 볼까요?" items={FIRSTS} value={p.first} onChange={(v) => change('first', v)} />

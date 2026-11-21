@@ -39,7 +39,7 @@ export default function NaverFeed({ saved, line: given, disabled, onFeeds }) {
       setEditing(false);
       setLine(resultLine(results.find((x) => x.kind === 'naver')));
     } catch (err) {
-      setError(err.message || '연결하지 못했어요. 잠시 뒤에 다시 해 주세요');
+      setError(err.message || '연결하지 못했어요. 잠시 후 다시 시도해 주세요');
     } finally {
       setBusy(false);
     }

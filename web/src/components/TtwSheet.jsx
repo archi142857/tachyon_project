@@ -98,7 +98,7 @@ export default function TtwSheet({ initialLink, onClose, onSaved }) {
       {!preview && (
         <div className="sheet-actions">
           <button type="button" className="btn" disabled={busy || !link.trim()} onClick={() => look()}>
-            {busy ? '읽는 중…' : '살펴보기'}
+            {busy ? '읽는 중…' : '시간표 불러오기'}
           </button>
         </div>
       )}

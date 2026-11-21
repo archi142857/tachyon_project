@@ -12,7 +12,7 @@ const HIT = 86; // 누르는 띠의 가운데 반지름(앱 DayRing의 MID와 �
 
 // timetable → 수업, ics · memo → 내 일정, slot → 할 일을 넣어 본 자리
 export const look = (kind) => (kind === 'timetable' ? 'class' : kind === 'slot' ? 'slot' : 'mine');
-export const KIND_NAME = { class: '수업', mine: '내 일정', slot: '할 일 자리' };
+export const KIND_NAME = { class: '수업', mine: '내 일정', slot: '할 일 추천 시간' };
 
 export const f1 = (v) => Number(v).toFixed(1);
 

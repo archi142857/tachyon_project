@@ -111,7 +111,7 @@ export default function ThemeSheet({ onClose }) {
           {note}
         </p>
       )}
-      <p className="hint">테마 글은 이름과 색 값을 적은 짧은 글이에요. ‘지금 값 채우기’로 본을 받아 색만 고쳐도 돼요. 가져온 테마는 이 기기에만 저장돼요.</p>
+      <p className="hint">테마 코드는 이름과 색 값을 적은 짧은 글이에요. ‘지금 값 채우기’로 본을 받아 색만 고쳐도 돼요. 가져온 테마는 이 기기에만 저장돼요.</p>
       <div className="sheet-actions">
         <button type="button" className="btn-text" onClick={() => (setText(themeText()), setError(''), setNote(''))}>
           지금 값 채우기

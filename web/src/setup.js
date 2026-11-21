@@ -140,7 +140,7 @@ export function normalizeIcs(key, raw) {
   try {
     u = new URL(s.replace(/^webcals?:\/\//i, 'https://'));
   } catch {
-    return { error: '주소 모양이 아니에요' };
+    return { error: '주소가 올바르지 않아요. https://로 시작하는 주소를 붙여 넣어 주세요' };
   }
   if (u.protocol !== 'https:') return { error: 'https:// 로 시작하는 주소를 넣어 주세요' };
   const error = checkFeed(key, u);

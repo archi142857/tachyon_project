@@ -73,7 +73,7 @@ export default function TaskList({ tasks, now, plan, subjects = [], onDone, onEd
         </div>
         {today && todayMin > 0 && (
           <p className="share-line num">
-            오늘 할 몫 {hoursText(todayMin)} · {today.items.length}개 (마감 전 날들에 고르게 나눈 것)
+            오늘 할 분량 {hoursText(todayMin)} · {today.items.length}개
           </p>
         )}
         <div className="list-scroll">
@@ -114,11 +114,11 @@ export default function TaskList({ tasks, now, plan, subjects = [], onDone, onEd
         </div>
       </section>
 
-      <section className="card share" aria-label="날마다 나눠 둔 몫">
+      <section className="card share" aria-label="하루 분량">
         <div className="tasks-head">
-          <h2 className="card-title">나눠 둔 몫</h2>
+          <h2 className="card-title">하루 분량</h2>
         </div>
-        <p className="hint">할 일의 걸리는 시간을 마감 전 날들에 고르게 나눴어요. 하루가 너무 차지 않게 맞춘 것이라 저장하지 않아요.</p>
+        <p className="hint">마감까지 남은 날에 할 일을 고르게 나눴어요.</p>
         <div className="list-scroll">
           {plan.slice(0, 7).map((d) => {
             const p = kst(d.date);

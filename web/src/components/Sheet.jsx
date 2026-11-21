@@ -2,7 +2,8 @@
 import { useEffect, useRef } from 'react';
 import { useLift } from '../lift.js';
 
-export default function Sheet({ title, onClose, front = false, className = '', children }) {
+// onEnter = 글 칸에서 Enter를 누르면 할 일(저장). 한글을 조합하는 중의 Enter는 뺀다(11-21)
+export default function Sheet({ title, onClose, onEnter, front = false, className = '', children }) {
   const ref = useRef(null);
   const [lifted, onFocus] = useLift(); // 폰: 글자판 뜨는 칸에 초점이 가면 위로(날짜 · 시각 칸은 그대로, lift.js)
 
@@ -24,6 +25,7 @@ export default function Sheet({ title, onClose, front = false, className = '', c
         onClose();
       }}
       onClick={(e) => e.target === ref.current && onClose()}
+      onKeyDown={(e) => onEnter && e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'checkbox' && !e.nativeEvent.isComposing && (e.preventDefault(), onEnter())}
     >
       <div className="sheet-inner">
         <div className="sheet-head">

@@ -561,7 +561,7 @@ export function prefilter(text, fromMs, toMs) {
 export function assertIcs(text) {
   const body = String(text).replace(/^\uFEFF/, '');
   if (!/^\s*BEGIN:VCALENDAR/i.test(body)) {
-    throw new IcsError('ICS가 아닌 응답이에요(로그인 화면·오류 페이지일 수 있어요)');
+    throw new IcsError('캘린더 주소가 아니에요. 주소를 다시 복사해 주세요');
   }
   return body;
 }

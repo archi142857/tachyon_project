@@ -29,7 +29,7 @@ export default function TidySheet({ onClose, onDone }) {
     let live = true;
     api.tidyNow().then(
       (r) => live && setRes(r),
-      (err) => live && setError(err.message || '정리하지 못했어요. 잠시 뒤에 다시 해 주세요'),
+      (err) => live && setError(err.message || '정리하지 못했어요. 잠시 후 다시 시도해 주세요'),
     );
     return () => {
       live = false;
@@ -55,7 +55,7 @@ export default function TidySheet({ onClose, onDone }) {
       const r = await api.tidyApply(chosen);
       onDone(r.summary || '정리했어요');
     } catch (err) {
-      setError(err.message || '정리하지 못했어요. 다시 해 주세요');
+      setError(err.message || '정리하지 못했어요. 다시 시도해 주세요');
       setBusy(false);
     }
   }
@@ -116,7 +116,7 @@ export default function TidySheet({ onClose, onDone }) {
                       <span className="tidy-from">‘{m.text}’</span>
                       <span className="tidy-to">
                         {m.answered === false ? (
-                          '이번엔 못 읽었어요 — 밤 정리가 다시 봐요'
+                          '이번에는 정리하지 못했어요. 밤사이 다시 정리해 둘게요'
                         ) : (
                           '그냥 메모로 둬요'
                         )}
@@ -146,7 +146,7 @@ export default function TidySheet({ onClose, onDone }) {
               </button>
             )}
             <button type="button" className="btn-text quiet" onClick={onClose}>
-              {rows > 0 ? '그만두기' : '닫기'}
+              {rows > 0 ? '취소' : '닫기'}
             </button>
           </div>
         </>

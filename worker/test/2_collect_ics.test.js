@@ -166,7 +166,7 @@ test('받기 실패: 오류 문장에 주소가 없고 feeds.last_error와 log�
 
   web.set(GOOGLE_URL, '<!doctype html><title>로그인</title>');
   const [g] = await collectUser(env, user.id, { force: true, kinds: ['google'], now: NOW });
-  assert.match(g.error, /ICS가 아닌 응답/);
+  assert.match(g.error, /캘린더 주소가 아니에요/);
 
   const feeds = (await (await handle(req('/api/feeds'), env, makeCtx(), user)).json()).feeds;
   assert.match(feeds.find((f) => f.kind === 'etl').error, /HTTP 401/);
@@ -181,7 +181,7 @@ test('받다가 멈춘 주소(처리 시간 한도 등)는 목록에 멈춤으�
     .run();
   clock = NOW + 40 * MIN;
   const feeds = (await (await handle(req('/api/feeds'), env, makeCtx(), user)).json()).feeds;
-  assert.match(feeds.find((f) => f.kind === 'google').error, /멈췄어요/);
+  assert.match(feeds.find((f) => f.kind === 'google').error, /다 받지 못했어요/);
   assert.equal(feeds.find((f) => f.kind === 'etl').error, null);
 });
 
@@ -235,7 +235,7 @@ test('붙이자마자 받아 보기: 이미 안 열리는 주소는 저장 안 �
   web.set(ETL_URL, '<!doctype html><title>로그인</title>');
   r = await put({ etl: ETL_URL });
   assert.equal(r.saved, false);
-  assert.match(r.error, /ICS가 아닌 응답/);
+  assert.match(r.error, /캘린더 주소가 아니에요/);
   assert.equal(await count(env, 'feeds'), 0);
 
   web.set(ETL_URL, 503);
