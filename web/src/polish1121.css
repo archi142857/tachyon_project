@@ -1,5 +1,5 @@
 /* 11-21 편의 · 알림 · 다듬기 층(맨 끝). 사람 11-21 21:06 "거의 모든 게 원터치 · 가독성과 편의성 최우선 · 바우하우스 빼고 다 고도화".
-   ① 이번에 새로 생긴 것의 모양(모든 테마, 색은 테마 값) ② 아래쪽 html[data-theme] 묶음 = 바우하우스 뺀 다섯 테마 다듬기. */
+   ① 이번에 새로 생긴 것의 모양(모든 테마, 색은 테마 값) ② 아래쪽 html[data-theme] 묶음 = 바우하우스 뺀 다섯 테마: 공통은 읽기 · 누를 곳만, 모양은 테마마다(22:42 다시 함). */
 
 /* ── ① 새로 생긴 것 ── */
 /* 여는 동안 · 인터넷이 없을 때(App.jsx): 빈 화면 대신 로고 */
@@ -66,15 +66,107 @@ html[data-idle] *, html[data-idle] *::before, html[data-idle] *::after { animati
 /* 끝까지 굴렸을 때 뒤 화면이 따라 굴지 않게 */
 .list-scroll, .sheet-inner, .memo-log { overscroll-behavior: contain; }
 
-/* ── ② 바우하우스 뺀 다섯 테마 다듬기(html[data-theme]). 바우하우스는 data-theme가 없어 닿지 않는다 ── */
-html[data-theme] {
-  --t-press: 120ms; --t-ui: 180ms; --t-enter: 260ms; --ease: cubic-bezier(0.2, 0, 0, 1);
-  --hover: color-mix(in srgb, var(--text) 7%, transparent);
-  scrollbar-color: color-mix(in srgb, var(--text) 28%, transparent) transparent;
-}
-html[data-theme] * { scrollbar-width: thin; }
+/* ── ② 바우하우스 뺀 다섯 테마(html[data-theme]). 바우하우스는 data-theme가 없어 닿지 않는다.
+   11-21 22:42 사람: "디자인 다시 롤백하고, 각 테마별 특성을 살려서 다시 해. 오선지 배경이라던가, 뉴모피즘의 입체감이 하나도 안 남아 있잖아"
+   → 다섯 테마에 한 가지 모양을 덮던 규칙(같은 누름 · 올림 · 등장 움직임 · 모서리 · 지난 일정 면)을 뺐다.
+   ②-가 = 모양을 바꾸지 않는 공통(읽기 · 누를 곳 · 초점 · 새 부품), ②-나부터 = 테마마다 제 말로(뉴모피즘 볼록 · 오목, 오선지 먹 · 음표 · 오선 띠, 태양계 금 실선 · 빛, 입자 유리 · 번짐).
+   주간 달력은 calendar1120.css가 모든 테마를 같은 면 칠로 만들어 테마 맛이 가장 빠져 있던 곳이라 여기서 테마마다 되살린다(짜임 · 크기 · 글은 그대로). ── */
 
-/* 읽기: 옅은 글자를 더 진하게(작은 글자 대비 4.5:1 쪽으로) */
+/* ②-가 공통: 읽기 · 누를 곳 · 초점 */
+html[data-theme] { scrollbar-color: color-mix(in srgb, var(--text) 28%, transparent) transparent; min-height: 100vh; min-height: 100dvh; } /* 높이: 짧은 화면에서 바탕 그라데이션이 되풀이되지 않게 */
+html[data-theme] * { scrollbar-width: thin; }
+/* 글자 크기 바닥 12px(달력 작은 글자 · 꼬리표) */
+html[data-theme] .cal.wk :is(.dh, .ev-m, .cal-hours span, .late-pill), html[data-theme] .due-axis { font-size: 12px; }
+html[data-theme] .cal.wk .cal-grid .ev .ev-m { line-height: 15px; }
+/* 폰: 메모 칸 글자 16px(아이폰이 화면을 확대하지 않게) · 손가락 자리 44px */
+@media (pointer: coarse) {
+  html[data-theme] .composer input { font-size: 16px; }
+  html[data-theme] :is(.segmented button, .cal-pick button, .act-tabs button, .tasks-head .btn-text) { min-height: 44px; }
+}
+/* 키보드 초점 테(색은 테마 강조색) */
+html[data-theme] :is(button, a, input, select, summary, [role='button'], [tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 달력 칩 · 날짜 칸 모서리는 테마의 --r-chip(themes.css · nine.css)을 따른다 */
+html[data-theme] .cal.wk :is(.cal-top .chip, .cal-days .cal-day), html[data-theme] :is(.today-allday .chip, .conn-line, .cal-days-input) { border-radius: var(--r-chip); }
+/* 연결 상태 줄 · 메뉴 꼬리표(새 부품): 어두운 테마에서 면이 떠 보이지 않게 테만 */
+html[data-theme] .conn-line { background: color-mix(in srgb, var(--text) 6%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 10%, transparent); }
+html[data-theme] .conn-line.bad { background: color-mix(in srgb, var(--danger) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 45%, transparent); color: var(--text); }
+html[data-theme] .menu-state { background: color-mix(in srgb, var(--text) 9%, transparent); }
+html[data-theme] .menu-state.bad { background: var(--danger); color: var(--bg); }
+/* 주간 달력 일정: 색 띠(뜻)는 같고, 그 위 입체 · 테 · 빛은 테마가 --lift로 정한다. 지난 일정은 통째로 흐리게 하지 않고 색만 옅게(글은 읽히게) */
+html[data-theme] .cal.wk .cal-grid .ev { box-shadow: inset 3px 0 0 var(--tone), var(--lift, 0 0 #0000); }
+html[data-theme] .cal.wk .cal-grid .ev.important { box-shadow: inset 5px 0 0 var(--tone), inset 0 0 0 1.5px var(--tone), var(--lift, 0 0 #0000); }
+html[data-theme] .cal.wk .cal-grid .ev.late-ev { box-shadow: inset 3px 0 0 var(--tone), inset 0 2px 0 var(--danger), var(--lift, 0 0 #0000); }
+html[data-theme] .cal.wk .cal-grid .ev.past { opacity: 1; --tone: color-mix(in srgb, var(--c, var(--accent)) 45%, var(--card)); }
+html[data-theme] .cal.wk .cal-grid .ev.past .ev-t { color: var(--text2); }
+
+/* ②-나 뉴모피즘: 선을 없애고 빛(왼쪽 위) · 그림자(오른쪽 아래)로만. 볼록 = 일정 · 단추 · 할 일, 오목 = 날짜 칸 · 지난 일정 · 누른 것 */
+html[data-theme='뉴모피즘'] { --cal-sat: #38647f; }
+html[data-theme='뉴모피즘'] .cal.wk :is(.cal-top, .cal-grid) { border-top: 0; }
+html[data-theme='뉴모피즘'] .cal.wk .cal-grid .hline { border-top: 1px solid rgb(170 150 128 / 0.24); box-shadow: 0 1px 0 rgb(255 250 242 / 0.75); } /* 선 대신 새긴 금 */
+html[data-theme='뉴모피즘'] .cal.wk .cal-grid .hline.half { border-top: 1px dotted rgb(170 150 128 / 0.2); box-shadow: none; }
+html[data-theme='뉴모피즘'] .cal.wk .cal-grid > .col { border-left: 0; border-radius: 14px; box-shadow: var(--in-sm); } /* 하루 = 오목한 홈 */
+html[data-theme='뉴모피즘'] .cal.wk .cal-grid > .col.today { box-shadow: var(--in); }
+html[data-theme='뉴모피즘'] .cal.wk .cal-grid .ev { --lift: 3px 3px 7px var(--dk), -2px -2px 6px var(--lt); border-radius: 12px; }
+html[data-theme='뉴모피즘'] .cal.wk .cal-grid .ev:hover { --lift: 5px 5px 12px var(--dk), -4px -4px 10px var(--lt); }
+html[data-theme='뉴모피즘'] .cal.wk .cal-grid .ev:is(.past, :active) { --lift: var(--in-sm); } /* 지난 일정 = 눌린 자국 */
+html[data-theme='뉴모피즘'] .cal.wk .cal-days .cal-day:hover { background: none; box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] .cal.wk .cal-days .cal-day:active { box-shadow: var(--in-sm); }
+html[data-theme='뉴모피즘'] .cal.wk .cal-days .today .dn { background: var(--terra); color: #fff; box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] .cal.wk .cal-top .chip.allday { box-shadow: inset 3px 0 0 var(--c, var(--accent)), 2px 2px 5px var(--dk), -2px -2px 5px var(--lt); }
+html[data-theme='뉴모피즘'] .cal.wk .cal-top .chip.deadline { box-shadow: inset 3px 0 0 var(--mark-task), 2px 2px 5px var(--dk), -2px -2px 5px var(--lt); }
+html[data-theme='뉴모피즘'] :is(.chip-btn, .today-allday .chip) { border: 0; background: var(--clay); box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] .chip-btn { font-weight: 700; }
+html[data-theme='뉴모피즘'] .chip-btn:hover { background: var(--clay); }
+html[data-theme='뉴모피즘'] :is(.chip-btn, .today-allday .chip, .cal-top .chip):active { box-shadow: var(--in-sm); }
+/* 할 일 쪽: 줄 대신 하나하나 볼록한 알약(오늘 칸의 알약과 같은 말), 나눠 둔 몫 = 오목한 자리 */
+html[data-theme='뉴모피즘'] :is(.task-list, .share) .list-scroll { padding: 4px 8px 12px; }
+html[data-theme='뉴모피즘'] .task-list .task { margin-bottom: 12px; padding: 10px 16px; border-radius: 20px; box-shadow: var(--up-sm); }
+html[data-theme='뉴모피즘'] .group-title { border-bottom: 0; }
+html[data-theme='뉴모피즘'] :is(.task-old > summary, .share-day) { border-top: 0; }
+html[data-theme='뉴모피즘'] .share-item { padding: 3px 10px; border: 0; border-radius: 12px; box-shadow: var(--in-sm); }
+html[data-theme='뉴모피즘'] :is(.menu-list button, .task-old > summary) { border-radius: 14px; }
+@media (hover: hover) { html[data-theme='뉴모피즘'] :is(.menu-list button, .task-old > summary, .share-item):hover { box-shadow: var(--up-sm); } }
+html[data-theme='뉴모피즘'] .composer form:focus-within { box-shadow: var(--in, none), 0 0 0 2px var(--accent); }
+@media (prefers-reduced-motion: no-preference) { html[data-theme='뉴모피즘'] :is(button, .ev, .chip) { transition: box-shadow 0.18s ease; } } /* 볼록 ↔ 오목이 스르륵 */
+
+/* ②-다 오선지: 종이 위로 오선 띠와 음표가 비스듬히 지나간다(11-13 바탕 그림을 되살림). 달력은 먹 마디줄 · 수업 = 먹 음표 · 내 일정 = 흰 음표 */
+/* 띠는 글 뒤가 아니라 맨 위에 옅게 얹는다: 칸이 불투명한 종이라 뒤에 두면 좁은 틈에서만 보인다. 검은 띠 10% = 종이가 살짝 어두워질 뿐이라 글 대비는 그대로 */
+html[data-theme='오선지'] .theme-backdrop { display: block; z-index: 90; opacity: 0.1; }
+html[data-theme='오선지'] .cal.wk .cal-grid .hline { border-top-color: rgb(28 24 19 / 0.16); }
+html[data-theme='오선지'] .cal.wk .cal-grid > .col { border-left-color: rgb(28 24 19 / 0.6); } /* 마디줄 */
+html[data-theme='오선지'] .cal.wk .cal-grid > .hours span, html[data-theme='오선지'] .cal.wk .cal-days .wd { font-family: var(--font-head); }
+html[data-theme='오선지'] .cal.wk .cal-grid .ev { --lift: inset 0 0 0 1px rgb(28 24 19 / 0.62); border-radius: 1px; background: color-mix(in srgb, var(--tone) 9%, var(--paper)); }
+html[data-theme='오선지'] .cal.wk .cal-grid .ev.past { --lift: inset 0 0 0 1px rgb(28 24 19 / 0.3); }
+html[data-theme='오선지'] .cal.wk .cal-grid .ev.timetable { background: var(--ink); }
+html[data-theme='오선지'] .cal.wk .cal-grid .ev.timetable.past { background: color-mix(in srgb, var(--ink) 62%, var(--paper)); }
+html[data-theme='오선지'] .cal.wk .cal-grid .ev.timetable :is(.ev-t, .ev-m) { color: var(--paper); }
+html[data-theme='오선지'] .cal.wk .cal-grid .ev:not(.important) .ev-t::before { content: '♫ '; font: 13px/1 'Noto Music', serif; }
+html[data-theme='오선지'] .cal.wk .cal-grid .ev.timetable:not(.important) .ev-t::before { content: '♩ '; }
+@container (max-width: 100px) { html[data-theme='오선지'] .cal.wk .cal-grid .ev:not(.important) .ev-t::before { content: none; } }
+html[data-theme='오선지'] .cal.wk .cal-days .cal-day:hover { background: none; }
+html[data-theme='오선지'] .cal.wk .cal-days .cal-day:hover .wd { color: var(--red); }
+html[data-theme='오선지'] .cal.wk .cal-days .today .dn { position: relative; z-index: 0; background: none; color: var(--paper); } /* 오늘 = 빨간 음표 머리 */
+html[data-theme='오선지'] .cal.wk .cal-days .today .dn::before { content: ''; position: absolute; inset: 2px -4px; z-index: -1; border-radius: 50%; background: var(--red); transform: rotate(-20deg); }
+html[data-theme='오선지'] .cal.wk .cal-top .chip.allday { box-shadow: inset 3px 0 0 var(--c, var(--accent)), inset 0 0 0 1px rgb(28 24 19 / 0.62); }
+html[data-theme='오선지'] .cal.wk .cal-top .chip.deadline { box-shadow: inset 3px 0 0 var(--mark-task), inset 0 0 0 1px rgb(28 24 19 / 0.62); }
+@media (hover: hover) { html[data-theme='오선지'] :is(.menu-list button, .share-item, .today-allday .chip, .cal-top .chip, .task-old > summary, .task .title):hover { color: var(--red); } }
+
+/* ②-라 태양계: 관측판. 일정 = 제 색 실선 테 + 옅은 빛, 오늘 = 해(금 원반), 칸 금은 금 실선 */
+html[data-theme='태양계'] .cal.wk .cal-grid .hline { border-top-color: var(--hair-dim); }
+html[data-theme='태양계'] .cal.wk .cal-grid > .col { border-left-color: var(--hair-dim); }
+html[data-theme='태양계'] .cal.wk .cal-grid > .col.today { background: linear-gradient(180deg, rgb(242 196 107 / 0.1), rgb(242 196 107 / 0.03)); box-shadow: inset 1px 0 0 var(--hair), inset -1px 0 0 var(--hair); }
+html[data-theme='태양계'] .cal.wk .cal-grid .ev { --lift: inset 0 0 0 1px color-mix(in srgb, var(--tone) 50%, transparent), 0 0 14px -3px color-mix(in srgb, var(--tone) 65%, transparent); border-radius: 4px; }
+html[data-theme='태양계'] .cal.wk .cal-grid .ev.past { --lift: inset 0 0 0 1px color-mix(in srgb, var(--tone) 40%, transparent); }
+html[data-theme='태양계'] .cal.wk .cal-days .cal-day:not(.sat, .sun) .wd { color: var(--gold); }
+html[data-theme='태양계'] .cal.wk .cal-days .wd { letter-spacing: 0.12em; }
+html[data-theme='태양계'] .cal.wk .cal-days .cal-day:hover { background: rgb(242 196 107 / 0.1); }
+html[data-theme='태양계'] .cal.wk .cal-days .today .dn { background: radial-gradient(circle at 35% 30%, var(--gold-hi), var(--gold)); color: #1a1204; box-shadow: 0 0 0 3px #060915, 0 0 0 4px rgb(242 196 107 / 0.6), 0 0 16px 2px rgb(255 190 80 / 0.55); }
+html[data-theme='태양계'] .cal.wk .cal-top .chip.allday { box-shadow: inset 3px 0 0 var(--c, var(--accent)), inset 0 0 0 1px var(--hair); }
+html[data-theme='태양계'] .cal.wk .cal-top .chip.deadline { box-shadow: inset 3px 0 0 var(--mark-task), inset 0 0 0 1px var(--hair); }
+html[data-theme='태양계'] .cal.wk .cal-grid .now-line { box-shadow: 0 0 10px var(--now); }
+@media (hover: hover) { html[data-theme='태양계'] :is(.menu-list button, .share-item, .today-allday .chip, .cal-top .chip, .task-old > summary):hover { background-color: rgb(242 196 107 / 0.1); } }
+
+/* ②-마 입자: 유리. 일정 = 윗변에 걸린 빛(--rim) + 제 색 번짐, 오늘 = 빛 번진 동그라미. 읽기: 옅은 글자를 더 진하게(작은 글자 대비 4.5:1 쪽으로) */
 html[data-theme^='입자'] {
   --mu: color-mix(in srgb, var(--ink) calc(66% + 12% * var(--t)), transparent);
   --fa: color-mix(in srgb, var(--ink) calc(50% + 16% * var(--t)), transparent);
@@ -83,62 +175,14 @@ html[data-theme^='입자'] :is(.btn-text.danger, .task .meta .late-due) { color:
 html[data-theme^='입자'] .task .short { color: var(--warn); }
 html[data-theme^='입자'] :is(.side-nav, .tabs) .count { color: var(--on-accent, #fff); font-size: 11px; font-weight: 600; }
 html[data-theme='입자 낮'] { --cal-sun: #b3123c; --te: #07725f; }
-html[data-theme='뉴모피즘'] { --cal-sat: #38647f; }
-
-/* 지난 일정: 통째로 흐리게(글자까지 안 읽힘) 대신 면만 옅게, 글자는 읽히게 */
-html[data-theme] .cal.wk .cal-grid .ev.past { opacity: 1; background: color-mix(in srgb, var(--tone) calc(var(--ev-fill) * 0.4), var(--card)); box-shadow: inset 3px 0 0 color-mix(in srgb, var(--tone) 45%, var(--card)); }
-html[data-theme] .cal.wk .cal-grid .ev.past .ev-t { color: var(--text2); }
-
-/* 글자 크기 바닥 12px(달력 작은 글자 · 꼬리표) */
-html[data-theme] .cal.wk :is(.dh, .ev-m, .cal-hours span, .late-pill), html[data-theme] .due-axis { font-size: 12px; }
-html[data-theme] .cal.wk .cal-grid .ev .ev-m { line-height: 15px; }
-
-/* 폰: 메모 칸 글자 16px(아이폰이 화면을 확대하지 않게) · 손가락 자리 44px */
-@media (pointer: coarse) {
-  html[data-theme] .composer input { font-size: 16px; }
-  html[data-theme] :is(.segmented button, .cal-pick button, .act-tabs button, .tasks-head .btn-text) { min-height: 44px; }
-}
-
-/* 움직임: 색 · 누름만 짧게. 그림자 · 카드 전체에는 전환을 걸지 않는다(굴릴 때 · 테마 바꿀 때 렉의 원인) */
-@media (prefers-reduced-motion: no-preference) {
-  html[data-theme] .card { transition: none; }
-  html[data-theme] :is(button, .btn, .chip, .task, input) { transition: background-color var(--t-ui) var(--ease), color var(--t-ui) var(--ease), border-color var(--t-ui) var(--ease), opacity var(--t-ui) var(--ease), transform var(--t-press) var(--ease); }
-  /* 쪽을 옮기면 살짝 떠오르며 나타난다(합성기에서만: opacity · transform) */
-  html[data-theme] .shell .page > * { animation: polish-in var(--t-enter) var(--ease) backwards; }
-  html[data-theme] dialog.sheet[open] .sheet-inner { animation: polish-in var(--t-enter) var(--ease) backwards; }
-}
-@keyframes polish-in { from { opacity: 0; transform: translateY(6px); } }
-
-/* 마우스를 올리면 눌리는 것임을 알려 준다(입자에만 있던 것을 다섯 테마 모두) */
-@media (hover: hover) {
-  html[data-theme]:not([data-theme='뉴모피즘']) :is(.menu-list button, .pick button, .share-item, .today-allday .chip, .cal-top .chip, .task-old > summary):hover { background-color: var(--hover); }
-  html[data-theme] :is(.btn, .composer .send):not(:disabled):hover { filter: brightness(1.08); }
-  html[data-theme] .day .ev[role='button']:hover { filter: brightness(1.06); }
-  html[data-theme] .task .title:hover { text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); text-underline-offset: 3px; }
-}
-
-/* 키보드 초점 테: 어느 테마든 또렷하게 한 가지로 */
-html[data-theme] :is(button, a, input, select, summary, [role='button'], [tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-html[data-theme='뉴모피즘'] .composer form:focus-within { box-shadow: var(--in, none), 0 0 0 2px var(--accent); }
-
-/* 모서리: 테마마다 한 가지 값으로(달력 칩 · 날짜 칸이 테마와 따로 놀던 것) */
-html[data-theme^='입자'] { --r-chip: 8px; }
-html[data-theme='태양계'] { --r-chip: 6px; }
-html[data-theme='오선지'] { --r-chip: 2px; }
-html[data-theme='뉴모피즘'] { --r-chip: 12px; }
-html[data-theme] .cal.wk :is(.cal-top .chip, .cal-days .cal-day), html[data-theme] :is(.today-allday .chip, .conn-line, .cal-days-input) { border-radius: var(--r-chip); }
-html[data-theme] .cal.wk .cal-grid .ev { border-radius: min(var(--r-chip), 8px); }
-
-/* 연결 상태 줄 · 메뉴 꼬리표: 어두운 테마에서 면이 떠 보이지 않게 테만 */
-html[data-theme] .conn-line { background: color-mix(in srgb, var(--text) 6%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 10%, transparent); }
-html[data-theme] .conn-line.bad { background: color-mix(in srgb, var(--danger) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 45%, transparent); color: var(--text); }
-html[data-theme] .menu-state { background: color-mix(in srgb, var(--text) 9%, transparent); }
-html[data-theme] .menu-state.bad { background: var(--danger); color: var(--bg); }
-
-/* 11-21 22:20 눈으로 본 뒤 고친 둘(예시 모드 · 사용자 Chrome)
-   ① 첫 설정처럼 짧은 화면에서 html 바탕(그라데이션)이 내용 높이만큼만 깔리고 그 아래로 한 번 더 되풀이됐다 → 화면 높이까지 채운다
-   ② 입자 테마 폰 너비: 위 띠 사이(14px)가 넓어 '예시 자료' 표가 붙으면 메뉴 단추가 화면 밖으로 21px 나갔다 → 좁은 화면에서만 8px */
-html[data-theme] { min-height: 100vh; min-height: 100dvh; }
+html[data-theme^='입자'] .cal.wk .cal-grid .ev { --lift: inset 0 1px 0 var(--rim), inset 0 0 0 1px var(--edge), 0 6px 18px -8px color-mix(in srgb, var(--tone) 75%, transparent); border-radius: 9px; }
+html[data-theme^='입자'] .cal.wk .cal-grid .ev.past { --lift: inset 0 0 0 1px var(--edge); }
+html[data-theme^='입자'] .cal.wk .cal-days .today .dn { box-shadow: 0 0 18px -2px var(--bloom); }
+html[data-theme^='입자'] .cal.wk .cal-top .chip.allday { box-shadow: inset 3px 0 0 var(--c, var(--accent)), inset 0 1px 0 var(--rim), inset 0 0 0 1px var(--edge); }
+html[data-theme^='입자'] .cal.wk .cal-top .chip.deadline { box-shadow: inset 3px 0 0 var(--mark-task), inset 0 1px 0 var(--rim), inset 0 0 0 1px var(--edge); }
+html[data-theme^='입자'] .cal.wk .cal-grid .now-line { box-shadow: 0 0 8px 0.5px var(--bloom); }
+@media (hover: hover) { html[data-theme^='입자'] :is(.menu-list button, .share-item, .today-allday .chip, .cal-top .chip, .task-old > summary):hover { background-color: color-mix(in srgb, var(--ink) 7%, transparent); } }
+/* 폰 너비: 위 띠 사이(14px)가 넓어 '예시 자료' 표가 붙으면 메뉴 단추가 화면 밖으로 21px 나갔다 → 좁은 화면에서만 8px */
 @media (max-width: 430px) {
   html[data-theme^='입자'] .shell .topbar { gap: 8px; }
 }
