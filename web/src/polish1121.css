@@ -1,0 +1,53 @@
+/* 11-21 편의 · 알림 · 다듬기 층(맨 끝). 사람 11-21 21:06 "거의 모든 게 원터치 · 가독성과 편의성 최우선 · 바우하우스 빼고 다 고도화".
+   ① 이번에 새로 생긴 것의 모양(모든 테마, 색은 테마 값) ② 아래쪽 html[data-theme] 묶음 = 바우하우스 뺀 다섯 테마 다듬기. */
+
+/* ── ① 새로 생긴 것 ── */
+/* 여는 동안 · 인터넷이 없을 때(App.jsx): 빈 화면 대신 로고 */
+.boot { min-height: 100dvh; display: grid; place-content: center; justify-items: center; gap: 16px; padding: 24px; text-align: center; background: var(--bg); color: var(--text2); }
+.boot[aria-busy] > * { animation: boot-in 0.5s ease 0.25s both; } /* 0.25초 안에 열리면 로고가 깜빡이지 않게 */
+.boot p { max-width: 280px; margin: 0; font-size: 15px; line-height: 22px; word-break: keep-all; }
+@keyframes boot-in { from { opacity: 0; } }
+
+/* 연결 상태 한 줄(오늘 · 달력 위): 끊기면 눈에 띄게, 안내는 조용히 */
+.conn-line { flex: none; display: flex; align-items: center; flex-wrap: wrap; gap: 0 4px; margin: 6px 12px 0; padding: 0 4px 0 12px; border-radius: 10px; background: var(--fill); color: var(--text2); font-size: 13px; line-height: 18px; }
+.conn-line > span { flex: 1 1 180px; padding: 8px 0; word-break: keep-all; }
+.conn-line.bad { background: var(--warn-bg); color: var(--warn); font-weight: 500; }
+.conn-line .btn-text { height: 40px; padding: 0 10px; font-size: 13px; font-weight: 600; }
+@media (min-width: 900px) { .conn-line { margin: 4px 24px 0; } }
+
+/* 메뉴 줄 오른쪽 상태 꼬리표(연결됨 · 끊김 · 3개) */
+.menu-state { flex: none; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: var(--fill); color: var(--text2); font-size: 12px; line-height: 16px; font-weight: 500; white-space: nowrap; }
+.menu-state.bad { background: var(--danger); color: #fff; }
+/* 끊긴 연결이 있으면 메뉴 단추에 점 */
+.icon-btn.has-dot { position: relative; }
+.icon-btn.has-dot::after { content: ''; position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 0 2px var(--bg); }
+
+/* 'N일'을 한 번 더 누르면 나오는 숫자 칸 */
+.cal-days-input { width: 52px; height: 34px; padding: 0 4px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--inset, var(--card)); color: var(--text); font-size: 14px; text-align: center; -moz-appearance: textfield; }
+.cal-days-input::-webkit-inner-spin-button { display: none; }
+
+/* 오늘 카드: 종일 일정 칩 · 눌리는 일정 칸 · 고리 가운데 '지금 · 다음' 줄 */
+.today-allday { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 0 6px; }
+.today-allday .chip { height: 24px; padding: 0 8px; border: 0; border-radius: 6px; background: color-mix(in srgb, var(--c, var(--accent)) calc(var(--ev-fill, 15%) + 6%), var(--card)); box-shadow: inset 3px 0 0 var(--c, var(--accent)); color: var(--text); font-size: 12px; line-height: 24px; font-weight: 600; cursor: pointer; }
+.day .ev[role='button'] { cursor: pointer; }
+.ring-mid .mid-next { max-width: 92%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; font-weight: 600; color: var(--text); }
+
+/* 할 일: 지난 일 '내일로' · 일주일 넘게 지난 일 접기 · 폰에서 체크 칸 누르는 자리 넓히기 */
+.task .task-later { flex: none; align-self: center; height: 36px; padding: 0 10px; font-size: 13px; white-space: nowrap; }
+.task-old > summary { display: flex; align-items: center; min-height: 44px; padding: 0 2px; border-top: 1px solid var(--line); color: var(--text2); font-size: 13px; cursor: pointer; list-style: none; }
+.task-old > summary::-webkit-details-marker { display: none; }
+.task-old > summary::before { content: '›'; width: 20px; font-size: 16px; transition: transform 0.15s; }
+.task-old[open] > summary::before { transform: rotate(90deg); }
+@media (pointer: coarse) {
+  .task > input[type='checkbox'] { position: relative; }
+  .task > input[type='checkbox']::before { content: ''; position: absolute; inset: -12px; }
+  .task .task-later { height: 44px; }
+}
+
+/* 달력: 제목 = 날짜로 가기 단추 · 꾹 눌러 잡은 일정 안내는 격자를 밀지 않게 떠 있는 알약으로 · 폰의 길이 손잡이 넓게 */
+.cal-jump { padding: 0; border: 0; background: none; font: inherit; color: inherit; letter-spacing: inherit; cursor: pointer; }
+.cal-jump::after { content: '▾'; margin-left: 4px; font-size: 0.7em; opacity: 0.5; }
+.cal-jump:hover::after { opacity: 1; }
+section.cal { position: relative; }
+.cal-sel-hint { position: absolute; left: 50%; bottom: 10px; z-index: 6; transform: translateX(-50%); width: max-content; max-width: calc(100% - 24px); margin: 0; padding: 7px 14px; border-radius: 999px; background: var(--heading); color: var(--bg); font-size: 12px; line-height: 16px; pointer-events: none; }
+@media (hover: none) { .cal-grid .ev.selected .ev-grip { height: 28px; bottom: -14px; } }

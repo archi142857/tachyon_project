@@ -17,11 +17,14 @@ import { arriveText, lateOf } from '../campus.js';
 import { hm } from '../slots.js';
 import { hoursText } from '../density.js';
 import { endOf, hourRange, isAllDay, layoutDay } from '../layout.js';
-import { addDays, dayIndex, deadlineLabel, endOrHour, hhmm, kst, minuteOfDay, toKstIso, WEEKDAYS, weekTitle } from '../time.js';
+import { addDays, dayIndex, dayStartKst, deadlineLabel, endOrHour, hhmm, kst, minuteOfDay, toKstIso, WEEKDAYS, weekTitle } from '../time.js';
 import DensityRing from './DensityRing.jsx';
 import Icon from './Icon.jsx';
 import { tint } from '../themeName.js';
 import useEventDrag from './useEventDrag.js';
+
+// 마우스 · 트랙패드가 있는 기기: 고르지 않아도 길이 손잡이가 일정 아래 끝에 있다
+const FINE = typeof matchMedia === 'function' && matchMedia('(hover: hover) and (pointer: fine)').matches;
 import useSwipe from './useSwipe.js';
 
 const timeText = (ev) => `${hhmm(ev.start)}–${hhmm(endOrHour(ev.start, ev.end))}`; // 끝이 없으면 1시간(11-13)
@@ -75,7 +78,7 @@ export const autoHour = ({ fit, base }) => Math.max(fit, base);
 export const clampZoom = (zoom, auto, fit) => Math.min(MAX_HOUR / auto, Math.max(Math.min(fit, auto) / auto, zoom));
 
 // tools = 머리 끝에 붙일 것(폰의 '보기 고르기' 단추, Dashboard)
-export default function WeekCalendar({ start, n = 7, events, tasks, now, density, isCurrent, onMove, onToday, onEvent, onTask, onDay, onAdd, onDrop, legs, together, onTogether, tools }) {
+export default function WeekCalendar({ start, n = 7, events, tasks, now, density, isCurrent, onMove, onToday, onJump, onEvent, onTask, onDay, onAdd, onDrop, legs, together, onTogether, tools }) {
   const pad = calPad(n);
   const total = n + 2 * pad; // 그려 두는 날 수
   // 그려 둔 날들은 anchor를 가운데로 둔다. 굴려 멈출 때마다 start만 바뀌고 칸은 그대로 — 가장자리 가까이 가야 다시 그린다(11-16 사람 "칸 멈추는게 너무 끊기고 불편해")
@@ -268,6 +271,27 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
 
   const hPx = hour || fit.hour; // 지금 한 시간 높이(px)
   const cols = () => (gridRef.current ? [...gridRef.current.querySelectorAll(':scope > .col')] : []);
+  // 일정 잡기(11-21): 마우스는 누른 채 끌면 옮겨지고 그냥 누르면 열린다. 손가락은 누르면 열리고, 0.35초 꾹 누르면 잡혀(진동) 그대로 끌어 옮긴다
+  const hold = useRef(null);
+  const clearHold = () => {
+    clearTimeout(hold.current?.t);
+    hold.current = null;
+  };
+  useEffect(() => clearHold, []);
+  function press(e, item) {
+    if (!onDrop) return;
+    if (e.pointerType === 'mouse' || sel === item.ev.id) return drag.start(e, item, 'move');
+    clearHold();
+    hold.current = {
+      x: e.clientX,
+      y: e.clientY,
+      t: setTimeout(() => {
+        hold.current = null;
+        setSel(item.ev.id);
+        drag.start(e, item, 'move', true);
+      }, 350),
+    };
+  }
   const drag = useEventDrag({
     cols,
     n: total,
@@ -292,7 +316,17 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
     >
       <div className="cal-head">
         <h2 className="card-title num">
-          {weekTitle(start, n)}
+          {/* 제목을 누르면 날짜를 골라 그 주로 바로(11-21) */}
+          {onJump ? (
+            <>
+              <button type="button" className="cal-jump" title="날짜로 가기" onClick={(e) => e.currentTarget.nextSibling.showPicker?.()}>
+                {weekTitle(start, n)}
+              </button>
+              <input type="date" className="sr-only" tabIndex={-1} aria-label="날짜로 가기" onChange={(e) => e.target.value && onJump(dayStartKst(e.target.value))} />
+            </>
+          ) : (
+            weekTitle(start, n)
+          )}
           {isCurrent && <em>오늘부터</em>}
         </h2>
         {!isCurrent && (
@@ -308,7 +342,7 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
         </button>
         {tools}
       </div>
-      {sel && <p className="cal-sel-hint">끌어서 옮기고, 아래 끝을 끌어 길이를 바꿔요 · 한 번 더 누르면 자세히</p>}
+      {sel && <p className="cal-sel-hint">끌어서 옮기기 · 아래 끝을 끌면 길이 조절 · 빈 곳을 누르면 놓기</p>}
 
       <div className="cal-scroll x" ref={scRef} style={{ '--hours': last - first, ...(hour ? { '--hour': `${hour}px` } : {}) }}>
       <div className="cal-stick" ref={stickRef}>
@@ -443,13 +477,12 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
                     }}
                     title={eventLabel(ev, leg)}
                     aria-pressed={onDrop ? sel === ev.id : undefined}
-                    onPointerDown={(e) => sel === ev.id && drag.start(e, item, 'move')}
-                    onContextMenu={(e) => sel === ev.id && e.preventDefault()}
-                    onClick={() => {
-                      if (drag.takeClick()) return;
-                      if (onDrop && sel !== ev.id) setSel(ev.id); // 처음 누르면 고르기만(끌 수 있게)
-                      else onEvent(ev);
-                    }}
+                    onPointerDown={(e) => press(e, item)}
+                    onPointerMove={(e) => hold.current && Math.hypot(e.clientX - hold.current.x, e.clientY - hold.current.y) > 10 && clearHold()}
+                    onPointerUp={clearHold}
+                    onPointerCancel={clearHold}
+                    onContextMenu={(e) => (sel === ev.id || hold.current) && e.preventDefault()}
+                    onClick={() => !drag.takeClick() && onEvent(ev)} // 누르면 바로 열린다(11-21 원터치)
                   >
                     {/* 이름은 보이는 글자 그대로 + 화면 읽기용 시각·중요(보이는 글자가 이름 안에 있어야 한다) */}
                     <span className="sr-only">{timeText(ev)}, </span>
@@ -459,7 +492,7 @@ export default function WeekCalendar({ start, n = 7, events, tasks, now, density
                     <span className="ev-m num">{one ? hhmm(ev.start) : [timeText(ev), ev.place].filter(Boolean).join(' · ')}</span>
                     {ev.important ? <span className="sr-only">, 중요</span> : null}
                     {late > 0 && <span className="late-pill">{late}분 지각</span>}
-                    {onDrop && sel === ev.id && <span className="ev-grip" aria-hidden="true" onPointerDown={(e) => (e.stopPropagation(), drag.start(e, item, 'resize'))} />}
+                    {onDrop && (sel === ev.id || (FINE && !one)) && <span className="ev-grip" aria-hidden="true" onPointerDown={(e) => (e.stopPropagation(), drag.start(e, item, 'resize'))} />}
                   </button>
                 );
               })}

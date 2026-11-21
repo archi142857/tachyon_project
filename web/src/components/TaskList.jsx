@@ -44,7 +44,9 @@ function bySubject(tasks, subjects) {
 const total = (list) => list.reduce((sum, t) => sum + (t.minutes || 0), 0);
 
 // plan = 오늘부터 며칠의 밀도(density.js planDensity 앞부분), subjects = 시간표 수업 이름들
-export default function TaskList({ tasks, now, plan, subjects = [], onDone, onEdit, onDoneList }) {
+const OLD = 7 * 24 * 60 * 60 * 1000; // 이보다 오래 지난 일은 접어 둔다(11-21 — 묵은 일이 맨 위를 차지해 오늘 할 일을 가린다)
+
+export default function TaskList({ tasks, now, plan, subjects = [], onDone, onEdit, onLater, onDoneList, loading = false }) {
   const [by, setBy] = useState('due');
   const groups =
     by === 'subject' ? bySubject(tasks, subjects) : GROUPS.map(([key, label]) => [key, label, tasks.filter((t) => groupOf(t, now) === key)]).filter(([, , list]) => list.length);
@@ -75,7 +77,7 @@ export default function TaskList({ tasks, now, plan, subjects = [], onDone, onEd
           </p>
         )}
         <div className="list-scroll">
-          {tasks.length === 0 && <p className="empty">남은 할 일이 없어요</p>}
+          {tasks.length === 0 && <p className="empty">{loading ? '불러오는 중…' : '남은 할 일이 없어요. 아래 메모 칸에 ‘금요일까지 과제’처럼 적으면 여기에 쌓여요.'}</p>}
           {tasks.some((t) => t.due) && (
             <div className="due-axis num" aria-hidden="true">
               {[[0, '지금'], [1, '1일'], [3, '3일'], [7, '7일']].map(([i, t]) => (
@@ -91,9 +93,22 @@ export default function TaskList({ tasks, now, plan, subjects = [], onDone, onEd
                 {label} <span className="num">{list.length}</span>
                 {by === 'subject' && total(list) > 0 && <span className="num"> · 합계 {hoursText(total(list))}</span>}
               </h3>
-              {list.map((task) => (
-                <TaskRow key={task.id} task={task} now={now} onDone={onDone} onEdit={onEdit} track />
-              ))}
+              {(() => {
+                const row = (task) => <TaskRow key={task.id} task={task} now={now} onDone={onDone} onEdit={onEdit} onLater={onLater} track />;
+                if (key !== 'late') return list.map(row);
+                const old = list.filter((t) => new Date(now).getTime() - Date.parse(t.due) > OLD);
+                return (
+                  <>
+                    {list.filter((t) => !old.includes(t)).map(row)}
+                    {old.length > 0 && (
+                      <details className="task-old">
+                        <summary>일주일 넘게 지난 일 {old.length}개</summary>
+                        {old.map(row)}
+                      </details>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           ))}
         </div>

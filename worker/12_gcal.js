@@ -55,9 +55,9 @@ export async function handle(request, env, ctx, user) {
     return json({ ok: true, url: `${url.origin}/api/gcal/connect?t=${encodeURIComponent(t)}` });
   }
   if (path === '/api/gcal/sync' && request.method === 'POST') {
-    if (!(await isLinked(env, user.id))) return json({ ok: true, linked: false });
-    await sync(env, user.id);
-    return json({ ok: true, linked: true });
+    // 맞춘 뒤의 상태를 그대로 돌려준다(11-21): 끊긴 연결(error)이 '연결됨'으로 보이지 않게 — 화면이 한 줄로 알린다
+    if (await isLinked(env, user.id)) await sync(env, user.id);
+    return json(await status(env, user.id));
   }
   if (path === '/api/gcal' && request.method === 'GET') return json(await status(env, user.id));
   if (path === '/api/gcal' && request.method === 'DELETE') return json(await disconnect(env, user.id));

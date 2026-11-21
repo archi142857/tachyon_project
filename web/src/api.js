@@ -16,6 +16,8 @@ export const SIGNED_OUT = 'tachyon:signed-out';
 // 서버 저장소 무료 하루 한도(db_limit)일 때 어디서나 같은 글(사람 11-13 00:06이 고른 문구). 로그인 화면·스낵바·창 모두
 export const DB_LIMIT_TEXT = '오늘 서버 사용량을 모두 소진했어요. 오전 9시부터 다시 이용할 수 있어요';
 
+export const OFFLINE_TEXT = '인터넷에 연결되지 않았어요. 연결을 확인한 뒤 다시 시도해 주세요';
+
 export function startExample(now = new Date()) {
   ex = makeExample(now);
 }
@@ -25,11 +27,14 @@ export function isExample() {
 }
 
 async function call(method, path, body) {
+  // 인터넷이 끊기면 fetch가 'Failed to fetch'를 던진다 → 사람이 읽을 한 줄로(error.offline, 11-21)
   const res = await fetch(BASE + path, {
     method,
     credentials: BASE ? 'include' : 'same-origin',
     headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
     body: body === undefined ? undefined : JSON.stringify(body),
+  }).catch(() => {
+    throw Object.assign(new Error(OFFLINE_TEXT), { offline: true });
   });
   if (!res.ok) {
     const data = await res.json().catch(() => null);
@@ -64,10 +69,11 @@ export function widgetsChanged() {
   }, 1500);
 }
 
-// 리마인드 목록(서버 7_items.js): 앞으로 14일 안에 울릴 것 { reminders: [{ id, title, body, at }] }. 예시 모드는 없음
-export function getReminders() {
-  if (ex) return reply({ reminders: [] });
-  return call('GET', '/api/reminders');
+// 알림 목록(서버 7_items.js): 앞으로 14일 안에 울릴 것 { reminders: [{ id, title, body, at, kind, ref }], mornings: [{ date, title, body, large }] }.
+// auto = 마감 임박(자동)도, morning = 아침 브리핑도. 예시 모드는 없음
+export function getReminders({ auto = false, morning = false, wake = 7 } = {}) {
+  if (ex) return reply({ reminders: [], mornings: [] });
+  return call('GET', `/api/reminders?wake=${wake}${auto ? '&auto=1' : ''}${morning ? '&morning=1' : ''}`);
 }
 
 // 예시 모드: 서버처럼 잠깐 기다렸다가 복사본을 돌려준다

@@ -6,7 +6,7 @@ import { FIRSTS, FOCUSES, TEXTS, WAKES, applyText, readPrefs, savePrefs } from '
 import { setWake } from '../slots.js';
 import { dateKey } from '../density.js';
 import { focusWeek } from '../taskLocal.js';
-import { canMorning, morningOn, planMorning, turnMorningOff, turnMorningOn } from '../native.js';
+import { canMorning, dueSoonOn, morningOn, planMorning, turnDueSoon, turnMorningOff, turnMorningOn } from '../native.js';
 import Sheet from './Sheet.jsx';
 
 function Pick({ label, items, value, onChange }) {
@@ -28,6 +28,7 @@ export default function MeSheet({ start = false, onClose, onDoneList, onSetup })
   const [p, setP] = useState(readPrefs);
   const [morning, setMorning] = useState(morningOn);
   const [morningNote, setMorningNote] = useState('');
+  const [dueSoon, setDueSoon] = useState(dueSoonOn);
   const toggleMorning = async (on) => {
     if (on === morning) return;
     if (!on) {
@@ -63,8 +64,16 @@ export default function MeSheet({ start = false, onClose, onDoneList, onSetup })
       <Pick label="글자 크기" items={TEXTS} value={p.text} onChange={(v) => change('text', v)} />
       {canMorning() && (
         <>
-          <Pick label={`아침 알림(${p.wake}시, 하루 1번)`} items={[[false, '끔'], [true, '켬']]} value={morning} onChange={toggleMorning} />
+          <Pick label={`아침 브리핑 알림 (${p.wake}시, 하루 1번)`} items={[[false, '끔'], [true, '켬']]} value={morning} onChange={toggleMorning} />
           {morningNote && <p className="hint">{morningNote}</p>}
+          <Pick
+            label="마감 임박 알림 (마감 몇 시간 전, 하루 2번까지)"
+            items={[[false, '끔'], [true, '켬']]}
+            value={dueSoon}
+            onChange={(on) => {
+              turnDueSoon(on).then(setDueSoon, () => null);
+            }}
+          />
         </>
       )}
       {!start && (

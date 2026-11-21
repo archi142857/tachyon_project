@@ -191,7 +191,7 @@ test('연동 안 하면 예전 그대로: 구글 일정 지우기 409, 상태 li
   const id = (await event('예시 구글', '2026-11-19T10:00:00+09:00', null, 'google', 'uid-2@google.com')).id;
   assert.equal((await call(env, cookie, `/api/events/${id}`, { method: 'DELETE' })).status, 409);
   assert.deepEqual(await (await call(env, cookie, '/api/gcal')).json(), { ok: true, ready: true, linked: false, error: null, pulled_at: null });
-  assert.deepEqual(await (await call(env, cookie, '/api/gcal/sync', { method: 'POST' })).json(), { ok: true, linked: false });
+  assert.deepEqual(await (await call(env, cookie, '/api/gcal/sync', { method: 'POST' })).json(), { ok: true, ready: true, linked: false, error: null, pulled_at: null });
 });
 
 test('연결: state가 맞아야 하고, refresh 토큰은 잠가 둔다 → 끊으면 Tachyon이 넣은 구글 일정을 지운다', async () => {

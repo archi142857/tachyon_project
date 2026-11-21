@@ -242,16 +242,45 @@ test('리마인드: 고치기 remind로 켜고 끄기(캘린더에서 온 것도
   const { status, data } = await read(await call(env, cookieA, '/api/reminders'));
   assert.equal(status, 200);
   assert.deepEqual(data.reminders, [
-    { id: 10001 + 2 * ids.quiz, title: '예시 퀴즈', body: '1시간 뒤 마감 (09:00)', at: '2026-11-10T08:00:00+09:00' },
-    { id: 10000 + 2 * ids.fest, title: '예시 축제', body: '내일 종일 일정', at: '2026-11-11T09:00:00+09:00' },
-    { id: 10001 + 2 * ids.etlTask, title: '예시 과제 [예시 과목]', body: '지금 마감 (23:59)', at: '2026-11-12T23:59:00+09:00' },
-    { id: 10000 + 2 * ids.nextWeek, title: '예시 다음 주', body: '30분 뒤 시작 (10:00)', at: '2026-11-16T09:30:00+09:00' },
+    { id: 10001 + 2 * ids.quiz, title: '예시 퀴즈 · 1시간 뒤 마감', body: '마감 09:00 · 30분쯤 걸려요', at: '2026-11-10T08:00:00+09:00', kind: 'task', ref: ids.quiz },
+    { id: 10000 + 2 * ids.fest, title: '예시 축제', body: '내일 종일 일정', at: '2026-11-11T09:00:00+09:00', kind: 'event', ref: ids.fest },
+    { id: 10001 + 2 * ids.etlTask, title: '예시 과제 [예시 과목] · 지금 마감', body: '마감 23:59', at: '2026-11-12T23:59:00+09:00', kind: 'task', ref: ids.etlTask },
+    { id: 10000 + 2 * ids.nextWeek, title: '예시 다음 주 · 30분 뒤', body: '10:00–11:00', at: '2026-11-16T09:30:00+09:00', kind: 'event', ref: ids.nextWeek },
   ]); // 오늘 10:00 수업은 지남, 12-20 과제는 14일 뒤, 끝낸 할 일은 뺌
 
+  // 11-21 마감 임박(auto) · 아침 브리핑(morning): 리마인드를 안 건 할 일도 마감 3시간 전(걸리는 시간 두 배가 길면 그만큼)에 한 번
+  const rich = (await read(await call(env, cookieA, '/api/reminders?auto=1&morning=1&wake=7'))).data;
+  assert.deepEqual(rich.reminders.filter((r) => r.auto), [
+    // 보고서(10시간): 마감 20시간 전 = 새벽 03:59 → 조용한 시간이라 그 전 저녁 21:00으로
+    { id: 10001 + 2 * ids.report, kind: 'task', ref: ids.report, auto: true, title: '내일 23:59 마감 · 예시 보고서', body: '27시간 남음 · 10시간쯤 걸려요', at: '2026-11-12T21:00:00+09:00' },
+  ]);
+  assert.equal(rich.reminders.length, 5); // 손으로 건 넷 + 자동 하나(퀴즈 · eTL 과제는 건 것이 있어 자동은 없음)
+  assert.deepEqual(rich.mornings.map((m) => [m.date, m.title, m.body]), [
+    ['2026-11-09', '오늘 · 일정 1', '10:00 예시 수업'],
+    ['2026-11-10', '오늘 · 마감 1', '마감 예시 퀴즈 09:00'],
+    ['2026-11-12', '오늘 · 일정 1 · 마감 1', '종일 예시 축제 · 마감 예시 과제 [예시 과목] 23:59'],
+    ['2026-11-13', '오늘 · 일정 1 · 마감 1', '종일 예시 축제 · 마감 예시 보고서 23:59'],
+    ['2026-11-16', '오늘 · 일정 1', '10:00 예시 다음 주'],
+  ]); // 아무것도 없는 날(11-11 · 14 · 15)은 없다
   assert.equal((await patch('tasks', ids.quiz, null)).status, 200); // 끄기
   assert.equal((await read(await call(env, cookieA, '/api/reminders'))).data.reminders.length, 3);
   assert.deepEqual((await read(await call(env, cookieB, '/api/reminders'))).data.reminders, []);
   assert.equal((await call(env, null, '/api/reminders')).status, 401);
   const listed = await read(await call(env, cookieA, '/api/tasks?done=all'));
   assert.equal(listed.data.tasks.find((t) => t.id === ids.etlTask).remind, 0); // 목록에도 remind 칸
+});
+
+// 11-21 사람 "귀찮지 않으면서, 필요한 알림": 날짜만 있는 마감 · 조용한 시간 · 하루 2번까지
+test('마감 임박 알림: 날짜만 있으면 그날 9시 "오늘까지", 하루 둘을 넘으면 하나로 묶는다', async () => {
+  const { dueSoonOf, capAuto, reminderOf } = await import('../7_items.js');
+  assert.deepEqual(dueSoonOf({ id: 3, title: '예시 독후감', due: '2026-11-12', minutes: null }), { id: 10007, kind: 'task', ref: 3, auto: true, title: '오늘까지 · 예시 독후감', body: '', at: Date.parse('2026-11-12T09:00:00+09:00') });
+  const noon = dueSoonOf({ id: 4, title: '예시 실습', due: '2026-11-12T18:00:00+09:00', minutes: 30 });
+  assert.deepEqual([noon.title, noon.body, noon.at], ['오늘 18:00 마감 · 예시 실습', '3시간 남음 · 30분쯤 걸려요', Date.parse('2026-11-12T15:00:00+09:00')]);
+  // 날짜만 있는 마감에 건 리마인드(1시간 전)는 없는 시각을 말하지 않는다
+  assert.equal(reminderOf('task', { id: 5, title: '예시 신청', due: '2026-11-12', remind: 60, minutes: null }).title, '예시 신청 · 오늘까지');
+  const now = Date.parse('2026-11-12T08:00:00+09:00');
+  const four = [1, 2, 3, 4].map((i) => dueSoonOf({ id: i, title: `예시 ${i}`, due: `2026-11-12T2${i - 1}:00:00+09:00`, minutes: null }));
+  const capped = capAuto(four, now);
+  assert.deepEqual(capped.map((r) => [r.id, r.title]), [[10003, '오늘 20:00 마감 · 예시 1'], [9001, '마감이 가까운 할 일 3개']]);
+  assert.equal(capped[1].body, '예시 2 · 예시 3 · 예시 4');
 });

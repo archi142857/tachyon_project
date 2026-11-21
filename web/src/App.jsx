@@ -2,12 +2,13 @@
 import { useEffect, useRef, useState } from 'react';
 import * as api from './api.js';
 import Dashboard from './screens/Dashboard.jsx';
-import { inApp, listenAppLogin, listenAppResume, pushToDevice, syncDevice } from './native.js';
+import { clearNotify, inApp, listenAppLogin, listenAppResume, listenBack, listenNotify, pushToDevice } from './native.js';
+import Logo from './components/Logo.jsx';
 import Login from './screens/Login.jsx';
 import Setup from './screens/Setup.jsx';
 
 export default function App() {
-  const [screen, setScreen] = useState('loading'); // loading | login | setup | dashboard
+  const [screen, setScreen] = useState('loading'); // loading | down(인터넷 끊김) | login | setup | dashboard
   const screenRef = useRef(screen);
   const ttwRef = useRef(undefined); // TT Wizard에서 보낸 시간표 링크(대시보드에 한 번만)
   const joinRef = useRef(undefined); // 초대 링크 코드(한 번만 연다)
@@ -21,17 +22,16 @@ export default function App() {
   async function load() {
     try {
       const me = await api.getMe();
-      // 앱: 폰 캘린더를 먼저 올리고 화면을 연다(처음 한 번은 권한을 묻는다). 안 돼도 화면은 연다
-      if (inApp() && !api.isExample()) {
-        await syncDevice('once').catch(() => null);
-        pushToDevice().catch(() => null); // 켜 두었으면 폰 'Tachyon' 캘린더를 맞춘다(기다리지 않음, 11-10 컨셉)
-      }
+      // 앱: 화면부터 연다. 폰 캘린더 올리기는 대시보드가 뜬 뒤에(Dashboard.jsx back — 11-21, 빈 화면에서 기다리지 않게)
+      if (inApp() && !api.isExample()) pushToDevice().catch(() => null); // 켜 두었으면 폰 'Tachyon' 캘린더를 맞춘다(기다리지 않음, 11-10 컨셉)
       setUser(me);
       setScreen(me.setup_done ? 'dashboard' : 'setup');
     } catch (err) {
       // 401 = 로그인 전. 그 밖(연결 끊김·서버 오류)은 로그인 화면에 까닭을 한 줄로
       // 서버가 저장소 사정(503 code: db_limit·db_busy)을 알리면 그 안내 글을, 아니면 연결 문제로 본다
-      if (err.status !== 401) setLoginError(err.code ? err.message : '서버에 닿지 않아요. 인터넷을 확인하고 다시 열어 주세요');
+      // 인터넷이 끊긴 것(err.offline)은 로그인 화면이 아니라 '다시 시도' 화면으로 — 연결이 돌아오면 저절로 다시 연다(11-21)
+      if (err.offline) return setScreen('down');
+      if (err.status !== 401) setLoginError(err.code ? err.message : '지금은 연결할 수 없어요. 잠시 후 다시 시도해 주세요');
       setScreen('login');
     }
   }
@@ -42,6 +42,8 @@ export default function App() {
     api.catchJoinLink(); // 친구·그룹 초대 링크(…/?join=…)도 로그인 전에 받아 둔다
     if (inApp()) {
       listenAppLogin();
+      listenBack(); // 안드로이드 뒤로 단추 = 열린 창 닫기(11-21)
+      listenNotify(); // 알림을 누르면 그 일정 · 할 일로(11-21)
       listenAppResume(() => screenRef.current === 'dashboard' && !api.isExample());
     }
     load();
@@ -52,11 +54,14 @@ export default function App() {
     window.addEventListener('beforeinstallprompt', onPrompt);
     const onSignedOut = () => {
       if (screenRef.current === 'login' || screenRef.current === 'loading') return; // 로그아웃 직후 늦게 온 401은 무시
-      setLoginError('로그인이 끝났어요. 다시 로그인해 주세요');
+      setLoginError('로그인이 풀렸어요. 다시 로그인해 주세요');
       setScreen('login');
     };
     window.addEventListener(api.SIGNED_OUT, onSignedOut);
+    const onOnline = () => screenRef.current === 'down' && load();
+    window.addEventListener('online', onOnline);
     return () => {
+      window.removeEventListener('online', onOnline);
       window.removeEventListener('beforeinstallprompt', onPrompt);
       window.removeEventListener(api.SIGNED_OUT, onSignedOut);
     };
@@ -68,6 +73,7 @@ export default function App() {
 
   // 계정을 지운 뒤(또는 예시에서 '계정 지우기') → 로그인 화면
   const onDeleted = (example) => {
+    clearNotify().catch(() => null); // 잡아 둔 폰 알림도 지운다
     setAgain(false);
     setLoginError(null);
     setNotice(example ? '예시를 끝냈어요. 아무것도 지우지 않았어요' : '계정과 내 자료를 모두 지웠어요');
@@ -78,7 +84,30 @@ export default function App() {
   if (screen === 'dashboard' && ttwRef.current === undefined) ttwRef.current = api.takeTtwLink();
   if (screen === 'dashboard' && joinRef.current === undefined) joinRef.current = api.takeJoinLink();
 
-  if (screen === 'loading') return null;
+  // 처음 여는 동안: 빈 화면 대신 로고(11-21)
+  if (screen === 'loading')
+    return (
+      <div className="boot" aria-busy="true" aria-label="여는 중">
+        <Logo height={30} />
+      </div>
+    );
+  if (screen === 'down')
+    return (
+      <div className="boot" role="alert">
+        <Logo height={30} />
+        <p>{api.OFFLINE_TEXT}</p>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => {
+            setScreen('loading');
+            load();
+          }}
+        >
+          다시 시도
+        </button>
+      </div>
+    );
   if (screen === 'login')
     return (
       <Login
@@ -116,6 +145,7 @@ export default function App() {
       }}
       onLogout={async () => {
         await api.logout().catch(() => {});
+        clearNotify().catch(() => null); // 잡아 둔 폰 알림도 지운다(다음 사람에게 울리지 않게)
         setLoginError(null);
         setNotice(null);
         setScreen('login');

@@ -10,11 +10,9 @@
 //   폰 안에 'Tachyon' 캘린더(이 폰에만 있음)를 만들고, 앱을 열거나 다시 볼 때마다 서버 목록(GET /api/calendar/items —
 //   구독 주소와 같은 줄)과 맞춘다. 짝은 폰 일정 메모 칸 끝 줄 'tachyon:event-12'로 찾고, 없어진 것은 지우고 바뀐 것은 지우고 다시 넣는다.
 //   폰 → 서버(syncDevice)는 이 캘린더를 뺀다(제자리 돌기 막기). 구독 주소와 달리 몇 시간씩 늦지 않는다.
-// 아침 알림(11-14 피드백 '매일 아침 알림'): 서버 푸시 없이 폰이 스스로 띄우는 알림(LocalNotifications). 하루 1번,
-//   일어나는 시각(나 → 몇 시에 일어나요) 정각. 앱을 열 때마다 앞으로 7일 치를 다시 잡는다(첫 아침은 지금 할 일 3개, 그 뒤는 짧은 말).
-// 리마인드(11-16 사람 "하고 싶은 일정에만, 할 일·일정 모두"): 리마인드를 켠 일정·할 일만(서버 GET /api/reminders) 같은 LocalNotifications로.
-//   앱을 열 때 · 다시 볼 때 · 할 일·일정을 바꾼 뒤(api.js widgetsChanged) 앞으로 14일 치를 다시 잡는다. 번호 10000부터(아침은 7001~7007).
-//   ponytail: 다른 기기(PC)에서 켠 리마인드는 이 폰에서 앱을 한 번 열어야 잡힌다. 늘 맞아야 하면 서버 푸시(FCM)로.
+// 알림(11-14 아침 알림 · 11-16 리마인드 · 11-21 다시 짬): 서버 푸시 없이 폰이 스스로 띄운다(LocalNotifications). 아래 '알림' 칸 머리말.
+//   앱을 열 때 · 다시 볼 때 · 할 일·일정을 바꾼 뒤(api.js widgetsChanged) 앞으로 14일 치를 다시 잡는다.
+//   ponytail: 다른 기기(PC)에서 바꾼 것은 이 폰에서 앱을 한 번 열어야 잡힌다. 늘 맞아야 하면 서버 푸시(FCM)로.
 // eTL · 구글 캘린더 원터치(11-20 사람 "로그인만 하면 나머진 알아서"):
 //   eTL — 앱 안 창(app/android-native EtlPlugin.kt)에서 서울대 로그인 → eTL 쪽에서 토큰 · 캘린더 주소를 만들어 옴(etlToken.js grab). 새 APK에서만
 //   구글 — 앱 안 화면은 구글이 동의 창을 막으니 폰 브라우저로 2분짜리 표와 함께 열고(worker/12_gcal.js /api/gcal/app), tachyon://gcal?r=… 로 돌아옴
@@ -25,6 +23,7 @@ import { readPrefs } from './prefs.js';
 const plugins = () => window.Capacitor?.Plugins;
 export const inApp = () => Boolean(plugins()?.Calendar);
 
+export const GCAL_BACK = 'tachyon:gcal';
 const V_KEY = 'tachyon_app_v';
 const ASKED_KEY = 'tachyon_calendar_asked';
 const PUSH_KEY = 'tachyon_push_calendar'; // '1'이면 폰 캘린더에 Tachyon 일정을 쓴다
@@ -57,7 +56,9 @@ export function listenAppLogin() {
     const to = new URL(url);
     if (to.host === 'gcal') {
       plugins().Browser.close?.().catch(() => {}); // 안드로이드는 못 닫을 수 있다(앱이 앞으로 오면 됨)
-      window.location.href = `/?gcal=${encodeURIComponent(to.searchParams.get('r') || 'state')}`;
+      // 대시보드가 떠 있으면 화면을 새로 열지 않고 그 자리에서 알린다(11-21). 아니면(첫 설정 등) 지금처럼 /?gcal=…로
+      const r = to.searchParams.get('r') || 'state';
+      if (window.dispatchEvent(new CustomEvent(GCAL_BACK, { detail: r, cancelable: true }))) window.location.href = `/?gcal=${encodeURIComponent(r)}`;
       return;
     }
     const back = to.searchParams;
@@ -197,64 +198,52 @@ function sameEvent(e, it) {
   return e.startDate === it.start && e.endDate === it.end;
 }
 
-// ── 아침 알림 ─────────────────────────────────────────────
+// ── 알림(11-21 다시 짬: 사람 "귀찮지 않으면서, 필요한 알림 … 알림만 보고도 필요한 일들을 잘 처리할 수 있는 정도") ──────
+// 셋 다 서버 한 번(GET /api/reminders)으로 받아 폰이 스스로 띄운다(LocalNotifications, 서버 푸시 없음):
+//   아침 브리핑(켠 폰만, 번호 7001~7007) — 그날 일정 · 마감 · 밀린 일을 제목과 한 줄로. 아무것도 없는 날은 안 온다
+//   리마인드(손으로 켠 일정 · 할 일, 번호 10000~) — '선형대수 · 30분 뒤' / '10:00–11:15 · 25동 207호'
+//   마감 임박(자동, 처음엔 켬, '내 설정'에서 끔) — 리마인드를 안 건 할 일도 마감 3시간 전 한 번. 하루 2번까지 · 23시~일어나는 시각엔 안 울림
+// 알림을 누르면 그 일정 · 할 일이 열리고, 할 일 알림의 단추 완료 · 1시간 뒤 · 내일 아침은 앱이 열리며 바로 된다(Dashboard.jsx).
+// ponytail: 단추를 눌러도 앱이 열린다(앱을 안 열고 끝내려면 Kotlin 수신기). 정확한 시각 알람 권한은 새 APK부터(없으면 몇 분 늦을 수 있다)
 const MORNING_KEY = 'tachyon_morning'; // '1'이면 켬
+const DUE_KEY = 'tachyon_due_soon'; // '0'이면 끔(처음엔 켬)
 const MORNING_IDS = [1, 2, 3, 4, 5, 6, 7].map((d) => 7000 + d);
+const SNOOZE_FROM = 8000; // 알림 단추로 미룬 것(8000~8999, 이 폰에만)
+const REMIND_FROM = 9000; // 서버가 주는 번호(묶음 9001~, 일정 10000 + 2·id, 할 일 10001 + 2·id)
 export const canMorning = () => Boolean(plugins()?.LocalNotifications); // 새 APK(플러그인 들어간 것)에서만
 export const morningOn = () => localStorage.getItem(MORNING_KEY) === '1';
+export const dueSoonOn = () => localStorage.getItem(DUE_KEY) !== '0';
 
-/** 앞으로 7번의 아침(wake시 정각) 알림. 첫 번째만 할 일 이름을 넣는다(그 뒤 날의 할 일은 지금 모름) */
-export function morningList(titles, wake, now = new Date()) {
-  const first = new Date(now);
-  first.setHours(wake, 0, 0, 0);
-  if (first <= now) first.setDate(first.getDate() + 1);
-  const top = titles.slice(0, 3);
-  return MORNING_IDS.map((id, i) => {
-    const at = new Date(first);
-    at.setDate(first.getDate() + i);
-    const body = i === 0 && top.length ? `오늘 할 일: ${top.join(' · ')}` : '오늘 일정과 할 일을 확인해요';
-    return { id, title: 'Tachyon 아침', body, schedule: { at, allowWhileIdle: true } };
-  });
+/** 아침 브리핑 알림: 서버가 준 날마다의 글(mornings)을 wake시 정각(한국 시각)에. 지난 아침은 빼고 7번까지 */
+export function morningList(mornings, wake, now = new Date()) {
+  return mornings
+    .map((m) => ({ m, at: new Date(`${m.date}T${String(wake).padStart(2, '0')}:00:00+09:00`) }))
+    .filter(({ at }) => at > now)
+    .slice(0, MORNING_IDS.length)
+    .map(({ m, at }, i) => ({ id: MORNING_IDS[i], title: m.title, body: m.body, largeBody: m.large, schedule: { at, allowWhileIdle: true }, extra: { kind: 'morning' } }));
 }
 
-let lastTitles = [];
-let lastPlan = '';
-/** 켜져 있으면 7일 치를 다시 잡는다. 할 일·시각이 그대로면 건너뜀 */
-export async function planMorning(titles = lastTitles) {
-  lastTitles = titles;
-  const ln = plugins()?.LocalNotifications;
-  if (!ln || !morningOn()) return;
-  const list = morningList(titles, readPrefs().wake);
-  const sign = JSON.stringify(list.map((n) => [n.body, +n.schedule.at]));
-  if (sign === lastPlan) return;
-  await ln.cancel({ notifications: MORNING_IDS.map((id) => ({ id })) });
-  await ln.schedule({ notifications: list });
-  lastPlan = sign;
+// 채널(폰 설정에서 종류별로 끌 수 있게) · 할 일 알림 단추. 한 번만. 안 되면(옛 플러그인) 채널 · 단추 없이 지금처럼 띄운다
+let rich = null;
+function notifySetup(ln) {
+  rich ??= (async () => {
+    try {
+      await ln.createChannel({ id: 'remind', name: '일정 · 마감 알림', description: '리마인드와 마감 임박', importance: 4 });
+      await ln.createChannel({ id: 'morning', name: '아침 브리핑', description: '하루 한 번, 오늘 일정과 마감', importance: 3 });
+      await ln.registerActionTypes({ types: [{ id: 'task', actions: [{ id: 'done', title: '완료' }, { id: 'later', title: '1시간 뒤' }, { id: 'tomorrow', title: '내일 아침' }] }] });
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+  return rich;
 }
 
-/** 켜기: 알림 권한을 묻고 되면 잡는다 → true · 권한이 없으면 false */
-export async function turnMorningOn() {
-  const { display } = await plugins().LocalNotifications.requestPermissions();
-  if (display !== 'granted') return false;
-  localStorage.setItem(MORNING_KEY, '1');
-  lastPlan = '';
-  await planMorning();
-  return true;
-}
-
-export async function turnMorningOff() {
-  localStorage.removeItem(MORNING_KEY);
-  lastPlan = '';
-  await plugins().LocalNotifications.cancel({ notifications: MORNING_IDS.map((id) => ({ id })) });
-}
-
-// ── 리마인드 ─────────────────────────────────────────────
-const REMIND_FROM = 10000; // 서버가 주는 번호(일정 10000 + 2·id, 할 일 10001 + 2·id). 이보다 작은 것은 아침 알림
 let lastRemind = '';
 let reminding = null;
 let again = false;
 
-/** 리마인드 다시 잡기. 앱 밖(브라우저)·예전 APK에서는 아무것도 안 한다. 도는 중에 또 부르면 끝난 뒤 한 번 더 */
+/** 알림 다시 잡기(아침 브리핑 · 리마인드 · 마감 임박). 앱 밖(브라우저)·예전 APK에서는 아무것도 안 한다. 도는 중에 또 부르면 끝난 뒤 한 번 더 */
 export function planReminders() {
   if (!plugins()?.LocalNotifications) return Promise.resolve();
   if (reminding) {
@@ -270,21 +259,124 @@ export function planReminders() {
   });
   return reminding;
 }
+/** 일어나는 시각 · 켜고 끄기가 바뀐 뒤 다시 잡기 */
+export const planMorning = () => {
+  lastRemind = '';
+  return planReminders();
+};
 
 async function runReminders() {
   const ln = plugins().LocalNotifications;
-  const { reminders } = await getReminders();
-  const sign = JSON.stringify(reminders);
+  let { display } = await ln.checkPermissions();
+  const [morning, wake] = [morningOn(), readPrefs().wake];
+  // 자동(마감 임박)은 이미 알림을 허락한 폰에만 — 처음 여는 사람에게 까닭 없이 권한을 묻지 않는다
+  const { reminders, mornings = [] } = await getReminders({ auto: dueSoonOn() && display === 'granted', morning, wake });
+  const sign = JSON.stringify([reminders, mornings, wake]);
   if (sign === lastRemind) return;
-  if (reminders.length) {
-    let { display } = await ln.checkPermissions();
-    if (display !== 'granted' && display !== 'denied') ({ display } = await ln.requestPermissions()); // 처음 켠 리마인드가 있을 때만 묻는다
-    if (display !== 'granted') return;
-  }
+  if (reminders.length && display !== 'granted' && display !== 'denied') ({ display } = await ln.requestPermissions()); // 손으로 켠 리마인드가 있을 때만 묻는다
+  if (display !== 'granted') return;
+  const ok = await notifySetup(ln);
   const { notifications } = await ln.getPending();
-  const old = notifications.filter((n) => n.id >= REMIND_FROM).map((n) => ({ id: n.id }));
+  const old = notifications.filter((n) => n.id >= REMIND_FROM || MORNING_IDS.includes(n.id)).map((n) => ({ id: n.id }));
   if (old.length) await ln.cancel({ notifications: old });
-  if (reminders.length) await ln.schedule({ notifications: reminders.map((r) => ({ id: r.id, title: r.title, body: r.body, schedule: { at: new Date(r.at), allowWhileIdle: true } })) });
+  const list = [
+    ...reminders.map((r) => ({
+      id: r.id,
+      title: r.title,
+      body: r.body,
+      schedule: { at: new Date(r.at), allowWhileIdle: true },
+      extra: { kind: r.kind, ref: r.ref },
+      ...(ok ? { channelId: 'remind', ...(r.kind === 'task' ? { actionTypeId: 'task' } : {}) } : {}),
+    })),
+    ...(morning ? morningList(mornings, wake).map((n) => (ok ? { ...n, channelId: 'morning' } : n)) : []),
+  ];
+  if (list.length) await ln.schedule({ notifications: list });
   lastRemind = sign;
 }
 
+/** 알림 권한을 묻는다 → 허락됐는지 */
+async function askNotify() {
+  const { display } = await plugins().LocalNotifications.requestPermissions();
+  return display === 'granted';
+}
+
+/** 아침 브리핑 켜기: 알림 권한을 묻고 되면 잡는다 → true · 권한이 없으면 false */
+export async function turnMorningOn() {
+  if (!(await askNotify())) return false;
+  localStorage.setItem(MORNING_KEY, '1');
+  await planMorning();
+  return true;
+}
+
+export async function turnMorningOff() {
+  localStorage.removeItem(MORNING_KEY);
+  lastRemind = '';
+  await plugins().LocalNotifications.cancel({ notifications: MORNING_IDS.map((id) => ({ id })) });
+}
+
+/** 마감 임박 알림 켜고 끄기 → 켜졌는지(권한이 없으면 false) */
+export async function turnDueSoon(on) {
+  if (on && !(await askNotify())) return false;
+  localStorage.setItem(DUE_KEY, on ? '1' : '0');
+  await planMorning().catch(() => null);
+  return on;
+}
+/** 마감 임박이 실제로 울릴 수 있나(켜져 있고 알림 권한이 있음) · 아직 안 물어본 폰인가 */
+export async function notifyState() {
+  const ln = plugins()?.LocalNotifications;
+  if (!ln) return null;
+  return (await ln.checkPermissions()).display; // 'granted' | 'denied' | 'prompt…'
+}
+
+// 눌린 알림: 대시보드가 가져갈 때까지 둔다(앱이 꺼져 있다가 알림으로 켜지면 대시보드보다 먼저 온다)
+export const NOTIFY_TAP = 'tachyon:notify';
+let tapped = null;
+export function listenNotify() {
+  plugins()?.LocalNotifications?.addListener?.('localNotificationActionPerformed', ({ actionId, notification }) => {
+    tapped = { action: actionId, id: notification.id, ...(notification.extra || {}) };
+    window.dispatchEvent(new CustomEvent(NOTIFY_TAP));
+  });
+}
+export const takeNotify = () => {
+  const t = tapped;
+  tapped = null;
+  return t;
+};
+
+/** 알림 단추 '1시간 뒤' · '내일 아침': 그때 한 번 더(이 폰에만). 글은 그때도 맞게 부른 쪽이 준다 */
+export async function snoozeNotify({ id, kind, ref, title, body }, at) {
+  const ln = plugins()?.LocalNotifications;
+  if (!ln) return;
+  const ok = await notifySetup(ln);
+  await ln.schedule({ notifications: [{ id: SNOOZE_FROM + (id % 1000), title, body, schedule: { at, allowWhileIdle: true }, extra: { kind, ref }, ...(ok ? { channelId: 'remind', actionTypeId: 'task' } : {}) }] });
+}
+
+/** 로그아웃 · 계정 지우기: 잡아 둔 알림을 모두 지운다(다음 사람 폰에 앞사람 일정이 울리지 않게) */
+export async function clearNotify() {
+  const ln = plugins()?.LocalNotifications;
+  if (!ln) return;
+  lastRemind = '';
+  const { notifications } = await ln.getPending();
+  if (notifications.length) await ln.cancel({ notifications: notifications.map((n) => ({ id: n.id })) });
+}
+
+// ── 뒤로 단추 · 손끝 떨림 ─────────────────────────────────────────
+export const BACK = 'tachyon:back';
+/** 안드로이드 뒤로 단추: 열린 창을 닫고 → (대시보드가) 팝업을 닫거나 첫 쪽으로 → 더 갈 데가 없으면 앱을 내린다 */
+export function listenBack() {
+  plugins().App.addListener('backButton', () => {
+    const open = [...document.querySelectorAll('dialog[open]')].pop();
+    if (open) return void open.dispatchEvent(new Event('cancel', { cancelable: true }));
+    if (!window.dispatchEvent(new CustomEvent(BACK, { cancelable: true }))) return; // 화면이 받아 처리했다(preventDefault)
+    plugins().App.minimizeApp?.();
+  });
+}
+
+/** 끝내기 · 저장 · 옮기기에 짧은 떨림(되는 폰만. 앱은 VIBRATE 권한이 든 새 APK부터) */
+export const tick = () => {
+  try {
+    navigator.vibrate?.(8);
+  } catch {
+    /* 막힌 브라우저 */
+  }
+};

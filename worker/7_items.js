@@ -15,7 +15,8 @@
 //   PATCH  /api/events/:id        { important, title, start, end, place } 가운데 바꿀 것만 → { event }
 //                                 시각 일정의 끝이 없으면(안 보냄·null·옛 끝이 안 맞음) 시작 + 1시간
 //   DELETE /api/events/:id        → { ok }
-//   GET    /api/reminders         앞으로 14일 안에 울릴 리마인드 → { reminders: [{ id, title, body, at }] } (11-16 사람 "하고 싶은 일정에만, 할 일·일정 모두")
+//   GET    /api/reminders?auto=1&morning=1&wake=7  앞으로 14일 안에 울릴 알림 → { reminders: [{ id, title, body, at, kind, ref, auto? }], mornings?: [{ date, title, body, large }] }
+//                                 (11-16 사람 "하고 싶은 일정에만, 할 일·일정 모두" + 11-21 마감 임박(auto) · 아침 브리핑(morning))
 //                                 remind = 시작·마감 몇 분 전(0~1440, null = 안 함). 고치기 PATCH의 remind로 켜고 끈다(캘린더에서 온 것도 사본 없이).
 //                                 id = 폰 알림 번호(일정 10000 + 2·id, 할 일 10001 + 2·id), at = 울릴 시각. 종일 일정은 그날 9시 기준.
 //                                 폰 앱(web/src/native.js planReminders)이 이 목록대로 알림을 잡는다. 브라우저는 알림을 띄우지 않는다
@@ -55,7 +56,7 @@ export async function handle(request, env, ctx, user) {
     if (id !== null && method === 'PATCH') return patchItem(request, env, user, 'tasks', id);
     if (id !== null && method === 'DELETE') return deleteItem(env, user, 'tasks', id);
   }
-  if (table === 'reminders' && id === null && method === 'GET') return listReminders(env, user);
+  if (table === 'reminders' && id === null && method === 'GET') return listReminders(url, env, user);
   if (table === 'events') {
     if (id === null && method === 'GET') return listEvents(url, env, user);
     if (id === null && method === 'POST') return createEvent(request, env, user);
@@ -240,38 +241,133 @@ async function deleteItem(env, user, table, id) {
   return json({ ok: true });
 }
 
-// ── 리마인드 ─────────────────────────────────────────────────────
+// ── 리마인드 · 마감 임박 · 아침 브리핑(앱이 폰 알림으로 잡는 목록) ─────────────────
 
 const REMIND_DAYS = 14;
-const ahead = (m) => (m % 1440 === 0 ? '하루' : m % 60 === 0 ? `${m / 60}시간` : `${m}분`);
+const AUTO_MAX = 2; // 자동(마감 임박) 알림은 하루 2번까지 — 넘으면 한 알림으로 묶는다(11-21 사람 "귀찮지 않으면서, 필요한 알림")
+const QUIET_FROM = 23; // 조용한 시간: 23시 ~ 일어나는 시각
+const ahead = (m) => (m === 1440 ? '하루' : m % 1440 === 0 ? `${m / 1440}일` : m % 60 === 0 ? `${m / 60}시간` : `${m}분`);
+const took = (m) => (m >= 60 ? `${Math.floor(m / 60)}시간${m % 60 ? ` ${m % 60}분` : ''}` : `${m}분`);
+const clockOf = (ms) => kstIso(ms).slice(11, 16);
+const dayWord = (fromMs, date) => {
+  const gap = Math.round((Date.parse(`${date}T00:00:00+09:00`) - Date.parse(`${kstDate(fromMs)}T00:00:00+09:00`)) / DAY_MS);
+  return gap <= 0 ? '오늘' : gap === 1 ? '내일' : `${gap}일 뒤`;
+};
 
-/** 울릴 시각(ms)과 알림 글. 종일 일정은 그날 9시 기준('2026-11-16' → 09:00) */
+/**
+ * 울릴 시각(ms)과 알림 글. 제목만 봐도 무엇이 · 언제인지 알게(11-21): '선형대수 · 30분 뒤' / '10:00–11:15 · 25동 207호'.
+ * 종일 일정 · 날짜만 있는 마감은 그날 9시 기준이고 '1시간 뒤 마감'처럼 없는 시각을 말하지 않는다('오늘까지').
+ * kind · ref = 알림을 누르면 열 것(화면 native.js → Dashboard.jsx)
+ */
 export function reminderOf(kind, row) {
   const base = kind === 'event' ? row.start : row.due;
   const allDay = DATE.test(base);
   const baseMs = Date.parse(allDay ? `${base}T09:00:00+09:00` : base);
   const at = baseMs - row.remind * 60000;
-  const clock = allDay ? '' : ` (${kstIso(baseMs).slice(11, 16)})`;
-  const body =
-    kind === 'event'
-      ? allDay
-        ? `${kstDate(at) === base ? '오늘' : '내일'} 종일 일정`
-        : `${row.remind ? `${ahead(row.remind)} 뒤 시작` : '지금 시작'}${clock}${row.place ? ` · ${row.place}` : ''}`
-      : `${row.remind ? `${ahead(row.remind)} 뒤 마감` : '지금 마감'}${clock}`;
-  return { id: (kind === 'event' ? 10000 : 10001) + 2 * row.id, title: row.title, body, at };
+  const need = row.minutes ? `${took(row.minutes)}쯤 걸려요` : '';
+  let title;
+  let body;
+  if (kind === 'event') {
+    const end = !allDay && row.end && !DATE.test(row.end) ? `–${clockOf(Date.parse(row.end))}` : '';
+    title = allDay ? row.title : `${row.title} · ${row.remind ? `${ahead(row.remind)} 뒤` : '지금 시작'}`;
+    body = allDay ? `${dayWord(at, base)} 종일 일정` : `${clockOf(baseMs)}${end}${row.place ? ` · ${row.place}` : ''}`;
+  } else {
+    title = allDay ? `${row.title} · ${dayWord(at, base)}까지` : `${row.title} · ${row.remind ? `${ahead(row.remind)} 뒤 마감` : '지금 마감'}`;
+    body = allDay ? need : `마감 ${clockOf(baseMs)}${need ? ` · ${need}` : ''}`;
+  }
+  return { id: (kind === 'event' ? 10000 : 10001) + 2 * row.id, title, body, at, kind, ref: row.id };
 }
 
-async function listReminders(env, user) {
+/**
+ * 마감 임박(자동, 11-21): 리마인드를 따로 안 건 할 일을 마감 3시간 전에 한 번(걸리는 시간의 두 배가 더 길면 그만큼 일찍, 하루까지).
+ * 조용한 시간(23시 ~ wake시)에 걸리면 그 전 저녁 21시로 당긴다. 날짜만 있는 마감은 그날 9시에 '오늘까지'.
+ * 번호는 손으로 건 리마인드와 같아(10001 + 2·id) 둘이 겹쳐 울리지 않는다.
+ */
+export function dueSoonOf(row, wake = 7) {
+  const dateOnly = DATE.test(row.due);
+  const need = row.minutes ? `${took(row.minutes)}쯤 걸려요` : '';
+  const one = { id: 10001 + 2 * row.id, kind: 'task', ref: row.id, auto: true };
+  if (dateOnly) return { ...one, title: `오늘까지 · ${row.title}`, body: need, at: Date.parse(`${row.due}T09:00:00+09:00`) };
+  const due = Date.parse(row.due);
+  let at = due - Math.min(1440, Math.max(180, 2 * (row.minutes || 0))) * 60000;
+  const hour = Number(clockOf(at).slice(0, 2));
+  if (hour >= QUIET_FROM || hour < wake) at = Date.parse(`${kstDate(hour < wake ? at - DAY_MS : at)}T21:00:00+09:00`);
+  const gap = Math.round((due - at) / 60000);
+  const left = gap >= 180 ? Math.round(gap / 60) * 60 : gap; // 세 시간부터는 시간 단위로
+  return { ...one, title: `${dayWord(at, row.due.slice(0, 10))} ${clockOf(due)} 마감 · ${row.title}`, body: `${took(left)} 남음${need ? ` · ${need}` : ''}`, at };
+}
+
+/** 자동 알림이 하루 AUTO_MAX개를 넘으면 앞의 것만 두고 나머지는 한 알림으로(번호 9001~: 날마다 하나) */
+export function capAuto(list, now) {
+  const days = new Map();
+  for (const r of list) if (r.auto) days.set(kstDate(r.at), [...(days.get(kstDate(r.at)) || []), r]);
+  const drop = new Set();
+  const sums = [];
+  for (const [date, rows] of days) {
+    if (rows.length <= AUTO_MAX) continue;
+    const rest = rows.slice(AUTO_MAX - 1);
+    rest.forEach((r) => drop.add(r));
+    const n = Math.round((Date.parse(`${date}T00:00:00+09:00`) - Date.parse(`${kstDate(now)}T00:00:00+09:00`)) / DAY_MS);
+    sums.push({ id: 9001 + n, title: `마감이 가까운 할 일 ${rest.length}개`, body: rest.map((r) => r.title.split(' · ').pop()).join(' · '), at: rest[0].at, kind: 'tasks', ref: null, auto: true });
+  }
+  return [...list.filter((r) => !drop.has(r)), ...sums].sort((a, b) => a.at - b.at);
+}
+
+/**
+ * 아침 브리핑(11-21): 앞으로 8일, 날마다 그날 일정 · 마감 · 밀린 일을 제목과 한 줄로. 아무것도 없는 날은 없다(알림도 안 감).
+ * → [{ date, title: '오늘 · 일정 3 · 마감 2', body: '09:30 선형대수(25동 207호) · 마감 통계 과제 23:59 · 밀린 일 2개', large }]
+ */
+export function morningsOf(events, tasks, now) {
+  const today = kstDate(now);
+  const late = tasks.filter((t) => t.due.slice(0, 10) < today).length;
+  const out = [];
+  for (let d = 0; d < 8; d += 1) {
+    const date = kstDate(now + d * DAY_MS);
+    const evs = events.filter((e) => (DATE.test(e.start) ? e.start <= date && (date < (e.end || '') || e.start === date) : e.start.slice(0, 10) === date)); // 여러 날 종일 일정은 날마다
+    const due = tasks.filter((t) => t.due.slice(0, 10) === date);
+    if (!evs.length && !due.length && !late) continue;
+    const timed = evs.filter((e) => !DATE.test(e.start));
+    const evLine = (e) => (DATE.test(e.start) ? `종일 ${e.title}` : `${e.start.slice(11, 16)} ${e.title}`);
+    const dueLine = (t) => `마감 ${t.title}${DATE.test(t.due) ? '' : ` ${t.due.slice(11, 16)}`}`;
+    const lateLine = late ? `밀린 일 ${late}개` : '';
+    const title = ['오늘', evs.length && `일정 ${evs.length}`, due.length && `마감 ${due.length}`, !evs.length && !due.length && lateLine].filter(Boolean).join(' · ');
+    const first = timed[0] || evs[0];
+    const body = [first && `${evLine(first)}${first.place ? `(${first.place})` : ''}`, due[0] && dueLine(due[0]), (evs.length || due.length) && lateLine].filter(Boolean).join(' · ');
+    const lines = [...evs.map((e) => `${evLine(e)}${e.place ? ` · ${e.place}` : ''}`), ...due.map(dueLine)];
+    out.push({ date, title, body, large: [...lines.slice(0, 8), lines.length > 8 && `그 밖에 ${lines.length - 8}개`, lateLine].filter(Boolean).join('\n') });
+  }
+  return out;
+}
+
+// GET /api/reminders?auto=1&morning=1&wake=7 — auto = 마감 임박도, morning = 아침 브리핑도(이때 날짜만 있는 마감은 브리핑에 있으니 자동 알림에서 뺀다)
+async function listReminders(url, env, user) {
+  const q = url.searchParams;
+  const [auto, morning] = [q.get('auto') === '1', q.get('morning') === '1'];
+  const wake = Math.min(12, Math.max(4, Number(q.get('wake')) || 7));
   const now = Date.now();
   const [from, to] = [kstDate(now), kstDate(now + (REMIND_DAYS + 2) * DAY_MS)]; // 하루 전 알림까지 넉넉히 읽고 시각으로 거른다
-  const [events, tasks] = await env.DB.batch([
-    env.DB.prepare('SELECT id, title, start, place, remind FROM events WHERE user_id = ?1 AND remind IS NOT NULL AND moved_to IS NULL AND start >= ?2 AND start < ?3').bind(user.id, from, to),
-    env.DB.prepare('SELECT id, title, due, remind FROM tasks WHERE user_id = ?1 AND remind IS NOT NULL AND done = 0 AND due >= ?2 AND due < ?3').bind(user.id, from, to),
+  const [events, tasks, week] = await env.DB.batch([
+    env.DB.prepare('SELECT id, title, start, "end", place, remind FROM events WHERE user_id = ?1 AND remind IS NOT NULL AND moved_to IS NULL AND start >= ?2 AND start < ?3').bind(user.id, from, to),
+    auto || morning
+      ? env.DB.prepare('SELECT id, title, due, minutes, remind FROM tasks WHERE user_id = ?1 AND done = 0 AND due IS NOT NULL AND due < ?2 ORDER BY due').bind(user.id, to)
+      : env.DB.prepare('SELECT id, title, due, minutes, remind FROM tasks WHERE user_id = ?1 AND remind IS NOT NULL AND done = 0 AND due >= ?2 AND due < ?3').bind(user.id, from, to),
+    morning
+      ? env.DB.prepare(`SELECT ${EVENT_COLUMNS} FROM events WHERE user_id = ?1 AND moved_to IS NULL AND start < ?3 AND (COALESCE("end", start) > ?2 OR start >= ?2) ORDER BY start, id`).bind(user.id, from, kstDate(now + 8 * DAY_MS))
+      : env.DB.prepare('SELECT 1 WHERE 0'),
   ]);
-  const list = [...events.results.map((r) => reminderOf('event', r)), ...tasks.results.map((r) => reminderOf('task', r))]
+  const open = tasks.results.filter((t) => t.due >= from);
+  const list = [
+    ...events.results.map((r) => reminderOf('event', r)),
+    ...open.filter((t) => t.remind != null).map((r) => reminderOf('task', r)),
+    ...(auto ? open.filter((t) => t.remind == null && !(morning && DATE.test(t.due))).map((r) => dueSoonOf(r, wake)) : []),
+  ]
     .filter((r) => r.at > now && r.at <= now + REMIND_DAYS * DAY_MS)
     .sort((a, b) => a.at - b.at);
-  return json({ ok: true, reminders: list.map((r) => ({ ...r, at: kstIso(r.at) })) });
+  return json({
+    ok: true,
+    reminders: capAuto(list, now).map((r) => ({ ...r, at: kstIso(r.at) })),
+    ...(morning ? { mornings: morningsOf(mergeTwins(week.results), tasks.results, now) } : {}),
+  });
 }
 
 class BadValue extends Error {}

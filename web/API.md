@@ -218,7 +218,8 @@
 | `GET /api/gcal` | `{ ready, linked, error, pulled_at }` — `error: 'reconnect'`면 토큰이 죽어 다시 연결 |
 | `GET /api/gcal/connect` | 화면 전체를 옮김 → 구글 동의 → `/?gcal=ok\|denied\|scope\|state\|google\|config`로 돌아옴(`gcalBackText`) |
 | `POST /api/gcal/app` | (11-20, 안드로이드 앱) `{ url }` = `/api/gcal/connect?t=<2분짜리 서명 표>`. 앱이 폰 브라우저로 열면(로그인 쿠키 없음) 표로 누구인지 알고, 끝나면 `tachyon://gcal?r=ok\|…`로 앱에 돌아감(`native.js` `gcalInApp`) |
-| `POST /api/gcal/sync` | 지금 맞추기 → `{ linked }`. 대시보드가 화면에 돌아올 때 부른다 |
+| `POST /api/gcal/sync` | 지금 맞추기 → 맞춘 뒤의 상태 `{ ok, ready, linked, error, pulled_at }`(`GET /api/gcal`과 같은 모양, 11-21). 대시보드가 화면에 돌아올 때 부르고, `error`가 있으면 '끊김'을 보여 준다 |
+| `GET /api/reminders?wake=7&auto=1&morning=1` | 폰 알림 거리(앞으로 14일) → `{ reminders: [{ id, title, body, at, kind, ref, auto? }], mornings?: [{ date, title, body, large }] }`. `auto=1` = 마감 임박 알림(리마인드를 안 켠 할 일, 마감 몇 시간 전 · 밤 23시~기상 시각은 전날 21시 · 하루 2개까지)도, `morning=1` = 아침 브리핑 글 8일치도. `kind` = `event`·`task`, `ref` = 그 줄 id |
 | `DELETE /api/gcal` | 끊기(Tachyon이 넣은 구글 일정도 지움) |
 | `POST /api/gcal/push` | 구글이 부르는 알림(화면은 안 씀) |
 

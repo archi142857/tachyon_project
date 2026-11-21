@@ -1,6 +1,7 @@
 // 달력 일정 끌기(11-14 피드백 '일정을 손으로 조작해서 위치, 길이 조절', 모양은 request1113.css ③ 그림자 칸).
 // 몸통을 끌면 옮기기(길이 그대로, 다른 날 칸으로도), 아래 끝 손잡이를 끌면 길이 바꾸기. 15분 눈금.
-// 고른 일정에서만 부른다(WeekCalendar: 한 번 누르면 고르기, 11-15). 4px 넘게 움직이면 끌기(마우스·손가락 같음).
+// 마우스는 그냥 끌면 되고(4px 넘게 움직이면 끌기, 덜 움직이면 누름 = 열기), 손가락은 꾹 눌러(0.35초) 잡는다(11-21 원터치 — WeekCalendar).
+// now = true면 잡자마자 끄는 중(꾹 누른 뒤).
 // 놓으면 onDrop(ev, { day, from, to }) — day = 보이는 날 칸 번호, from·to = 그날 0시부터 분.
 import { useEffect, useRef, useState } from 'react';
 
@@ -44,7 +45,7 @@ export default function useEventDrag({ cols, n, first, last, onDrop }) {
   };
   useEffect(() => stop, []);
 
-  function start(e, item, mode) {
+  function start(e, item, mode, now = false) {
     if (e.button > 0 || !onDrop) return;
     const list = cols();
     if (!list.length) return;
@@ -64,8 +65,10 @@ export default function useEventDrag({ cols, n, first, last, onDrop }) {
         if (far < 4) return;
         activate();
       }
-      s.last = dropTarget(mode, pointAt(m.clientX, m.clientY, s.box, n, first, last), s.item, first, last);
-      setGhost({ id: item.ev.id, ...s.last });
+      const to = dropTarget(mode, pointAt(m.clientX, m.clientY, s.box, n, first, last), s.item, first, last);
+      if (s.last && to.day === s.last.day && to.from === s.last.from && to.to === s.last.to) return; // 같은 눈금이면 다시 그리지 않는다
+      s.last = to;
+      setGhost({ id: item.ev.id, ...to });
     };
     s.up = () => {
       const { on, last: to } = s;
@@ -82,6 +85,7 @@ export default function useEventDrag({ cols, n, first, last, onDrop }) {
     window.addEventListener('pointercancel', s.cancel);
     window.addEventListener('touchmove', s.block, { passive: false });
     st.current = s;
+    if (now) activate();
   }
 
   return { ghost, start, takeClick: () => ate.current };

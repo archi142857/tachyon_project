@@ -24,6 +24,7 @@ import './activities.css'; // 11-19 '활동' 쪽(ActivitiesPage.jsx)
 import './request1119.css'; // 11-19 18:16 요청 층(바우하우스 뺀 넷: 넓은 화면 공간 · 렉) — 앞 층들 다음에
 import './calendar1120.css'; // 11-20 주간 달력 다시 짜기(가독성, 모든 테마) — 앞 층들 다음에
 import './loader.css'; // 테마를 바꿀 때 덮는 테마별 로딩 화면
+import './polish1121.css'; // 11-21 편의 · 알림 · 다듬기 층(새 요소 모양 + 바우하우스 뺀 다섯 테마 다듬기) — 맨 끝에
 import { applyTheme, currentTheme } from './themes.js';
 import { applyText } from './prefs.js';
 

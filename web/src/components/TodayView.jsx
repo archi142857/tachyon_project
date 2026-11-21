@@ -1,7 +1,7 @@
 // 오늘 화면: 오늘 타임라인 · 하루 고리 · 할 일을 한 번에 본다(넓은 화면은 타임라인 왼쪽, 고리 오른쪽 위, 할 일 오른쪽 아래. 폰은 고리 → 타임라인 → 할 일).
 // 고리의 색 구간이나 할 일 줄을 누르면 고리 · 타임라인 · 할 일이 같이 골라진다(sel = 'e일정 id' | 't할 일 id').
 // 타임라인은 굴리지 않고 하루가 한눈에 보이며, 누르면 주간 달력으로 간다(onWeek).
-// 옅은 점선 칸은 빈 시간에 할 일을 넣어 본 자리다(slots.js). 저장하지 않는다.
+// 옅은 점선 칸은 빈 시간에 할 일을 넣어 본 '추천 시간'이다(slots.js). 저장하지 않는다.
 import { useLayoutEffect, useRef, useState } from 'react';
 import { layoutDay } from '../layout.js';
 import { dayEvents, daySlots, freeMinutes, hm } from '../slots.js';
@@ -23,7 +23,7 @@ const bigSpan = (min) => (parts(min).length ? parts(min).map(([n, u]) => (
 
 // 할 일을 오늘 못 넣은 까닭
 function noSlot(task) {
-  if (!task.minutes) return '걸리는 시간을 몰라 자리를 못 잡았어요';
+  if (!task.minutes) return '걸리는 시간을 넣으면 시간을 추천해요';
   if (task.ready === 0) return '수업·자료 뒤에 할 수 있어요';
   return '오늘은 넣을 빈 시간이 없어요';
 }
@@ -35,7 +35,7 @@ const card = (base, w) => `card ${base}${w.lifted ? ' lifted' : ''}`;
 // plans = { 할 일 id: { date, from?, to?, said? } } 하기로 한 날·때(taskLocal plan, 메모 '월요일 오전에 …', 11-15): 그날 전이면 오늘 자리를 안 잡고
 //   '내일 오전에 하기로 했어요', 그날이면 그때(from~to)에서 먼저 자리를 찾는다. todayKey = 'YYYY-MM-DD'
 // onTask(task, slot) = 할 일 바로 다루기 창(slot = 추천 자리, 없으면 null)
-export default function TodayView({ today, events, tasks, total, now, fixed = {}, plans = {}, todayKey = '', onDone, onEvent, onTask, onAll, onWeek, loose = [], onTidy, widget = () => ({}), editing = false, layoutKey = '' }) {
+export default function TodayView({ today, events, tasks, total, now, fixed = {}, plans = {}, todayKey = '', onDone, onEvent, onTask, onAll, onWeek, loose = [], onTidy, loading = false, widget = () => ({}), editing = false, layoutKey = '' }) {
   const [sel, setSel] = useState(null);
   const w = { day: widget('day'), ring: widget('ring'), tasks: widget('tasks') };
   // 낮은 칸에서 타임라인이 카드 안에서 굴면(디자인 ②) 처음엔 지금 시각이 보이게 굴려 둔다
@@ -49,6 +49,24 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
   const particles = useParticles(); // 입자 테마는 고리 그림과 그 설명 한 줄만 다르다(자리·기능은 모든 테마가 같다, 사람 11-15 16:52)
   const nowMin = minuteOfDay(now);
   const busy = dayEvents(events, today);
+  // 종일 일정은 시간 칸이 없어 타임라인 위에 칩으로(11-21 — 오늘 화면에서 빠져 있었다)
+  const t0 = new Date(today).getTime();
+  const allDay = events.filter((e) => e.all_day && Date.parse(e.start) <= t0 && Date.parse(e.end) > t0);
+  // 고리 가운데 셋째 줄: 지금 하는 일정 · 남은 시간, 없으면 다음 일정 · 몇 분 뒤(11-21 '지금 무엇을 · 다음은 무엇')
+  const span = (m) => (m >= 60 ? `${Math.floor(m / 60)}시간${m % 60 ? ` ${m % 60}분` : ''}` : `${m}분`);
+  const going = busy.find((b) => b.from <= nowMin && b.to > nowMin);
+  const coming = busy.find((b) => b.from > nowMin);
+  const nextLine = going ? `지금 · ${going.ev.title} · ${span(going.to - nowMin)} 남음` : coming ? `다음 · ${hm(coming.from)} ${coming.ev.title} · ${span(coming.from - nowMin)} 뒤` : '';
+  // 타임라인의 일정 · 추천 칸을 누르면 그것이 바로 열린다(카드 빈 곳은 지금처럼 달력으로). 배치를 바꾸는 중에는 안 열린다
+  const open = (fn) =>
+    editing
+      ? {}
+      : {
+          role: 'button',
+          tabIndex: 0,
+          onClick: (e) => (e.stopPropagation(), fn()),
+          onKeyDown: (e) => e.key === 'Enter' && (e.stopPropagation(), fn()),
+        };
   const later = (t) => plans[t.id] && plans[t.id].date > todayKey; // 다른 날 하기로 한 것
   const windowOf = (t) => (plans[t.id]?.date === todayKey && plans[t.id].from != null ? [plans[t.id].from, plans[t.id].to] : undefined);
   // 정한 것·다른 날 하기로 한 것은 자리를 잡지 않고(정한 시간은 다른 할 일이 피한다), 오늘 하기로 한 때가 있으면 그때에서 먼저
@@ -58,7 +76,7 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
   // 고를 수 있는 것 모두: 일정 + 넣어 본 자리
   const items = [
     ...busy.map(({ ev, from, to }) => ({ key: `e${ev.id}`, from, to, kind: kindOf(ev), title: ev.title, sub: ev.place, edit: () => onEvent(ev) })),
-    ...placed.map(({ task, slot, key }) => ({ key, from: slot[0], to: slot[1], kind: 'slot', title: task.title, sub: `넣어 본 자리 · ${deadlineLabel(task.due, now)}`, edit: () => onTask(task, slot) })),
+    ...placed.map(({ task, slot, key }) => ({ key, from: slot[0], to: slot[1], kind: 'slot', title: task.title, sub: `추천 시간 · ${deadlineLabel(task.due, now)}`, edit: () => onTask(task, slot) })),
   ];
   const picked = items.find((x) => x.key === sel);
   const pick = (key) => setSel((s) => (s === key ? null : key));
@@ -72,16 +90,26 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
 
   return (
     <>
-      {/* 카드 어디를 눌러도 주간 달력으로 간다. 키보드로는 머리의 '주간 달력' 단추(누름이 카드로 올라온다) */}
+      {/* 카드 빈 곳을 누르면 달력으로 간다. 키보드로는 머리의 '달력' 단추(누름이 카드로 올라온다) */}
       <section ref={dayRef} className={card('day', w.day)} data-slot={w.day.slot} data-widget={w.day.slot && 'day'} aria-label="오늘 타임라인" onClick={editing ? undefined : onWeek}>
         {w.day.grip}
         <div className="tasks-head">
           <h2 className="card-title">오늘 일정</h2>
-          <span className="tag num">{busy.length}</span>
+          <span className="tag num">{busy.length + allDay.length}</span>
           <button type="button" className="btn-text">
-            주간 달력
+            달력
           </button>
         </div>
+        {allDay.length > 0 && (
+          <div className="today-allday">
+            {allDay.map((ev) => (
+              <span key={ev.id} className="chip allday" style={{ '--c': tint(ev.title) }} {...open(() => onEvent(ev))}>
+                <span className="sr-only">종일, </span>
+                {ev.title}
+              </span>
+            ))}
+          </div>
+        )}
         {/* 하루 전체가 --day-h 높이에 들어가게 한 시간 높이를 나눈다 */}
         <div className="cal-grid one" style={{ '--hour': `calc(var(--day-h) / ${last - first})`, height: 'var(--day-h)' }}>
           {Array.from({ length: (last - first) / step - 1 }, (_, i) => (
@@ -103,6 +131,7 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
                   key={key}
                   className={`ev ${kindOf(ev)}${to - from <= 60 ? ' short' : ''}${ev.important ? ' important' : ''}${sel === key ? ' sel' : ''}`}
                   style={{ ...box(from, to), left: `calc(${(col / cols) * 100}% + 2px)`, width: `calc(${100 / cols}% - 4px)`, '--c': tint(ev.title) }}
+                  {...open(() => onEvent(ev))}
                 >
                   <span className="sr-only">
                     {hm(from)}–{hm(to)},{' '}
@@ -114,12 +143,12 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
               );
             })}
             {placed.map(({ task, slot, key }) => (
-              <div key={key} className={`ev slot${sel === key ? ' sel' : ''}`} style={{ ...box(slot[0], slot[1]), left: '2px', width: 'calc(100% - 4px)', '--c': tint(task.title) }}>
+              <div key={key} className={`ev slot${sel === key ? ' sel' : ''}`} style={{ ...box(slot[0], slot[1]), left: '2px', width: 'calc(100% - 4px)', '--c': tint(task.title) }} {...open(() => onTask(task, slot))}>
                 <span className="sr-only">
                   {hm(slot[0])}–{hm(slot[1])},{' '}
                 </span>
                 {task.title}
-                <span className="place">넣어 본 자리 · 마감 {deadlineShort(task.due, now)}</span>
+                <span className="place">추천 시간 · 마감 {deadlineShort(task.due, now)}</span>
               </div>
             ))}
             <div className="now-line" role="img" style={{ top: top(nowMin) }} aria-label={`지금 ${hm(nowMin)}`}>
@@ -150,6 +179,7 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
             <>
               <span className="mid-sub">오늘 남은 빈 시간</span>
               <strong className="mid-big num">{bigSpan(freeMinutes(busy, nowMin))}</strong>
+              {nextLine && <span className="mid-sub mid-next">{nextLine}</span>}
             </>
           )}
         </DayRing>
@@ -163,7 +193,7 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
             </button>
           </div>
         ) : particles ? (
-          <p className="ring-cap">한 바퀴 = 오늘 0–24시 · 색 = 수업과 일정 · 옅은 구간 = 할 일을 넣어 본 자리 · 흰 입자 = 지금 · 바깥 점 = 아직 정리 안 된 메모</p>
+          <p className="ring-cap">한 바퀴 = 오늘 0–24시 · 색 = 수업과 일정 · 옅은 구간 = 할 일 추천 시간 · 흰 입자 = 지금 · 바깥 점 = 아직 정리 안 된 메모</p>
         ) : (
           <p className="ring-key">
             <span>
@@ -174,7 +204,7 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
               <i className="key-face ics" />내 일정
             </span>
             <span>
-              <i className="key-face slot" />할 일을 넣어 본 자리
+              <i className="key-face slot" />할 일 추천 시간
             </span>
             <span>
               <i className="key-now" />지금
@@ -196,14 +226,14 @@ export default function TodayView({ today, events, tasks, total, now, fixed = {}
             </button>
           )}
         </div>
-        {tasks.length === 0 && <p className="empty">할 일이 없어요</p>}
+        {tasks.length === 0 && <p className="empty">{loading ? '불러오는 중…' : '남은 할 일이 없어요. 아래 메모 칸에 ‘금요일까지 과제’처럼 적어 보세요.'}</p>}
         {tasks.map((task, i) => {
           const key = `t${task.id}`;
           return (
             <div key={key} className={sel === key ? 'pick on' : 'pick'} onClick={slots[i] ? () => setSel(key) : undefined}>
               <TaskRow task={task} now={now} onDone={onDone} onEdit={(t) => onTask(t, slots[i])} />
               {fixed[task.id] ? (
-                <p className="slot-note fixed num">정함 {hm(fixed[task.id].from)}–{hm(fixed[task.id].to)}</p>
+                <p className="slot-note fixed num">예정 {hm(fixed[task.id].from)}–{hm(fixed[task.id].to)}</p>
               ) : later(task) ? (
                 <p className="slot-note plan num">{planLabel(plans[task.id], now)}에 하기로 했어요</p>
               ) : slots[i] ? (

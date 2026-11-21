@@ -158,24 +158,23 @@ describe('폰 캘린더에 쓰기 흐름(가짜 플러그인)', () => {
   });
 });
 
-// 아침 알림(morningList): 일어나는 시각 정각, 7번, 첫 아침만 할 일 이름. 할 일 이름은 지어낸 예시다.
+// 아침 브리핑(morningList): 서버가 준 날마다의 글을 일어나는 시각(한국 시각) 정각에. 지난 아침은 빼고, 빈 날은 서버가 안 준다. 일정 이름은 지어낸 예시다.
 import { morningList } from './native.js';
 
 describe('morningList', () => {
-  it('일어나는 시각이 지났으면 내일부터, 첫 아침만 할 일 3개', () => {
-    const now = new Date(2026, 10, 14, 9, 30);
-    const list = morningList(['보고서 쓰기', '예매', '연락', '넷째'], 7, now);
-    expect(list).toHaveLength(7);
-    expect(list[0].schedule.at).toEqual(new Date(2026, 10, 15, 7, 0));
-    expect(list[6].schedule.at).toEqual(new Date(2026, 10, 21, 7, 0));
-    expect(list[0].body).toBe('오늘 할 일: 보고서 쓰기 · 예매 · 연락');
-    expect(list[1].body).toBe('오늘 일정과 할 일을 확인해요');
-    expect(new Set(list.map((n) => n.id)).size).toBe(7);
+  const days = ['14', '15', '17'].map((d) => ({ date: `2026-11-${d}`, title: `오늘 · 일정 ${d}`, body: `09:30 예시 수업 ${d}`, large: '09:30 예시 수업' }));
+  it('일어나는 시각이 지난 아침은 빼고, 서버 글을 그대로 넣는다', () => {
+    const list = morningList(days, 7, new Date('2026-11-14T09:30:00+09:00'));
+    expect(list.map((n) => [n.id, n.title, +n.schedule.at])).toEqual([
+      [7001, '오늘 · 일정 15', +new Date('2026-11-15T07:00:00+09:00')],
+      [7002, '오늘 · 일정 17', +new Date('2026-11-17T07:00:00+09:00')],
+    ]);
+    expect(list[0]).toMatchObject({ body: '09:30 예시 수업 15', largeBody: '09:30 예시 수업', extra: { kind: 'morning' } });
   });
 
-  it('아직 안 지났으면 오늘부터, 할 일이 없으면 짧은 말', () => {
-    const list = morningList([], 8, new Date(2026, 10, 14, 2, 30));
-    expect(list[0].schedule.at).toEqual(new Date(2026, 10, 14, 8, 0));
-    expect(list[0].body).toBe('오늘 일정과 할 일을 확인해요');
+  it('아직 안 지났으면 오늘부터', () => {
+    const list = morningList(days, 8, new Date('2026-11-14T02:30:00+09:00'));
+    expect(+list[0].schedule.at).toBe(+new Date('2026-11-14T08:00:00+09:00'));
+    expect(list).toHaveLength(3);
   });
 });

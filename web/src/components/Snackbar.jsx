@@ -4,7 +4,9 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-export default function Snackbar({ text, actionLabel, onAction, onDone, ms = 5000, layer = '' }) {
+// 단추가 있으면 8초(되돌리기를 읽고 누를 시간), 마우스를 올리거나 초점이 들어가 있는 동안은 안 사라진다(11-21)
+export default function Snackbar({ text, actionLabel, onAction, onDone, ms = actionLabel ? 8000 : 5000, layer = '' }) {
+  const [hold, setHold] = useState(false);
   const [host, setHost] = useState(null);
 
   useLayoutEffect(() => {
@@ -12,13 +14,14 @@ export default function Snackbar({ text, actionLabel, onAction, onDone, ms = 500
   }, [text, layer]);
 
   useEffect(() => {
+    if (hold) return undefined;
     const timer = setTimeout(onDone, ms);
     return () => clearTimeout(timer);
-  }, [text, onDone, ms]);
+  }, [text, onDone, ms, hold]);
 
   if (!host) return null;
   return createPortal(
-    <div className="snackbar" role="status">
+    <div className="snackbar" role="status" onMouseEnter={() => setHold(true)} onMouseLeave={() => setHold(false)} onFocus={() => setHold(true)} onBlur={() => setHold(false)}>
       <span>{text}</span>
       {actionLabel && (
         <button

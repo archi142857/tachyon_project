@@ -2,14 +2,14 @@
 // 칸마다 날짜 · 밀도 고리 · 마감(시각 먼저) · 일정 몇 개, 넘치면 '+N'. 칸을 누르면 그날부터 주간 달력으로.
 // 모든 테마가 같은 칸(사람 11-15 16:52, 기본 테마 기준): 날짜 · 밀도 고리 · 시각 붙은 줄, 오늘 칸 밑에 하루가 얼마나 지났는지 한 줄(예전 입자 9판 .dp).
 import { endOf, isAllDay } from '../layout.js';
-import { WEEKDAYS, addDays, dayStart, hhmm, kst, minuteOfDay, monthGrid, sameDay } from '../time.js';
+import { WEEKDAYS, addDays, dayStart, dayStartKst, hhmm, kst, minuteOfDay, monthGrid, sameDay } from '../time.js';
 import DensityRing from './DensityRing.jsx';
 import Icon from './Icon.jsx';
 import { tint } from '../themeName.js';
 
 const MAX_LINES = 3;
 
-export default function MonthCalendar({ anchor, events, tasks, now, density, onPrev, onNext, onToday, onDay, tools }) {
+export default function MonthCalendar({ anchor, events, tasks, now, density, onPrev, onNext, onToday, onJump, onDay, tools }) {
   const cells = monthGrid(anchor.y, anchor.m);
   const t = kst(now);
   const isCurrent = anchor.y === t.y && anchor.m === t.m;
@@ -31,7 +31,16 @@ export default function MonthCalendar({ anchor, events, tasks, now, density, onP
     <section className="card month" aria-label="월 달력">
       <div className="cal-head">
         <h2 className="card-title num">
-          {anchor.y}년 {anchor.m}월
+          {onJump ? (
+            <>
+              <button type="button" className="cal-jump" title="날짜로 가기" onClick={(e) => e.currentTarget.nextSibling.showPicker?.()}>
+                {anchor.y}년 {anchor.m}월
+              </button>
+              <input type="date" className="sr-only" tabIndex={-1} aria-label="날짜로 가기" onChange={(e) => e.target.value && onJump(dayStartKst(e.target.value))} />
+            </>
+          ) : (
+            `${anchor.y}년 ${anchor.m}월`
+          )}
         </h2>
         {!isCurrent && (
           <button type="button" className="btn-text" onClick={onToday}>
