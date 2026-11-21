@@ -134,3 +134,11 @@ html[data-theme] .conn-line { background: color-mix(in srgb, var(--text) 6%, tra
 html[data-theme] .conn-line.bad { background: color-mix(in srgb, var(--danger) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 45%, transparent); color: var(--text); }
 html[data-theme] .menu-state { background: color-mix(in srgb, var(--text) 9%, transparent); }
 html[data-theme] .menu-state.bad { background: var(--danger); color: var(--bg); }
+
+/* 11-21 22:20 눈으로 본 뒤 고친 둘(예시 모드 · 사용자 Chrome)
+   ① 첫 설정처럼 짧은 화면에서 html 바탕(그라데이션)이 내용 높이만큼만 깔리고 그 아래로 한 번 더 되풀이됐다 → 화면 높이까지 채운다
+   ② 입자 테마 폰 너비: 위 띠 사이(14px)가 넓어 '예시 자료' 표가 붙으면 메뉴 단추가 화면 밖으로 21px 나갔다 → 좁은 화면에서만 8px */
+html[data-theme] { min-height: 100vh; min-height: 100dvh; }
+@media (max-width: 430px) {
+  html[data-theme^='입자'] .shell .topbar { gap: 8px; }
+}
