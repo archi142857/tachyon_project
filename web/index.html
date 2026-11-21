@@ -12,6 +12,20 @@
     <meta name="apple-mobile-web-app-title" content="Tachyon" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <title>Tachyon</title>
+    <script>
+      // 고른 테마를 첫 그림 전에 입힌다(11-21 — 어두운 테마가 흰 화면으로 번쩍이지 않게). 나머지는 src/themes.js applyTheme
+      try {
+        var t = localStorage.getItem('tachyon_theme');
+        t = { 입자: '입자 밤', 종이: '입자 낮' }[t] || t;
+        var bg = { '입자 밤': '#040406', '입자 낮': '#f3efe6', 태양계: '#050814', 오선지: '#f4eee2', 뉴모피즘: '#ebe4da' }[t];
+        if (bg) {
+          var m = document.querySelector('meta[name="theme-color"]');
+          m.dataset.base = m.content;
+          m.content = bg;
+          document.documentElement.dataset.theme = t;
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

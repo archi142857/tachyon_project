@@ -13,7 +13,7 @@ import './request1113.css'; // 11-13 요청 층(디자인 components.css 넷째 
 import './feedback1113.css'; // 11-13 피드백 열다섯의 디자인 몫(정면 창 · 마감 자 · 추천 · 길잡이 · 메모 칸 · 로그인) — request1113.css 다음에
 import './actions1113.css'; // 11-13 결정의 9판 기능(할 일 바로 다루기 · 집중 막대 · 정함/추천 줄 · 나) — feedback1113.css 다음에
 import './nine.css'; // 입자 테마 = 시연 9판 모양 그대로(바우하우스는 건드리지 않음) — 맨 끝에
-import './components/art/fonts.js'; // 그림 테마 글꼴(앱에 실음: 함렛 · 본명조 · 오르빗 · 시네잇 · DM Serif · 오르비트론 · 누니토 · Noto Music)
+// 그림 테마 글꼴(components/art/fonts.js)은 그 테마를 입힐 때만 받는다(11-21, themes.js applyTheme)
 import './looks/태양계.css'; // 그림 테마 셋의 모양 층(11-19 테마마다 새로) — nine.css 다음에
 import './looks/오선지.css';
 import './looks/뉴모피즘.css';
@@ -31,6 +31,12 @@ import { applyText } from './prefs.js';
 // 지난번에 고른 테마를 첫 화면이 그려지기 전에 입힌다(메뉴 → 테마). 여기서는 기억하지 않는다(고를 때만 적음).
 applyTheme(currentTheme(), undefined, { save: false });
 applyText(); // '나'에서 고른 글자 크기
+
+// 새 판이 올라간 뒤 옛 화면이 없어진 조각을 찾으면 한 번 새로 연다(11-21)
+window.addEventListener('vite:preloadError', () => window.location.reload());
+// 창이 뒤로 가 있는 동안은 계속 도는 꾸밈 움직임을 멈춘다(polish1121.css html[data-idle])
+window.addEventListener('blur', () => (document.documentElement.dataset.idle = ''));
+window.addEventListener('focus', () => delete document.documentElement.dataset.idle);
 
 // 화면 오류 자동 보고(서버 6_feedback → GitHub 이슈). 한 번 열었을 때 같은 메시지는 한 번만, 다 합쳐 5개까지.
 // 보내다 실패하면 다시 보내지 않는다(렌더마다 나는 오류가 요청을 쏟지 않게).

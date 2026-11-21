@@ -88,6 +88,7 @@ export function applyTheme(name, mine = loadThemes(), { save = true } = {}) {
   const own = mine.find((t) => t.name === name);
   if (!own && Object.hasOwn(RENAMED, name)) name = RENAMED[name];
   if (!own && !BUILT_IN.includes(name)) name = DEFAULT;
+  if (ART_THEMES.includes(name) && typeof document !== 'undefined') import('./components/art/fonts.js').catch(() => null); // 그림 테마 글꼴은 고를 때만
   // 입자 테마는 9판 글꼴(Inter · Noto Sans KR, 9판과 같은 곳에서)을 처음 고를 때 한 번 받는다. 받는 동안은 비슷한 Pretendard로 보인다
   if (name.startsWith('입자') && typeof document !== 'undefined' && !document.getElementById('nine-font')) {
     const link = Object.assign(document.createElement('link'), { id: 'nine-font', rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500&display=swap' });
@@ -179,7 +180,7 @@ export function switchTheme(name, mine = loadThemes()) {
   }
   setTimeout(() => applyTheme(name, mine), 380); // 덮개가 다 덮은 뒤
   const fonts = document.fonts?.ready ?? Promise.resolve();
-  Promise.all([new Promise((r) => setTimeout(r, 1500)), fonts]).then(() => {
+  Promise.all([new Promise((r) => setTimeout(r, 700)) /* 11-21: 1.5초 → 0.7초(기다림 줄이기) */, fonts]).then(() => {
     cover.classList.add('out');
     setTimeout(() => cover.remove(), 500);
   });

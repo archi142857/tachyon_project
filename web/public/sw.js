@@ -1,5 +1,5 @@
 // 서비스 워커: 화면 파일만 저장해 두고, /api(개인 자료)는 절대 저장하지 않는다.
-// - 페이지 열기: 네트워크 먼저, 끊기면 저장해 둔 index.html
+// - 페이지 열기: 네트워크 먼저, 끊기거나 첫 화면이 2.5초 넘게 걸리면 저장해 둔 index.html
 // - /assets/*: 파일 이름에 해시가 붙어 있어 저장본 먼저
 // 화면을 크게 바꿔 옛 저장본을 한 번에 지우고 싶으면 CACHE 이름의 숫자를 올린다.
 const CACHE = 'ngs-shell-v2'; // v2(11-12): 앱 아이콘을 같은 이름으로 바꿈
@@ -25,15 +25,14 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.startsWith('/api/')) return;
 
   if (req.mode === 'navigate') {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((cache) => cache.put('/', copy));
-          return res;
-        })
-        .catch(() => caches.match('/')),
-    );
+    const net = fetch(req).then((res) => {
+      const copy = res.clone();
+      caches.open(CACHE).then((cache) => cache.put('/', copy));
+      return res;
+    });
+    // 첫 화면('/')만: 망이 느려 2.5초 안에 못 받으면 저장해 둔 화면부터 연다(11-21). 다른 주소(동의 화면 등)는 늘 네트워크
+    const slow = url.pathname === '/' ? new Promise((r) => setTimeout(r, 2500)).then(() => caches.match('/')) : new Promise(() => {});
+    event.respondWith(Promise.race([net.catch(() => null), slow]).then((res) => res || net.catch(() => caches.match('/'))));
     return;
   }
 

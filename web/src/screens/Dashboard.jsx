@@ -2,24 +2,17 @@
 // 넓은 화면(900px부터) = 왼쪽 메뉴(오늘 · 달력 · 할 일 · 메모) + 오른쪽 내용, 폰 = 위 막대 + 작은 탭 + 한 번에 한 칸(덜 복잡하게).
 // 모양은 dhsrua555 시연 9판(100dvh 앱 틀). 색은 테마(바우하우스 · 입자 밤 · 입자 낮). 메모 칸은 늘 맨 아래.
 // 일정처럼 보이는 메모를 보내면 메모 칸 바로 위에 '이대로 저장할까요?' 팝업이 뜬다. 설정은 햄버거 메뉴.
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import * as api from '../api.js';
 import { dayLegs, loadCampus } from '../campus.js';
-import CalendarSheet from '../components/CalendarSheet.jsx';
-import AiSheet from '../components/AiSheet.jsx';
 import Composer from '../components/Composer.jsx';
 import { FloatMemo, FloatPopup, activeWindow, canFloat, growFloat, openCenterWindow, shrinkFloat, useFloatWindow } from '../components/MemoFloat.jsx';
-import DeleteAccount from '../components/DeleteAccount.jsx';
-import DoneSheet from '../components/DoneSheet.jsx';
 import { EventEditSheet, EventInfoSheet, TaskEditSheet } from '../components/EditSheets.jsx';
-import EtlSheet from '../components/EtlSheet.jsx';
 import { takeHashGift } from '../etlToken.js';
-import FeedbackSheet from '../components/FeedbackSheet.jsx';
 import InboxSheet from '../components/InboxSheet.jsx';
 import GuideSheet, { guideSeen } from '../components/GuideSheet.jsx';
 import Icon from '../components/Icon.jsx';
-import InstallSheet from '../components/InstallSheet.jsx';
 import JoinSheet from '../components/JoinSheet.jsx';
 import Logo from '../components/Logo.jsx';
 import MemoCard from '../components/MemoCard.jsx';
@@ -35,19 +28,38 @@ import { ThemeBackdrop } from '../components/art/Backdrop.jsx'; // 그림 테마
 import Sheet from '../components/Sheet.jsx';
 import Snackbar from '../components/Snackbar.jsx';
 import TaskList from '../components/TaskList.jsx';
-import ThemeSheet from '../components/ThemeSheet.jsx';
-import TogetherPage from '../components/TogetherPage.jsx';
-import ActivitiesPage from '../components/ActivitiesPage.jsx';
-import TidySheet from '../components/TidySheet.jsx';
 import TodayView from '../components/TodayView.jsx';
 import WidgetGrid from '../components/WidgetGrid.jsx';
 import { DEFAULT_ORDER, FIRST, LAYOUTS, readLayout, swapOrder, writeLayout } from '../todayLayout.js';
-import TtwSheet from '../components/TtwSheet.jsx';
 import WeekCalendar, { calPad } from '../components/WeekCalendar.jsx';
 import { useThemeName } from '../themeName.js';
 import { PARTICLE, applyTheme } from '../themes.js';
 import { PLAN_DAYS, dateKey, eventOnlyDay, fromServerPlan, planDensity } from '../density.js';
 import { WEEKDAYS, addDays, dateInput, dayStart, hhmm, isoFromInputs, kst, monthGrid, sameDay, shiftMonth, shortDate, timeInput, toKstIso } from '../time.js';
+
+// 가끔 여는 창 · 쪽은 열 때 받는다(11-21 — 첫 화면에 실리는 코드를 줄인다). 받는 동안은 아무것도 안 그린다(보통 한 장면 안)
+function later(load) {
+  const C = lazy(load);
+  return function Later(props) {
+    return (
+      <Suspense fallback={null}>
+        <C {...props} />
+      </Suspense>
+    );
+  };
+}
+const CalendarSheet = later(() => import('../components/CalendarSheet.jsx'));
+const AiSheet = later(() => import('../components/AiSheet.jsx'));
+const DeleteAccount = later(() => import('../components/DeleteAccount.jsx'));
+const DoneSheet = later(() => import('../components/DoneSheet.jsx'));
+const EtlSheet = later(() => import('../components/EtlSheet.jsx'));
+const FeedbackSheet = later(() => import('../components/FeedbackSheet.jsx'));
+const InstallSheet = later(() => import('../components/InstallSheet.jsx'));
+const ThemeSheet = later(() => import('../components/ThemeSheet.jsx'));
+const TogetherPage = later(() => import('../components/TogetherPage.jsx'));
+const ActivitiesPage = later(() => import('../components/ActivitiesPage.jsx'));
+const TidySheet = later(() => import('../components/TidySheet.jsx'));
+const TtwSheet = later(() => import('../components/TtwSheet.jsx'));
 
 // 넓은 화면(900px부터)인가 — 오늘 쪽 위젯 칸은 넓은 화면에서만(폰은 지금 탭)
 const WIDE = '(min-width: 900px)';

@@ -1,11 +1,12 @@
 // 화면 흐름: 로그인 → (처음이면) 첫 설정 → 대시보드. 주소 끝에 ?example을 붙이면 서버 없이 예시 자료로 연다.
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import * as api from './api.js';
 import Dashboard from './screens/Dashboard.jsx';
 import { clearNotify, inApp, listenAppLogin, listenAppResume, listenBack, listenNotify, pushToDevice } from './native.js';
 import Logo from './components/Logo.jsx';
 import Login from './screens/Login.jsx';
-import Setup from './screens/Setup.jsx';
+
+const Setup = lazy(() => import('./screens/Setup.jsx')); // 첫 설정은 처음 한 번만 쓰니 그때 받는다(11-21)
 
 export default function App() {
   const [screen, setScreen] = useState('loading'); // loading | down(인터넷 끊김) | login | setup | dashboard
@@ -122,16 +123,24 @@ export default function App() {
     );
   if (screen === 'setup')
     return (
-      <Setup
-        user={user}
-        example={api.isExample()}
-        again={again}
-        onDone={() => {
-          setAgain(false);
-          load();
-        }}
-        onDeleted={onDeleted}
-      />
+      <Suspense
+        fallback={
+          <div className="boot" aria-busy="true" aria-label="여는 중">
+            <Logo height={30} />
+          </div>
+        }
+      >
+        <Setup
+          user={user}
+          example={api.isExample()}
+          again={again}
+          onDone={() => {
+            setAgain(false);
+            load();
+          }}
+          onDeleted={onDeleted}
+        />
+      </Suspense>
     );
   return (
     <Dashboard

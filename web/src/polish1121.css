@@ -51,3 +51,86 @@
 section.cal { position: relative; }
 .cal-sel-hint { position: absolute; left: 50%; bottom: 10px; z-index: 6; transform: translateX(-50%); width: max-content; max-width: calc(100% - 24px); margin: 0; padding: 7px 14px; border-radius: 999px; background: var(--heading); color: var(--bg); font-size: 12px; line-height: 16px; pointer-events: none; }
 @media (hover: none) { .cal-grid .ev.selected .ev-grip { height: 28px; bottom: -14px; } }
+
+/* ── 모든 테마: 보는 사람 설정을 따르는 것(모양이 아니라 접근성) ── */
+/* 움직임 줄이기를 켠 사람: 꾸밈 움직임 · 전환을 모두 끈다 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+/* 창이 뒤로 가 있는 동안: 계속 도는 꾸밈 움직임을 멈춘다(main.jsx가 html[data-idle]) */
+html[data-idle] *, html[data-idle] *::before, html[data-idle] *::after { animation-play-state: paused !important; }
+/* 마우스가 있는 기기: 창 안 글은 긁어 복사할 수 있게(폰은 지금처럼 앱답게 막아 둔다) */
+@media (hover: hover) and (pointer: fine) {
+  .sheet-inner :is(p, dd, li, h2, h3), .act-card :is(p, h3) { -webkit-user-select: text; user-select: text; }
+}
+/* 끝까지 굴렸을 때 뒤 화면이 따라 굴지 않게 */
+.list-scroll, .sheet-inner, .memo-log { overscroll-behavior: contain; }
+
+/* ── ② 바우하우스 뺀 다섯 테마 다듬기(html[data-theme]). 바우하우스는 data-theme가 없어 닿지 않는다 ── */
+html[data-theme] {
+  --t-press: 120ms; --t-ui: 180ms; --t-enter: 260ms; --ease: cubic-bezier(0.2, 0, 0, 1);
+  --hover: color-mix(in srgb, var(--text) 7%, transparent);
+  scrollbar-color: color-mix(in srgb, var(--text) 28%, transparent) transparent;
+}
+html[data-theme] * { scrollbar-width: thin; }
+
+/* 읽기: 옅은 글자를 더 진하게(작은 글자 대비 4.5:1 쪽으로) */
+html[data-theme^='입자'] {
+  --mu: color-mix(in srgb, var(--ink) calc(66% + 12% * var(--t)), transparent);
+  --fa: color-mix(in srgb, var(--ink) calc(50% + 16% * var(--t)), transparent);
+}
+html[data-theme^='입자'] :is(.btn-text.danger, .task .meta .late-due) { color: var(--danger); }
+html[data-theme^='입자'] .task .short { color: var(--warn); }
+html[data-theme^='입자'] :is(.side-nav, .tabs) .count { color: var(--on-accent, #fff); font-size: 11px; font-weight: 600; }
+html[data-theme='입자 낮'] { --cal-sun: #b3123c; --te: #07725f; }
+html[data-theme='뉴모피즘'] { --cal-sat: #38647f; }
+
+/* 지난 일정: 통째로 흐리게(글자까지 안 읽힘) 대신 면만 옅게, 글자는 읽히게 */
+html[data-theme] .cal.wk .cal-grid .ev.past { opacity: 1; background: color-mix(in srgb, var(--tone) calc(var(--ev-fill) * 0.4), var(--card)); box-shadow: inset 3px 0 0 color-mix(in srgb, var(--tone) 45%, var(--card)); }
+html[data-theme] .cal.wk .cal-grid .ev.past .ev-t { color: var(--text2); }
+
+/* 글자 크기 바닥 12px(달력 작은 글자 · 꼬리표) */
+html[data-theme] .cal.wk :is(.dh, .ev-m, .cal-hours span, .late-pill), html[data-theme] .due-axis { font-size: 12px; }
+html[data-theme] .cal.wk .cal-grid .ev .ev-m { line-height: 15px; }
+
+/* 폰: 메모 칸 글자 16px(아이폰이 화면을 확대하지 않게) · 손가락 자리 44px */
+@media (pointer: coarse) {
+  html[data-theme] .composer input { font-size: 16px; }
+  html[data-theme] :is(.segmented button, .cal-pick button, .act-tabs button, .tasks-head .btn-text) { min-height: 44px; }
+}
+
+/* 움직임: 색 · 누름만 짧게. 그림자 · 카드 전체에는 전환을 걸지 않는다(굴릴 때 · 테마 바꿀 때 렉의 원인) */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-theme] .card { transition: none; }
+  html[data-theme] :is(button, .btn, .chip, .task, input) { transition: background-color var(--t-ui) var(--ease), color var(--t-ui) var(--ease), border-color var(--t-ui) var(--ease), opacity var(--t-ui) var(--ease), transform var(--t-press) var(--ease); }
+  /* 쪽을 옮기면 살짝 떠오르며 나타난다(합성기에서만: opacity · transform) */
+  html[data-theme] .shell .page > * { animation: polish-in var(--t-enter) var(--ease) backwards; }
+  html[data-theme] dialog.sheet[open] .sheet-inner { animation: polish-in var(--t-enter) var(--ease) backwards; }
+}
+@keyframes polish-in { from { opacity: 0; transform: translateY(6px); } }
+
+/* 마우스를 올리면 눌리는 것임을 알려 준다(입자에만 있던 것을 다섯 테마 모두) */
+@media (hover: hover) {
+  html[data-theme]:not([data-theme='뉴모피즘']) :is(.menu-list button, .pick button, .share-item, .today-allday .chip, .cal-top .chip, .task-old > summary):hover { background-color: var(--hover); }
+  html[data-theme] :is(.btn, .composer .send):not(:disabled):hover { filter: brightness(1.08); }
+  html[data-theme] .day .ev[role='button']:hover { filter: brightness(1.06); }
+  html[data-theme] .task .title:hover { text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); text-underline-offset: 3px; }
+}
+
+/* 키보드 초점 테: 어느 테마든 또렷하게 한 가지로 */
+html[data-theme] :is(button, a, input, select, summary, [role='button'], [tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html[data-theme='뉴모피즘'] .composer form:focus-within { box-shadow: var(--in, none), 0 0 0 2px var(--accent); }
+
+/* 모서리: 테마마다 한 가지 값으로(달력 칩 · 날짜 칸이 테마와 따로 놀던 것) */
+html[data-theme^='입자'] { --r-chip: 8px; }
+html[data-theme='태양계'] { --r-chip: 6px; }
+html[data-theme='오선지'] { --r-chip: 2px; }
+html[data-theme='뉴모피즘'] { --r-chip: 12px; }
+html[data-theme] .cal.wk :is(.cal-top .chip, .cal-days .cal-day), html[data-theme] :is(.today-allday .chip, .conn-line, .cal-days-input) { border-radius: var(--r-chip); }
+html[data-theme] .cal.wk .cal-grid .ev { border-radius: min(var(--r-chip), 8px); }
+
+/* 연결 상태 줄 · 메뉴 꼬리표: 어두운 테마에서 면이 떠 보이지 않게 테만 */
+html[data-theme] .conn-line { background: color-mix(in srgb, var(--text) 6%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 10%, transparent); }
+html[data-theme] .conn-line.bad { background: color-mix(in srgb, var(--danger) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 45%, transparent); color: var(--text); }
+html[data-theme] .menu-state { background: color-mix(in srgb, var(--text) 9%, transparent); }
+html[data-theme] .menu-state.bad { background: var(--danger); color: var(--bg); }
