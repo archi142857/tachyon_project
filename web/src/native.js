@@ -71,8 +71,10 @@ export function listenAppLogin() {
 /**
  * 폰 캘린더 일정을 서버에 보낸다. → { count, same } · 권한이 없으면 null
  * ask: true면 권한을 묻는다. 'once'면 이 폰에서 처음일 때만 묻는다(앱을 열 때).
+ * ifChanged: 마지막으로 올린 목록과 같으면 안 올리고 null(앱으로 돌아올 때마다 부른다 — 11-21 사람 "캘린더 수정하면 자동으로 반영")
  */
-export async function syncDevice(ask = false) {
+let sent = null;
+export async function syncDevice(ask = false, ifChanged = false) {
   const calendar = plugins().Calendar;
   let { readCalendar } = await calendar.checkPermissions();
   if (readCalendar !== 'granted' && (ask === true || (ask === 'once' && !localStorage.getItem(ASKED_KEY)))) {
@@ -84,7 +86,12 @@ export async function syncDevice(ask = false) {
   const now = Date.now();
   const { events } = await calendar.findEvents({ startDate: now - 31 * DAY_MS, endDate: now + 184 * DAY_MS });
   const mine = events.filter((e) => e.calendarName !== CAL_NAME); // Tachyon이 써 넣은 일정은 다시 올리지 않는다
-  return sendDeviceEvents(mine.map((e) => ({ id: e.id, title: e.title, start: e.startDate, end: e.endDate, allDay: Boolean(e.isAllDay), place: e.location })));
+  const list = mine.map((e) => ({ id: e.id, title: e.title, start: e.startDate, end: e.endDate, allDay: Boolean(e.isAllDay), place: e.location }));
+  const sig = JSON.stringify(list);
+  if (ifChanged && sig === sent) return null;
+  const out = await sendDeviceEvents(list);
+  sent = sig;
+  return out;
 }
 
 // ── 폰 캘린더에 쓰기 ─────────────────────────────────────────
@@ -93,7 +100,7 @@ export const pushOn = () => localStorage.getItem(PUSH_KEY) === '1';
 
 /**
  * 앱을 다시 볼 때(뒤에 있다가 앞으로) 폰 'Tachyon' 캘린더를 맞춘다. 5분에 한 번까지.
- * 폰 → 서버(syncDevice)는 지금처럼 앱을 처음 열 때만(서버 읽기 줄이기, 11-10 서버 쪽지).
+ * 폰 → 서버(syncDevice)는 앱을 열 때 + 돌아올 때 바뀐 것이 있으면(Dashboard.jsx back, 11-21).
  */
 export function listenAppResume(ready) {
   let last = Date.now();

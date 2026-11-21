@@ -135,6 +135,12 @@ describe('폰 캘린더에 쓰기 흐름(가짜 플러그인)', () => {
     // 폰 → 서버로 보낼 때는 Tachyon 캘린더를 뺀다
     await native.syncDevice();
     expect(api.sendDeviceEvents).toHaveBeenLastCalledWith([{ id: 'g1', title: '예시 폰 일정', start: 1, end: 2, allDay: false, place: undefined }]);
+    // 앱으로 돌아올 때(ifChanged): 그대로면 안 올리고, 폰 캘린더가 바뀌면 올린다(11-21)
+    const sends = api.sendDeviceEvents.mock.calls.length;
+    expect(await native.syncDevice(false, true)).toBe(null);
+    expect(api.sendDeviceEvents.mock.calls.length).toBe(sends);
+    cal.events.find((e) => e.id === 'g1').title = '예시 폰 일정 옮김';
+    expect(await native.syncDevice(false, true)).toEqual({ count: 1, same: 0 });
 
     // 끄면 Tachyon 캘린더만 지운다
     await native.turnPushOff();

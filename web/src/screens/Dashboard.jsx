@@ -26,7 +26,7 @@ import MemoCard from '../components/MemoCard.jsx';
 import MeSheet from '../components/MeSheet.jsx';
 import MemoPopup from '../components/MemoPopup.jsx';
 import TaskActSheet from '../components/TaskActSheet.jsx';
-import { planMorning, planReminders } from '../native.js';
+import { inApp, planMorning, planReminders, syncDevice } from '../native.js';
 import { askedPrefs, readPrefs } from '../prefs.js';
 import { addFocus, arrange, fixTask, fixedOn, pinTask, planTask, plansFrom, snoozeTask } from '../taskLocal.js';
 import { planLabel } from '../tasks.js';
@@ -313,10 +313,9 @@ export default function Dashboard({ example, installPrompt, ttwLink, joinCode, o
     const back = () => {
       if (document.hidden || Date.now() - last < 30000) return;
       last = Date.now();
-      api
-        .syncGcal()
-        .then((r) => r.linked && loadEventsRef.current())
-        .catch(() => {});
+      // 앱이면 폰 캘린더도 다시 읽어 바뀐 것이 있을 때만 올린다(11-21 사람 "캘린더 수정하면 자동으로 반영")
+      const phone = inApp() && !api.isExample() ? syncDevice(false, true).catch(() => null) : null;
+      Promise.all([api.syncGcal().then((r) => r.linked, () => false), phone]).then(([linked, sentPhone]) => (linked || sentPhone) && loadEventsRef.current());
     };
     back();
     window.addEventListener('focus', back);
